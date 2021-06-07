@@ -1,6 +1,5 @@
-from geoengine.lib import Accessor
-from typing import UUID
 import requests as req
+from uuid import UUID
 
 
 class Session:
@@ -12,7 +11,7 @@ class Session:
         self.id = id
 
 
-def initialize(server_url: str) -> Accessor:
+def initialize_session(server_url: str) -> Session:
     '''
     Initialize communication between this library and a Geo Engine instance
     '''
@@ -22,6 +21,4 @@ def initialize(server_url: str) -> Accessor:
     session = req.post(f'{server_url}/anonymous').json()
     session_id = session['id']
 
-    session = Session(session_id)
-
-    Accessor(session)
+    Session(session_id)
