@@ -2,3 +2,10 @@
 build/
 dist/
 *.egg-info
+
+# Caches
+__pycache__
+.pytest_cache
+
+# IDEs
+.vscode
