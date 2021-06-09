@@ -25,14 +25,17 @@ class Bbox:
 
         self.__resolution = resolution
 
+    @property
     def bbox_str(self) -> str:
         return ','.join(map(str, self.__spatial_bbox))
 
+    @property
     def time_str(self) -> str:
         if self.__time_interval[0] == self.__time_interval[1]:
             return self.__time_interval[0].isoformat(timespec='milliseconds')
 
         return '/'.join(map(str, self.__time_interval))
 
+    @property
     def resolution(self) -> float:
         return self.__resolution

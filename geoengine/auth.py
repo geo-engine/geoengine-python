@@ -24,9 +24,11 @@ class Session:
         self.__valid_until = session['validUntil']
         self.__server_url = server_url
 
-    def auth_headers(self) -> Dict[str, str]:
+    @property
+    def auth_header(self) -> Dict[str, str]:
         return {'Authorization': 'Bearer ' + self.__id}
 
+    @property
     def server_url(self) -> str:
         return self.__server_url
 
@@ -35,6 +37,12 @@ session: Session = None
 
 
 def get_session() -> Session:
+    '''
+    Return the global session if it exists
+
+    Raises an exception otherwise.
+    '''
+
     global session
 
     if session is None:
