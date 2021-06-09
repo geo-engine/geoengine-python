@@ -1,3 +1,5 @@
+from typing import Dict
+from geoengine.error import GeoEngineException, UninitializedException
 import requests as req
 from uuid import UUID
 
@@ -7,18 +9,70 @@ class Session:
     A Geo Engine session
     '''
 
-    def __init__(self, id: UUID) -> None:
-        self.id = id
+    __id: UUID
+    __valid_until: str
+    __server_url: str
+
+    def __init__(self, server_url: str) -> None:
+        '''
+        Initialize communication between this library and a Geo Engine instance
+        '''
+
+        # TODO: username and password for Pro version
+
+        session = req.post(f'{server_url}/anonymous').json()
+
+        if 'error' in session:
+            raise GeoEngineException(session)
+
+        self.__id = session['id']
+        self.__valid_until = session['validUntil']
+        self.__server_url = server_url
+
+    @property
+    def auth_header(self) -> Dict[str, str]:
+        return {'Authorization': 'Bearer ' + self.__id}
+
+    @property
+    def server_url(self) -> str:
+        return self.__server_url
 
 
-def initialize_session(server_url: str) -> Session:
+session: Session = None
+
+
+def get_session() -> Session:
+    '''
+    Return the global session if it exists
+
+    Raises an exception otherwise.
+    '''
+
+    global session
+
+    if session is None:
+        raise UninitializedException()
+
+    return session
+
+
+def initialize(server_url: str) -> None:
     '''
     Initialize communication between this library and a Geo Engine instance
     '''
 
-    # TODO: username and password for Pro version
+    global session
 
-    session = req.post(f'{server_url}/anonymous').json()
-    session_id = session['id']
+    session = Session(server_url)
 
-    Session(session_id)
+
+def reset() -> None:
+    '''
+    Resets the current session
+    '''
+
+    global session
+
+    # TODO: active logout for Pro version
+
+    session = None
