@@ -1,5 +1,5 @@
 from datetime import datetime
-from geoengine.workflow import Workflow
+from geoengine.workflow import Workflow, register_workflow
 
 from numpy import nan
 from geoengine.types import Bbox
@@ -9,6 +9,7 @@ import requests_mock
 import geopandas as gpd
 import geopandas.testing
 from shapely.geometry import Point
+import textwrap
 
 
 class AuthTests(unittest.TestCase):
@@ -333,6 +334,72 @@ class AuthTests(unittest.TestCase):
             workflow = ge.workflow_by_id("foobar")
 
             self.assertEqual(repr(workflow), "foobar")
+
+    def test_result_descriptor(self):
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
+                "user": {
+                    "id": "328ca8d1-15d7-4f59-a989-5d5d72c98744",
+                },
+                "created": "2021-06-08T15:22:22.605891994Z",
+                "validUntil": "2021-06-08T16:22:22.605892183Z",
+                "project": None,
+                "view": None
+            })
+
+            m.get('http://mock-instance/workflow/4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd/metadata',
+                  json={
+                      'dataType': 'MultiPoint',
+                      'spatialReference': 'EPSG:4326',
+                      'columns': {
+                          'scalerank': 'int',
+                          'NDVI': 'int',
+                          'featurecla': 'text',
+                          'natlscale': 'float',
+                          'website': 'text',
+                          'name': 'text'
+                      }
+                  },
+                  request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
+
+            m.get('http://mock-instance/workflow/foo/metadata',
+                  json={
+                      'error': 'NotFound',
+                      'message': 'Not Found',
+                  },
+                  request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
+
+            ge.initialize("http://mock-instance")
+
+            workflow = ge.workflow_by_id(
+                '4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd')
+
+            result_descriptor = workflow.get_result_descriptor()
+
+            expected_repr = '''\
+                Data type:         MultiPoint
+                Spatial Reference: EPSG:4326
+                Columns:           scalerank: int
+                                   NDVI: int
+                                   featurecla: text
+                                   natlscale: float
+                                   website: text
+                                   name: text
+                '''
+
+            self.assertEqual(
+                repr(result_descriptor),
+                textwrap.dedent(expected_repr)
+            )
+
+            with self.assertRaises(ge.GeoEngineException) as exception:
+                workflow = ge.workflow_by_id('foo')
+
+                result_descriptor = workflow.get_result_descriptor()
+
+            self.assertEqual(str(exception.exception),
+                             'NotFound: Not Found')
 
 
 if __name__ == '__main__':

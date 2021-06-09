@@ -1,5 +1,5 @@
 from __future__ import annotations
-from geoengine.types import Bbox
+from geoengine.types import Bbox, ResultDescriptor
 import requests as req
 from geoengine.auth import get_session
 from typing import Dict
@@ -16,6 +16,8 @@ class WorkflowId:
     '''
     A wrapper around a workflow UUID
     '''
+
+    __id: UUID
 
     def __init__(self, id: UUID) -> None:
         self.__id = id
@@ -35,6 +37,12 @@ class WorkflowId:
 
 
 class Workflow:
+    '''
+    Holds a workflow id and allows querying data
+    '''
+
+    __id: WorkflowId
+
     def __init__(self, id: WorkflowId) -> None:
         self.__id = id
 
@@ -43,6 +51,22 @@ class Workflow:
 
     def __repr__(self) -> str:
         return repr(self.__id)
+
+    def get_result_descriptor(self) -> ResultDescriptor:
+        '''
+        Query metadata of the workflow result
+        '''
+
+        session = get_session()
+
+        response = req.get(
+            f'{session.server_url}/workflow/{self.__id}/metadata',
+            headers=session.auth_header
+        ).json()
+
+        debug(response)
+
+        return ResultDescriptor.from_response(response)
 
     def get_dataframe(self, bbox: Bbox) -> gpd.GeoDataFrame:
         '''

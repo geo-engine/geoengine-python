@@ -1,12 +1,17 @@
 from typing import Dict
 from geoengine.error import GeoEngineException, UninitializedException
 import requests as req
+from uuid import UUID
 
 
 class Session:
     '''
     A Geo Engine session
     '''
+
+    __id: UUID
+    __valid_until: str
+    __server_url: str
 
     def __init__(self, server_url: str) -> None:
         '''
