@@ -8,6 +8,7 @@ Create a virtual environment (e.g., `python3 -m venv env`).
 Then, install the dependencies with:
 
 ```bash
+python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
 ```
 

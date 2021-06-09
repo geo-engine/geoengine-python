@@ -18,7 +18,9 @@ jobs:
         with:
           python-version: "3.x"
       - name: Install build dependencies
-        run: pip install -U setuptools wheel build pytest
+        run: |
+          pip install -r requirements.txt
+          pip install -e .
       - name: Build
         run: python -m build .
       - name: Test
