@@ -1,10 +1,12 @@
 from datetime import datetime
+
+from numpy import nan
 from geoengine.types import Bbox
 import unittest
 import geoengine as ge
-import requests as req
 import requests_mock
 import geopandas as gpd
+import geopandas.testing
 from shapely.geometry import Point
 
 
@@ -282,18 +284,35 @@ class AuthTests(unittest.TestCase):
             wfs_request = m.request_history[2]
             self.assertEqual(wfs_request.method, "GET")
             self.assertEqual(wfs_request.url,
-                             "http://mock-instance/wfs?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=registry%3A956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326")
+                             "http://mock-instance/wfs?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=registry%3A956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1")
 
-            print(df)
-            print(df.geometry)
-
-            print(gpd.GeoDataFrame(
+            expected_df = gpd.GeoDataFrame(
                 {
-                    "geometry": [Point(0.00742, 5.63194)],
+                    "scalerank": [7, 7, 6, 5, 5, 5, 3],
+                    "website": ["www.ghanaports.gov.gh", "www.nationalportauthorityliberia.org", None, "www.paa-ci.org", None, None, "www.paa-ci.org"],
+                    "NDVI": [nan, 178.0, 108.0, 99.0, 159.0, 128.0, 126.0],
+                    "natlscale": [10.0, 10.0, 20.0, 30.0, 30.0, 30.0, 75.0],
+                    "featurecla": ["Port", "Port", "Port", "Port", "Port", "Port", "Port"],
+                    "name": ["Tema", "Buchanan", "Nieuw Nickerie", "Abidjan", "Kourou", "Paramaribo", "Abidjan"],
+                    "geometry": [
+                        Point(0.007420495, 5.631944444),
+                        Point(-10.05265018, 5.858055556),
+                        Point(-57.00176678, 5.951666667),
+                        Point(-3.966666667, 5.233055556),
+                        Point(-52.62426384, 5.158888889),
+                        Point(-55.13898704, 5.82),
+                        Point(-4.021260306, 5.283333333),
+                    ],
+                    "start": [datetime.strptime(
+                        '2014-04-01T00:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z") for _ in range(7)],
+                    "end": [datetime.strptime(
+                        '2014-05-01T00:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z") for _ in range(7)],
                 },
-                geometry="geometry").geometry)
+                geometry="geometry",
+                crs="EPSG:4326",
+            )
 
-            self.assertEqual(True, False)
+            gpd.testing.assert_geodataframe_equal(df, expected_df)
 
 
 if __name__ == '__main__':
