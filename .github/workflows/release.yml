@@ -2,9 +2,9 @@ name: Release
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -21,6 +21,8 @@ jobs:
         run: pip install -U setuptools wheel build
       - name: Build
         run: python -m build .
+      - name: Test
+        run: pytest
       # - name: Publish
       #   uses: pypa/gh-action-pypi-publish@master
       #   with:
