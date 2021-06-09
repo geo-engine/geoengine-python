@@ -1,4 +1,5 @@
 from datetime import datetime
+from geoengine.workflow import Workflow
 
 from numpy import nan
 from geoengine.types import Bbox
@@ -17,8 +18,7 @@ class AuthTests(unittest.TestCase):
 
     def test_uninitialized(self):
         with self.assertRaises(ge.UninitializedException) as exception:
-            ge.geopandas_by_workflow_id(
-                "foobar",
+            ge.workflow_by_id("foobar").get_dataframe(
                 Bbox(
                     [-180, -90, 180, 90],
                     [datetime.now(), datetime.now()]
@@ -236,7 +236,7 @@ class AuthTests(unittest.TestCase):
 
             ge.initialize("http://mock-instance")
 
-            workflow = {
+            workflow_definition = {
                 "type": "Vector",
                 "operator": {
                     "type": "RasterVectorJoin",
@@ -265,8 +265,9 @@ class AuthTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
 
-            df = ge.geopandas_by_workflow(
-                workflow,
+            workflow = ge.register_workflow(workflow_definition)
+
+            df = workflow.get_dataframe(
                 Bbox(
                     [-60.0, 5.0, 61.0, 6.0],
                     [time, time]
@@ -279,7 +280,7 @@ class AuthTests(unittest.TestCase):
             self.assertEqual(workflow_request.method, "POST")
             self.assertEqual(workflow_request.url,
                              "http://mock-instance/workflow")
-            self.assertEqual(workflow_request.json(), workflow)
+            self.assertEqual(workflow_request.json(), workflow_definition)
 
             wfs_request = m.request_history[2]
             self.assertEqual(wfs_request.method, "GET")
@@ -313,6 +314,25 @@ class AuthTests(unittest.TestCase):
             )
 
             gpd.testing.assert_geodataframe_equal(df, expected_df)
+
+    def test_repr(self):
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
+                "user": {
+                    "id": "328ca8d1-15d7-4f59-a989-5d5d72c98744",
+                },
+                "created": "2021-06-08T15:22:22.605891994Z",
+                "validUntil": "2021-06-08T16:22:22.605892183Z",
+                "project": None,
+                "view": None
+            })
+
+            ge.initialize("http://mock-instance")
+
+            workflow = ge.workflow_by_id("foobar")
+
+            self.assertEqual(repr(workflow), "foobar")
 
 
 if __name__ == '__main__':

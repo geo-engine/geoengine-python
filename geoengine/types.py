@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class Bbox:
-    def __init__(self, spatial_bbox: Tuple[float, float, float, float], time_interval: Tuple[datetime, datetime], resolution=0.1) -> None:
+    def __init__(self, spatial_bbox: Tuple[float, float, float, float], time_interval: Tuple[datetime, datetime], resolution=0.1, srs='EPSG:4326') -> None:
         xmin = spatial_bbox[0]
         ymin = spatial_bbox[1]
         xmax = spatial_bbox[2]
@@ -25,6 +25,8 @@ class Bbox:
 
         self.__resolution = resolution
 
+        self.__srs = srs
+
     @property
     def bbox_str(self) -> str:
         return ','.join(map(str, self.__spatial_bbox))
@@ -39,3 +41,7 @@ class Bbox:
     @property
     def resolution(self) -> float:
         return self.__resolution
+
+    @property
+    def srs(self) -> str:
+        return self.__srs
