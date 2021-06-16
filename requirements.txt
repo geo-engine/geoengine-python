@@ -1,4 +1,5 @@
 build
 pytest
+requests_mock
 setuptools
 wheel
