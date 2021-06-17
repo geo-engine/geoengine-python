@@ -107,6 +107,7 @@ class Workflow:
             '''
 
             data = gpd.read_file(StringIO(data_response.text))
+            data = data.set_crs(bbox.srs)
 
             geo_json = data_response.json()
             start = [f['when']['start'] for f in geo_json['features']]
@@ -176,11 +177,19 @@ class Workflow:
                    layer_name=str(self),
                    crs=bbox.srs)
 
-        # print(faux_capabilities)  # TODO: remove
+        def srs_to_projection(srs: str) -> ccrs.Projection:
+            fallback = ccrs.PlateCarree()
 
-        # TODO: allow other projections
+            [authority, code] = srs.split(':')
 
-        ax = fig.add_subplot(1, 1, 1, projection=ccrs.Mercator())
+            if authority != 'EPSG:':
+                return fallback
+            try:
+                return ccrs.epsg(code)
+            except:
+                return fallback
+
+        ax = fig.add_subplot(1, 1, 1, projection=srs_to_projection(bbox.srs))
 
         wms = WebMapService(wms_url,
                             version='1.3.0',
@@ -194,7 +203,10 @@ class Workflow:
 
         ax.add_wms(wms,
                    layers=[str(self)],
-                   wms_kwargs={'time': urllib.parse.quote(bbox.time_str)})
+                   wms_kwargs={
+                       'time': urllib.parse.quote(bbox.time_str),
+                       'bbox': bbox.bbox_str
+                   })
 
         return (fig, ax)
 
