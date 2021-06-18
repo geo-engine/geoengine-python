@@ -22,7 +22,7 @@ jobs:
       - name: APT update
         run: sudo apt-get update
       - name: Install packages
-        run: sudo apt-get install geos proj
+        run: sudo apt-get install libgeos-dev libproj-dev
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
