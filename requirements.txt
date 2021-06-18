@@ -1,5 +1,7 @@
 build
+flufl.lock # for cartopy mpl tests
 pytest
 requests_mock
+responses # mocking urllib3 requests
 setuptools
 wheel

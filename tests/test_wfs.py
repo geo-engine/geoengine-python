@@ -1,5 +1,4 @@
 from datetime import datetime
-from geoengine.workflow import Workflow, register_workflow
 
 from numpy import nan
 from geoengine.types import Bbox
@@ -7,8 +6,8 @@ import unittest
 import geoengine as ge
 import requests_mock
 import geopandas as gpd
-import geopandas.testing
 from shapely.geometry import Point
+import geopandas.testing
 import textwrap
 
 

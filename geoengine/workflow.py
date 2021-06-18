@@ -122,7 +122,7 @@ class Workflow:
 
         return geo_json_with_time_to_geopandas(data_response)
 
-    def plot_image(self, bbox: Bbox, fig=plt.figure(figsize=(8, 8))) -> Tuple[plt.Figure, plt.Axes]:
+    def plot_image(self, bbox: Bbox, ax: plt.Axes = None) -> plt.Axes:
         '''
         Query a workflow and return the WMS result as a matplotlib image
         '''
@@ -189,15 +189,13 @@ class Workflow:
             except:
                 return fallback
 
-        ax = fig.add_subplot(1, 1, 1, projection=srs_to_projection(bbox.srs))
+        if ax is None:
+            ax = plt.axes(projection=srs_to_projection(bbox.srs))
 
         wms = WebMapService(wms_url,
                             version='1.3.0',
-                            xml=faux_capabilities)
-
-        # print(wms.contents) # TODO: remove
-
-        # TODO: use bbox
+                            xml=faux_capabilities,
+                            headers=session.auth_header)
 
         # TODO: incorporate spatial resolution (?)
 
@@ -205,10 +203,13 @@ class Workflow:
                    layers=[str(self)],
                    wms_kwargs={
                        'time': urllib.parse.quote(bbox.time_str),
-                       'bbox': bbox.bbox_str
+                       # 'bbox': bbox.bbox_str
                    })
 
-        return (fig, ax)
+        ax.set_xlim(bbox.xmin, bbox.xmax)
+        ax.set_ylim(bbox.ymin, bbox.ymax)
+
+        return ax
 
 
 def register_workflow(workflow: str) -> Workflow:
