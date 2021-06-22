@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 from geoengine.error import GeoEngineException, UninitializedException
 import requests as req
 from uuid import UUID
@@ -10,7 +10,7 @@ class Session:
     '''
 
     __id: UUID
-    __valid_until: str
+    __valid_until: Optional[str] = None
     __server_url: str
 
     def __init__(self, server_url: str) -> None:
@@ -26,8 +26,21 @@ class Session:
             raise GeoEngineException(session)
 
         self.__id = session['id']
-        self.__valid_until = session['validUntil']
+
+        if 'validUntil' in session:
+            self.__valid_until = session['validUntil']
+
         self.__server_url = server_url
+
+    def __repr__(self) -> str:
+        r = ''
+        r += f'Server:              {self.server_url}\n'
+        r += f'Session Id:          {self.__id}\n'
+
+        if self.__valid_until is not None:
+            r += f'Session valid until: {self.__valid_until}\n'
+
+        return r
 
     @property
     def auth_header(self) -> Dict[str, str]:

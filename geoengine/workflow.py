@@ -1,8 +1,9 @@
 from __future__ import annotations
+
 from geoengine.types import Bbox, ResultDescriptor
 import requests as req
 from geoengine.auth import get_session
-from typing import Dict
+from typing import Dict, Tuple
 from geoengine.error import GeoEngineException
 from uuid import UUID
 import geopandas as gpd
@@ -10,6 +11,10 @@ from logging import debug
 from geoengine.auth import get_session
 import geopandas as gpd
 from io import StringIO
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+from owslib.wms import WebMapService
+import urllib.parse
 
 
 class WorkflowId:
@@ -102,17 +107,109 @@ class Workflow:
             '''
 
             data = gpd.read_file(StringIO(data_response.text))
+            data = data.set_crs(bbox.srs)
 
             geo_json = data_response.json()
             start = [f['when']['start'] for f in geo_json['features']]
             end = [f['when']['end'] for f in geo_json['features']]
 
-            data['start'] = gpd.pd.to_datetime(start)
-            data['end'] = gpd.pd.to_datetime(end)
+            # TODO: find a good way to infer BoT/EoT
+
+            data['start'] = gpd.pd.to_datetime(start, errors='coerce')
+            data['end'] = gpd.pd.to_datetime(end, errors='coerce')
 
             return data
 
         return geo_json_with_time_to_geopandas(data_response)
+
+    def plot_image(self, bbox: Bbox, ax: plt.Axes = None) -> plt.Axes:
+        '''
+        Query a workflow and return the WMS result as a matplotlib image
+        '''
+
+        session = get_session()
+
+        wms_url = f'{session.server_url}/wms'
+
+        faux_capabilities = '''
+        <WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3.0" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd">
+            <Service>
+                <Name>WMS</Name>
+                <Title>Geo Engine WMS</Title>
+            </Service>
+            <Capability>
+                <Request>
+                    <GetCapabilities>
+                        <Format>text/xml</Format>
+                        <DCPType>
+                            <HTTP>
+                                <Get>
+                                    <OnlineResource xlink:href="{wms_url}"/>
+                                </Get>
+                            </HTTP>
+                        </DCPType>
+                    </GetCapabilities>
+                    <GetMap>
+                        <Format>image/png</Format>
+                        <DCPType>
+                            <HTTP>
+                                <Get>
+                                    <OnlineResource xlink:href="{wms_url}"/>
+                                </Get>
+                            </HTTP>
+                        </DCPType>
+                    </GetMap>
+                </Request>
+                <Exception>
+                    <Format>XML</Format>
+                    <Format>INIMAGE</Format>
+                    <Format>BLANK</Format>
+                </Exception>
+                <Layer queryable="1">
+                    <Name>{layer_name}</Name>
+                    <Title>{layer_name}</Title>
+                    <CRS>{crs}</CRS>
+                    <BoundingBox CRS="EPSG:4326" minx="-90.0" miny="-180.0" maxx="90.0" maxy="180.0"/>
+                </Layer>
+            </Capability>
+        </WMS_Capabilities>
+        '''.format(wms_url=wms_url,
+                   layer_name=str(self),
+                   crs=bbox.srs)
+
+        def srs_to_projection(srs: str) -> ccrs.Projection:
+            fallback = ccrs.PlateCarree()
+
+            [authority, code] = srs.split(':')
+
+            if authority != 'EPSG:':
+                return fallback
+            try:
+                return ccrs.epsg(code)
+            except:
+                return fallback
+
+        if ax is None:
+            ax = plt.axes(projection=srs_to_projection(bbox.srs))
+
+        wms = WebMapService(wms_url,
+                            version='1.3.0',
+                            xml=faux_capabilities,
+                            headers=session.auth_header)
+
+        # TODO: incorporate spatial resolution (?)
+
+        ax.add_wms(wms,
+                   layers=[str(self)],
+                   wms_kwargs={
+                       'time': urllib.parse.quote(bbox.time_str),
+                       # 'bbox': bbox.bbox_str
+                   })
+
+        ax.set_xlim(bbox.xmin, bbox.xmax)
+        ax.set_ylim(bbox.ymin, bbox.ymax)
+
+        return ax
 
 
 def register_workflow(workflow: str) -> Workflow:

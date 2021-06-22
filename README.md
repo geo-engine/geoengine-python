@@ -18,6 +18,19 @@ Run tests with:
 pytest
 ```
 
+## Dependencies
+
+Since we use `cartopy`, you need to have the following system dependencies installed.
+
+- GEOS
+- PROJ
+
+For Ubuntu, you can use this command:
+
+```bash
+sudo apt-get install libgeos-dev libproj-dev
+```
+
 ## Build
 
 You can build the package with:
