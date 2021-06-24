@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from owslib.wms import WebMapService
 import urllib.parse
+from vega import VegaLite
+import json
 
 
 class WorkflowId:
@@ -210,6 +212,25 @@ class Workflow:
         ax.set_ylim(bbox.ymin, bbox.ymax)
 
         return ax
+
+    def plot_chart(self, bbox: Bbox) -> VegaLite:
+        '''
+        Query a workflow and return the plot chart result as a vega plot
+        '''
+
+        session = get_session()
+
+        time = urllib.parse.quote(bbox.time_str)
+        spatial_bounds = urllib.parse.quote(bbox.bbox_str)
+        resolution = str(f'{bbox.resolution},{bbox.resolution}')
+
+        plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&time={time}&spatialResolution={resolution}'
+
+        response = req.get(plot_url, headers=session.auth_header).json()
+
+        vega_spec = json.loads(response['data']['vegaString'])
+
+        return VegaLite(vega_spec)
 
 
 def register_workflow(workflow: str) -> Workflow:

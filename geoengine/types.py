@@ -85,6 +85,9 @@ class ResultDescriptor:
         if 'columns' in response:
             return VectorResultDescriptor(response)
 
+        if len(response) == 0:
+            return PlotResultDescriptor(response)
+
         raise TypeException('Unknown `ResultDescriptor` type')
 
 
@@ -159,3 +162,13 @@ class RasterResultDescriptor(ResultDescriptor):
     @property
     def no_data_value(self) -> str:
         return self.__no_data_value
+
+
+class PlotResultDescriptor(ResultDescriptor):
+    def __init__(self, _response: Dict[str, Any]) -> None:
+        pass
+
+    def __repr__(self) -> str:
+        r = 'Plot Result'
+
+        return r
