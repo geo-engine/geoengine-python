@@ -95,7 +95,9 @@ class WmsTests(unittest.TestCase):
             })
 
             m.get('http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata',
-                  json={},
+                  json={
+                      "type": "plot"
+                  },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             m.get('http://mock-instance/workflow/foo/metadata',

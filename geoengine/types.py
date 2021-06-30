@@ -76,19 +76,21 @@ class Bbox:
 class ResultDescriptor:
     @staticmethod
     def from_response(response: Dict[str, Any]) -> None:
+
         if 'error' in response:
             raise GeoEngineException(response)
 
-        if 'noDataValue' in response:
+        result_descriptor_type = response['type']
+
+        if result_descriptor_type == 'raster':
             return RasterResultDescriptor(response)
-
-        if 'columns' in response:
+        elif result_descriptor_type == 'vector':
             return VectorResultDescriptor(response)
-
-        if len(response) == 0:
+        elif result_descriptor_type == 'plot':
             return PlotResultDescriptor(response)
-
-        raise TypeException('Unknown `ResultDescriptor` type')
+        else:
+            raise TypeException(
+                f'Unknown `ResultDescriptor` type: {result_descriptor_type}')
 
 
 class VectorResultDescriptor(ResultDescriptor):

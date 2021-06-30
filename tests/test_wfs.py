@@ -319,6 +319,7 @@ class WfsTests(unittest.TestCase):
 
             m.get('http://mock-instance/workflow/4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd/metadata',
                   json={
+                      "type": "vector",
                       'dataType': 'MultiPoint',
                       'spatialReference': 'EPSG:4326',
                       'columns': {

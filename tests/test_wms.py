@@ -90,6 +90,7 @@ class WmsTests(unittest.TestCase):
 
             m.get('http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata',
                   json={
+                      "type": "raster",
                       "dataType": "U8",
                       "spatialReference": "EPSG:4326",
                       "measurement": "unitless",
