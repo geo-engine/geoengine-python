@@ -218,14 +218,20 @@ class WfsTests(unittest.TestCase):
                         "vector": {
                             "type": "OgrSource",
                             "params": {
-                                "dataset": {"internal": "a9623a5b-b6c5-404b-bc5a-313ff72e4e75"},
+                                "dataset": {
+                                    "type": "internal",
+                                    "datasetId": "a9623a5b-b6c5-404b-bc5a-313ff72e4e75"
+                                },
                                 "attributeProjection": None
                             }
                         },
                         "rasters": [{
                             "type": "GdalSource",
                             "params": {
-                                "dataset": {"internal": "36574dc3-560a-4b09-9d22-d5945f2b8093"}
+                                "dataset": {
+                                    "type": "internal",
+                                    "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                                }
                             }
                         }]
                     },
