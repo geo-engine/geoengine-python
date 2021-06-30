@@ -40,6 +40,22 @@ python3 -m pip install --upgrade build
 python3 -m build
 ```
 
+## Distribute to PyPI
+
+### Test-PyPI
+
+```
+python3 -m build
+python3 -m twine upload --repository testpypi dist/*
+```
+
+### PyPI
+
+```
+python3 -m build
+python3 -m twine upload --repository pypi dist/*
+```
+
 ## Try it out
 
 Start a python terminal and try it out:
