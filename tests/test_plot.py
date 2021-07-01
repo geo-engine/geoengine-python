@@ -1,8 +1,7 @@
 
 from datetime import datetime
 from geoengine.workflow import Workflow, register_workflow
-
-from geoengine.types import Bbox
+from geoengine.types import QueryRectangle
 import unittest
 import geoengine as ge
 import requests_mock
@@ -69,7 +68,7 @@ class WmsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             vega_chart = workflow.plot_chart(
-                Bbox(
+                QueryRectangle(
                     [-180.0, -90.0, 180.0, 90.0],
                     [time, time]
                 )

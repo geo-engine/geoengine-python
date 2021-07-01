@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from numpy import nan
-from geoengine.types import Bbox
+from geoengine.types import QueryRectangle
 import unittest
 import geoengine as ge
 import requests_mock
@@ -244,7 +244,7 @@ class WfsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             df = workflow.get_dataframe(
-                Bbox(
+                QueryRectangle(
                     [-60.0, 5.0, 61.0, 6.0],
                     [time, time]
                 )
