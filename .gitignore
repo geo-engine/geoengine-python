@@ -13,3 +13,6 @@ __pycache__
 
 # Virtual Environments
 env
+
+# Private files
+.pypirc
