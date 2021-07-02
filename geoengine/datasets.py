@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum
 from attr import dataclass
-from geoengine.types import TimeStep, VectorDataType, VectorResultDescriptor
+from geoengine.types import TimeStep, TimeStepGranularity, VectorDataType
 from geoengine.auth import get_session
 from typing import Dict, Union
 from geoengine.error import GeoEngineException, InputException
@@ -63,20 +63,19 @@ class UploadId:
 
 
 class OgrSourceTimeFormat:
-
     def to_dict(self) -> Dict[str, str]:
         pass
 
     @classmethod
-    def seconds() -> SecondsOgrSourceTimeFormat:
+    def seconds(cls) -> SecondsOgrSourceTimeFormat:
         return SecondsOgrSourceTimeFormat()
 
     @classmethod
-    def auto() -> AutoOgrSourceTimeFormat:
-        return AutoOgrSourceTimeFormat
+    def auto(cls) -> AutoOgrSourceTimeFormat:
+        return AutoOgrSourceTimeFormat()
 
     @classmethod
-    def custom(format: str) -> CustomOgrSourceTimeFormat:
+    def custom(cls, format: str) -> CustomOgrSourceTimeFormat:
         return CustomOgrSourceTimeFormat(format)
 
 
@@ -112,28 +111,27 @@ class OgrSourceDuration:
         pass
 
     @classmethod
-    def zero() -> OgrSourceTimeFormat:
+    def zero(cls) -> OgrSourceTimeFormat:
         return ZeroOgrSourceDurationSpec()
 
     @classmethod
-    def infinite() -> OgrSourceTimeFormat:
+    def infinite(cls) -> OgrSourceTimeFormat:
         return InfiniteOgrSourceDurationSpec()
 
     @classmethod
-    def value(value: int) -> OgrSourceTimeFormat:
-        return ValueOgrSourceDurationSpec(value)
+    def value(cls, value: int, granularity: TimeStepGranularity = TimeStepGranularity.seconds) -> OgrSourceTimeFormat:
+        return ValueOgrSourceDurationSpec(TimeStep(value, granularity))
 
 
 @dataclass
 class ValueOgrSourceDurationSpec(OgrSourceDuration):
-    value: str
     step: TimeStep
 
     def to_dict(self) -> Dict[str, str]:
         return {
             "type": "value",
             "step": self.step.step,
-            "granularity": self.step.granularity
+            "granularity": self.step.granularity.value
         }
 
 
@@ -157,19 +155,20 @@ class OgrSourceDatasetTimeType:
     def to_dict(self) -> Dict[str, str]:
         pass
 
-    def none() -> OgrSourceTimeFormat:
+    @classmethod
+    def none(cls) -> OgrSourceTimeFormat:
         return NoneOgrSourceDatasetTimeType()
 
     @classmethod
-    def start(start_field: str, start_format: OgrSourceTimeFormat, duration: OgrSourceDuration) -> OgrSourceTimeFormat:
+    def start(cls, start_field: str, start_format: OgrSourceTimeFormat, duration: OgrSourceDuration) -> OgrSourceTimeFormat:
         return StartOgrSourceDatasetTimeType(start_field, start_format, duration)
 
     @classmethod
-    def start_end(start_field: str, start_format: OgrSourceTimeFormat, end_field: str, end_format: OgrSourceTimeFormat) -> OgrSourceTimeFormat:
+    def start_end(cls, start_field: str, start_format: OgrSourceTimeFormat, end_field: str, end_format: OgrSourceTimeFormat) -> OgrSourceTimeFormat:
         return StartEndOgrSourceDatasetTimeType(start_field, start_format, end_field, end_format)
 
     @classmethod
-    def start_duration(start_field: str, start_format: OgrSourceTimeFormat, duration_field: str) -> OgrSourceTimeFormat:
+    def start_duration(cls, start_field: str, start_format: OgrSourceTimeFormat, duration_field: str) -> OgrSourceTimeFormat:
         return StartEndOgrSourceDatasetTimeType(start_field, start_format, duration_field)
 
 
@@ -185,14 +184,14 @@ class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     start_field: str
     start_format: OgrSourceTimeFormat
-    duration: int
+    duration: OgrSourceDuration
 
     def to_dict(self) -> Dict[str, str]:
         return {
             "type": "start",
             "startField": self.start_field,
             "startFormat": self.start_format.to_dict(),
-            "duration": self.duration
+            "duration": self.duration.to_dict()
         }
 
 

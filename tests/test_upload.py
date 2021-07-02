@@ -1,7 +1,7 @@
 from datetime import datetime
-from geoengine.datasets import DatasetId, InternalDatasetId
+from geoengine.datasets import DatasetId, InternalDatasetId, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat
 from numpy import nan
-from geoengine.types import Bbox
+from geoengine.types import Bbox, TimeStepGranularity
 import unittest
 import geoengine as ge
 import requests_mock
@@ -56,6 +56,23 @@ class UploadTests(unittest.TestCase):
 
             self.assertEqual(id, InternalDatasetId(
                 "fc5f9e0f-ac97-421f-a5be-d701915ceb6f"))
+
+    def test_time_specification(self):
+        time = OgrSourceDatasetTimeType.start(
+            'start', OgrSourceTimeFormat.auto(), OgrSourceDuration.value(10, TimeStepGranularity.minutes))
+
+        self.assertEqual(time.to_dict(), {
+            'type': 'start',
+            'startField': 'start',
+            'startFormat': {
+                'format': 'auto'
+            },
+            'duration': {
+                'type': 'value',
+                'step': 10,
+                'granularity': 'Minutes'
+            }
+        })
 
 
 if __name__ == '__main__':
