@@ -1,4 +1,5 @@
 from datetime import datetime
+from geoengine.datasets import DatasetId, InternalDatasetId
 from numpy import nan
 from geoengine.types import Bbox
 import unittest
@@ -8,26 +9,53 @@ import pandas as pd
 import geopandas
 
 
-class AuthTests(unittest.TestCase):
+class UploadTests(unittest.TestCase):
 
     def setUp(self) -> None:
         ge.reset()
 
     def test_upload(self):
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                "project": None,
+                "view": None
+            })
 
-        ge.initialize("http://localhost:3030")
+            m.post('http://mock-instance/upload',
+                   json={
+                       "id": "c314ff6d-3e37-41b4-b9b2-3669f13f7369"
+                   },
+                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-        df = pd.DataFrame(
-            {'City': ['Buenos Aires', 'Brasilia', 'Santiago', 'Bogota', 'Caracas'],
-             'Country': ['Argentina', 'Brazil', 'Chile', 'Colombia', 'Venezuela'],
-             'index': [0, 1, 2, 3, 4],
-             'Latitude': [-34.58, -15.78, -33.45, 4.60, 10.48],
-             'Longitude': [-58.66, -47.91, -70.66, -74.08, -66.86]})
+            m.post('http://mock-instance/dataset',
+                   json={
+                       'id': {
+                           'type': 'internal',
+                           'datasetId': 'fc5f9e0f-ac97-421f-a5be-d701915ceb6f'
+                       }
+                   },
+                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-        gdf = geopandas.GeoDataFrame(
-            df, geometry=geopandas.points_from_xy(df.Longitude, df.Latitude), crs="EPSG:4326")
+            ge.initialize("http://mock-instance")
 
-        ge.upload_dataframe(gdf)
+            df = pd.DataFrame(
+                {
+                    'label': ['NA', 'DE'],
+                    'index': [0, 1],
+                    'rnd': [34.34, 567.547]
+                })
+
+            polygons = ['Polygon((-121.46484375 47.109375, -99.31640625 17.2265625, -56.42578125 52.03125,-121.46484375 47.109375))',
+                        'Polygon((4.74609375 53.61328125, 5.09765625 43.06640625, 15.1171875 43.76953125, 15.1171875 54.4921875, 4.74609375 53.61328125))']
+
+            gdf = geopandas.GeoDataFrame(
+                df, geometry=geopandas.GeoSeries.from_wkt(polygons), crs="EPSG:4326")
+
+            id = ge.upload_dataframe(gdf)
+
+            self.assertEqual(id, InternalDatasetId(
+                "fc5f9e0f-ac97-421f-a5be-d701915ceb6f"))
 
 
 if __name__ == '__main__':

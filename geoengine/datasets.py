@@ -35,6 +35,12 @@ class InternalDatasetId(DatasetId):
     def __repr__(self) -> str:
         return str(self)
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dataset_id == other.__dataset_id
+        else:
+            return False
+
 
 class UploadId:
     __id: UUID
