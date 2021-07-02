@@ -29,6 +29,12 @@ class InternalDatasetId(DatasetId):
 
         return InternalDatasetId(response['id']['datasetId'])
 
+    def to_dict(self) -> Dict[str, str]:
+        return {
+            "type": "internal",
+            "datasetId": self.__dataset_id
+        }
+
     def __str__(self) -> str:
         return self.__dataset_id
 
