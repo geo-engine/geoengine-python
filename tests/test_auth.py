@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from numpy import nan
-from geoengine.types import Bbox
+from geoengine.types import QueryRectangle
 import unittest
 import geoengine as ge
 import requests_mock
@@ -15,7 +15,7 @@ class AuthTests(unittest.TestCase):
     def test_uninitialized(self):
         with self.assertRaises(ge.UninitializedException) as exception:
             ge.workflow_by_id("foobar").get_dataframe(
-                Bbox(
+                QueryRectangle(
                     [-180, -90, 180, 90],
                     [datetime.now(), datetime.now()]
                 )

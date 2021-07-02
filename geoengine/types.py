@@ -4,26 +4,26 @@ from typing import Any, Dict, Tuple
 from datetime import datetime
 
 
-class Bbox:
+class QueryRectangle:
     '''
-    A multi-dimensional bounding box, consisting of spatial and temporal information.
+    A multi-dimensional query rectangle, consisting of spatial and temporal information.
     '''
 
-    __spatial_bbox: Tuple[float, float, float, float]
+    __spatial_bounds: Tuple[float, float, float, float]
     __time_interval: Tuple[datetime, datetime]
     __resolution: float
     __srs: str
 
-    def __init__(self, spatial_bbox: Tuple[float, float, float, float], time_interval: Tuple[datetime, datetime], resolution=0.1, srs='EPSG:4326') -> None:
-        xmin = spatial_bbox[0]
-        ymin = spatial_bbox[1]
-        xmax = spatial_bbox[2]
-        ymax = spatial_bbox[3]
+    def __init__(self, spatial_bounds: Tuple[float, float, float, float], time_interval: Tuple[datetime, datetime], resolution=0.1, srs='EPSG:4326') -> None:
+        xmin = spatial_bounds[0]
+        ymin = spatial_bounds[1]
+        xmax = spatial_bounds[2]
+        ymax = spatial_bounds[3]
 
         if (xmin > xmax) or (ymin > ymax):
             raise InputException("Bbox: Malformed since min must be <= max")
 
-        self.__spatial_bbox = spatial_bbox
+        self.__spatial_bounds = spatial_bounds
 
         if time_interval[0] > time_interval[1]:
             raise InputException("Time inverval: Start must be <= End")
@@ -39,23 +39,23 @@ class Bbox:
 
     @property
     def bbox_str(self) -> str:
-        return ','.join(map(str, self.__spatial_bbox))
+        return ','.join(map(str, self.__spatial_bounds))
 
     @property
     def xmin(self) -> number:
-        return self.__spatial_bbox[0]
+        return self.__spatial_bounds[0]
 
     @property
     def ymin(self) -> number:
-        return self.__spatial_bbox[1]
+        return self.__spatial_bounds[1]
 
     @property
     def xmax(self) -> number:
-        return self.__spatial_bbox[2]
+        return self.__spatial_bounds[2]
 
     @property
     def ymax(self) -> number:
-        return self.__spatial_bbox[3]
+        return self.__spatial_bounds[3]
 
     @property
     def time_str(self) -> str:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from geoengine.types import Bbox, ResultDescriptor
+from geoengine.types import QueryRectangle, ResultDescriptor
 import requests as req
 from geoengine.auth import get_session
 from typing import Dict, Tuple
@@ -75,7 +75,7 @@ class Workflow:
 
         return ResultDescriptor.from_response(response)
 
-    def get_dataframe(self, bbox: Bbox) -> gpd.GeoDataFrame:
+    def get_dataframe(self, bbox: QueryRectangle) -> gpd.GeoDataFrame:
         '''
         Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
         '''
@@ -124,7 +124,7 @@ class Workflow:
 
         return geo_json_with_time_to_geopandas(data_response)
 
-    def plot_image(self, bbox: Bbox, ax: plt.Axes = None) -> plt.Axes:
+    def plot_image(self, bbox: QueryRectangle, ax: plt.Axes = None) -> plt.Axes:
         '''
         Query a workflow and return the WMS result as a matplotlib image
         '''
@@ -213,7 +213,7 @@ class Workflow:
 
         return ax
 
-    def plot_chart(self, bbox: Bbox) -> VegaLite:
+    def plot_chart(self, bbox: QueryRectangle) -> VegaLite:
         '''
         Query a workflow and return the plot chart result as a vega plot
         '''
