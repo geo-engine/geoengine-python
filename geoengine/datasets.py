@@ -3,12 +3,12 @@ from enum import Enum
 from attr import dataclass
 from geoengine.types import TimeStep, TimeStepGranularity, VectorDataType
 from geoengine.auth import get_session
-from typing import Dict, Union
+from typing import Dict
 from geoengine.error import GeoEngineException, InputException
 from uuid import UUID
 import geopandas as gpd
 import requests as req
-from numpy import dtype
+import numpy as np
 
 
 class DatasetId:
@@ -238,17 +238,15 @@ class OgrOnError(Enum):
     abort = "abort"
 
 
-def pandas_dtype_to_column_type(dtype: dtype) -> str:
-    type_map = {
-        'object': 'text',
-        'float64': 'float',
-        'int64': 'int'
-    }
+def pandas_dtype_to_column_type(dtype: np.dtype) -> str:
+    if np.issubdtype(dtype, np.integer):
+        return 'int'
 
-    dtype = str(dtype)
+    if np.issubdtype(dtype, np.floating):
+        return 'float'
 
-    if dtype in type_map:
-        return type_map[dtype]
+    if str(dtype) == 'object':
+        return 'text'
 
     raise InputException(
         f'pandas dtype {dtype} has no corresponding column type')

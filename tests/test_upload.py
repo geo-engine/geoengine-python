@@ -1,7 +1,5 @@
-from datetime import datetime
-from geoengine.datasets import DatasetId, InternalDatasetId, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat
-from numpy import nan
-from geoengine.types import Bbox, TimeStepGranularity
+from geoengine.datasets import InternalDatasetId, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat, pandas_dtype_to_column_type
+from geoengine.types import TimeStepGranularity
 import unittest
 import geoengine as ge
 import requests_mock
