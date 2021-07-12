@@ -1,3 +1,6 @@
+from __future__ import annotations
+from enum import Enum
+from attr import dataclass
 from numpy import number
 from geoengine.error import GeoEngineException, InputException, TypeException
 from typing import Any, Dict, Tuple
@@ -174,3 +177,39 @@ class PlotResultDescriptor(ResultDescriptor):
         r = 'Plot Result'
 
         return r
+
+
+class VectorDataType(Enum):
+    data = 'Data'
+    multi_point = 'MultiPoint'
+    multi_line_string = 'MultiLineString'
+    multi_polygon = 'MultiPolygon'
+
+    @classmethod
+    def from_geopandas_type_name(cls, name: str) -> VectorDataType:
+        name_map = {
+            "Point": VectorDataType.multi_point,
+            "Line": VectorDataType.multi_line_string,
+            "Polygon": VectorDataType.multi_polygon,
+        }
+
+        if name in name_map:
+            return name_map[name]
+
+        raise InputException("Invalid vector data type")
+
+
+class TimeStepGranularity(Enum):
+    millis = 'Millis'
+    seconds = 'Seconds'
+    minutes = 'Minutes'
+    hours = 'Hours'
+    days = 'Days'
+    months = 'Months'
+    years = 'Years'
+
+
+@dataclass
+class TimeStep:
+    step: int
+    granularity: TimeStepGranularity
