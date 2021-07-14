@@ -14,9 +14,11 @@ from io import StringIO
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from owslib.wms import WebMapService
+import rasterio
 import urllib.parse
 from vega import VegaLite
 import json
+import numpy as np
 
 
 class WorkflowId:
@@ -91,7 +93,7 @@ class Workflow:
             bbox=bbox.bbox_str,
             time=bbox.time_str,
             srsName=bbox.srs,
-            queryResolution=bbox.resolution
+            queryResolution=f'{bbox.resolution[0]},{bbox.resolution[1]}'
         )
 
         wfs_url = req.Request(
@@ -222,7 +224,7 @@ class Workflow:
 
         time = urllib.parse.quote(bbox.time_str)
         spatial_bounds = urllib.parse.quote(bbox.bbox_str)
-        resolution = str(f'{bbox.resolution},{bbox.resolution}')
+        resolution = str(f'{bbox.resolution[0]},{bbox.resolution[1]}')
 
         plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&time={time}&spatialResolution={resolution}'
 
@@ -231,6 +233,39 @@ class Workflow:
         vega_spec = json.loads(response['data']['vegaString'])
 
         return VegaLite(vega_spec)
+
+    def get_array(self, bbox: QueryRectangle) -> np.ndarray:
+        '''
+        Query a workflow and return the raster result as a numpy array
+        '''
+        session = get_session()
+
+        # TODO: properly build CRS string for bbox
+        crs = f'urn:ogc:def:crs:{bbox.srs.replace(":", "::")}'
+
+        params = dict(
+            service='WCS',
+            version="1.1.1",
+            request='GetCoverage',
+            format='image/tiff',
+            identifier=f'{self.__id}',
+            boundingbox=f'{bbox.bbox_ogc_str},{crs}',
+            time=bbox.time_str,
+            gridbasecrs=crs,
+            gridcs='urn:ogc:def:cs:OGC:0.0:Grid2dSquareCS',
+            gridtype='urn:ogc:def:method:WCS:1.1:2dSimpleGrid',
+            gridorigin=bbox.bbox_grid_origin_str,
+            gridoffsets=bbox.bbox_grid_offsets_str,
+        )
+
+        # TODO: directly access the raster using /vsicurl/ but that requires the server to support range downloads
+        response = req.get(
+            f'{session.server_url}/wcs/{self.__id}', params=params)
+
+        with rasterio.io.MemoryFile(response.content) as memfile:
+            with memfile.open() as dataset:
+                # TODO: map nodata values to NaN?
+                return dataset.read(1)
 
 
 def register_workflow(workflow: str) -> Workflow:
