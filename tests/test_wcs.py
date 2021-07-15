@@ -26,7 +26,61 @@ class WcsTests(unittest.TestCase):
                    },
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            m.get('http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?service=WCS&version=1.1.1&request=GetCoverage&format=image%2Ftiff&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0%2C-180.0%2C90.0%2C180.0%2Curn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A4326&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&gridbasecrs=urn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A4326&gridcs=urn%3Aogc%3Adef%3Acs%3AOGC%3A0.0%3AGrid2dSquareCS&gridtype=urn%3Aogc%3Adef%3Amethod%3AWCS%3A1.1%3A2dSimpleGrid&gridorigin=90.0%2C-180.0&gridoffsets=-22.5%2C45.0',
+            m.get('http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?service=WCS&request=GetCapabilities&version=1.1.1',
+                  text='''<?xml version="1.0" encoding="UTF-8"?>
+    <wcs:Capabilities version="1.1.1"
+            xmlns:wcs="http://www.opengis.net/wcs/1.1.1"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:ogc="http://www.opengis.net/ogc"
+            xmlns:ows="http://www.opengis.net/ows/1.1"
+            xmlns:gml="http://www.opengis.net/gml"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcs/1.1.1 http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/schemas/wcs/1.1.1/wcsGetCapabilities.xsd" updateSequence="152">
+            <ows:ServiceIdentification>
+                <ows:Title>Web Coverage Service</ows:Title>
+                <ows:ServiceType>WCS</ows:ServiceType>
+                <ows:ServiceTypeVersion>1.1.1</ows:ServiceTypeVersion>
+                <ows:Fees>NONE</ows:Fees>
+                <ows:AccessConstraints>NONE</ows:AccessConstraints>
+            </ows:ServiceIdentification>
+            <ows:ServiceProvider>
+                <ows:ProviderName>Provider Name</ows:ProviderName>
+            </ows:ServiceProvider>
+            <ows:OperationsMetadata>
+                <ows:Operation name="GetCapabilities">
+                    <ows:DCP>
+                        <ows:HTTP>
+                                <ows:Get xlink:href="http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?"/>
+                        </ows:HTTP>
+                    </ows:DCP>
+                </ows:Operation>
+                <ows:Operation name="DescribeCoverage">
+                    <ows:DCP>
+                        <ows:HTTP>
+                                <ows:Get xlink:href="http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?"/>
+                        </ows:HTTP>
+                    </ows:DCP>
+                </ows:Operation>
+                <ows:Operation name="GetCoverage">
+                    <ows:DCP>
+                        <ows:HTTP>
+                                <ows:Get xlink:href="http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?"/>
+                        </ows:HTTP>
+                    </ows:DCP>
+                </ows:Operation>
+            </ows:OperationsMetadata>
+            <wcs:Contents>
+                <wcs:CoverageSummary>
+                    <ows:Title>Workflow 8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</ows:Title>
+                    <ows:WGS84BoundingBox>
+                        <ows:LowerCorner>-180.0 -90.0</ows:LowerCorner>
+                        <ows:UpperCorner>180.0 90.0</ows:UpperCorner>
+                    </ows:WGS84BoundingBox>
+                    <wcs:Identifier>8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</wcs:Identifier>
+                </wcs:CoverageSummary>
+            </wcs:Contents>
+    </wcs:Capabilities>''')
+
+            m.get('http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0',
                   body=open("tests/responses/ndvi.tiff", "rb"))
 
             ge.initialize("http://mock-instance")

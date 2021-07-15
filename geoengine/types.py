@@ -45,31 +45,22 @@ class QueryRectangle:
         return ','.join(map(str, self.__spatial_bounds))
 
     @property
-    def bbox_ogc_str(self) -> str:
-        # TODO: properly handle axis order
-        if self.__srs == "EPSG:4326":
-            bbox = self.__spatial_bounds
-            return f'{bbox[1]},{bbox[0]},{bbox[3]},{bbox[2]}'
-        else:
-            return self.bbox_str()
-
-    @property
-    def bbox_grid_origin_str(self) -> str:
+    def bbox_ogc(self) -> str:
         # TODO: properly handle axis order
         bbox = self.__spatial_bounds
         if self.__srs == "EPSG:4326":
-            return f'{bbox[3]},{bbox[0]}'
+            return [bbox[1], bbox[0], bbox[3], bbox[2]]
         else:
-            return f'{bbox[0]},{bbox[3]}'
+            return bbox
 
     @property
-    def bbox_grid_offsets_str(self) -> str:
+    def resolution_ogc(self) -> Tuple[float, float]:
         # TODO: properly handle axis order
         res = self.__resolution
         if self.__srs == "EPSG:4326":
-            return f'-{res[1]},{res[0]}'
+            return [-res[1], res[0]]
         else:
-            return f'{res[0]},{res[1]}'
+            return res
 
     @property
     def xmin(self) -> number:

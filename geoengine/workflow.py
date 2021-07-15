@@ -14,6 +14,7 @@ from io import StringIO
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from owslib.wms import WebMapService
+from owslib.wcs import WebCoverageService
 import rasterio
 import urllib.parse
 from vega import VegaLite
@@ -243,26 +244,15 @@ class Workflow:
         # TODO: properly build CRS string for bbox
         crs = f'urn:ogc:def:crs:{bbox.srs.replace(":", "::")}'
 
-        params = dict(
-            service='WCS',
-            version="1.1.1",
-            request='GetCoverage',
-            format='image/tiff',
-            identifier=f'{self.__id}',
-            boundingbox=f'{bbox.bbox_ogc_str},{crs}',
-            time=bbox.time_str,
-            gridbasecrs=crs,
-            gridcs='urn:ogc:def:cs:OGC:0.0:Grid2dSquareCS',
-            gridtype='urn:ogc:def:method:WCS:1.1:2dSimpleGrid',
-            gridorigin=bbox.bbox_grid_origin_str,
-            gridoffsets=bbox.bbox_grid_offsets_str,
-        )
+        wcs_url = f'{session.server_url}/wcs/{self.__id}'
+        wcs = WebCoverageService(wcs_url, version='1.1.1')
 
-        # TODO: directly access the raster using /vsicurl/ but that requires the server to support range downloads
-        response = req.get(
-            f'{session.server_url}/wcs/{self.__id}', params=params)
+        [resx, resy] = bbox.resolution_ogc
 
-        with rasterio.io.MemoryFile(response.content) as memfile:
+        response = wcs.getCoverage(identifier=f'{self.__id}', bbox=bbox.bbox_ogc, time=[urllib.parse.quote_plus(bbox.time_str)],
+                                   format='image/tiff', crs=crs, resx=resx, resy=resy)
+
+        with rasterio.io.MemoryFile(response.read()) as memfile:
             with memfile.open() as dataset:
                 # TODO: map nodata values to NaN?
                 return dataset.read(1)
