@@ -14,10 +14,10 @@ class QueryRectangle:
 
     __spatial_bounds: Tuple[float, float, float, float]
     __time_interval: Tuple[datetime, datetime]
-    __resolution: float
+    __resolution: Tuple[float, float]
     __srs: str
 
-    def __init__(self, spatial_bounds: Tuple[float, float, float, float], time_interval: Tuple[datetime, datetime], resolution=0.1, srs='EPSG:4326') -> None:
+    def __init__(self, spatial_bounds: Tuple[float, float, float, float], time_interval: Tuple[datetime, datetime], resolution: Tuple[float, float] = [0.1, 0.1], srs='EPSG:4326') -> None:
         xmin = spatial_bounds[0]
         ymin = spatial_bounds[1]
         xmax = spatial_bounds[2]
@@ -33,8 +33,8 @@ class QueryRectangle:
 
         self.__time_interval = time_interval
 
-        if resolution <= 0:
-            raise InputException("Resoultion: Must be positive")
+        if resolution[0] <= 0 or resolution[1] <= 0:
+            raise InputException("Resolution: Must be positive")
 
         self.__resolution = resolution
 
@@ -43,6 +43,24 @@ class QueryRectangle:
     @property
     def bbox_str(self) -> str:
         return ','.join(map(str, self.__spatial_bounds))
+
+    @property
+    def bbox_ogc(self) -> str:
+        # TODO: properly handle axis order
+        bbox = self.__spatial_bounds
+        if self.__srs == "EPSG:4326":
+            return [bbox[1], bbox[0], bbox[3], bbox[2]]
+        else:
+            return bbox
+
+    @property
+    def resolution_ogc(self) -> Tuple[float, float]:
+        # TODO: properly handle axis order
+        res = self.__resolution
+        if self.__srs == "EPSG:4326":
+            return [-res[1], res[0]]
+        else:
+            return res
 
     @property
     def xmin(self) -> number:
@@ -68,7 +86,7 @@ class QueryRectangle:
         return '/'.join(map(str, self.__time_interval))
 
     @property
-    def resolution(self) -> float:
+    def resolution(self) -> Tuple[float, float]:
         return self.__resolution
 
     @property

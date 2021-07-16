@@ -14,9 +14,12 @@ from io import StringIO
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from owslib.wms import WebMapService
+from owslib.wcs import WebCoverageService
+import rasterio
 import urllib.parse
 from vega import VegaLite
 import json
+import numpy as np
 
 
 class WorkflowId:
@@ -91,7 +94,7 @@ class Workflow:
             bbox=bbox.bbox_str,
             time=bbox.time_str,
             srsName=bbox.srs,
-            queryResolution=bbox.resolution
+            queryResolution=f'{bbox.resolution[0]},{bbox.resolution[1]}'
         )
 
         wfs_url = req.Request(
@@ -222,7 +225,7 @@ class Workflow:
 
         time = urllib.parse.quote(bbox.time_str)
         spatial_bounds = urllib.parse.quote(bbox.bbox_str)
-        resolution = str(f'{bbox.resolution},{bbox.resolution}')
+        resolution = str(f'{bbox.resolution[0]},{bbox.resolution[1]}')
 
         plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&time={time}&spatialResolution={resolution}'
 
@@ -231,6 +234,28 @@ class Workflow:
         vega_spec = json.loads(response['data']['vegaString'])
 
         return VegaLite(vega_spec)
+
+    def get_array(self, bbox: QueryRectangle) -> np.ndarray:
+        '''
+        Query a workflow and return the raster result as a numpy array
+        '''
+        session = get_session()
+
+        # TODO: properly build CRS string for bbox
+        crs = f'urn:ogc:def:crs:{bbox.srs.replace(":", "::")}'
+
+        wcs_url = f'{session.server_url}/wcs/{self.__id}'
+        wcs = WebCoverageService(wcs_url, version='1.1.1')
+
+        [resx, resy] = bbox.resolution_ogc
+
+        response = wcs.getCoverage(identifier=f'{self.__id}', bbox=bbox.bbox_ogc, time=[urllib.parse.quote_plus(bbox.time_str)],
+                                   format='image/tiff', crs=crs, resx=resx, resy=resy)
+
+        with rasterio.io.MemoryFile(response.read()) as memfile:
+            with memfile.open() as dataset:
+                # TODO: map nodata values to NaN?
+                return dataset.read(1)
 
 
 def register_workflow(workflow: str) -> Workflow:

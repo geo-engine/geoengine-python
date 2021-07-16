@@ -261,7 +261,7 @@ class WfsTests(unittest.TestCase):
             wfs_request = m.request_history[2]
             self.assertEqual(wfs_request.method, "GET")
             self.assertEqual(wfs_request.url,
-                             "http://mock-instance/wfs?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=registry%3A956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1")
+                             "http://mock-instance/wfs?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=registry%3A956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1")
 
             expected_df = gpd.GeoDataFrame(
                 {
