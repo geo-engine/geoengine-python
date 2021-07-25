@@ -207,8 +207,11 @@ class VectorDataType(Enum):
     def from_geopandas_type_name(cls, name: str) -> VectorDataType:
         name_map = {
             "Point": VectorDataType.multi_point,
+            "MultiPoint": VectorDataType.multi_point,
             "Line": VectorDataType.multi_line_string,
+            "MultiLine": VectorDataType.multi_line_string,
             "Polygon": VectorDataType.multi_polygon,
+            "MultiPolygon": VectorDataType.multi_polygon,
         }
 
         if name in name_map:
