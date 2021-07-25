@@ -36,7 +36,7 @@ class InternalDatasetId(DatasetId):
         }
 
     def __str__(self) -> str:
-        return self.__dataset_id
+        return str(self.__dataset_id)
 
     def __repr__(self) -> str:
         return str(self)
