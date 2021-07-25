@@ -112,7 +112,7 @@ class Workflow:
             '''
 
             data = gpd.read_file(StringIO(data_response.text))
-            data = data.set_crs(bbox.srs)
+            data = data.set_crs(bbox.srs, allow_override=True)
 
             geo_json = data_response.json()
             start = [f['when']['start'] for f in geo_json['features']]
@@ -209,6 +209,7 @@ class Workflow:
                    wms_kwargs={
                        'time': urllib.parse.quote(bbox.time_str),
                        # 'bbox': bbox.bbox_str
+                       'crs': bbox.srs
                    })
 
         ax.set_xlim(bbox.xmin, bbox.xmax)
