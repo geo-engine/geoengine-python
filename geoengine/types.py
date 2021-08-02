@@ -5,6 +5,7 @@ from numpy import number
 from geoengine.error import GeoEngineException, InputException, TypeException
 from typing import Any, Dict, Tuple
 from datetime import datetime
+from uuid import UUID
 
 
 class QueryRectangle:
@@ -234,3 +235,99 @@ class TimeStepGranularity(Enum):
 class TimeStep:
     step: int
     granularity: TimeStepGranularity
+
+
+@dataclass
+class Provenance:
+    citation: str
+    license: str
+    uri: str
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -> Provenance:
+        return Provenance(response['citation'], response['license'], response['uri'])
+
+
+@dataclass
+class ProvenanceOutput:
+    dataset: DatasetId
+    provenance: Provenance
+
+    @classmethod
+    def from_response(cls, response: Dict[str, Dict[str, str]]) -> ProvenanceOutput:
+        dataset = DatasetId.from_response(response['dataset'])
+        provenance = Provenance.from_response(response['provenance'])
+
+        return ProvenanceOutput(dataset, provenance)
+
+
+class DatasetId:
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -> DatasetId:
+        if response["type"] == "internal":
+            return InternalDatasetId.from_response(response)
+        elif response["type"] == "external":
+            return ExternalDatasetId.from_response(response)
+
+        raise GeoEngineException(f"Unknown DatasetId type: {response['type']}")
+
+
+class InternalDatasetId(DatasetId):
+    __dataset_id: UUID
+
+    def __init__(self, dataset_id: UUID):
+        self.__dataset_id = dataset_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -> InternalDatasetId:
+        return InternalDatasetId(response['datasetId'])
+
+    def to_dict(self) -> Dict[str, str]:
+        return {
+            "type": "internal",
+            "datasetId": self.__dataset_id
+        }
+
+    def __str__(self) -> str:
+        return str(self.__dataset_id)
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dataset_id == other.__dataset_id
+        else:
+            return False
+
+
+class ExternalDatasetId(DatasetId):
+    __provider_id: UUID
+    __dataset_id: str
+
+    def __init__(self, provider_id: UUID, dataset_id: str):
+        self.__provider_id = provider_id
+        self.__dataset_id = dataset_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -> ExternalDatasetId:
+        return ExternalDatasetId(response['providerId'], response['datasetId'])
+
+    def to_dict(self) -> Dict[str, str]:
+        return {
+            "type": "external",
+            "providerId": self.__provider_id,
+            "datasetId": self.__dataset_id,
+        }
+
+    def __str__(self) -> str:
+        return f'{self.__provider_id}:{self.__dataset_id}'
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__provider_id == other.__provider_id and self.__dataset_id == other.__dataset_id
+        else:
+            return False

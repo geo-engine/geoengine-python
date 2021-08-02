@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from geoengine.types import QueryRectangle, ResultDescriptor
+from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 import requests as req
 from geoengine.auth import get_session
-from typing import Dict, Tuple
+from typing import Dict, List
 from geoengine.error import GeoEngineException
 from uuid import UUID
 import geopandas as gpd
@@ -257,6 +257,18 @@ class Workflow:
             with memfile.open() as dataset:
                 # TODO: map nodata values to NaN?
                 return dataset.read(1)
+
+    def get_provenance(self) -> List[ProvenanceOutput]:
+        '''
+        Query the provenance of the workflow
+        '''
+        session = get_session()
+
+        provenance_url = f'{session.server_url}/workflow/{self.__id}/provenance'
+
+        response = req.get(provenance_url, headers=session.auth_header).json()
+
+        return [ProvenanceOutput.from_response(item) for item in response]
 
 
 def register_workflow(workflow: str) -> Workflow:
