@@ -1,4 +1,4 @@
-from geoengine.datasets import InternalDatasetId, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat, pandas_dtype_to_column_type
+from geoengine.datasets import InternalDatasetId, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat
 from geoengine.types import TimeStepGranularity
 import unittest
 import geoengine as ge

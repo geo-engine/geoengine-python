@@ -1,71 +1,14 @@
 from __future__ import annotations
-from enum import Enum
-from attr import dataclass
-from geoengine.types import TimeStep, TimeStepGranularity, VectorDataType
-from geoengine.auth import get_session
 from typing import Dict
-from geoengine.error import GeoEngineException, InputException
-from uuid import UUID
+import numpy as np
 import geopandas as gpd
 import requests as req
-import numpy as np
-
-
-class DatasetId:
-    def __init__():
-        pass
-
-
-class InternalDatasetId(DatasetId):
-    __dataset_id: UUID
-
-    def __init__(self, dataset_id: UUID):
-        self.__dataset_id = dataset_id
-
-    @classmethod
-    def from_response(self, response: Dict[str, str]) -> InternalDatasetId:
-        if not 'id' in response or not 'type' in response['id'] or response['id']['type'] != 'internal':
-            raise GeoEngineException(response)
-
-        return InternalDatasetId(response['id']['datasetId'])
-
-    def to_dict(self) -> Dict[str, str]:
-        return {
-            "type": "internal",
-            "datasetId": self.__dataset_id
-        }
-
-    def __str__(self) -> str:
-        return str(self.__dataset_id)
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __eq__(self, other):
-        if isinstance(other, self.__class__):
-            return self.__dataset_id == other.__dataset_id
-        else:
-            return False
-
-
-class UploadId:
-    __id: UUID
-
-    def __init__(self, id: UUID) -> None:
-        self.__id = id
-
-    @classmethod
-    def from_response(self, response: Dict[str, str]) -> UploadId:
-        if not 'id' in response:
-            raise GeoEngineException(response)
-
-        return UploadId(response['id'])
-
-    def __str__(self) -> str:
-        return self.__id
-
-    def __repr__(self) -> str:
-        return str(self)
+from uuid import UUID
+from geoengine.error import GeoEngineException, InputException
+from geoengine.auth import get_session
+from enum import Enum
+from geoengine.types import TimeStep, TimeStepGranularity, DatasetId, VectorDataType, InternalDatasetId
+from attr import dataclass
 
 
 class OgrSourceTimeFormat:
@@ -238,6 +181,26 @@ class OgrOnError(Enum):
     abort = "abort"
 
 
+class UploadId:
+    __id: UUID
+
+    def __init__(self, id: UUID) -> None:
+        self.__id = id
+
+    @classmethod
+    def from_response(self, response: Dict[str, str]) -> UploadId:
+        if not 'id' in response:
+            raise GeoEngineException(response)
+
+        return UploadId(response['id'])
+
+    def __str__(self) -> str:
+        return self.__id
+
+    def __repr__(self) -> str:
+        return str(self)
+
+
 def pandas_dtype_to_column_type(dtype: np.dtype) -> str:
     if np.issubdtype(dtype, np.integer):
         return 'int'
@@ -323,4 +286,4 @@ def upload_dataframe(df: gpd.GeoDataFrame, name: str = "Upload from Python", tim
     if 'error' in response:
         raise GeoEngineException(response)
 
-    return InternalDatasetId.from_response(response)
+    return InternalDatasetId.from_response(response["id"])

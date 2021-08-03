@@ -1,6 +1,5 @@
 
 from datetime import datetime
-from geoengine.workflow import Workflow, register_workflow
 from geoengine.types import QueryRectangle
 import unittest
 import geoengine as ge
