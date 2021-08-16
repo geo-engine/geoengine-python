@@ -68,9 +68,9 @@ ge.initialize("http://peter.geoengine.io:6060")
 
 time = datetime.strptime('2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
 
-workflow = ge.workflow_by_id('4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd')
+workflow = ge.workflow_by_id('d8bd5a1b-9b32-5e64-a29e-ecce7c1a4493')
 
 print(workflow.get_result_descriptor())
 
-workflow.get_dataframe(ge.Bbox([-60.0, 5.0, 61.0, 6.0], [time, time]))
+workflow.get_dataframe(ge.QueryRectangle([-60.0, 5.0, 61.0, 6.0], [time, time]))
 ```
