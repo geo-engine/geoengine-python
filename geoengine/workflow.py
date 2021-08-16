@@ -127,9 +127,12 @@ class Workflow:
 
         return geo_json_with_time_to_geopandas(data_response)
 
-    def plot_image(self, bbox: QueryRectangle, ax: plt.Axes = None) -> plt.Axes:
+    def plot_image(self, bbox: QueryRectangle, ax: plt.Axes = None, timeout=3600) -> plt.Axes:
         '''
         Query a workflow and return the WMS result as a matplotlib image
+
+        Params:
+        timeout -- HTTP request timeout in seconds
         '''
 
         session = get_session()
@@ -200,7 +203,8 @@ class Workflow:
         wms = WebMapService(wms_url,
                             version='1.3.0',
                             xml=faux_capabilities,
-                            headers=session.auth_header)
+                            headers=session.auth_header,
+                            timeout=timeout)
 
         # TODO: incorporate spatial resolution (?)
 
@@ -236,9 +240,12 @@ class Workflow:
 
         return VegaLite(vega_spec)
 
-    def get_array(self, bbox: QueryRectangle) -> np.ndarray:
+    def get_array(self, bbox: QueryRectangle, timeout=3600) -> np.ndarray:
         '''
         Query a workflow and return the raster result as a numpy array
+
+        Params:
+        timeout -- HTTP request timeout in seconds
         '''
         session = get_session()
 
@@ -251,7 +258,7 @@ class Workflow:
         [resx, resy] = bbox.resolution_ogc
 
         response = wcs.getCoverage(identifier=f'{self.__id}', bbox=bbox.bbox_ogc, time=[urllib.parse.quote_plus(bbox.time_str)],
-                                   format='image/tiff', crs=crs, resx=resx, resy=resy)
+                                   format='image/tiff', crs=crs, resx=resx, resy=resy, timeout=timeout)
 
         with rasterio.io.MemoryFile(response.read()) as memfile:
             with memfile.open() as dataset:
