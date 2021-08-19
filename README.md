@@ -40,6 +40,30 @@ python3 -m pip install --upgrade build
 python3 -m build
 ```
 
+## Formatting
+
+This packages is formatted according to `pycodestyle`.
+You can check it by calling:
+
+```bash
+python3 -m pycodestyle
+```
+
+Our tip is to install `autopep8` and use it to format the code.
+
+## Lints
+
+Our CI automatically checks for lint errors.
+We use `pylint` to check the code.
+You can check it by calling:
+
+```bash
+python3 -m geoengine
+python3 -m tests
+```
+
+Our tip is to activate linting with `pylint` in your IDE.
+
 ## Distribute to PyPI
 
 ### Test-PyPI
