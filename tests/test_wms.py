@@ -86,6 +86,52 @@ class WmsTests(unittest.TestCase):
                              "http://mock-instance/workflow")
             self.assertEqual(workflow_request.json(), workflow_definition)
 
+    def test_wms_url(self):
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                "project": None,
+                "view": None
+            })
+
+            m.post('http://mock-instance/workflow',
+                   json={
+                       "id": "5b9508a8-bd34-5a1c-acd6-75bb832d2d38"
+                   },
+                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            ge.initialize("http://mock-instance")
+
+            workflow_definition = {
+                "type": "Raster",
+                "operator": {
+                    "type": "GdalSource",
+                    "params": {
+                        "dataset": {
+                            "type": "internal",
+                            "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                        }
+                    }
+                }
+            }
+
+            time = datetime.strptime(
+                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+
+            workflow = ge.register_workflow(workflow_definition)
+
+            wms_curl = workflow.wms_get_map_curl(QueryRectangle(
+                [-180.0, -90.0, 180.0, 90.0],
+                [time, time],
+                resolution=(1, 1),
+            ))
+
+            self.assertEqual(
+                # pylint: disable=line-too-long
+                wms_curl,
+                """curl -X GET -H "Authorization: Bearer c4983c3e-9b53-47ae-bda9-382223bd5081" 'http://mock-instance/wms?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-180.0%2C-90.0%2C180.0%2C90.0&width=360&height=180&format=image%2Fpng&styles='"""
+            )
+
     def test_result_descriptor(self):
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/anonymous', json={
