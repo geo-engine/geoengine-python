@@ -1,5 +1,7 @@
 build
 flufl.lock # for cartopy mpl tests
+pycodestyle # formatter
+pylint # code linter
 pytest
 requests_mock
 responses # mocking urllib3 requests

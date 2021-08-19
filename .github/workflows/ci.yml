@@ -1,4 +1,4 @@
-name: Release
+name: CI
 
 on:
   push:
@@ -32,6 +32,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -e .
+      - name: Check Formatting
+        run: |
+          python -m pycodestyle
+      - name: Linter
+        run: |
+          python -m pylint geoengine
+          python -m pylint tests
       - name: Build
         run: python -m build .
       - name: Test

@@ -1,13 +1,17 @@
-from geoengine.datasets import InternalDatasetId, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat
-from geoengine.types import TimeStepGranularity
+'''Tests regarding upload functionality'''
+
 import unittest
-import geoengine as ge
 import requests_mock
 import pandas as pd
 import geopandas
 
+import geoengine as ge
+from geoengine.datasets import InternalDatasetId, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat
+from geoengine.types import TimeStepGranularity
+
 
 class UploadTests(unittest.TestCase):
+    '''Test runner regarding upload functionality'''
 
     def setUp(self) -> None:
         ge.reset()
@@ -44,20 +48,23 @@ class UploadTests(unittest.TestCase):
                     'rnd': [34.34, 567.547]
                 })
 
-            polygons = ['Polygon((-121.46484375 47.109375, -99.31640625 17.2265625, -56.42578125 52.03125,-121.46484375 47.109375))',
-                        'Polygon((4.74609375 53.61328125, 5.09765625 43.06640625, 15.1171875 43.76953125, 15.1171875 54.4921875, 4.74609375 53.61328125))']
+            polygons = [
+                # pylint: disable=line-too-long
+                'Polygon((-121.46484375 47.109375, -99.31640625 17.2265625, -56.42578125 52.03125,-121.46484375 47.109375))',
+                'Polygon((4.74609375 53.61328125, 5.09765625 43.06640625, 15.1171875 43.76953125, 15.1171875 54.4921875, 4.74609375 53.61328125))'
+            ]
 
             gdf = geopandas.GeoDataFrame(
                 df, geometry=geopandas.GeoSeries.from_wkt(polygons), crs="EPSG:4326")
 
-            id = ge.upload_dataframe(gdf)
+            upload_id = ge.upload_dataframe(gdf)
 
-            self.assertEqual(id, InternalDatasetId(
+            self.assertEqual(upload_id, InternalDatasetId(
                 "fc5f9e0f-ac97-421f-a5be-d701915ceb6f"))
 
     def test_time_specification(self):
         time = OgrSourceDatasetTimeType.start(
-            'start', OgrSourceTimeFormat.auto(), OgrSourceDuration.value(10, TimeStepGranularity.minutes))
+            'start', OgrSourceTimeFormat.auto(), OgrSourceDuration.value(10, TimeStepGranularity.MINUTES))
 
         self.assertEqual(time.to_dict(), {
             'type': 'start',
