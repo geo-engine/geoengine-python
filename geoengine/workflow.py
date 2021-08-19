@@ -216,7 +216,8 @@ class Workflow:
         headers = " -H ".join(headers)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
 
-    def __faux_capabilities(self, wms_url: str, layer_name: str, bbox: QueryRectangle) -> str:
+    @classmethod
+    def __faux_capabilities(cls, wms_url: str, layer_name: str, bbox: QueryRectangle) -> str:
         '''Create an XML file with faux capabilities to list the layer with `layer_name`'''
 
         return '''
