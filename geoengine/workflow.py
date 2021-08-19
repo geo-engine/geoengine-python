@@ -1,25 +1,29 @@
-from __future__ import annotations
+'''
+A workflow representation and methods on workflows
+'''
 
-from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
-import requests as req
-from geoengine.auth import get_session
+from __future__ import annotations
 from typing import Dict, List
-from geoengine.error import GeoEngineException
+
 from uuid import UUID
-import geopandas as gpd
 from logging import debug
-from geoengine.auth import get_session
-import geopandas as gpd
 from io import StringIO
+import urllib.parse
+import json
+
+import requests as req
+import geopandas as gpd
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 from owslib.wms import WebMapService
 from owslib.wcs import WebCoverageService
 import rasterio
-import urllib.parse
 from vega import VegaLite
-import json
 import numpy as np
+
+from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
+from geoengine.auth import get_session
+from geoengine.error import GeoEngineException
 
 
 class WorkflowId:
@@ -27,20 +31,23 @@ class WorkflowId:
     A wrapper around a workflow UUID
     '''
 
-    __id: UUID
+    __workflow_id: UUID
 
-    def __init__(self, id: UUID) -> None:
-        self.__id = id
+    def __init__(self, workflow_id: UUID) -> None:
+        self.__workflow_id = workflow_id
 
     @classmethod
-    def from_response(self, response: Dict[str, str]) -> WorkflowId:
-        if not 'id' in response:
+    def from_response(cls, response: Dict[str, str]) -> WorkflowId:
+        '''
+        Create a `WorkflowId` from an http response
+        '''
+        if 'id' not in response:
             raise GeoEngineException(response)
 
         return WorkflowId(response['id'])
 
     def __str__(self) -> str:
-        return self.__id
+        return self.__workflow_id
 
     def __repr__(self) -> str:
         return str(self)
@@ -51,16 +58,16 @@ class Workflow:
     Holds a workflow id and allows querying data
     '''
 
-    __id: WorkflowId
+    __workflow_id: WorkflowId
 
-    def __init__(self, id: WorkflowId) -> None:
-        self.__id = id
+    def __init__(self, workflow_id: WorkflowId) -> None:
+        self.__workflow_id = workflow_id
 
     def __str__(self) -> str:
-        return str(self.__id)
+        return str(self.__workflow_id)
 
     def __repr__(self) -> str:
-        return repr(self.__id)
+        return repr(self.__workflow_id)
 
     def get_result_descriptor(self) -> ResultDescriptor:
         '''
@@ -70,7 +77,7 @@ class Workflow:
         session = get_session()
 
         response = req.get(
-            f'{session.server_url}/workflow/{self.__id}/metadata',
+            f'{session.server_url}/workflow/{self.__workflow_id}/metadata',
             headers=session.auth_header
         ).json()
 
@@ -90,7 +97,7 @@ class Workflow:
             version="2.0.0",
             request='GetFeature',
             outputFormat='application/json',
-            typeNames=f'registry:{self.__id}',
+            typeNames=f'registry:{self.__workflow_id}',
             bbox=bbox.bbox_str,
             time=bbox.time_str,
             srsName=bbox.srs,
@@ -194,7 +201,7 @@ class Workflow:
                 return fallback
             try:
                 return ccrs.epsg(code)
-            except:
+            except ValueError:
                 return fallback
 
         if ax is None:
@@ -252,13 +259,21 @@ class Workflow:
         # TODO: properly build CRS string for bbox
         crs = f'urn:ogc:def:crs:{bbox.srs.replace(":", "::")}'
 
-        wcs_url = f'{session.server_url}/wcs/{self.__id}'
+        wcs_url = f'{session.server_url}/wcs/{self.__workflow_id}'
         wcs = WebCoverageService(wcs_url, version='1.1.1')
 
         [resx, resy] = bbox.resolution_ogc
 
-        response = wcs.getCoverage(identifier=f'{self.__id}', bbox=bbox.bbox_ogc, time=[urllib.parse.quote_plus(bbox.time_str)],
-                                   format='image/tiff', crs=crs, resx=resx, resy=resy, timeout=timeout)
+        response = wcs.getCoverage(
+            identifier=f'{self.__workflow_id}',
+            bbox=bbox.bbox_ogc,
+            time=[urllib.parse.quote_plus(bbox.time_str)],
+            format='image/tiff',
+            crs=crs,
+            resx=resx,
+            resy=resy,
+            timeout=timeout,
+        )
 
         with rasterio.io.MemoryFile(response.read()) as memfile:
             with memfile.open() as dataset:
@@ -271,7 +286,7 @@ class Workflow:
         '''
         session = get_session()
 
-        provenance_url = f'{session.server_url}/workflow/{self.__id}/provenance'
+        provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/provenance'
 
         response = req.get(provenance_url, headers=session.auth_header).json()
 
@@ -295,6 +310,10 @@ def register_workflow(workflow: str) -> Workflow:
 
 
 def workflow_by_id(workflow_id: UUID) -> Workflow:
+    '''
+    Create a workflow object from a workflow id
+    '''
+
     # TODO: check that workflow exists
 
     return Workflow(WorkflowId(workflow_id))

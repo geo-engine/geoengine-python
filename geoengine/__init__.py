@@ -1,3 +1,5 @@
+'''Entry point for Geo Engine Python Library'''
+
 from .auth import Session, get_session, initialize, reset
 from .error import GeoEngineException, InputException, UninitializedException, TypeException
 from .types import QueryRectangle
