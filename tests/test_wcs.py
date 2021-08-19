@@ -1,19 +1,23 @@
+'''Tests for WCS calls'''
 
 from datetime import datetime
-from geoengine.types import QueryRectangle
+
 import unittest
-import geoengine as ge
 import requests_mock
 import numpy as np
 
+import geoengine as ge
+from geoengine.types import QueryRectangle
+
 
 class WcsTests(unittest.TestCase):
+    '''WCS test runner'''
 
     def setUp(self) -> None:
         ge.reset()
 
     def test_ndvi(self):
-        with requests_mock.Mocker() as m:
+        with requests_mock.Mocker() as m, open("tests/responses/ndvi.tiff", "rb") as ndvi_tiff:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -26,8 +30,10 @@ class WcsTests(unittest.TestCase):
                    },
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            m.get('http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?service=WCS&request=GetCapabilities&version=1.1.1',
-                  text='''<?xml version="1.0" encoding="UTF-8"?>
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?service=WCS&request=GetCapabilities&version=1.1.1',
+                text='''<?xml version="1.0" encoding="UTF-8"?>
     <wcs:Capabilities version="1.1.1"
             xmlns:wcs="http://www.opengis.net/wcs/1.1.1"
             xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -78,10 +84,14 @@ class WcsTests(unittest.TestCase):
                     <wcs:Identifier>8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</wcs:Identifier>
                 </wcs:CoverageSummary>
             </wcs:Contents>
-    </wcs:Capabilities>''')
+    </wcs:Capabilities>'''
+            )
 
-            m.get('http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0',
-                  body=open("tests/responses/ndvi.tiff", "rb"))
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0',
+                body=ndvi_tiff
+            )
 
             ge.initialize("http://mock-instance")
 
@@ -106,7 +116,7 @@ class WcsTests(unittest.TestCase):
             query = QueryRectangle(
                 [-180.0, -90.0, 180.0, 90.0],
                 [time, time],
-                resolution=[360./8, 180./8],
+                resolution=[360. / 8, 180. / 8],
             )
 
             array = workflow.get_array(query)
@@ -114,10 +124,10 @@ class WcsTests(unittest.TestCase):
             self.assertEqual(array.shape, (8, 8))
 
             expected = np.array([
-                [255, 255,  21,  11, 255, 255, 255, 255],
-                [255, 100,  30, 255, 156,  94, 106,  37],
-                [255,  64, 255, 255, 255,  31, 207, 255],
-                [255, 255, 255, 255, 89,  255, 255, 255],
+                [255, 255, 21, 11, 255, 255, 255, 255],
+                [255, 100, 30, 255, 156, 94, 106, 37],
+                [255, 64, 255, 255, 255, 31, 207, 255],
+                [255, 255, 255, 255, 89, 255, 255, 255],
                 [255, 255, 243, 255, 186, 255, 255, 255],
                 [255, 255, 115, 255, 139, 255, 255, 255],
                 [255, 255, 255, 255, 255, 255, 255, 255],

@@ -1,17 +1,20 @@
+'''Tests for WMS calls'''
 
 from datetime import datetime
-
-from geoengine.types import QueryRectangle
 import unittest
-import geoengine as ge
-import requests_mock
 import textwrap
+
+import requests_mock
 import cartopy.mpl.geoaxes
 from cartopy.tests.mpl import ImageTesting
 import responses
 
+from geoengine.types import QueryRectangle
+import geoengine as ge
+
 
 class WmsTests(unittest.TestCase):
+    '''WMS test runner'''
 
     def setUp(self) -> None:
         ge.reset()
@@ -33,14 +36,15 @@ class WmsTests(unittest.TestCase):
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             # Unfortunately, we need a separate library to catch the request from the WMS call
-            responses.add(
-                'GET',
-                'http://mock-instance/wms?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&styles=&width=620&height=310&crs=EPSG:4326&bbox=-90.0,-180.0,90.0,180.0&format=image/png&transparent=FALSE&bgcolor=0xFFFFFF&exceptions=XML&time=2014-04-01T12%3A00%3A00.000%2B00%3A00',
-                match_querystring=True,
-                body=open("tests/responses/wms-ndvi.png",
-                          "rb").read(),
-                content_type='image/png'
-            )
+            with open("tests/responses/wms-ndvi.png", "rb") as wms_ndvi:
+                responses.add(
+                    # pylint: disable=line-too-long
+                    'GET',
+                    'http://mock-instance/wms?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&styles=&width=620&height=310&crs=EPSG:4326&bbox=-90.0,-180.0,90.0,180.0&format=image/png&transparent=FALSE&bgcolor=0xFFFFFF&exceptions=XML&time=2014-04-01T12%3A00%3A00.000%2B00%3A00',
+                    match_querystring=True,
+                    body=wms_ndvi.read(),
+                    content_type='image/png'
+                )
 
             ge.initialize("http://mock-instance")
 

@@ -1,13 +1,16 @@
+'''Tests regarding Geo Engine authentication'''
+
 from datetime import datetime
 
-from numpy import nan
-from geoengine.types import QueryRectangle
 import unittest
-import geoengine as ge
 import requests_mock
+
+import geoengine as ge
+from geoengine.types import QueryRectangle
 
 
 class AuthTests(unittest.TestCase):
+    '''Tests runner regarding Geo Engine authentication'''
 
     def setUp(self) -> None:
         ge.reset()
