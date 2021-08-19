@@ -161,6 +161,8 @@ class OgrSourceDatasetTimeType:
 
 @dataclass
 class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+    '''Specify no time information'''
+
     def to_dict(self) -> Dict[str, str]:
         return {
             "type": "none",
