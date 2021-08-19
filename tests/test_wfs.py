@@ -7,6 +7,7 @@ import textwrap
 from numpy import nan
 import requests_mock
 import geopandas as gpd
+import geopandas.testing  # pylint: disable=unused-import
 from shapely.geometry import Point
 
 from geoengine.types import QueryRectangle

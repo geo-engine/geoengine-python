@@ -17,7 +17,7 @@ class WcsTests(unittest.TestCase):
         ge.reset()
 
     def test_ndvi(self):
-        with requests_mock.Mocker() as m:
+        with requests_mock.Mocker() as m, open("tests/responses/ndvi.tiff", "rb") as ndvi_tiff:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -87,12 +87,11 @@ class WcsTests(unittest.TestCase):
     </wcs:Capabilities>'''
             )
 
-            with open("tests/responses/ndvi.tiff", "rb") as body:
-                m.get(
-                    # pylint: disable=line-too-long
-                    'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0',
-                    body=body
-                )
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0',
+                body=ndvi_tiff
+            )
 
             ge.initialize("http://mock-instance")
 

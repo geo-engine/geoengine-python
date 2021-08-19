@@ -275,10 +275,9 @@ class Workflow:
             timeout=timeout,
         )
 
-        with rasterio.io.MemoryFile(response.read()) as memfile:
-            with memfile.open() as dataset:
-                # TODO: map nodata values to NaN?
-                return dataset.read(1)
+        with rasterio.io.MemoryFile(response.read()) as memfile, memfile.open() as dataset:
+            # TODO: map nodata values to NaN?
+            return dataset.read(1)
 
     def get_provenance(self) -> List[ProvenanceOutput]:
         '''
