@@ -58,8 +58,8 @@ We use `pylint` to check the code.
 You can check it by calling:
 
 ```bash
-python3 -m geoengine
-python3 -m tests
+python3 -m pylint geoengine
+python3 -m pylint tests
 ```
 
 Our tip is to activate linting with `pylint` in your IDE.

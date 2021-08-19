@@ -124,7 +124,7 @@ class InfiniteOgrSourceDurationSpec(OgrSourceDuration):
 
 
 class OgrSourceDatasetTimeType:
-    '''A time type specifiction for OGR dataset definitions'''
+    '''A time type specification for OGR dataset definitions'''
 
     def to_dict(self) -> Dict[str, str]:
         pass
