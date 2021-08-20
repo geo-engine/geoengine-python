@@ -146,7 +146,81 @@ class Workflow:
 
         wms_url = f'{session.server_url}/wms'
 
-        faux_capabilities = '''
+        def srs_to_projection(srs: str) -> ccrs.Projection:
+            fallback = ccrs.PlateCarree()
+
+            [authority, code] = srs.split(':')
+
+            if authority != 'EPSG:':
+                return fallback
+            try:
+                return ccrs.epsg(code)
+            except ValueError:
+                return fallback
+
+        if ax is None:
+            ax = plt.axes(projection=srs_to_projection(bbox.srs))
+
+        wms = WebMapService(wms_url,
+                            version='1.3.0',
+                            xml=self.__faux_capabilities(wms_url, str(self), bbox),
+                            headers=session.auth_header,
+                            timeout=timeout)
+
+        # TODO: incorporate spatial resolution (?)
+
+        ax.add_wms(wms,
+                   layers=[str(self)],
+                   wms_kwargs={
+                       'time': urllib.parse.quote(bbox.time_str),
+                       # 'bbox': bbox.bbox_str
+                       'crs': bbox.srs
+                   })
+
+        ax.set_xlim(bbox.xmin, bbox.xmax)
+        ax.set_ylim(bbox.ymin, bbox.ymax)
+
+        return ax
+
+    def wms_get_map_curl(self, bbox: QueryRectangle) -> str:
+        '''Return the WMS url for a workflow and a given `QueryRectangle`'''
+
+        session = get_session()
+
+        width = int((bbox.xmax - bbox.xmin) / bbox.resolution[0])
+        height = int((bbox.ymax - bbox.ymin) / bbox.resolution[1])
+
+        params = dict(
+            service='WMS',
+            version='1.3.0',
+            request="GetMap",
+            layers=str(self),
+            time=bbox.time_str,
+            crs=bbox.srs,
+            bbox=bbox.bbox_str,
+            width=width,
+            height=height,
+            format='image/png',
+            styles='',  # TODO: incorporate styling
+        )
+
+        wms_request = req.Request(
+            'GET',
+            url=f'{session.server_url}/wms',
+            params=params,
+            headers=session.auth_header
+        ).prepare()
+
+        command = "curl -X {method} -H {headers} '{uri}'"
+        headers = ['"{0}: {1}"'.format(k, v) for k, v in wms_request.headers.items()]
+        headers = " -H ".join(headers)
+        return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
+
+    @classmethod
+    def __faux_capabilities(cls, wms_url: str, layer_name: str, bbox: QueryRectangle) -> str:
+        '''Create an XML file with faux capabilities to list the layer with `layer_name`'''
+
+        return '''
         <WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3.0" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd">
             <Service>
                 <Name>WMS</Name>
@@ -189,44 +263,8 @@ class Workflow:
             </Capability>
         </WMS_Capabilities>
         '''.format(wms_url=wms_url,
-                   layer_name=str(self),
+                   layer_name=layer_name,
                    crs=bbox.srs)
-
-        def srs_to_projection(srs: str) -> ccrs.Projection:
-            fallback = ccrs.PlateCarree()
-
-            [authority, code] = srs.split(':')
-
-            if authority != 'EPSG:':
-                return fallback
-            try:
-                return ccrs.epsg(code)
-            except ValueError:
-                return fallback
-
-        if ax is None:
-            ax = plt.axes(projection=srs_to_projection(bbox.srs))
-
-        wms = WebMapService(wms_url,
-                            version='1.3.0',
-                            xml=faux_capabilities,
-                            headers=session.auth_header,
-                            timeout=timeout)
-
-        # TODO: incorporate spatial resolution (?)
-
-        ax.add_wms(wms,
-                   layers=[str(self)],
-                   wms_kwargs={
-                       'time': urllib.parse.quote(bbox.time_str),
-                       # 'bbox': bbox.bbox_str
-                       'crs': bbox.srs
-                   })
-
-        ax.set_xlim(bbox.xmin, bbox.xmax)
-        ax.set_ylim(bbox.ymin, bbox.ymax)
-
-        return ax
 
     def plot_chart(self, bbox: QueryRectangle) -> VegaLite:
         '''
