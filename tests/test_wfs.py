@@ -392,7 +392,7 @@ class WfsTests(unittest.TestCase):
 
             workflow = ge.register_workflow(workflow_definition)
 
-            wfs_curl = workflow.get_wfs_get_map_curl(QueryRectangle(
+            wfs_curl = workflow.get_wfs_get_feature_curl(QueryRectangle(
                 [-60.0, 5.0, 61.0, 6.0],
                 [time, time]
             ))
