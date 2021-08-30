@@ -39,6 +39,22 @@ class WfsTests(unittest.TestCase):
                    },
                    request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
+            m.get('http://mock-instance/workflow/956d3656-2d14-5951-96a0-f962b92371cd/metadata',
+                  json={
+                      "type": "vector",
+                      'dataType': 'MultiPoint',
+                      'spatialReference': 'EPSG:4326',
+                      'columns': {
+                              'scalerank': 'int',
+                              'NDVI': 'int',
+                              'featurecla': 'text',
+                              'natlscale': 'float',
+                              'website': 'text',
+                              'name': 'text'
+                      }
+                  },
+                  request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
+
             m.get('http://mock-instance/wfs',
                   json={
                       "type": "FeatureCollection",
@@ -254,7 +270,7 @@ class WfsTests(unittest.TestCase):
                 )
             )
 
-            self.assertEqual(len(m.request_history), 3)
+            self.assertEqual(len(m.request_history), 4)
 
             workflow_request = m.request_history[1]
             self.assertEqual(workflow_request.method, "POST")
@@ -262,7 +278,9 @@ class WfsTests(unittest.TestCase):
                              "http://mock-instance/workflow")
             self.assertEqual(workflow_request.json(), workflow_definition)
 
-            wfs_request = m.request_history[2]
+            # second request is result descriptor retrieval
+
+            wfs_request = m.request_history[3]
             self.assertEqual(wfs_request.method, "GET")
             self.assertEqual(
                 # pylint: disable=line-too-long
@@ -299,6 +317,92 @@ class WfsTests(unittest.TestCase):
 
             gpd.testing.assert_geodataframe_equal(df, expected_df)
 
+    def test_wfs_curl(self):
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
+                "user": {
+                    "id": "328ca8d1-15d7-4f59-a989-5d5d72c98744",
+                },
+                "created": "2021-06-08T15:22:22.605891994Z",
+                "validUntil": "2021-06-08T16:22:22.605892183Z",
+                "project": None,
+                "view": None
+            })
+
+            m.post('http://mock-instance/workflow',
+                   json={
+                       "id": "956d3656-2d14-5951-96a0-f962b92371cd"
+                   },
+                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
+
+            m.get('http://mock-instance/workflow/956d3656-2d14-5951-96a0-f962b92371cd/metadata',
+                  json={
+                      "type": "vector",
+                      "dataType": "MultiPoint",
+                      "spatialReference": "EPSG:4326",
+                      "columns": {
+                          "natlscale": "float",
+                          "featurecla": "text",
+                          "scalerank": "int",
+                          "name": "text",
+                          "NDVI": "int",
+                          "website": "text"
+                      }
+                  },
+                  request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
+
+            ge.initialize("http://mock-instance")
+
+            workflow_definition = {
+                "type": "Vector",
+                "operator": {
+                    "type": "RasterVectorJoin",
+                    "params": {
+                        "names": ["NDVI"],
+                        "featureAggregation": "first",
+                        "temporalAggregation": "none"
+                    },
+                    "sources": {
+                        "vector": {
+                            "type": "OgrSource",
+                            "params": {
+                                "dataset": {
+                                    "type": "internal",
+                                    "datasetId": "a9623a5b-b6c5-404b-bc5a-313ff72e4e75"
+                                },
+                                "attributeProjection": None
+                            }
+                        },
+                        "rasters": [{
+                            "type": "GdalSource",
+                            "params": {
+                                    "dataset": {
+                                        "type": "internal",
+                                        "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                                    }
+                            }
+                        }]
+                    }
+                }
+            }
+
+            time = datetime.strptime(
+                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+
+            workflow = ge.register_workflow(workflow_definition)
+
+            wfs_curl = workflow.get_wfs_get_map_curl(QueryRectangle(
+                [-60.0, 5.0, 61.0, 6.0],
+                [time, time]
+            ))
+
+            self.assertEqual(
+                # pylint: disable=line-too-long
+                wfs_curl,
+                """curl -X GET -H "Authorization: Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064" 'http://mock-instance/wfs?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=registry%3A956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1'"""
+            )
+
     def test_repr(self):
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/anonymous', json={
@@ -311,6 +415,22 @@ class WfsTests(unittest.TestCase):
                 "project": None,
                 "view": None
             })
+
+            m.get('http://mock-instance/workflow/foobar/metadata',
+                  json={
+                      "type": "vector",
+                      'dataType': 'MultiPoint',
+                      'spatialReference': 'EPSG:4326',
+                      'columns': {
+                          'scalerank': 'int',
+                          'NDVI': 'int',
+                          'featurecla': 'text',
+                          'natlscale': 'float',
+                          'website': 'text',
+                          'name': 'text'
+                      }
+                  },
+                  request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
             ge.initialize("http://mock-instance")
 

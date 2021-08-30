@@ -157,6 +157,30 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         raise TypeException(
             f'Unknown `ResultDescriptor` type: {result_descriptor_type}')
 
+    @classmethod
+    def is_raster_result(cls) -> bool:
+        '''
+        Return true if the result is of type raster
+        '''
+
+        return False
+
+    @classmethod
+    def is_vector_result(cls) -> bool:
+        '''
+        Return true if the result is of type vector
+        '''
+
+        return False
+
+    @classmethod
+    def is_plot_result(cls) -> bool:
+        '''
+        Return true if the result is of type plot
+        '''
+
+        return False
+
 
 class VectorResultDescriptor(ResultDescriptor):
     '''
@@ -183,6 +207,10 @@ class VectorResultDescriptor(ResultDescriptor):
             r += f'{key}: {self.columns[key]}\n'
 
         return r
+
+    @classmethod
+    def is_vector_result(cls) -> bool:
+        return True
 
     @property
     def data_type(self) -> str:
@@ -228,6 +256,10 @@ class RasterResultDescriptor(ResultDescriptor):
 
         return r
 
+    @classmethod
+    def is_raster_result(cls) -> bool:
+        return True
+
     @property
     def data_type(self) -> str:
         return self.__data_type
@@ -257,6 +289,10 @@ class PlotResultDescriptor(ResultDescriptor):
         r = 'Plot Result'
 
         return r
+
+    @classmethod
+    def is_plot_result(cls) -> bool:
+        return True
 
 
 class VectorDataType(Enum):
