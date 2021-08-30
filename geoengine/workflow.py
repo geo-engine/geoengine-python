@@ -119,8 +119,8 @@ class Workflow:
 
         return wfs_url
 
-    def get_wfs_get_map_curl(self, bbox: QueryRectangle) -> str:
-        '''Return the WFS url for a workflow and a given `QueryRectangle`'''
+    def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -> str:
+        '''Return the WFS url for a workflow and a `QueryRectangle` as a cURL command'''
 
         if not self.__result_descriptor.is_vector_result():
             raise MethodNotCalledOnVectorException()
