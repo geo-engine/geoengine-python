@@ -62,3 +62,33 @@ class TypeException(Exception):
 
     def __str__(self) -> str:
         return f"{self.__message}"
+
+
+# TODO: remove methods and forbid calling methods in the first place
+class MethodNotCalledOnRasterException(Exception):
+    '''
+    Exception for calling a raster method on a, e.g., vector layer
+    '''
+
+    def __str__(self) -> str:
+        return "Only allowed to call method on raster result"
+
+
+# TODO: remove methods and forbid calling methods in the first place
+class MethodNotCalledOnVectorException(Exception):
+    '''
+    Exception for calling a vector method on a, e.g., raster layer
+    '''
+
+    def __str__(self) -> str:
+        return "Only allowed to call method on vector result"
+
+
+# TODO: remove methods and forbid calling methods in the first place
+class MethodNotCalledOnPlotException(Exception):
+    '''
+    Exception for calling a plot method on a, e.g., vector layer
+    '''
+
+    def __str__(self) -> str:
+        return "Only allowed to call method on plot result"

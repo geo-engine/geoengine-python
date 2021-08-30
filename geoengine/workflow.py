@@ -23,7 +23,8 @@ import numpy as np
 
 from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
-from geoengine.error import GeoEngineException
+from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
+    MethodNotCalledOnVectorException
 
 
 class WorkflowId:
@@ -59,9 +60,11 @@ class Workflow:
     '''
 
     __workflow_id: WorkflowId
+    __result_descriptor: ResultDescriptor
 
     def __init__(self, workflow_id: WorkflowId) -> None:
         self.__workflow_id = workflow_id
+        self.__result_descriptor = self.__query_result_descriptor()
 
     def __str__(self) -> str:
         return str(self.__workflow_id)
@@ -69,9 +72,9 @@ class Workflow:
     def __repr__(self) -> str:
         return repr(self.__workflow_id)
 
-    def get_result_descriptor(self) -> ResultDescriptor:
+    def __query_result_descriptor(self) -> ResultDescriptor:
         '''
-        Query metadata of the workflow result
+        Query the metadata of the workflow result
         '''
 
         session = get_session()
@@ -85,10 +88,15 @@ class Workflow:
 
         return ResultDescriptor.from_response(response)
 
-    def get_dataframe(self, bbox: QueryRectangle) -> gpd.GeoDataFrame:
+    def get_result_descriptor(self) -> ResultDescriptor:
         '''
-        Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
+        Return the metadata of the workflow result
         '''
+
+        return self.__result_descriptor
+
+    def __get_wfs_url(self, bbox: QueryRectangle) -> str:
+        '''Build a WFS url from a workflow and a `QueryRectangle`'''
 
         session = get_session()
 
@@ -108,6 +116,37 @@ class Workflow:
             'GET', url=f'{session.server_url}/wfs', params=params).prepare().url
 
         debug(f'WFS URL:\n{wfs_url}')
+
+        return wfs_url
+
+    def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -> str:
+        '''Return the WFS url for a workflow and a `QueryRectangle` as a cURL command'''
+
+        if not self.__result_descriptor.is_vector_result():
+            raise MethodNotCalledOnVectorException()
+
+        wfs_request = req.Request(
+            'GET',
+            url=self.__get_wfs_url(bbox),
+            headers=get_session().auth_header
+        ).prepare()
+
+        command = "curl -X {method} -H {headers} '{uri}'"
+        headers = ['"{0}: {1}"'.format(k, v) for k, v in wfs_request.headers.items()]
+        headers = " -H ".join(headers)
+        return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
+
+    def get_dataframe(self, bbox: QueryRectangle) -> gpd.GeoDataFrame:
+        '''
+        Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
+        '''
+
+        if not self.__result_descriptor.is_vector_result():
+            raise MethodNotCalledOnVectorException()
+
+        session = get_session()
+
+        wfs_url = self.__get_wfs_url(bbox)
 
         data_response = req.get(wfs_url, headers=session.auth_header)
 
@@ -139,8 +178,11 @@ class Workflow:
         Query a workflow and return the WMS result as a matplotlib image
 
         Params:
-        timeout -- HTTP request timeout in seconds
+        timeout - - HTTP request timeout in seconds
         '''
+
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
 
         session = get_session()
 
@@ -184,6 +226,9 @@ class Workflow:
 
     def wms_get_map_curl(self, bbox: QueryRectangle) -> str:
         '''Return the WMS url for a workflow and a given `QueryRectangle`'''
+
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
 
         session = get_session()
 
@@ -271,6 +316,9 @@ class Workflow:
         Query a workflow and return the plot chart result as a vega plot
         '''
 
+        if not self.__result_descriptor.is_plot_result():
+            raise MethodNotCalledOnPlotException()
+
         session = get_session()
 
         time = urllib.parse.quote(bbox.time_str)
@@ -290,8 +338,12 @@ class Workflow:
         Query a workflow and return the raster result as a numpy array
 
         Params:
-        timeout -- HTTP request timeout in seconds
+        timeout - - HTTP request timeout in seconds
         '''
+
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
         session = get_session()
 
         # TODO: properly build CRS string for bbox
@@ -321,6 +373,7 @@ class Workflow:
         '''
         Query the provenance of the workflow
         '''
+
         session = get_session()
 
         provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/provenance'
