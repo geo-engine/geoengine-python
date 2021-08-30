@@ -91,4 +91,4 @@ class MethodNotCalledOnPlotException(Exception):
     '''
 
     def __str__(self) -> str:
-        return "Only allowed to call method on vector result"
+        return "Only allowed to call method on plot result"
