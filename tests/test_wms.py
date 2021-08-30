@@ -35,6 +35,18 @@ class WmsTests(unittest.TestCase):
                    },
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
+            m.get('http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata',
+                  json={
+                      "type": "raster",
+                      "dataType": "U8",
+                      "spatialReference": "EPSG:4326",
+                      "measurement": {
+                              "type": "unitless"
+                      },
+                      "noDataValue": 0.0
+                  },
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
             # Unfortunately, we need a separate library to catch the request from the WMS call
             with open("tests/responses/wms-ndvi.png", "rb") as wms_ndvi:
                 responses.add(
@@ -78,7 +90,7 @@ class WmsTests(unittest.TestCase):
             self.assertEqual(type(ax), cartopy.mpl.geoaxes.GeoAxesSubplot)
 
             # Check requests from the mocker
-            self.assertEqual(len(m.request_history), 2)
+            self.assertEqual(len(m.request_history), 3)
 
             workflow_request = m.request_history[1]
             self.assertEqual(workflow_request.method, "POST")
@@ -99,6 +111,18 @@ class WmsTests(unittest.TestCase):
                        "id": "5b9508a8-bd34-5a1c-acd6-75bb832d2d38"
                    },
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            m.get('http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata',
+                  json={
+                      "type": "raster",
+                      "dataType": "U8",
+                      "spatialReference": "EPSG:4326",
+                      "measurement": {
+                              "type": "unitless"
+                      },
+                      "noDataValue": 0.0
+                  },
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             ge.initialize("http://mock-instance")
 

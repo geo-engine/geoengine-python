@@ -30,6 +30,18 @@ class WcsTests(unittest.TestCase):
                    },
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
+            m.get('http://mock-instance/workflow/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/metadata',
+                  json={
+                      "type": "raster",
+                      "dataType": "U8",
+                      "spatialReference": "EPSG:4326",
+                      "measurement": {
+                              "type": "unitless"
+                      },
+                      "noDataValue": 0.0
+                  },
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
             m.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?service=WCS&request=GetCapabilities&version=1.1.1',

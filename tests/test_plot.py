@@ -30,6 +30,12 @@ class WmsTests(unittest.TestCase):
                    },
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
+            m.get('http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata',
+                  json={
+                      "type": "plot"
+                  },
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
             m.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/plot/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?bbox=-180.0%2C-90.0%2C180.0%2C90.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&spatialResolution=0.1,0.1',
@@ -83,7 +89,7 @@ class WmsTests(unittest.TestCase):
             self.assertEqual(type(vega_chart), VegaLite)
 
             # Check requests from the mocker
-            self.assertEqual(len(m.request_history), 3)
+            self.assertEqual(len(m.request_history), 4)
 
             workflow_request = m.request_history[1]
             self.assertEqual(workflow_request.method, "POST")
@@ -135,6 +141,43 @@ class WmsTests(unittest.TestCase):
 
             self.assertEqual(str(exception.exception),
                              'NotFound: Not Found')
+
+    def test_wrong_request(self):
+        # pylint: disable=duplicate-code
+
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                "project": None,
+                "view": None
+            })
+
+            m.get('http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata',
+                  json={
+                      "type": "plot"
+                  },
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            m.get('http://mock-instance/workflow/foo/metadata',
+                  json={
+                      'error': 'NotFound',
+                      'message': 'Not Found',
+                  },
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            ge.initialize("http://mock-instance")
+
+            workflow = ge.workflow_by_id(
+                '5b9508a8-bd34-5a1c-acd6-75bb832d2d38')
+
+            time = datetime.strptime(
+                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+
+            with self.assertRaises(ge.MethodNotCalledOnVectorException):
+                workflow.get_dataframe(QueryRectangle(
+                    [-180.0, -90.0, 180.0, 90.0],
+                    [time, time]
+                ))
 
 
 if __name__ == '__main__':
