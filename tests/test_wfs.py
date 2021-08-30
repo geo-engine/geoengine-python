@@ -278,7 +278,8 @@ class WfsTests(unittest.TestCase):
                              "http://mock-instance/workflow")
             self.assertEqual(workflow_request.json(), workflow_definition)
 
-            # second request is result descriptor retrieval
+            # note: the result descriptor is retrieved upon workflow registration (constructor),
+            # thus the actual WFS request is in the 4th history slot
 
             wfs_request = m.request_history[3]
             self.assertEqual(wfs_request.method, "GET")
