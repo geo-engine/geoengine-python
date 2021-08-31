@@ -506,6 +506,86 @@ class WfsTests(unittest.TestCase):
             self.assertEqual(str(exception.exception),
                              'NotFound: Not Found')
 
+    def test_workflow_retrieval(self):
+        workflow_definition = {
+            "type": "Vector",
+            "operator": {
+                "type": "RasterVectorJoin",
+                "params": {
+                    "names": [
+                        "NDVI"
+                    ],
+                    "featureAggregation": "first",
+                    "temporalAggregation": "none"
+                },
+                "sources": {
+                    "vector": {
+                        "type": "OgrSource",
+                        "params": {
+                            "dataset": {
+                                "type": "internal",
+                                "datasetId": "a9623a5b-b6c5-404b-bc5a-313ff72e4e75"
+                            },
+                            "attributeProjection": None
+                        }
+                    },
+                    "rasters": [
+                        {
+                            "type": "GdalSource",
+                            "params": {
+                                "dataset": {
+                                    "type": "internal",
+                                    "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                "project": None,
+                "view": None
+            })
+
+            m.post('http://mock-instance/workflow',
+                   json={
+                       "id": "4a2cb6e0-a3e3-53e4-9a0f-ed1cf2e4c3b7"
+                   },
+                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            m.get('http://mock-instance/workflow/4a2cb6e0-a3e3-53e4-9a0f-ed1cf2e4c3b7/metadata',
+                  json={
+                      "type": "vector",
+                      "dataType": "MultiPoint",
+                      "spatialReference": "EPSG:4326",
+                      "columns": {
+                          "name": "text",
+                          "scalerank": "int",
+                          "NDVI": "int",
+                          "natlscale": "float",
+                          "featurecla": "text",
+                          "website": "text"
+                      }
+                  },
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            m.get('http://mock-instance/workflow/4a2cb6e0-a3e3-53e4-9a0f-ed1cf2e4c3b7',
+                  json=workflow_definition,
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            ge.initialize("http://mock-instance")
+
+            workflow = ge.register_workflow(workflow_definition)
+
+            self.assertEqual(
+                workflow.workflow_definition(),
+                workflow_definition
+            )
+
 
 if __name__ == '__main__':
     unittest.main()
