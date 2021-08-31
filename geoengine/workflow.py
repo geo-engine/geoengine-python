@@ -3,7 +3,7 @@ A workflow representation and methods on workflows
 '''
 
 from __future__ import annotations
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from uuid import UUID
 from logging import debug
@@ -95,7 +95,7 @@ class Workflow:
 
         return self.__result_descriptor
 
-    def workflow_definition(self) -> Dict[str, str]:
+    def workflow_definition(self) -> Dict[str, Any]:
         '''Return the workflow definition for this workflow'''
 
         session = get_session()
@@ -395,7 +395,7 @@ class Workflow:
         return [ProvenanceOutput.from_response(item) for item in response]
 
 
-def register_workflow(workflow: Dict[str, str]) -> Workflow:
+def register_workflow(workflow: Dict[str, Any]) -> Workflow:
     '''
     Register a workflow in Geo Engine and receive a `WorkflowId`
     '''
