@@ -60,16 +60,24 @@ class QueryRectangle:
         return ','.join(map(str, self.__spatial_bounds))
 
     @property
-    def bbox_ogc(self) -> str:
+    def bbox_ogc_str(self) -> str:
         '''
-        TODO: what is this method and why does it say that is returns a string?
+        A comma-separated string representation of the spatial bounds with OGC axis ordering
+        '''
+
+        return ','.join(map(str, self.bbox_ogc))
+
+    @property
+    def bbox_ogc(self) -> Tuple[float, float, float, float]:
+        '''
+        Return the bbox with OGC axis ordering of the srs
         '''
 
         # TODO: properly handle axis order
         bbox = self.__spatial_bounds
 
         if self.__srs == "EPSG:4326":
-            return [bbox[1], bbox[0], bbox[3], bbox[2]]
+            return (bbox[1], bbox[0], bbox[3], bbox[2])
 
         return bbox
 
