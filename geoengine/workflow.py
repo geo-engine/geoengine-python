@@ -3,11 +3,11 @@ A workflow representation and methods on workflows
 '''
 
 from __future__ import annotations
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from uuid import UUID
 from logging import debug
-from io import StringIO
+from io import StringIO, BytesIO
 import urllib.parse
 import json
 
@@ -20,6 +20,7 @@ from owslib.wcs import WebCoverageService
 import rasterio
 from vega import VegaLite
 import numpy as np
+from PIL import Image
 
 from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
@@ -205,7 +206,7 @@ class Workflow:
 
             [authority, code] = srs.split(':')
 
-            if authority != 'EPSG:':
+            if authority != 'EPSG':
                 return fallback
             try:
                 return ccrs.epsg(code)
@@ -236,7 +237,17 @@ class Workflow:
 
         return ax
 
-    def wms_get_map_curl(self, bbox: QueryRectangle) -> str:
+    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -> Image:
+        '''Return the result of a WMS request as a PIL Image'''
+
+        wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
+        response = req.Session().send(wms_request)
+
+        return Image.open(BytesIO(response.content))
+
+    def __wms_get_map_request(self,
+                              bbox: QueryRectangle,
+                              colorizer_min_max: Tuple[float, float] = None) -> req.PreparedRequest:
         '''Return the WMS url for a workflow and a given `QueryRectangle`'''
 
         if not self.__result_descriptor.is_raster_result():
@@ -247,6 +258,21 @@ class Workflow:
         width = int((bbox.xmax - bbox.xmin) / bbox.resolution[0])
         height = int((bbox.ymax - bbox.ymin) / bbox.resolution[1])
 
+        colorizer = ''
+        if colorizer_min_max is not None:
+            colorizer = 'custom:' + json.dumps({
+                "type": "linearGradient",
+                "breakpoints": [{
+                    "value": colorizer_min_max[0],
+                    "color": [0, 0, 0, 255]
+                }, {
+                    "value": colorizer_min_max[1],
+                    "color": [255, 255, 255, 255]
+                }],
+                "noDataColor": [0, 0, 0, 0],
+                "defaultColor": [0, 0, 0, 0]
+            })
+
         params = dict(
             service='WMS',
             version='1.3.0',
@@ -254,19 +280,24 @@ class Workflow:
             layers=str(self),
             time=bbox.time_str,
             crs=bbox.srs,
-            bbox=bbox.bbox_str,
+            bbox=bbox.bbox_ogc_str,
             width=width,
             height=height,
             format='image/png',
-            styles='',  # TODO: incorporate styling
+            styles=colorizer,  # TODO: incorporate styling properly
         )
 
-        wms_request = req.Request(
+        return req.Request(
             'GET',
             url=f'{session.server_url}/wms',
             params=params,
             headers=session.auth_header
         ).prepare()
+
+    def wms_get_map_curl(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -> str:
+        '''Return the WMS curl command for a workflow and a given `QueryRectangle`'''
+
+        wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
 
         command = "curl -X {method} -H {headers} '{uri}'"
         headers = ['"{0}: {1}"'.format(k, v) for k, v in wms_request.headers.items()]
