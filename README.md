@@ -1,5 +1,8 @@
 # Geo Engine Python Package
 
+
+[![CI](https://github.com/geo-engine/geoengine-python/actions/workflows/ci.yml/badge.svg)](https://github.com/geo-engine/geoengine-python/actions/workflows/ci.yml)
+
 This package allows easy access to Geo Engine functionality from Python environments.
 
 ## Test
