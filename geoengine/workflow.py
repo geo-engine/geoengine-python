@@ -3,7 +3,7 @@ A workflow representation and methods on workflows
 '''
 
 from __future__ import annotations
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from uuid import UUID
 from logging import debug
@@ -94,6 +94,18 @@ class Workflow:
         '''
 
         return self.__result_descriptor
+
+    def workflow_definition(self) -> Dict[str, Any]:
+        '''Return the workflow definition for this workflow'''
+
+        session = get_session()
+
+        response = req.get(
+            f'{session.server_url}/workflow/{self.__workflow_id}',
+            headers=session.auth_header
+        ).json()
+
+        return response
 
     def __get_wfs_url(self, bbox: QueryRectangle) -> str:
         '''Build a WFS url from a workflow and a `QueryRectangle`'''
@@ -383,7 +395,7 @@ class Workflow:
         return [ProvenanceOutput.from_response(item) for item in response]
 
 
-def register_workflow(workflow: str) -> Workflow:
+def register_workflow(workflow: Dict[str, Any]) -> Workflow:
     '''
     Register a workflow in Geo Engine and receive a `WorkflowId`
     '''
