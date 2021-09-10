@@ -2,13 +2,8 @@
 
 from datetime import datetime
 import unittest
-import textwrap
-from PIL import Image
 
 import requests_mock
-import cartopy.mpl.geoaxes
-from cartopy.tests.mpl import ImageTesting
-import responses
 
 from geoengine.types import InternalDatasetId, QueryRectangle
 import geoengine as ge
