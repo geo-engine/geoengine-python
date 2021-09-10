@@ -22,10 +22,10 @@ from vega import VegaLite
 import numpy as np
 from PIL import Image
 
-from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
+from geoengine.types import InternalDatasetId, ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
-    MethodNotCalledOnVectorException
+    MethodNotCalledOnVectorException, SpatialReferenceMismatchException
 
 
 class WorkflowId:
@@ -424,6 +424,39 @@ class Workflow:
         response = req.get(provenance_url, headers=session.auth_header).json()
 
         return [ProvenanceOutput.from_response(item) for item in response]
+
+    def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = '') -> InternalDatasetId:
+        '''EXPERIMENTAL: Store the workflow result as a layer'''
+
+        # Currently, it only works for raster results
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
+        # The dataset is created in the spatial reference system of the workflow result
+        if self.get_result_descriptor().spatial_reference != bbox.srs:
+            raise SpatialReferenceMismatchException(
+                self.get_result_descriptor().spatial_reference,
+                bbox.spatial_reference
+            )
+
+        session = get_session()
+
+        request_body = {
+            'name': name,
+            'description': description,
+            'query': bbox.__dict__(),
+        }
+
+        response = req.post(
+            url=f'{session.server_url}/datasetFromWorkflow/{self.__workflow_id}',
+            json=request_body,
+            headers=session.auth_header,
+        ).json()
+
+        if 'error' in response:
+            raise GeoEngineException(response)
+
+        return InternalDatasetId.from_response(response['dataset'])
 
 
 def register_workflow(workflow: Dict[str, Any]) -> Workflow:

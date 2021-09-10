@@ -138,6 +138,42 @@ class QueryRectangle:
 
         return self.__srs
 
+    def __dict__(self) -> Dict[str, Any]:
+        '''
+        Return a dictionary representation of the object
+        '''
+
+        time_start_unix = int(self.__time_interval[0].timestamp() * 1000)
+        time_end_unix = int(self.__time_interval[1].timestamp() * 1000)
+
+        left_x = min(self.__spatial_bounds[0], self.__spatial_bounds[2])
+        right_x = max(self.__spatial_bounds[0], self.__spatial_bounds[2])
+        lower_y = min(self.__spatial_bounds[1], self.__spatial_bounds[3])
+        upper_y = max(self.__spatial_bounds[1], self.__spatial_bounds[3])
+
+        # TODO: distinguish between raster, vector and plot query rectangle
+
+        return {
+            'spatial_bounds': {
+                'upperLeftCoordinate': {
+                    "x": left_x,
+                    "y": upper_y,
+                },
+                'lowerRightCoordinate': {
+                    "x": right_x,
+                    "y": lower_y,
+                }
+            },
+            'time_interval': {
+                'start': time_start_unix,
+                'end': time_end_unix,
+            },
+            'spatial_resolution': {
+                'x': self.__resolution[0],
+                'y': self.__resolution[1],
+            },
+        }
+
 
 class ResultDescriptor:  # pylint: disable=too-few-public-methods
     '''
