@@ -92,3 +92,18 @@ class MethodNotCalledOnPlotException(Exception):
 
     def __str__(self) -> str:
         return "Only allowed to call method on plot result"
+
+
+class SpatialReferenceMismatchException(Exception):
+    '''
+    Exception for calling a method on a workflow with a query rectangle that has a different spatial reference
+    '''
+
+    def __init__(self, spatial_reference_a: str, spatial_reference_b: str) -> None:
+        super().__init__()
+
+        self.__spatial_reference_a = spatial_reference_a
+        self.__spatial_reference_b = spatial_reference_b
+
+    def __str__(self) -> str:
+        return f"Spatial reference mismatch {self.__spatial_reference_a} != {self.__spatial_reference_b}"
