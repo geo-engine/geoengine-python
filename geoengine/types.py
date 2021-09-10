@@ -201,7 +201,7 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         raise TypeException(
             f'Unknown `ResultDescriptor` type: {result_descriptor_type}')
 
-    @ classmethod
+    @classmethod
     def is_raster_result(cls) -> bool:
         '''
         Return true if the result is of type raster
@@ -209,7 +209,7 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
 
         return False
 
-    @ classmethod
+    @classmethod
     def is_vector_result(cls) -> bool:
         '''
         Return true if the result is of type vector
@@ -217,7 +217,7 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
 
         return False
 
-    @ classmethod
+    @classmethod
     def is_plot_result(cls) -> bool:
         '''
         Return true if the result is of type plot
@@ -252,23 +252,23 @@ class VectorResultDescriptor(ResultDescriptor):
 
         return r
 
-    @ classmethod
+    @classmethod
     def is_vector_result(cls) -> bool:
         return True
 
-    @ property
+    @property
     def data_type(self) -> str:
         '''Return the data type'''
 
         return self.__data_type
 
-    @ property
+    @property
     def spatial_reference(self) -> str:
         '''Return the spatial reference'''
 
         return self.__spatial_reference
 
-    @ property
+    @property
     def columns(self) -> Dict[str, str]:
         '''Return the columns'''
 
@@ -300,23 +300,23 @@ class RasterResultDescriptor(ResultDescriptor):
 
         return r
 
-    @ classmethod
+    @classmethod
     def is_raster_result(cls) -> bool:
         return True
 
-    @ property
+    @property
     def data_type(self) -> str:
         return self.__data_type
 
-    @ property
+    @property
     def spatial_reference(self) -> str:
         return self.__spatial_reference
 
-    @ property
+    @property
     def measurement(self) -> str:
         return self.__measurement
 
-    @ property
+    @property
     def no_data_value(self) -> str:
         return self.__no_data_value
 
@@ -334,7 +334,7 @@ class PlotResultDescriptor(ResultDescriptor):
 
         return r
 
-    @ classmethod
+    @classmethod
     def is_plot_result(cls) -> bool:
         return True
 
@@ -347,7 +347,7 @@ class VectorDataType(Enum):
     MULTI_LINE_STRING = 'MultiLineString'
     MULTI_POLYGON = 'MultiPolygon'
 
-    @ classmethod
+    @classmethod
     def from_geopandas_type_name(cls, name: str) -> VectorDataType:
         '''Resolve vector data type from geopandas geometry type'''
 
@@ -377,14 +377,14 @@ class TimeStepGranularity(Enum):
     YEARS = 'Years'
 
 
-@ dataclass
+@dataclass
 class TimeStep:
     '''A time step that consists of a granularity and a step size'''
     step: int
     granularity: TimeStepGranularity
 
 
-@ dataclass
+@dataclass
 class Provenance:
     '''Provenance information as triplet of citation, license and uri'''
 
@@ -392,20 +392,20 @@ class Provenance:
     license: str
     uri: str
 
-    @ classmethod
+    @classmethod
     def from_response(cls, response: Dict[str, str]) -> Provenance:
         '''Parse an http response to a `Provenance` object'''
         return Provenance(response['citation'], response['license'], response['uri'])
 
 
-@ dataclass
+@dataclass
 class ProvenanceOutput:
     '''Provenance of a dataset'''
 
     dataset: DatasetId
     provenance: Provenance
 
-    @ classmethod
+    @classmethod
     def from_response(cls, response: Dict[str, Dict[str, str]]) -> ProvenanceOutput:
         '''Parse an http response to a `ProvenanceOutput` object'''
 
@@ -417,7 +417,7 @@ class ProvenanceOutput:
 
 class DatasetId:  # pylint: disable=too-few-public-methods
     '''Base class for dataset ids'''
-    @ classmethod
+    @classmethod
     def from_response(cls, response: Dict[str, str]) -> DatasetId:
         '''Parse an http response to a `DatasetId` object'''
 
@@ -437,7 +437,7 @@ class InternalDatasetId(DatasetId):
     def __init__(self, dataset_id: UUID):
         self.__dataset_id = dataset_id
 
-    @ classmethod
+    @classmethod
     def from_response(cls, response: Dict[str, str]) -> InternalDatasetId:
         '''Parse an http response to a `InternalDatasetId` object'''
 
@@ -472,7 +472,7 @@ class ExternalDatasetId(DatasetId):
         self.__provider_id = provider_id
         self.__dataset_id = dataset_id
 
-    @ classmethod
+    @classmethod
     def from_response(cls, response: Dict[str, str]) -> ExternalDatasetId:
         '''Parse an http response to a `ExternalDatasetId` object'''
 
