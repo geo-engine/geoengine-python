@@ -434,7 +434,10 @@ class Workflow:
 
         # The dataset is created in the spatial reference system of the workflow result
         if self.get_result_descriptor().spatial_reference != bbox.srs:
-            raise SpatialReferenceMismatchException(self.get_result_descriptor().spatial_reference, bbox.spatial_reference)
+            raise SpatialReferenceMismatchException(
+                self.get_result_descriptor().spatial_reference,
+                bbox.spatial_reference
+            )
 
         session = get_session()
 
