@@ -425,7 +425,7 @@ class Workflow:
 
         return [ProvenanceOutput.from_response(item) for item in response]
 
-    def save_as_layer(self, name: str, description: str, bbox: QueryRectangle) -> InternalDatasetId:
+    def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = '') -> InternalDatasetId:
         '''EXPERIMENTAL: Store the workflow result as a layer'''
 
         # Currently, it only works for raster results
