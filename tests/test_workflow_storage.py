@@ -10,7 +10,7 @@ import geoengine as ge
 
 
 class WorkflowStorageTests(unittest.TestCase):
-    '''WMS test runner'''
+    '''Test methods for storing workflows as datasets'''
 
     def setUp(self) -> None:
         ge.reset()
