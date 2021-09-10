@@ -71,14 +71,14 @@ class WorkflowStorageTests(unittest.TestCase):
 
             workflow = ge.register_workflow(workflow_definition)
 
-            dataset_id = workflow.save_as_layer(
-                "Foo",
-                "Bar",
+            dataset_id = workflow.save_as_dataset(
                 QueryRectangle(
                     [-180.0, -90.0, 180.0, 90.0],
                     [time, time],
                     resolution=(1.8, 1.8)
                 ),
+                "Foo",
+                "Bar",
             )
 
             self.assertEqual(dataset_id, InternalDatasetId("94230f0b-4e8a-4cba-9adc-3ace837fe5d4"))
