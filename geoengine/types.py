@@ -178,7 +178,7 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
     Base class for result descriptors
     '''
 
-    @ staticmethod
+    @staticmethod
     def from_response(response: Dict[str, Any]) -> None:
         '''
         Parse a result descriptor from an http response
