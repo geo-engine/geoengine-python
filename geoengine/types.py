@@ -151,6 +151,8 @@ class QueryRectangle:
         lower_y = min(self.__spatial_bounds[1], self.__spatial_bounds[3])
         upper_y = max(self.__spatial_bounds[1], self.__spatial_bounds[3])
 
+        # TODO: distinguish between raster, vector and plot query rectangle
+
         return {
             'spatial_bounds': {
                 'upperLeftCoordinate': {
