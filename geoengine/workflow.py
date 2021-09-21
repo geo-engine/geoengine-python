@@ -146,7 +146,7 @@ class Workflow:
         ).prepare()
 
         command = "curl -X {method} -H {headers} '{uri}'"
-        headers = ['"{0}: {1}"'.format(k, v) for k, v in wfs_request.headers.items()]
+        headers = [f'"{k}: {v}"' for k, v in wfs_request.headers.items()]
         headers = " -H ".join(headers)
         return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
 
@@ -301,7 +301,7 @@ class Workflow:
         wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
 
         command = "curl -X {method} -H {headers} '{uri}'"
-        headers = ['"{0}: {1}"'.format(k, v) for k, v in wms_request.headers.items()]
+        headers = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
         headers = " -H ".join(headers)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
 
