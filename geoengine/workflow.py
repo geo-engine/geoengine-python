@@ -15,8 +15,9 @@ import requests as req
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-from owslib.wms import WebMapService
+from owslib.util import Authentication
 from owslib.wcs import WebCoverageService
+from owslib.wms import WebMapService
 import rasterio
 from vega import VegaLite
 import numpy as np
@@ -219,7 +220,7 @@ class Workflow:
         wms = WebMapService(wms_url,
                             version='1.3.0',
                             xml=self.__faux_capabilities(wms_url, str(self), bbox),
-                            headers=session.auth_header,
+                            auth=Authentication(auth_delegate=session.requests_bearer_auth()),
                             timeout=timeout)
 
         # TODO: incorporate spatial resolution (?)
