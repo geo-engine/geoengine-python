@@ -15,8 +15,9 @@ import requests as req
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
-from owslib.wms import WebMapService
+from owslib.util import Authentication
 from owslib.wcs import WebCoverageService
+from owslib.wms import WebMapService
 import rasterio
 from vega import VegaLite
 import numpy as np
@@ -145,7 +146,7 @@ class Workflow:
         ).prepare()
 
         command = "curl -X {method} -H {headers} '{uri}'"
-        headers = ['"{0}: {1}"'.format(k, v) for k, v in wfs_request.headers.items()]
+        headers = [f'"{k}: {v}"' for k, v in wfs_request.headers.items()]
         headers = " -H ".join(headers)
         return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
 
@@ -219,7 +220,7 @@ class Workflow:
         wms = WebMapService(wms_url,
                             version='1.3.0',
                             xml=self.__faux_capabilities(wms_url, str(self), bbox),
-                            headers=session.auth_header,
+                            auth=Authentication(auth_delegate=session.requests_bearer_auth()),
                             timeout=timeout)
 
         # TODO: incorporate spatial resolution (?)
@@ -300,7 +301,7 @@ class Workflow:
         wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
 
         command = "curl -X {method} -H {headers} '{uri}'"
-        headers = ['"{0}: {1}"'.format(k, v) for k, v in wms_request.headers.items()]
+        headers = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
         headers = " -H ".join(headers)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
 
