@@ -6,4 +6,4 @@ from .error import GeoEngineException, InputException, UninitializedException, T
     SpatialReferenceMismatchException
 from .types import QueryRectangle
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow
-from .datasets import upload_dataframe
+from .datasets import upload_dataframe, StoredDataset
