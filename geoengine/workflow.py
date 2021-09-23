@@ -394,7 +394,7 @@ class Workflow:
         crs = f'urn:ogc:def:crs:{bbox.srs.replace(":", "::")}'
 
         wcs_url = f'{session.server_url}/wcs/{self.__workflow_id}'
-        wcs = WebCoverageService(wcs_url, version='1.1.1')
+        wcs = WebCoverageService(wcs_url, version='1.1.1', auth=Authentication(auth_delegate=session.requests_bearer_auth()))
 
         [resx, resy] = bbox.resolution_ogc
 
