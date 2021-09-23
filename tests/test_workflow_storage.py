@@ -6,6 +6,7 @@ import unittest
 import requests_mock
 
 from geoengine.types import InternalDatasetId, QueryRectangle
+from geoengine.datasets import UploadId
 import geoengine as ge
 
 
@@ -71,7 +72,7 @@ class WorkflowStorageTests(unittest.TestCase):
 
             workflow = ge.register_workflow(workflow_definition)
 
-            dataset_id = workflow.save_as_dataset(
+            stored_dataset = workflow.save_as_dataset(
                 QueryRectangle(
                     [-180.0, -90.0, 180.0, 90.0],
                     [time, time],
@@ -81,4 +82,5 @@ class WorkflowStorageTests(unittest.TestCase):
                 "Bar",
             )
 
-            self.assertEqual(dataset_id, InternalDatasetId("94230f0b-4e8a-4cba-9adc-3ace837fe5d4"))
+            self.assertEqual(stored_dataset.dataset_id, InternalDatasetId("94230f0b-4e8a-4cba-9adc-3ace837fe5d4"))
+            self.assertEqual(stored_dataset.upload_id, UploadId("3086f494-d5a4-4b51-a14b-3b29f8bf7bb0"))
