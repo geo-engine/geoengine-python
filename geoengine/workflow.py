@@ -27,6 +27,7 @@ from geoengine.types import InternalDatasetId, ProvenanceOutput, QueryRectangle,
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
     MethodNotCalledOnVectorException, SpatialReferenceMismatchException
+from geoengine.datasets import StoredDataset, UploadId
 
 
 class WorkflowId:
@@ -394,7 +395,11 @@ class Workflow:
         crs = f'urn:ogc:def:crs:{bbox.srs.replace(":", "::")}'
 
         wcs_url = f'{session.server_url}/wcs/{self.__workflow_id}'
-        wcs = WebCoverageService(wcs_url, version='1.1.1', auth=Authentication(auth_delegate=session.requests_bearer_auth()))
+        wcs = WebCoverageService(
+            wcs_url,
+            version='1.1.1',
+            auth=Authentication(auth_delegate=session.requests_bearer_auth()),
+        )
 
         [resx, resy] = bbox.resolution_ogc
 
@@ -426,7 +431,7 @@ class Workflow:
 
         return [ProvenanceOutput.from_response(item) for item in response]
 
-    def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = '') -> InternalDatasetId:
+    def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = '') -> StoredDataset:
         '''EXPERIMENTAL: Store the workflow result as a layer'''
 
         # Currently, it only works for raster results
@@ -457,7 +462,10 @@ class Workflow:
         if 'error' in response:
             raise GeoEngineException(response)
 
-        return InternalDatasetId.from_response(response['dataset'])
+        return StoredDataset(
+            dataset_id=InternalDatasetId.from_response(response['dataset']),
+            upload_id=UploadId(response['upload'])
+        )
 
 
 def register_workflow(workflow: Dict[str, Any]) -> Workflow:

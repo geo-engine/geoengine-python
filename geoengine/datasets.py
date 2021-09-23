@@ -3,7 +3,7 @@ Module for working with datasets and source definitions
 '''
 
 from __future__ import annotations
-from typing import Dict
+from typing import Dict, NamedTuple
 
 from enum import Enum
 from uuid import UUID
@@ -249,6 +249,12 @@ class UploadId:
     def __repr__(self) -> str:
         return str(self)
 
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
+
 
 def pandas_dtype_to_column_type(dtype: np.dtype) -> str:
     '''Convert a pandas `dtype` to a column type'''
@@ -342,3 +348,10 @@ def upload_dataframe(
         raise GeoEngineException(response)
 
     return InternalDatasetId.from_response(response["id"])
+
+
+class StoredDataset(NamedTuple):
+    '''The result of a store dataset request is a combination of `upload_id` and `dataset_id`'''
+
+    dataset_id: InternalDatasetId
+    upload_id: UploadId
