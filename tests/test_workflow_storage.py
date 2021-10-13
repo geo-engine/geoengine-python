@@ -2,6 +2,7 @@
 
 from datetime import datetime
 import unittest
+import json
 
 import requests_mock
 
@@ -43,6 +44,29 @@ class WorkflowStorageTests(unittest.TestCase):
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             m.post('http://mock-instance/datasetFromWorkflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38',
+                   additional_matcher=lambda request: request.text == json.dumps({
+                       "name": "Foo",
+                       "description": "Bar",
+                       "query": {
+                           "spatialBounds": {
+                               "upperLeftCoordinate": {
+                                   "x": -180.0,
+                                   "y": 90.0},
+                               "lowerRightCoordinate": {
+                                   "x": 180.0,
+                                   "y": -90.0
+                               }
+                           },
+                           "timeInterval": {
+                               "start": 1396353600000,
+                               "end": 1396353600000
+                           },
+                           "spatialResolution": {
+                               "x": 1.8,
+                               "y": 1.8
+                           }
+                       }
+                   }),
                    json={
                        "upload": "3086f494-d5a4-4b51-a14b-3b29f8bf7bb0",
                        "dataset": {

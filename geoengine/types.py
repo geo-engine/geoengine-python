@@ -154,7 +154,7 @@ class QueryRectangle:
         # TODO: distinguish between raster, vector and plot query rectangle
 
         return {
-            'spatial_bounds': {
+            'spatialBounds': {
                 'upperLeftCoordinate': {
                     "x": left_x,
                     "y": upper_y,
@@ -164,11 +164,11 @@ class QueryRectangle:
                     "y": lower_y,
                 }
             },
-            'time_interval': {
+            'timeInterval': {
                 'start': time_start_unix,
                 'end': time_end_unix,
             },
-            'spatial_resolution': {
+            'spatialResolution': {
                 'x': self.__resolution[0],
                 'y': self.__resolution[1],
             },
