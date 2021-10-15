@@ -48,6 +48,12 @@ class WmsTests(unittest.TestCase):
             m.get('http://epsg.io/4326.gml?download', body=epsg4326_gml)
 
             # Unfortunately, we need a separate library to catch the request from the WMS call
+            with open("tests/responses/wms_capabilities.xml", "r", encoding="utf-8") as wms_capabilities:
+                m.get(
+                    # pylint: disable=line-too-long
+                    'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&request=GetCapabilities&version=1.3.0',
+                    text=wms_capabilities.read())
+
             with open("tests/responses/wms-ndvi.png", "rb") as wms_ndvi:
                 responses.add(
                     # pylint: disable=line-too-long
@@ -90,7 +96,7 @@ class WmsTests(unittest.TestCase):
             self.assertEqual(type(ax), cartopy.mpl.geoaxes.GeoAxesSubplot)
 
             # Check requests from the mocker
-            self.assertEqual(len(m.request_history), 4)
+            self.assertEqual(len(m.request_history), 5)
 
             workflow_request = m.request_history[1]
             self.assertEqual(workflow_request.method, "POST")
@@ -129,6 +135,12 @@ class WmsTests(unittest.TestCase):
             m.get('http://epsg.io/4326.gml?download', body=epsg4326_gml)
 
             # Unfortunately, we need a separate library to catch the request from the WMS call
+            with open("tests/responses/wms_capabilities.xml", "r", encoding="utf-8") as wms_capabilities:
+                m.get(
+                    # pylint: disable=line-too-long
+                    'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&request=GetCapabilities&version=1.3.0',
+                    text=wms_capabilities.read())
+
             m.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=200&height=100&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0%2C+%22color%22%3A+%5B0%2C+0%2C+0%2C+255%5D%7D%2C+%7B%22value%22%3A+255%2C+%22color%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22defaultColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%7D',

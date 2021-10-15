@@ -217,7 +217,6 @@ class Workflow:
 
         wms = WebMapService(wms_url,
                             version='1.3.0',
-                            xml=self.__faux_capabilities(wms_url, str(self), bbox),
                             auth=Authentication(auth_delegate=session.requests_bearer_auth()),
                             timeout=timeout)
 
