@@ -128,7 +128,7 @@ class Workflow:
         )
 
         wfs_url = req.Request(
-            'GET', url=f'{session.server_url}/wfs', params=params).prepare().url
+            'GET', url=f'{session.server_url}/wfs/{self.__workflow_id}', params=params).prepare().url
 
         debug(f'WFS URL:\n{wfs_url}')
 
@@ -201,7 +201,7 @@ class Workflow:
 
         session = get_session()
 
-        wms_url = f'{session.server_url}/wms'
+        wms_url = f'{session.server_url}/wms/{str(self)}'
 
         def srs_to_projection(srs: str) -> ccrs.Projection:
             fallback = ccrs.PlateCarree()
@@ -291,7 +291,7 @@ class Workflow:
 
         return req.Request(
             'GET',
-            url=f'{session.server_url}/wms',
+            url=f'{session.server_url}/wms/{str(self)}',
             params=params,
             headers=session.auth_header
         ).prepare()
