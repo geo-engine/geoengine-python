@@ -125,7 +125,7 @@ class Workflow:
         )
 
         wfs_url = req.Request(
-            'GET', url=f'{session.server_url}/wfs', params=params).prepare().url
+            'GET', url=f'{session.server_url}/wfs/{self.__workflow_id}', params=params).prepare().url
 
         debug(f'WFS URL:\n{wfs_url}')
 
@@ -185,6 +185,57 @@ class Workflow:
 
         return geo_json_with_time_to_geopandas(data_response)
 
+    def plot_image(self, bbox: QueryRectangle, ax: plt.Axes = None, timeout=3600) -> plt.Axes:
+        '''
+        Query a workflow and return the WMS result as a matplotlib image
+
+        Params:
+        timeout - - HTTP request timeout in seconds
+        '''
+
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
+        session = get_session()
+
+        wms_url = f'{session.server_url}/wms/{str(self)}'
+
+        def srs_to_projection(srs: str) -> ccrs.Projection:
+            fallback = ccrs.PlateCarree()
+
+            [authority, code] = srs.split(':')
+
+            if authority != 'EPSG':
+                return fallback
+            try:
+                return ccrs.epsg(code)
+            except ValueError:
+                return fallback
+
+        if ax is None:
+            ax = plt.axes(projection=srs_to_projection(bbox.srs))
+
+        wms = WebMapService(wms_url,
+                            version='1.3.0',
+                            xml=self.__faux_capabilities(wms_url, str(self), bbox),
+                            auth=Authentication(auth_delegate=session.requests_bearer_auth()),
+                            timeout=timeout)
+
+        # TODO: incorporate spatial resolution (?)
+
+        ax.add_wms(wms,
+                   layers=[str(self)],
+                   wms_kwargs={
+                       'time': urllib.parse.quote(bbox.time_str),
+                       # 'bbox': bbox.bbox_str
+                       'crs': bbox.srs
+                   })
+
+        ax.set_xlim(bbox.xmin, bbox.xmax)
+        ax.set_ylim(bbox.ymin, bbox.ymax)
+
+        return ax
+
     def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -> Image:
         '''Return the result of a WMS request as a PIL Image'''
 
@@ -237,7 +288,7 @@ class Workflow:
 
         return req.Request(
             'GET',
-            url=f'{session.server_url}/wms',
+            url=f'{session.server_url}/wms/{str(self)}',
             params=params,
             headers=session.auth_header
         ).prepare()
