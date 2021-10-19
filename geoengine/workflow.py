@@ -13,11 +13,8 @@ import json
 
 import requests as req
 import geopandas as gpd
-import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
 from owslib.util import Authentication
 from owslib.wcs import WebCoverageService
-from owslib.wms import WebMapService
 import rasterio
 from vega import VegaLite
 import numpy as np
@@ -188,57 +185,6 @@ class Workflow:
 
         return geo_json_with_time_to_geopandas(data_response)
 
-    def plot_image(self, bbox: QueryRectangle, ax: plt.Axes = None, timeout=3600) -> plt.Axes:
-        '''
-        Query a workflow and return the WMS result as a matplotlib image
-
-        Params:
-        timeout - - HTTP request timeout in seconds
-        '''
-
-        if not self.__result_descriptor.is_raster_result():
-            raise MethodNotCalledOnRasterException()
-
-        session = get_session()
-
-        wms_url = f'{session.server_url}/wms'
-
-        def srs_to_projection(srs: str) -> ccrs.Projection:
-            fallback = ccrs.PlateCarree()
-
-            [authority, code] = srs.split(':')
-
-            if authority != 'EPSG':
-                return fallback
-            try:
-                return ccrs.epsg(code)
-            except ValueError:
-                return fallback
-
-        if ax is None:
-            ax = plt.axes(projection=srs_to_projection(bbox.srs))
-
-        wms = WebMapService(wms_url,
-                            version='1.3.0',
-                            xml=self.__faux_capabilities(wms_url, str(self), bbox),
-                            auth=Authentication(auth_delegate=session.requests_bearer_auth()),
-                            timeout=timeout)
-
-        # TODO: incorporate spatial resolution (?)
-
-        ax.add_wms(wms,
-                   layers=[str(self)],
-                   wms_kwargs={
-                       'time': urllib.parse.quote(bbox.time_str),
-                       # 'bbox': bbox.bbox_str
-                       'crs': bbox.srs
-                   })
-
-        ax.set_xlim(bbox.xmin, bbox.xmax)
-        ax.set_ylim(bbox.ymin, bbox.ymax)
-
-        return ax
-
     def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -> Image:
         '''Return the result of a WMS request as a PIL Image'''
 
@@ -305,56 +251,6 @@ class Workflow:
         headers = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
         headers = " -H ".join(headers)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
-
-    @classmethod
-    def __faux_capabilities(cls, wms_url: str, layer_name: str, bbox: QueryRectangle) -> str:
-        '''Create an XML file with faux capabilities to list the layer with `layer_name`'''
-
-        return '''
-        <WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3.0" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd">
-            <Service>
-                <Name>WMS</Name>
-                <Title>Geo Engine WMS</Title>
-            </Service>
-            <Capability>
-                <Request>
-                    <GetCapabilities>
-                        <Format>text/xml</Format>
-                        <DCPType>
-                            <HTTP>
-                                <Get>
-                                    <OnlineResource xlink:href="{wms_url}"/>
-                                </Get>
-                            </HTTP>
-                        </DCPType>
-                    </GetCapabilities>
-                    <GetMap>
-                        <Format>image/png</Format>
-                        <DCPType>
-                            <HTTP>
-                                <Get>
-                                    <OnlineResource xlink:href="{wms_url}"/>
-                                </Get>
-                            </HTTP>
-                        </DCPType>
-                    </GetMap>
-                </Request>
-                <Exception>
-                    <Format>XML</Format>
-                    <Format>INIMAGE</Format>
-                    <Format>BLANK</Format>
-                </Exception>
-                <Layer queryable="1">
-                    <Name>{layer_name}</Name>
-                    <Title>{layer_name}</Title>
-                    <CRS>{crs}</CRS>
-                    <BoundingBox CRS="EPSG:4326" minx="-90.0" miny="-180.0" maxx="90.0" maxy="180.0"/>
-                </Layer>
-            </Capability>
-        </WMS_Capabilities>
-        '''.format(wms_url=wms_url,
-                   layer_name=layer_name,
-                   crs=bbox.srs)
 
     def plot_chart(self, bbox: QueryRectangle) -> VegaLite:
         '''
