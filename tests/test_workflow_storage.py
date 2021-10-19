@@ -15,7 +15,7 @@ class WorkflowStorageTests(unittest.TestCase):
     '''Test methods for storing workflows as datasets'''
 
     def setUp(self) -> None:
-        ge.reset()
+        ge.reset(False)
 
     def test_storing_workflow(self):
         with requests_mock.Mocker() as m:

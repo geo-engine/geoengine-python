@@ -2,9 +2,10 @@
 Module for encapsulating Geo Engine authentication
 '''
 
-from typing import ClassVar, Dict, Optional
+from typing import ClassVar, Dict, Optional, Tuple
 from uuid import UUID
 
+import os
 import requests as req
 from requests.auth import AuthBase
 
@@ -35,14 +36,25 @@ class Session:
 
     session: ClassVar[req.Session] = None
 
-    def __init__(self, server_url: str) -> None:
+    def __init__(self, server_url: str, credentials: Tuple[str, str] = None) -> None:
         '''
         Initialize communication between this library and a Geo Engine instance
+
+        if credentials are provided, the session will be authenticated
+
+        optional arguments: (email, password) as tuple
+        optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD
         '''
 
-        # TODO: username and password for Pro version
+        session = None
 
-        session = req.post(f'{server_url}/anonymous').json()
+        if credentials is not None:
+            session = req.post(f'{server_url}/login', json={"email": credentials[0], "password": credentials[1]}).json()
+        elif "GEOENGINE_EMAIL" in os.environ and "GEOENGINE_PASSWORD" in os.environ:
+            session = req.post(f'{server_url}/login',
+                               json={"email": os.environ.get("GEOENGINE_EMAIL"), "password": os.environ.get("GEOENGINE_PASSWORD")}).json()
+        else:
+            session = req.post(f'{server_url}/anonymous').json()
 
         if 'error' in session:
             raise GeoEngineException(session)
@@ -87,6 +99,13 @@ class Session:
 
         return BearerAuth(self.__id)
 
+    def logout(self):
+        '''
+        Logout the current session
+        '''
+
+        req.post(f'{self.server_url}/logout', headers=self.auth_header)
+
 
 def get_session() -> Session:
     '''
@@ -101,19 +120,25 @@ def get_session() -> Session:
     return Session.session
 
 
-def initialize(server_url: str) -> None:
+def initialize(server_url: str, credentials: Tuple[str, str] = None) -> None:
     '''
     Initialize communication between this library and a Geo Engine instance
+
+    if credentials are provided, the session will be authenticated
+
+    optional arugments: (email, password) as tuple
+    optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD
     '''
 
-    Session.session = Session(server_url)
+    Session.session = Session(server_url, credentials)
 
 
-def reset() -> None:
+def reset(logout: bool = True) -> None:
     '''
     Resets the current session
     '''
 
-    # TODO: active logout for Pro version
+    if Session.session is not None and logout:
+        Session.session.logout()
 
     Session.session = None

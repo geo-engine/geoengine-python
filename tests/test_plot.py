@@ -14,7 +14,7 @@ class WmsTests(unittest.TestCase):
     '''Test runner for the plotting functionality'''
 
     def setUp(self) -> None:
-        ge.reset()
+        ge.reset(False)
 
     def test_ndvi_histogram(self):
         with requests_mock.Mocker() as m:

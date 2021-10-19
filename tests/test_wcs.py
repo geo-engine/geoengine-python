@@ -14,7 +14,7 @@ class WcsTests(unittest.TestCase):
     '''WCS test runner'''
 
     def setUp(self) -> None:
-        ge.reset()
+        ge.reset(False)
 
     def test_ndvi(self):
         with requests_mock.Mocker() as m, open("tests/responses/ndvi.tiff", "rb") as ndvi_tiff:

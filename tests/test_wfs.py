@@ -18,7 +18,7 @@ class WfsTests(unittest.TestCase):
     '''WFS test runner'''
 
     def setUp(self) -> None:
-        ge.reset()
+        ge.reset(False)
 
     def test_geopandas(self):
         with requests_mock.Mocker() as m:
