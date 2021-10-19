@@ -52,7 +52,8 @@ class AuthTests(unittest.TestCase):
     def test_initialize_tuple(self):
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/login',
-                   additional_matcher=lambda request: request.text == json.dumps({"email": "foo@bar.de", "password": "secret123"}),
+                   additional_matcher=lambda request:
+                   request.text == json.dumps({"email": "foo@bar.de", "password": "secret123"}),
                    json={
                        "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
                        "user": {
@@ -72,7 +73,8 @@ class AuthTests(unittest.TestCase):
     def test_initialize_env(self):
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/login',
-                   additional_matcher=lambda request: request.text == json.dumps({"email": "foo@bar.de", "password": "secret123"}),
+                   additional_matcher=lambda request:
+                   request.text == json.dumps({"email": "foo@bar.de", "password": "secret123"}),
                    json={
                        "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
                        "user": {
