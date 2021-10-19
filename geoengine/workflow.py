@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Tuple
 
 from uuid import UUID
 from logging import debug
-from io import StringIO, BytesIO
+from io import BytesIO
 import urllib.parse
 import json
 
@@ -164,18 +164,23 @@ class Workflow:
         wfs_url = self.__get_wfs_url(bbox)
 
         data_response = req.get(wfs_url, headers=session.auth_header)
+        data = data_response.json()
 
-        def geo_json_with_time_to_geopandas(data_response):
+        if 'error' in data:
+            raise GeoEngineException(data)
+
+        def geo_json_with_time_to_geopandas(geo_json):
             '''
             GeoJson has no standard for time, so we parse the when field
             separately and attach it to the data frame as columns `start`
             and `end`.
             '''
 
-            data = gpd.read_file(StringIO(data_response.text))
+            # data = gpd.read_file(StringIO(data_response.text))
+            data = gpd.GeoDataFrame.from_features(geo_json)
             data = data.set_crs(bbox.srs, allow_override=True)
 
-            geo_json = data_response.json()
+            # geo_json = data_response.json()
             start = [f['when']['start'] for f in geo_json['features']]
             end = [f['when']['end'] for f in geo_json['features']]
 
@@ -186,7 +191,7 @@ class Workflow:
 
             return data
 
-        return geo_json_with_time_to_geopandas(data_response)
+        return geo_json_with_time_to_geopandas(data)
 
     def plot_image(self, bbox: QueryRectangle, ax: plt.Axes = None, timeout=3600) -> plt.Axes:
         '''
