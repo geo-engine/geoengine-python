@@ -1,10 +1,10 @@
 build
-flufl.lock # for cartopy mpl tests
+cartopy==0.19.0.post1  # for WMS example
 pycodestyle # formatter
 pylint # code linter
 pytest
 requests_mock
-responses # mocking urllib3 requests
 setuptools
+scipy # for WMS example
 twine # PyPI
 wheel
