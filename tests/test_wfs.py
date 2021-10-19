@@ -484,7 +484,7 @@ class WfsTests(unittest.TestCase):
             }
 
             time = datetime.strptime(
-                '2010-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2004-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
 
             workflow = ge.register_workflow(workflow_definition)
 
