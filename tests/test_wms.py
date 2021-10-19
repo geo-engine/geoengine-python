@@ -9,7 +9,6 @@ import requests_mock
 import cartopy.mpl.geoaxes
 from cartopy.tests.mpl import ImageTesting
 import responses
-import pytest
 
 from geoengine.types import QueryRectangle
 import geoengine as ge

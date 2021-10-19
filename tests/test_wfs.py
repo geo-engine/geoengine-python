@@ -442,7 +442,8 @@ class WfsTests(unittest.TestCase):
             m.get('http://mock-instance/wfs',
                   json={
                       "error": "Operator",
-                      "message": "Operator: Could not open gdal dataset for file path \"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF\""
+                      "message": 'Operator: Could not open gdal dataset for file path '
+                      '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"'
                   },
                   status_code=400,
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'}
@@ -497,7 +498,8 @@ class WfsTests(unittest.TestCase):
                 )
 
             self.assertEqual(str(ctx.exception),
-                             'Operator: Operator: Could not open gdal dataset for file path "test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"')
+                             'Operator: Operator: Could not open gdal dataset for file path '
+                             '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"')
 
     def test_repr(self):
         with requests_mock.Mocker() as m:
