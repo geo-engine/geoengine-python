@@ -250,7 +250,23 @@ class Workflow:
         wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
         response = req.Session().send(wms_request)
 
-        return Image.open(BytesIO(response.content))
+        try:
+            image = Image.open(BytesIO(response.content))
+            return image
+        except Exception as pil_exception:  # pylint: disable=broad-except
+            exception = pil_exception
+
+        # try to parse it as a Geo Engine error
+        try:
+            response_json = response.json()
+            if 'error' in response_json:
+                # override exception with `GeoEngineException`
+                exception = GeoEngineException(response_json)
+        except Exception:  # pylint: disable=broad-except
+            pass  # ignore errors, it seemed not to be JSON
+
+        # we either raise the Geo Engine exception or the PIL exception
+        raise exception
 
     def __wms_get_map_request(self,
                               bbox: QueryRectangle,
@@ -378,6 +394,9 @@ class Workflow:
         plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&time={time}&spatialResolution={resolution}'
 
         response = req.get(plot_url, headers=session.auth_header).json()
+
+        if 'error' in response:
+            raise GeoEngineException(response)
 
         vega_spec = json.loads(response['data']['vegaString'])
 
