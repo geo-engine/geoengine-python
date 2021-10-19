@@ -11,7 +11,7 @@ class ProvenanceTests(unittest.TestCase):
     '''Test runner for provenance tests'''
 
     def setUp(self) -> None:
-        ge.reset()
+        ge.reset(False)
 
     def test_provenance_call(self):
         with requests_mock.Mocker() as m:

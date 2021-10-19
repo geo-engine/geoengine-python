@@ -15,7 +15,7 @@ class WmsTests(unittest.TestCase):
     '''WMS test runner'''
 
     def setUp(self) -> None:
-        ge.reset()
+        ge.reset(False)
 
     @responses.activate
     @ImageTesting(['wms'], tolerance=0)
