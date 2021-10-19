@@ -52,7 +52,8 @@ class Session:
             session = req.post(f'{server_url}/login', json={"email": credentials[0], "password": credentials[1]}).json()
         elif "GEOENGINE_EMAIL" in os.environ and "GEOENGINE_PASSWORD" in os.environ:
             session = req.post(f'{server_url}/login',
-                               json={"email": os.environ.get("GEOENGINE_EMAIL"), "password": os.environ.get("GEOENGINE_PASSWORD")}).json()
+                               json={"email": os.environ.get("GEOENGINE_EMAIL"),
+                                     "password": os.environ.get("GEOENGINE_PASSWORD")}).json()
         else:
             session = req.post(f'{server_url}/anonymous').json()
 
