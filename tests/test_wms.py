@@ -9,6 +9,7 @@ import requests_mock
 import cartopy.mpl.geoaxes
 from cartopy.tests.mpl import ImageTesting
 import responses
+import pytest
 
 from geoengine.types import QueryRectangle
 import geoengine as ge
@@ -20,6 +21,7 @@ class WmsTests(unittest.TestCase):
     def setUp(self) -> None:
         ge.reset()
 
+    @pytest.mark.filterwarnings("ignore:`np.float` is a deprecated alias for the builtin `float`")  # TODO: remove on new cartopy version
     @responses.activate
     @ImageTesting(['wms'], tolerance=0)
     def test_ndvi(self):

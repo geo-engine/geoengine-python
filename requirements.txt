@@ -1,4 +1,5 @@
 build
+filelock # for cartopy mpl tests
 flufl.lock # for cartopy mpl tests
 pycodestyle # formatter
 pylint # code linter
