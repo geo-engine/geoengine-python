@@ -430,8 +430,8 @@ class WcsTests(unittest.TestCase):
                 },
             )
 
-            self.assertTrue(array.equals(expected))
-            self.assertTrue(array.identical(expected))
+            self.assertTrue(array.equals(expected), msg=f'{array}\n!=\n{expected}')
+            self.assertTrue(array.identical(expected), msg=f'{array}\n!=\n{expected}')
 
 
 if __name__ == '__main__':
