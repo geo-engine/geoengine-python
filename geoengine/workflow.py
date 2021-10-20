@@ -18,10 +18,11 @@ import cartopy.crs as ccrs
 from owslib.util import Authentication
 from owslib.wcs import WebCoverageService
 from owslib.wms import WebMapService
-import rasterio
+import rasterio.io
 from vega import VegaLite
 import numpy as np
 from PIL import Image
+import xarray as xr
 
 from geoengine.types import InternalDatasetId, ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
@@ -378,9 +379,9 @@ class Workflow:
 
         return VegaLite(vega_spec)
 
-    def get_array(self, bbox: QueryRectangle, timeout=3600) -> np.ndarray:
+    def __get_wcs_tiff_as_memory_file(self, bbox: QueryRectangle, timeout=3600) -> rasterio.io.MemoryFile:
         '''
-        Query a workflow and return the raster result as a numpy array
+        Query a workflow and return the raster result as a memory mapped GeoTiff
 
         Params:
         timeout - - HTTP request timeout in seconds
@@ -412,11 +413,47 @@ class Workflow:
             resx=resx,
             resy=resy,
             timeout=timeout,
-        )
+        ).read()
 
-        with rasterio.io.MemoryFile(response.read()) as memfile, memfile.open() as dataset:
+        # response is checked via `raise_on_error` in `getCoverage` / `openUrl`
+
+        memory_file = rasterio.io.MemoryFile(response)
+
+        return memory_file
+
+    def get_array(self, bbox: QueryRectangle, timeout=3600) -> np.ndarray:
+        '''
+        Query a workflow and return the raster result as a numpy array
+
+        Params:
+        timeout - - HTTP request timeout in seconds
+        '''
+
+        memfile = self.__get_wcs_tiff_as_memory_file(bbox, timeout)
+
+        with memfile.open() as dataset:
+            array = dataset.read(1)
+
             # TODO: map nodata values to NaN?
-            return dataset.read(1)
+
+            return array
+
+    def get_xarray(self, bbox: QueryRectangle, timeout=3600) -> np.ndarray:
+        '''
+        Query a workflow and return the raster result as a georeferenced xarray
+
+        Params:
+        timeout - - HTTP request timeout in seconds
+        '''
+
+        memfile = self.__get_wcs_tiff_as_memory_file(bbox, timeout)
+
+        with memfile.open() as dataset:
+            data_array = xr.open_rasterio(dataset)
+
+            # TODO: add time information to dataset
+
+            return data_array
 
     def get_provenance(self) -> List[ProvenanceOutput]:
         '''
