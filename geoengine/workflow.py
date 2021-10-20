@@ -429,9 +429,7 @@ class Workflow:
         timeout - - HTTP request timeout in seconds
         '''
 
-        memfile = self.__get_wcs_tiff_as_memory_file(bbox, timeout)
-
-        with memfile.open() as dataset:
+        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
             array = dataset.read(1)
 
             # TODO: map nodata values to NaN?
@@ -446,14 +444,12 @@ class Workflow:
         timeout - - HTTP request timeout in seconds
         '''
 
-        memfile = self.__get_wcs_tiff_as_memory_file(bbox, timeout)
-
-        with memfile.open() as dataset:
+        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
             data_array = xr.open_rasterio(dataset)
 
             # TODO: add time information to dataset
 
-            return data_array
+            return data_array.persist()
 
     def get_provenance(self) -> List[ProvenanceOutput]:
         '''
