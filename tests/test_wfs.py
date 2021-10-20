@@ -55,7 +55,7 @@ class WfsTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
-            m.get('http://mock-instance/wfs',
+            m.get('http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd',
                   json={
                       "type": "FeatureCollection",
                       "features": [
@@ -286,7 +286,7 @@ class WfsTests(unittest.TestCase):
             self.assertEqual(
                 # pylint: disable=line-too-long
                 wfs_request.url,
-                "http://mock-instance/wfs?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=registry%3A956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1"
+                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1"
             )
 
             expected_df = gpd.GeoDataFrame(
@@ -401,7 +401,7 @@ class WfsTests(unittest.TestCase):
             self.assertEqual(
                 # pylint: disable=line-too-long
                 wfs_curl,
-                """curl -X GET -H "Authorization: Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064" 'http://mock-instance/wfs?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=registry%3A956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1'"""
+                """curl -X GET -H "Authorization: Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064" 'http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1'"""
             )
 
     def test_repr(self):
