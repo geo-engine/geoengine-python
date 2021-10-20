@@ -117,7 +117,7 @@ class Workflow:
             version="2.0.0",
             request='GetFeature',
             outputFormat='application/json',
-            typeNames=f'registry:{self.__workflow_id}',
+            typeNames=f'{self.__workflow_id}',
             bbox=bbox.bbox_str,
             time=bbox.time_str,
             srsName=bbox.srs,
