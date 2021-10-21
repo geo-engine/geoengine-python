@@ -121,7 +121,7 @@ class Workflow:
             version="2.0.0",
             request='GetFeature',
             outputFormat='application/json',
-            typeNames=f'registry:{self.__workflow_id}',
+            typeNames=f'{self.__workflow_id}',
             bbox=bbox.bbox_str,
             time=bbox.time_str,
             srsName=bbox.srs,
@@ -129,7 +129,7 @@ class Workflow:
         )
 
         wfs_url = req.Request(
-            'GET', url=f'{session.server_url}/wfs', params=params).prepare().url
+            'GET', url=f'{session.server_url}/wfs/{self.__workflow_id}', params=params).prepare().url
 
         debug(f'WFS URL:\n{wfs_url}')
 
@@ -202,7 +202,7 @@ class Workflow:
 
         session = get_session()
 
-        wms_url = f'{session.server_url}/wms'
+        wms_url = f'{session.server_url}/wms/{str(self)}'
 
         def srs_to_projection(srs: str) -> ccrs.Projection:
             fallback = ccrs.PlateCarree()
@@ -221,7 +221,6 @@ class Workflow:
 
         wms = WebMapService(wms_url,
                             version='1.3.0',
-                            xml=self.__faux_capabilities(wms_url, str(self), bbox),
                             auth=Authentication(auth_delegate=session.requests_bearer_auth()),
                             timeout=timeout)
 
@@ -292,7 +291,7 @@ class Workflow:
 
         return req.Request(
             'GET',
-            url=f'{session.server_url}/wms',
+            url=f'{session.server_url}/wms/{str(self)}',
             params=params,
             headers=session.auth_header
         ).prepare()
@@ -306,56 +305,6 @@ class Workflow:
         headers = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
         headers = " -H ".join(headers)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
-
-    @classmethod
-    def __faux_capabilities(cls, wms_url: str, layer_name: str, bbox: QueryRectangle) -> str:
-        '''Create an XML file with faux capabilities to list the layer with `layer_name`'''
-
-        return '''
-        <WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3.0" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd">
-            <Service>
-                <Name>WMS</Name>
-                <Title>Geo Engine WMS</Title>
-            </Service>
-            <Capability>
-                <Request>
-                    <GetCapabilities>
-                        <Format>text/xml</Format>
-                        <DCPType>
-                            <HTTP>
-                                <Get>
-                                    <OnlineResource xlink:href="{wms_url}"/>
-                                </Get>
-                            </HTTP>
-                        </DCPType>
-                    </GetCapabilities>
-                    <GetMap>
-                        <Format>image/png</Format>
-                        <DCPType>
-                            <HTTP>
-                                <Get>
-                                    <OnlineResource xlink:href="{wms_url}"/>
-                                </Get>
-                            </HTTP>
-                        </DCPType>
-                    </GetMap>
-                </Request>
-                <Exception>
-                    <Format>XML</Format>
-                    <Format>INIMAGE</Format>
-                    <Format>BLANK</Format>
-                </Exception>
-                <Layer queryable="1">
-                    <Name>{layer_name}</Name>
-                    <Title>{layer_name}</Title>
-                    <CRS>{crs}</CRS>
-                    <BoundingBox CRS="EPSG:4326" minx="-90.0" miny="-180.0" maxx="90.0" maxy="180.0"/>
-                </Layer>
-            </Capability>
-        </WMS_Capabilities>
-        '''.format(wms_url=wms_url,
-                   layer_name=layer_name,
-                   crs=bbox.srs)
 
     def plot_chart(self, bbox: QueryRectangle) -> VegaLite:
         '''
