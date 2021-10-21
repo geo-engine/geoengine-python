@@ -4,6 +4,8 @@ Package errors and backend mapped error types
 
 from typing import Dict
 
+from requests import Response, HTTPError
+
 
 class GeoEngineException(Exception):
     '''
@@ -107,3 +109,28 @@ class SpatialReferenceMismatchException(Exception):
 
     def __str__(self) -> str:
         return f"Spatial reference mismatch {self.__spatial_reference_a} != {self.__spatial_reference_b}"
+
+
+def check_response_for_error(response: Response):
+    '''
+    Checks a `Response` for an error and raises it if there is one.
+    '''
+
+    try:
+        response.raise_for_status()
+
+        return  # no error
+    except HTTPError as http_error:
+        exception = http_error
+
+    # try to parse it as a Geo Engine error
+    try:
+        response_json = response.json()
+        if 'error' in response_json:
+            # override exception with `GeoEngineException`
+            exception = GeoEngineException(response_json)
+    except Exception:  # pylint: disable=broad-except
+        pass  # ignore errors, it seemed not to be JSON
+
+    # either raise the `GeoEngineException` or any other `HTTPError`
+    raise exception

@@ -439,7 +439,7 @@ class WfsTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
-            m.get('http://mock-instance/wfs',
+            m.get('http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd',
                   json={
                       "error": "Operator",
                       "message": "Operator: Could not open gdal dataset for file path \"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF\""
