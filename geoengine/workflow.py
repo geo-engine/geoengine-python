@@ -404,7 +404,7 @@ class Workflow:
 
             # TODO: add time information to dataset
 
-            return data_array.persist()
+            return data_array.load()
 
     def get_provenance(self) -> List[ProvenanceOutput]:
         '''
