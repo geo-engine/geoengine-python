@@ -117,7 +117,7 @@ class Workflow:
             version="2.0.0",
             request='GetFeature',
             outputFormat='application/json',
-            typeNames=f'registry:{self.__workflow_id}',
+            typeNames=f'{self.__workflow_id}',
             bbox=bbox.bbox_str,
             time=bbox.time_str,
             srsName=bbox.srs,
@@ -125,7 +125,7 @@ class Workflow:
         )
 
         wfs_url = req.Request(
-            'GET', url=f'{session.server_url}/wfs', params=params).prepare().url
+            'GET', url=f'{session.server_url}/wfs/{self.__workflow_id}', params=params).prepare().url
 
         debug(f'WFS URL:\n{wfs_url}')
 
@@ -237,7 +237,7 @@ class Workflow:
 
         return req.Request(
             'GET',
-            url=f'{session.server_url}/wms',
+            url=f'{session.server_url}/wms/{str(self)}',
             params=params,
             headers=session.auth_header
         ).prepare()
