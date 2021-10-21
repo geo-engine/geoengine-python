@@ -26,7 +26,7 @@ from PIL import Image
 from geoengine.types import InternalDatasetId, ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
-    MethodNotCalledOnVectorException, SpatialReferenceMismatchException
+    MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
 from geoengine.datasets import StoredDataset, UploadId
 
 
@@ -164,10 +164,10 @@ class Workflow:
         wfs_url = self.__get_wfs_url(bbox)
 
         data_response = req.get(wfs_url, headers=session.auth_header)
-        data = data_response.json()
 
-        if 'error' in data:
-            raise GeoEngineException(data)
+        check_response_for_error(data_response)
+
+        data = data_response.json()
 
         def geo_json_with_time_to_geopandas(geo_json):
             '''
@@ -249,23 +249,9 @@ class Workflow:
         wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
         response = req.Session().send(wms_request)
 
-        try:
-            image = Image.open(BytesIO(response.content))
-            return image
-        except Exception as pil_exception:  # pylint: disable=broad-except
-            exception = pil_exception
+        check_response_for_error(response)
 
-        # try to parse it as a Geo Engine error
-        try:
-            response_json = response.json()
-            if 'error' in response_json:
-                # override exception with `GeoEngineException`
-                exception = GeoEngineException(response_json)
-        except Exception:  # pylint: disable=broad-except
-            pass  # ignore errors, it seemed not to be JSON
-
-        # we either raise the Geo Engine exception or the PIL exception
-        raise exception
+        return Image.open(BytesIO(response.content))
 
     def __wms_get_map_request(self,
                               bbox: QueryRectangle,
@@ -342,10 +328,11 @@ class Workflow:
 
         plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&time={time}&spatialResolution={resolution}'
 
-        response = req.get(plot_url, headers=session.auth_header).json()
+        response = req.get(plot_url, headers=session.auth_header)
 
-        if 'error' in response:
-            raise GeoEngineException(response)
+        check_response_for_error(response)
+
+        response = response.json()
 
         vega_spec = json.loads(response['data']['vegaString'])
 
@@ -430,10 +417,11 @@ class Workflow:
             url=f'{session.server_url}/datasetFromWorkflow/{self.__workflow_id}',
             json=request_body,
             headers=session.auth_header,
-        ).json()
+        )
 
-        if 'error' in response:
-            raise GeoEngineException(response)
+        check_response_for_error(response)
+
+        response = response.json()
 
         return StoredDataset(
             dataset_id=InternalDatasetId.from_response(response['dataset']),
