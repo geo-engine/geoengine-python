@@ -7,26 +7,24 @@ from typing import Any, Dict, List, Tuple
 
 from uuid import UUID
 from logging import debug
-from io import StringIO, BytesIO
+from io import BytesIO
 import urllib.parse
 import json
 
 import requests as req
 import geopandas as gpd
-import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
 from owslib.util import Authentication
 from owslib.wcs import WebCoverageService
-from owslib.wms import WebMapService
-import rasterio
+import rasterio.io
 from vega import VegaLite
 import numpy as np
 from PIL import Image
+import xarray as xr
 
 from geoengine.types import InternalDatasetId, ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
-    MethodNotCalledOnVectorException, SpatialReferenceMismatchException
+    MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
 from geoengine.datasets import StoredDataset, UploadId
 
 
@@ -120,7 +118,7 @@ class Workflow:
             version="2.0.0",
             request='GetFeature',
             outputFormat='application/json',
-            typeNames=f'registry:{self.__workflow_id}',
+            typeNames=f'{self.__workflow_id}',
             bbox=bbox.bbox_str,
             time=bbox.time_str,
             srsName=bbox.srs,
@@ -128,7 +126,7 @@ class Workflow:
         )
 
         wfs_url = req.Request(
-            'GET', url=f'{session.server_url}/wfs', params=params).prepare().url
+            'GET', url=f'{session.server_url}/wfs/{self.__workflow_id}', params=params).prepare().url
 
         debug(f'WFS URL:\n{wfs_url}')
 
@@ -165,17 +163,20 @@ class Workflow:
 
         data_response = req.get(wfs_url, headers=session.auth_header)
 
-        def geo_json_with_time_to_geopandas(data_response):
+        check_response_for_error(data_response)
+
+        data = data_response.json()
+
+        def geo_json_with_time_to_geopandas(geo_json):
             '''
             GeoJson has no standard for time, so we parse the when field
             separately and attach it to the data frame as columns `start`
             and `end`.
             '''
 
-            data = gpd.read_file(StringIO(data_response.text))
+            data = gpd.GeoDataFrame.from_features(geo_json)
             data = data.set_crs(bbox.srs, allow_override=True)
 
-            geo_json = data_response.json()
             start = [f['when']['start'] for f in geo_json['features']]
             end = [f['when']['end'] for f in geo_json['features']]
 
@@ -186,64 +187,15 @@ class Workflow:
 
             return data
 
-        return geo_json_with_time_to_geopandas(data_response)
-
-    def plot_image(self, bbox: QueryRectangle, ax: plt.Axes = None, timeout=3600) -> plt.Axes:
-        '''
-        Query a workflow and return the WMS result as a matplotlib image
-
-        Params:
-        timeout - - HTTP request timeout in seconds
-        '''
-
-        if not self.__result_descriptor.is_raster_result():
-            raise MethodNotCalledOnRasterException()
-
-        session = get_session()
-
-        wms_url = f'{session.server_url}/wms'
-
-        def srs_to_projection(srs: str) -> ccrs.Projection:
-            fallback = ccrs.PlateCarree()
-
-            [authority, code] = srs.split(':')
-
-            if authority != 'EPSG':
-                return fallback
-            try:
-                return ccrs.epsg(code)
-            except ValueError:
-                return fallback
-
-        if ax is None:
-            ax = plt.axes(projection=srs_to_projection(bbox.srs))
-
-        wms = WebMapService(wms_url,
-                            version='1.3.0',
-                            xml=self.__faux_capabilities(wms_url, str(self), bbox),
-                            auth=Authentication(auth_delegate=session.requests_bearer_auth()),
-                            timeout=timeout)
-
-        # TODO: incorporate spatial resolution (?)
-
-        ax.add_wms(wms,
-                   layers=[str(self)],
-                   wms_kwargs={
-                       'time': urllib.parse.quote(bbox.time_str),
-                       # 'bbox': bbox.bbox_str
-                       'crs': bbox.srs
-                   })
-
-        ax.set_xlim(bbox.xmin, bbox.xmax)
-        ax.set_ylim(bbox.ymin, bbox.ymax)
-
-        return ax
+        return geo_json_with_time_to_geopandas(data)
 
     def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -> Image:
         '''Return the result of a WMS request as a PIL Image'''
 
         wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
         response = req.Session().send(wms_request)
+
+        check_response_for_error(response)
 
         return Image.open(BytesIO(response.content))
 
@@ -291,7 +243,7 @@ class Workflow:
 
         return req.Request(
             'GET',
-            url=f'{session.server_url}/wms',
+            url=f'{session.server_url}/wms/{str(self)}',
             params=params,
             headers=session.auth_header
         ).prepare()
@@ -305,56 +257,6 @@ class Workflow:
         headers = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
         headers = " -H ".join(headers)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
-
-    @classmethod
-    def __faux_capabilities(cls, wms_url: str, layer_name: str, bbox: QueryRectangle) -> str:
-        '''Create an XML file with faux capabilities to list the layer with `layer_name`'''
-
-        return '''
-        <WMS_Capabilities xmlns="http://www.opengis.net/wms" xmlns:sld="http://www.opengis.net/sld" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.3.0" xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd http://www.opengis.net/sld http://schemas.opengis.net/sld/1.1.0/sld_capabilities.xsd">
-            <Service>
-                <Name>WMS</Name>
-                <Title>Geo Engine WMS</Title>
-            </Service>
-            <Capability>
-                <Request>
-                    <GetCapabilities>
-                        <Format>text/xml</Format>
-                        <DCPType>
-                            <HTTP>
-                                <Get>
-                                    <OnlineResource xlink:href="{wms_url}"/>
-                                </Get>
-                            </HTTP>
-                        </DCPType>
-                    </GetCapabilities>
-                    <GetMap>
-                        <Format>image/png</Format>
-                        <DCPType>
-                            <HTTP>
-                                <Get>
-                                    <OnlineResource xlink:href="{wms_url}"/>
-                                </Get>
-                            </HTTP>
-                        </DCPType>
-                    </GetMap>
-                </Request>
-                <Exception>
-                    <Format>XML</Format>
-                    <Format>INIMAGE</Format>
-                    <Format>BLANK</Format>
-                </Exception>
-                <Layer queryable="1">
-                    <Name>{layer_name}</Name>
-                    <Title>{layer_name}</Title>
-                    <CRS>{crs}</CRS>
-                    <BoundingBox CRS="EPSG:4326" minx="-90.0" miny="-180.0" maxx="90.0" maxy="180.0"/>
-                </Layer>
-            </Capability>
-        </WMS_Capabilities>
-        '''.format(wms_url=wms_url,
-                   layer_name=layer_name,
-                   crs=bbox.srs)
 
     def plot_chart(self, bbox: QueryRectangle) -> VegaLite:
         '''
@@ -372,18 +274,24 @@ class Workflow:
 
         plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&time={time}&spatialResolution={resolution}'
 
-        response = req.get(plot_url, headers=session.auth_header).json()
+        response = req.get(plot_url, headers=session.auth_header)
+
+        check_response_for_error(response)
+
+        response = response.json()
 
         vega_spec = json.loads(response['data']['vegaString'])
 
         return VegaLite(vega_spec)
 
-    def get_array(self, bbox: QueryRectangle, timeout=3600) -> np.ndarray:
+    def __get_wcs_tiff_as_memory_file(self, bbox: QueryRectangle, timeout=3600) -> rasterio.io.MemoryFile:
         '''
-        Query a workflow and return the raster result as a numpy array
+        Query a workflow and return the raster result as a memory mapped GeoTiff
 
-        Params:
-        timeout - - HTTP request timeout in seconds
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
         '''
 
         if not self.__result_descriptor.is_raster_result():
@@ -412,11 +320,47 @@ class Workflow:
             resx=resx,
             resy=resy,
             timeout=timeout,
-        )
+        ).read()
 
-        with rasterio.io.MemoryFile(response.read()) as memfile, memfile.open() as dataset:
+        # response is checked via `raise_on_error` in `getCoverage` / `openUrl`
+
+        memory_file = rasterio.io.MemoryFile(response)
+
+        return memory_file
+
+    def get_array(self, bbox: QueryRectangle, timeout=3600) -> np.ndarray:
+        '''
+        Query a workflow and return the raster result as a numpy array
+
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
+        '''
+
+        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+            array = dataset.read(1)
+
             # TODO: map nodata values to NaN?
-            return dataset.read(1)
+
+            return array
+
+    def get_xarray(self, bbox: QueryRectangle, timeout=3600) -> np.ndarray:
+        '''
+        Query a workflow and return the raster result as a georeferenced xarray
+
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
+        '''
+
+        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+            data_array = xr.open_rasterio(dataset)
+
+            # TODO: add time information to dataset
+
+            return data_array.load()
 
     def get_provenance(self) -> List[ProvenanceOutput]:
         '''
@@ -457,10 +401,11 @@ class Workflow:
             url=f'{session.server_url}/datasetFromWorkflow/{self.__workflow_id}',
             json=request_body,
             headers=session.auth_header,
-        ).json()
+        )
 
-        if 'error' in response:
-            raise GeoEngineException(response)
+        check_response_for_error(response)
+
+        response = response.json()
 
         return StoredDataset(
             dataset_id=InternalDatasetId.from_response(response['dataset']),

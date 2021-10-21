@@ -3,8 +3,10 @@
 from datetime import datetime
 
 import unittest
+import owslib.util
 import requests_mock
 import numpy as np
+import xarray as xr
 
 import geoengine as ge
 from geoengine.types import QueryRectangle
@@ -148,6 +150,287 @@ class WcsTests(unittest.TestCase):
                 [255, 255, 255, 255, 255, 255, 255, 255]])
 
             self.assertTrue(np.array_equal(array, expected))
+
+    def test_error(self):
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                "project": None,
+                "view": None
+            })
+
+            m.post('http://mock-instance/workflow',
+                   json={
+                       "id": "8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62"
+                   },
+                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            m.get('http://mock-instance/workflow/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/metadata',
+                  json={
+                      "type": "raster",
+                      "dataType": "U8",
+                      "spatialReference": "EPSG:4326",
+                      "measurement": {
+                              "type": "unitless"
+                      },
+                      "noDataValue": 0.0
+                  },
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?service=WCS&request=GetCapabilities&version=1.1.1',
+                text='''<?xml version="1.0" encoding="UTF-8"?>
+    <wcs:Capabilities version="1.1.1"
+            xmlns:wcs="http://www.opengis.net/wcs/1.1.1"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:ogc="http://www.opengis.net/ogc"
+            xmlns:ows="http://www.opengis.net/ows/1.1"
+            xmlns:gml="http://www.opengis.net/gml"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcs/1.1.1 http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/schemas/wcs/1.1.1/wcsGetCapabilities.xsd" updateSequence="152">
+            <ows:ServiceIdentification>
+                <ows:Title>Web Coverage Service</ows:Title>
+                <ows:ServiceType>WCS</ows:ServiceType>
+                <ows:ServiceTypeVersion>1.1.1</ows:ServiceTypeVersion>
+                <ows:Fees>NONE</ows:Fees>
+                <ows:AccessConstraints>NONE</ows:AccessConstraints>
+            </ows:ServiceIdentification>
+            <ows:ServiceProvider>
+                <ows:ProviderName>Provider Name</ows:ProviderName>
+            </ows:ServiceProvider>
+            <ows:OperationsMetadata>
+                <ows:Operation name="GetCapabilities">
+                    <ows:DCP>
+                        <ows:HTTP>
+                                <ows:Get xlink:href="http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?"/>
+                        </ows:HTTP>
+                    </ows:DCP>
+                </ows:Operation>
+                <ows:Operation name="DescribeCoverage">
+                    <ows:DCP>
+                        <ows:HTTP>
+                                <ows:Get xlink:href="http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?"/>
+                        </ows:HTTP>
+                    </ows:DCP>
+                </ows:Operation>
+                <ows:Operation name="GetCoverage">
+                    <ows:DCP>
+                        <ows:HTTP>
+                                <ows:Get xlink:href="http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?"/>
+                        </ows:HTTP>
+                    </ows:DCP>
+                </ows:Operation>
+            </ows:OperationsMetadata>
+            <wcs:Contents>
+                <wcs:CoverageSummary>
+                    <ows:Title>Workflow 8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</ows:Title>
+                    <ows:WGS84BoundingBox>
+                        <ows:LowerCorner>-180.0 -90.0</ows:LowerCorner>
+                        <ows:UpperCorner>180.0 90.0</ows:UpperCorner>
+                    </ows:WGS84BoundingBox>
+                    <wcs:Identifier>8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</wcs:Identifier>
+                </wcs:CoverageSummary>
+            </wcs:Contents>
+    </wcs:Capabilities>''',
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
+            )
+
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0',
+                json={
+                    "error": "Operator",
+                    "message": 'Operator: Could not open gdal dataset for file path '
+                    '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"'
+                },
+                status_code=400,
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
+            )
+
+            ge.initialize("http://mock-instance")
+
+            workflow_definition = {
+                "type": "Raster",
+                "operator": {
+                    "type": "GdalSource",
+                    "params": {
+                        "dataset": {
+                            "type": "internal",
+                            "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                        }
+                    }
+                }
+            }
+
+            workflow = ge.register_workflow(workflow_definition)
+
+            time = datetime.strptime(
+                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+
+            query = QueryRectangle(
+                [-180.0, -90.0, 180.0, 90.0],
+                [time, time],
+                resolution=[360. / 8, 180. / 8],
+            )
+
+            with self.assertRaises(owslib.util.ServiceException) as ctx:
+                workflow.get_array(query)
+
+            self.assertEqual(str(ctx.exception),
+                             '{"error": "Operator", "message": "Operator: Could not open gdal dataset for file path '
+                             '\\"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF\\""}')
+
+    def test_ndvi_xarray(self):
+        with requests_mock.Mocker() as m, open("tests/responses/ndvi.tiff", "rb") as ndvi_tiff:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                "project": None,
+                "view": None
+            })
+
+            m.post('http://mock-instance/workflow',
+                   json={
+                       "id": "8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62"
+                   },
+                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            m.get('http://mock-instance/workflow/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/metadata',
+                  json={
+                      "type": "raster",
+                      "dataType": "U8",
+                      "spatialReference": "EPSG:4326",
+                      "measurement": {
+                              "type": "unitless"
+                      },
+                      "noDataValue": 0.0
+                  },
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?service=WCS&request=GetCapabilities&version=1.1.1',
+                text='''<?xml version="1.0" encoding="UTF-8"?>
+    <wcs:Capabilities version="1.1.1"
+            xmlns:wcs="http://www.opengis.net/wcs/1.1.1"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:ogc="http://www.opengis.net/ogc"
+            xmlns:ows="http://www.opengis.net/ows/1.1"
+            xmlns:gml="http://www.opengis.net/gml"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcs/1.1.1 http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/schemas/wcs/1.1.1/wcsGetCapabilities.xsd" updateSequence="152">
+            <ows:ServiceIdentification>
+                <ows:Title>Web Coverage Service</ows:Title>
+                <ows:ServiceType>WCS</ows:ServiceType>
+                <ows:ServiceTypeVersion>1.1.1</ows:ServiceTypeVersion>
+                <ows:Fees>NONE</ows:Fees>
+                <ows:AccessConstraints>NONE</ows:AccessConstraints>
+            </ows:ServiceIdentification>
+            <ows:ServiceProvider>
+                <ows:ProviderName>Provider Name</ows:ProviderName>
+            </ows:ServiceProvider>
+            <ows:OperationsMetadata>
+                <ows:Operation name="GetCapabilities">
+                    <ows:DCP>
+                        <ows:HTTP>
+                                <ows:Get xlink:href="http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?"/>
+                        </ows:HTTP>
+                    </ows:DCP>
+                </ows:Operation>
+                <ows:Operation name="DescribeCoverage">
+                    <ows:DCP>
+                        <ows:HTTP>
+                                <ows:Get xlink:href="http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?"/>
+                        </ows:HTTP>
+                    </ows:DCP>
+                </ows:Operation>
+                <ows:Operation name="GetCoverage">
+                    <ows:DCP>
+                        <ows:HTTP>
+                                <ows:Get xlink:href="http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?"/>
+                        </ows:HTTP>
+                    </ows:DCP>
+                </ows:Operation>
+            </ows:OperationsMetadata>
+            <wcs:Contents>
+                <wcs:CoverageSummary>
+                    <ows:Title>Workflow 8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</ows:Title>
+                    <ows:WGS84BoundingBox>
+                        <ows:LowerCorner>-180.0 -90.0</ows:LowerCorner>
+                        <ows:UpperCorner>180.0 90.0</ows:UpperCorner>
+                    </ows:WGS84BoundingBox>
+                    <wcs:Identifier>8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</wcs:Identifier>
+                </wcs:CoverageSummary>
+            </wcs:Contents>
+    </wcs:Capabilities>''',
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
+            )
+
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0',
+                body=ndvi_tiff,
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
+            )
+
+            ge.initialize("http://mock-instance")
+
+            workflow_definition = {
+                "type": "Raster",
+                "operator": {
+                    "type": "GdalSource",
+                    "params": {
+                        "dataset": {
+                            "type": "internal",
+                            "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                        }
+                    }
+                }
+            }
+
+            workflow = ge.register_workflow(workflow_definition)
+
+            time = datetime.strptime(
+                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+
+            query = QueryRectangle(
+                [-180.0, -90.0, 180.0, 90.0],
+                [time, time],
+                resolution=[360. / 8, 180. / 8],
+            )
+
+            array = workflow.get_xarray(query)
+
+            self.assertEqual(array.shape, (1, 8, 8))
+
+            expected = xr.DataArray(
+                np.array([[
+                    [255, 255, 21, 11, 255, 255, 255, 255],
+                    [255, 100, 30, 255, 156, 94, 106, 37],
+                    [255, 64, 255, 255, 255, 31, 207, 255],
+                    [255, 255, 255, 255, 89, 255, 255, 255],
+                    [255, 255, 243, 255, 186, 255, 255, 255],
+                    [255, 255, 115, 255, 139, 255, 255, 255],
+                    [255, 255, 255, 255, 255, 255, 255, 255],
+                    [255, 255, 255, 255, 255, 255, 255, 255]
+                ]]),
+                coords={
+                    'band': [1],
+                    'y': [78.75, 56.25, 33.75, 11.25, -11.25, -33.75, -56.25, -78.75],
+                    'x': [-157.5, -112.5, -67.5, -22.5, 22.5, 67.5, 112.5, 157.5]
+                },
+                dims=["band", "y", "x"],
+                attrs={
+                    'transform': (45.0, 0.0, -180.0, 0.0, -22.5, 90.0),
+                    'crs': '+init=epsg:4326',
+                    'res': (45.0, 22.5),
+                    'is_tiled': False,
+                    'nodatavals': (0.0,),
+                    'scales': (1.0,),
+                    'offsets': (0.0,),
+                    'AREA_OR_POINT': 'Area',
+                },
+            )
+
+            self.assertTrue(array.identical(expected), msg=f'{array}\n!=\n{expected}')
 
 
 if __name__ == '__main__':
