@@ -6,6 +6,7 @@ from typing import ClassVar, Dict, Optional, Tuple
 from uuid import UUID
 
 import os
+from dotenv import load_dotenv
 import requests as req
 from requests.auth import AuthBase
 
@@ -129,7 +130,10 @@ def initialize(server_url: str, credentials: Tuple[str, str] = None) -> None:
 
     optional arugments: (email, password) as tuple
     optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD
+    optional .env file defining: GEOENGINE_EMAIL, GEOENGINE_PASSWORD
     '''
+
+    load_dotenv()
 
     Session.session = Session(server_url, credentials)
 

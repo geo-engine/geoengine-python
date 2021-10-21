@@ -1,6 +1,5 @@
 # Geo Engine Python Package
 
-
 [![CI](https://github.com/geo-engine/geoengine-python/actions/workflows/ci.yml/badge.svg)](https://github.com/geo-engine/geoengine-python/actions/workflows/ci.yml)
 
 This package allows easy access to Geo Engine functionality from Python environments.
@@ -100,4 +99,17 @@ workflow = ge.workflow_by_id('4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd')
 print(workflow.get_result_descriptor())
 
 workflow.get_dataframe(ge.Bbox([-60.0, 5.0, 61.0, 6.0], [time, time]))
+```
+
+## Authentication
+
+If the Geo Engine server requires authentication, you can set your credentials in the following ways:
+
+1. in the initialize method: `ge.initialize("http://peter.geoengine.io:6060", ("email", "password"))`
+2. as environment variables `export GEOENGINE_EMAIL="email"` and `export GEOENGINE_PASSWORD="password"`
+3. in a .env file in the current working directory with the content:
+
+```bash
+GEOENGINE_EMAIL="email"
+GEOENGINE_PASSWORD="password"
 ```
