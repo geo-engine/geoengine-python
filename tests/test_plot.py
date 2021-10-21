@@ -179,6 +179,79 @@ class WmsTests(unittest.TestCase):
                     [time, time]
                 ))
 
+    def test_plot_error(self):
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                "project": None,
+                "view": None
+            })
+
+            m.post('http://mock-instance/workflow',
+                   json={
+                       "id": "5b9508a8-bd34-5a1c-acd6-75bb832d2d38"
+                   },
+                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            m.get('http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata',
+                  json={
+                      "type": "plot"
+                  },
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/plot/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?bbox=-180.0%2C-90.0%2C180.0%2C90.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&spatialResolution=0.1,0.1',
+                json={
+                    "error": "Operator",
+                    "message": 'Operator: Could not open gdal dataset for file path '
+                    '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"'
+                },
+                status_code=400,
+                request_headers={
+                    'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'}
+            )
+
+            ge.initialize("http://mock-instance")
+
+            workflow_definition = {
+                "type": "Plot",
+                "operator": {
+                    "type": "Histogram",
+                    "params": {
+                        "bounds": "data",
+                        "buckets": 20
+                    },
+                    "sources": {
+                        "source": {
+                            "type": "GdalSource",
+                            "params": {
+                                "dataset": {
+                                    "internal": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            time = datetime.strptime(
+                '2004-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+
+            workflow = ge.register_workflow(workflow_definition)
+
+            with self.assertRaises(ge.GeoEngineException) as ctx:
+                workflow.plot_chart(
+                    QueryRectangle(
+                        [-180.0, -90.0, 180.0, 90.0],
+                        [time, time]
+                    )
+                )
+
+            self.assertEqual(str(ctx.exception),
+                             'Operator: Operator: Could not open gdal dataset for file path '
+                             '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"')
+
 
 if __name__ == '__main__':
     unittest.main()
