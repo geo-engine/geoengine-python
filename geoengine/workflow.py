@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Tuple
 
 from uuid import UUID
 from logging import debug
-from io import StringIO, BytesIO
+from io import BytesIO
 import urllib.parse
 import json
 
@@ -23,7 +23,7 @@ from PIL import Image
 from geoengine.types import InternalDatasetId, ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
-    MethodNotCalledOnVectorException, SpatialReferenceMismatchException
+    MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
 from geoengine.datasets import StoredDataset, UploadId
 
 
@@ -162,17 +162,20 @@ class Workflow:
 
         data_response = req.get(wfs_url, headers=session.auth_header)
 
-        def geo_json_with_time_to_geopandas(data_response):
+        check_response_for_error(data_response)
+
+        data = data_response.json()
+
+        def geo_json_with_time_to_geopandas(geo_json):
             '''
             GeoJson has no standard for time, so we parse the when field
             separately and attach it to the data frame as columns `start`
             and `end`.
             '''
 
-            data = gpd.read_file(StringIO(data_response.text))
+            data = gpd.GeoDataFrame.from_features(geo_json)
             data = data.set_crs(bbox.srs, allow_override=True)
 
-            geo_json = data_response.json()
             start = [f['when']['start'] for f in geo_json['features']]
             end = [f['when']['end'] for f in geo_json['features']]
 
@@ -183,13 +186,15 @@ class Workflow:
 
             return data
 
-        return geo_json_with_time_to_geopandas(data_response)
+        return geo_json_with_time_to_geopandas(data)
 
     def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -> Image:
         '''Return the result of a WMS request as a PIL Image'''
 
         wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
         response = req.Session().send(wms_request)
+
+        check_response_for_error(response)
 
         return Image.open(BytesIO(response.content))
 
@@ -268,7 +273,11 @@ class Workflow:
 
         plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&time={time}&spatialResolution={resolution}'
 
-        response = req.get(plot_url, headers=session.auth_header).json()
+        response = req.get(plot_url, headers=session.auth_header)
+
+        check_response_for_error(response)
+
+        response = response.json()
 
         vega_spec = json.loads(response['data']['vegaString'])
 
@@ -353,10 +362,11 @@ class Workflow:
             url=f'{session.server_url}/datasetFromWorkflow/{self.__workflow_id}',
             json=request_body,
             headers=session.auth_header,
-        ).json()
+        )
 
-        if 'error' in response:
-            raise GeoEngineException(response)
+        check_response_for_error(response)
+
+        response = response.json()
 
         return StoredDataset(
             dataset_id=InternalDatasetId.from_response(response['dataset']),

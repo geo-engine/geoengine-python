@@ -1,5 +1,6 @@
 build
 cartopy==0.19.0.post1  # for WMS example
+matplotlib
 pycodestyle # formatter
 pylint # code linter
 pytest
