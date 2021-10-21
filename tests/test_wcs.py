@@ -422,7 +422,7 @@ class WcsTests(unittest.TestCase):
                     'transform': (45.0, 0.0, -180.0, 0.0, -22.5, 90.0),
                     'crs': '+init=epsg:4326',
                     'res': (45.0, 22.5),
-                    'is_tiled': 0,
+                    'is_tiled': False,
                     'nodatavals': (0.0,),
                     'scales': (1.0,),
                     'offsets': (0.0,),
@@ -430,7 +430,6 @@ class WcsTests(unittest.TestCase):
                 },
             )
 
-            self.assertTrue(array.equals(expected), msg=f'{array}\n!=\n{expected}')
             self.assertTrue(array.identical(expected), msg=f'{array}\n!=\n{expected}')
 
 

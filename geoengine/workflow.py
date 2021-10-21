@@ -332,8 +332,10 @@ class Workflow:
         '''
         Query a workflow and return the raster result as a memory mapped GeoTiff
 
-        Params:
-        timeout - - HTTP request timeout in seconds
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
         '''
 
         if not self.__result_descriptor.is_raster_result():
@@ -374,8 +376,10 @@ class Workflow:
         '''
         Query a workflow and return the raster result as a numpy array
 
-        Params:
-        timeout - - HTTP request timeout in seconds
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
         '''
 
         with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
@@ -389,8 +393,10 @@ class Workflow:
         '''
         Query a workflow and return the raster result as a georeferenced xarray
 
-        Params:
-        timeout - - HTTP request timeout in seconds
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
         '''
 
         with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
