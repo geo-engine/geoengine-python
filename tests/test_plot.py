@@ -38,7 +38,7 @@ class WmsTests(unittest.TestCase):
 
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/plot/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?bbox=-180.0%2C-90.0%2C180.0%2C90.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&spatialResolution=0.1,0.1',
+                'http://mock-instance/plot/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?bbox=-180.0%2C-90.0%2C180.0%2C90.0&crs=EPSG:4326&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&spatialResolution=0.1,0.1',
                 json={
                     "outputFormat": "JsonVega",
                     "plotType": "Histogram",
@@ -201,7 +201,7 @@ class WmsTests(unittest.TestCase):
 
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/plot/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?bbox=-180.0%2C-90.0%2C180.0%2C90.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&spatialResolution=0.1,0.1',
+                'http://mock-instance/plot/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?bbox=-180.0%2C-90.0%2C180.0%2C90.0&crs=EPSG:4326&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&spatialResolution=0.1,0.1',
                 json={
                     "error": "Operator",
                     "message": 'Operator: Could not open gdal dataset for file path '

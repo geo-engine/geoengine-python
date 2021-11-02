@@ -272,7 +272,7 @@ class Workflow:
         spatial_bounds = urllib.parse.quote(bbox.bbox_str)
         resolution = str(f'{bbox.resolution[0]},{bbox.resolution[1]}')
 
-        plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&time={time}&spatialResolution={resolution}'
+        plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&crs={bbox.srs}&time={time}&spatialResolution={resolution}'
 
         response = req.get(plot_url, headers=session.auth_header)
 
