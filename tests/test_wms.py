@@ -15,7 +15,7 @@ class WmsTests(unittest.TestCase):
     '''WMS test runner'''
 
     def setUp(self) -> None:
-        ge.reset()
+        ge.reset(False)
 
     def test_ndvi_image(self):
         with requests_mock.Mocker() as m,\

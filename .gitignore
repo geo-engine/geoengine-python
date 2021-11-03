@@ -16,3 +16,4 @@ env
 
 # Private files
 .pypirc
+.env
