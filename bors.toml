@@ -1,0 +1,11 @@
+# CI tasks that are required to succeed
+# TODO: use only wildcard once it works
+status = [
+    # "build %",
+    "build-and-publish (3.7)",
+    "build-and-publish (3.8)",
+    "build-and-publish (3.9)",
+]
+
+# One approval necessary for bors to work
+required_approvals = 1
