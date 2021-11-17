@@ -90,7 +90,7 @@ Start a python terminal and try it out:
 import geoengine as ge
 from datetime import datetime
 
-ge.initialize("http://peter.geoengine.io:6060")
+ge.initialize("https://nightly.peter.geoengine.io/api")
 
 time = datetime.strptime('2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
 
@@ -105,7 +105,7 @@ workflow.get_dataframe(ge.Bbox([-60.0, 5.0, 61.0, 6.0], [time, time]))
 
 If the Geo Engine server requires authentication, you can set your credentials in the following ways:
 
-1. in the initialize method: `ge.initialize("http://peter.geoengine.io:6060", ("email", "password"))`
+1. in the initialize method: `ge.initialize("https://nightly.peter.geoengine.io/api", ("email", "password"))`
 2. as environment variables `export GEOENGINE_EMAIL="email"` and `export GEOENGINE_PASSWORD="password"`
 3. in a .env file in the current working directory with the content:
 
