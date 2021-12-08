@@ -29,6 +29,7 @@ class QueryRectangle:
                  time_interval: Tuple[datetime, datetime],
                  resolution: Tuple[float, float] = (0.1, 0.1),
                  srs='EPSG:4326') -> None:
+        '''Initialize a new `QueryRectangle` object'''
         xmin = spatial_bounds[0]
         ymin = spatial_bounds[1]
         xmax = spatial_bounds[2]
@@ -236,11 +237,13 @@ class VectorResultDescriptor(ResultDescriptor):
     __columns: Dict[str, str]
 
     def __init__(self, response: Dict[str, Any]) -> None:
+        '''Initialize a new `VectorResultDescriptor`'''
         self.__data_type = response['dataType']
         self.__spatial_reference = response['spatialReference']
         self.__columns = response['columns']
 
     def __repr__(self) -> str:
+        '''Display representation of the vector result descriptor'''
         r = ''
         r += f'Data type:         {self.data_type}\n'
         r += f'Spatial Reference: {self.spatial_reference}\n'
@@ -286,12 +289,14 @@ class RasterResultDescriptor(ResultDescriptor):
     __no_data_value: str
 
     def __init__(self, response: Dict[str, Any]) -> None:
+        '''Initialize a new `RasterResultDescriptor`'''
         self.__data_type = response['dataType']
         self.__spatial_reference = response['spatialReference']
         self.__measurement = response['measurement']
         self.__no_data_value = response['noDataValue']
 
     def __repr__(self) -> str:
+        '''Display representation of the raster result descriptor'''
         r = ''
         r += f'Data type:         {self.data_type}\n'
         r += f'Spatial Reference: {self.spatial_reference}\n'
@@ -327,9 +332,10 @@ class PlotResultDescriptor(ResultDescriptor):
     '''
 
     def __init__(self, _response: Dict[str, Any]) -> None:
-        pass
+        '''Initialize a new `PlotResultDescriptor`'''
 
     def __repr__(self) -> str:
+        '''Display representation of the plot result descriptor'''
         r = 'Plot Result'
 
         return r
@@ -453,9 +459,11 @@ class InternalDatasetId(DatasetId):
         return str(self.__dataset_id)
 
     def __repr__(self) -> str:
+        '''Display representation of an internal dataset id'''
         return str(self)
 
     def __eq__(self, other) -> bool:
+        '''Check if two internal dataset ids are equal'''
         if not isinstance(other, self.__class__):
             return False
 
@@ -489,9 +497,11 @@ class ExternalDatasetId(DatasetId):
         return f'{self.__provider_id}:{self.__dataset_id}'
 
     def __repr__(self) -> str:
+        '''Display representation of an external dataset id'''
         return str(self)
 
     def __eq__(self, other) -> bool:
+        '''Check if two external dataset ids are equal'''
         if not isinstance(other, self.__class__):
             return False
 

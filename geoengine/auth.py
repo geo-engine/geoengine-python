@@ -68,6 +68,7 @@ class Session:
         self.__server_url = server_url
 
     def __repr__(self) -> str:
+        '''Display representation of a session'''
         r = ''
         r += f'Server:              {self.server_url}\n'
         r += f'Session Id:          {self.__id}\n'
