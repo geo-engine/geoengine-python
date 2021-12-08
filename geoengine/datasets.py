@@ -250,6 +250,7 @@ class UploadId:
         return str(self)
 
     def __eq__(self, other) -> bool:
+        '''Checks if two upload ids are equal'''
         if not isinstance(other, self.__class__):
             return False
 
