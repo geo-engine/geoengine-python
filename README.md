@@ -66,6 +66,14 @@ python3 -m pylint tests
 
 Our tip is to activate linting with `pylint` in your IDE.
 
+## Documentation
+
+Generate documentation HTML with:
+
+```bash
+pdoc3 --html --output-dir docs geoengine
+```
+
 ## Distribute to PyPI
 
 ### Test-PyPI
