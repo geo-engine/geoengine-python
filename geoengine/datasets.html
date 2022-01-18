@@ -1,0 +1,1699 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>geoengine.datasets API documentation</title>
+<meta name="description" content="Module for working with datasets and source definitions" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>geoengine.datasets</code></h1>
+</header>
+<section id="section-intro">
+<p>Module for working with datasets and source definitions</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;
+Module for working with datasets and source definitions
+&#39;&#39;&#39;
+
+from __future__ import annotations
+from typing import Dict, NamedTuple
+
+from enum import Enum
+from uuid import UUID
+
+from attr import dataclass
+import numpy as np
+import geopandas as gpd
+import requests as req
+
+from geoengine.error import GeoEngineException, InputException
+from geoengine.auth import get_session
+from geoengine.types import TimeStep, TimeStepGranularity, DatasetId, VectorDataType, InternalDatasetId
+
+
+class OgrSourceTimeFormat:
+    &#39;&#39;&#39;Base class for OGR time formats&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        pass
+
+    @classmethod
+    def seconds(cls) -&gt; SecondsOgrSourceTimeFormat:
+        return SecondsOgrSourceTimeFormat()
+
+    @classmethod
+    def auto(cls) -&gt; AutoOgrSourceTimeFormat:
+        return AutoOgrSourceTimeFormat()
+
+    @classmethod
+    def custom(cls, format_string: str) -&gt; CustomOgrSourceTimeFormat:
+        return CustomOgrSourceTimeFormat(format_string)
+
+
+@dataclass
+class SecondsOgrSourceTimeFormat(OgrSourceTimeFormat):
+    &#39;&#39;&#39;An OGR time format specified in seconds (UNIX time)&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;format&#34;: &#34;seconds&#34;
+        }
+
+
+@dataclass
+class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
+    &#39;&#39;&#39;An auto detection OGR time format&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;format&#34;: &#34;auto&#34;
+        }
+
+
+@dataclass
+class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
+    &#39;&#39;&#39;A custom OGR time format&#39;&#39;&#39;
+
+    custom: str
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;format&#34;: &#34;custom&#34;,
+            &#34;customFormat&#34;: self.custom
+        }
+
+
+class OgrSourceDuration:
+    &#39;&#39;&#39;Base class for the duration part of a OGR time format&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        pass
+
+    @classmethod
+    def zero(cls) -&gt; OgrSourceTimeFormat:
+        return ZeroOgrSourceDurationSpec()
+
+    @classmethod
+    def infinite(cls) -&gt; OgrSourceTimeFormat:
+        return InfiniteOgrSourceDurationSpec()
+
+    @classmethod
+    def value(cls, value: int, granularity: TimeStepGranularity = TimeStepGranularity.SECONDS) -&gt; OgrSourceTimeFormat:
+        return ValueOgrSourceDurationSpec(TimeStep(value, granularity))
+
+
+@dataclass
+class ValueOgrSourceDurationSpec(OgrSourceDuration):
+    &#39;&#39;&#39;A fixed value for a source duration&#39;&#39;&#39;
+
+    step: TimeStep
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;value&#34;,
+            &#34;step&#34;: self.step.step,
+            &#34;granularity&#34;: self.step.granularity.value
+        }
+
+
+@dataclass
+class ZeroOgrSourceDurationSpec(OgrSourceDuration):
+    &#39;&#39;&#39;An instant, i.e. no duration&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;zero&#34;,
+        }
+
+
+@dataclass
+class InfiniteOgrSourceDurationSpec(OgrSourceDuration):
+    &#39;&#39;&#39;An open-ended time duration&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;infinite&#34;,
+        }
+
+
+class OgrSourceDatasetTimeType:
+    &#39;&#39;&#39;A time type specification for OGR dataset definitions&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        pass
+
+    @classmethod
+    def none(cls) -&gt; OgrSourceTimeFormat:
+        return NoneOgrSourceDatasetTimeType()
+
+    @classmethod
+    def start(cls,
+              start_field: str,
+              start_format: OgrSourceTimeFormat,
+              duration: OgrSourceDuration) -&gt; OgrSourceTimeFormat:
+        &#39;&#39;&#39;Specify a start column and a fixed duration&#39;&#39;&#39;
+        return StartOgrSourceDatasetTimeType(start_field, start_format, duration)
+
+    @classmethod
+    def start_end(cls,
+                  start_field: str,
+                  start_format: OgrSourceTimeFormat,
+                  end_field: str,
+                  end_format: OgrSourceTimeFormat) -&gt; OgrSourceTimeFormat:
+        &#39;&#39;&#39;The dataset contains start and end column&#39;&#39;&#39;
+        return StartEndOgrSourceDatasetTimeType(start_field, start_format, end_field, end_format)
+
+    @classmethod
+    def start_duration(cls,
+                       start_field: str,
+                       start_format: OgrSourceTimeFormat,
+                       duration_field: str) -&gt; OgrSourceTimeFormat:
+        &#39;&#39;&#39;The dataset contains start and a duration column&#39;&#39;&#39;
+        return StartEndOgrSourceDatasetTimeType(start_field, start_format, duration_field)
+
+
+@dataclass
+class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+    &#39;&#39;&#39;Specify no time information&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;none&#34;,
+        }
+
+
+@dataclass
+class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+    &#39;&#39;&#39;Specify a start column and a fixed duration&#39;&#39;&#39;
+
+    start_field: str
+    start_format: OgrSourceTimeFormat
+    duration: OgrSourceDuration
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;start&#34;,
+            &#34;startField&#34;: self.start_field,
+            &#34;startFormat&#34;: self.start_format.to_dict(),
+            &#34;duration&#34;: self.duration.to_dict()
+        }
+
+
+@dataclass
+class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+    &#39;&#39;&#39;The dataset contains start and end column&#39;&#39;&#39;
+
+    start_field: str
+    start_format: OgrSourceTimeFormat
+    end_field: str
+    end_format: OgrSourceTimeFormat
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;start+end&#34;,
+            &#34;startField&#34;: self.start_field,
+            &#34;startFormat&#34;: self.start_format.to_dict(),
+            &#34;endField&#34;: self.end_field,
+            &#34;endFormat&#34;: self.end_format.to_dict(),
+        }
+
+
+@dataclass
+class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+    &#39;&#39;&#39;The dataset contains start and a duration column&#39;&#39;&#39;
+
+    start_field: str
+    start_format: OgrSourceTimeFormat
+    duration_field: str
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;start+duration&#34;,
+            &#34;startField&#34;: self.start_field,
+            &#34;startFormat&#34;: self.start_format.to_dict(),
+            &#34;durationField&#34;: self.duration_field
+        }
+
+
+class OgrOnError(Enum):
+    IGNORE = &#34;ignore&#34;
+    ABORT = &#34;abort&#34;
+
+
+class UploadId:
+    &#39;&#39;&#39;A wrapper for an upload id&#39;&#39;&#39;
+
+    __upload_id: UUID
+
+    def __init__(self, upload_id: UUID) -&gt; None:
+        self.__upload_id = upload_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; UploadId:
+        &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
+        if &#39;id&#39; not in response:
+            raise GeoEngineException(response)
+
+        return UploadId(response[&#39;id&#39;])
+
+    def __str__(self) -&gt; str:
+        return self.__upload_id
+
+    def __repr__(self) -&gt; str:
+        return str(self)
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two upload ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
+
+
+def pandas_dtype_to_column_type(dtype: np.dtype) -&gt; str:
+    &#39;&#39;&#39;Convert a pandas `dtype` to a column type&#39;&#39;&#39;
+
+    if np.issubdtype(dtype, np.integer):
+        return &#39;int&#39;
+
+    if np.issubdtype(dtype, np.floating):
+        return &#39;float&#39;
+
+    if str(dtype) == &#39;object&#39;:
+        return &#39;text&#39;
+
+    raise InputException(
+        f&#39;pandas dtype {dtype} has no corresponding column type&#39;)
+
+
+def upload_dataframe(
+        df: gpd.GeoDataFrame,
+        name: str = &#34;Upload from Python&#34;,
+        time: OgrSourceDatasetTimeType = OgrSourceDatasetTimeType.none(),
+        on_error: OgrOnError = OgrOnError.ABORT) -&gt; DatasetId:
+    &#39;&#39;&#39;
+    Uploads a given dataframe to Geo Engine and returns the id of the created dataset
+    &#39;&#39;&#39;
+
+    if len(df) == 0:
+        raise InputException(&#34;Cannot upload empty dataframe&#34;)
+
+    if df.crs is None:
+        raise InputException(&#34;Dataframe must have a specified crs&#34;)
+
+    session = get_session()
+
+    df_json = df.to_json()
+
+    response = req.post(f&#39;{session.server_url}/upload&#39;,
+                        files={&#34;geo.json&#34;: df_json}, headers=session.auth_header).json()
+
+    if &#39;error&#39; in response:
+        raise GeoEngineException(response)
+
+    upload_id = UploadId.from_response(response)
+
+    vector_type = VectorDataType.from_geopandas_type_name(df.geom_type[0])
+
+    columns = {key: pandas_dtype_to_column_type(value) for (key, value) in df.dtypes.items()
+               if str(value) != &#39;geometry&#39;}
+
+    floats = [key for (key, value) in columns.items() if value == &#39;float&#39;]
+    ints = [key for (key, value) in columns.items() if value == &#39;int&#39;]
+    texts = [key for (key, value) in columns.items() if value == &#39;text&#39;]
+
+    create = {
+        &#34;upload&#34;: str(upload_id),
+        &#34;definition&#34;: {
+            &#34;properties&#34;: {
+                &#34;name&#34;: name,
+                &#34;description&#34;: &#34;&#34;,
+                &#34;sourceOperator&#34;: &#34;OgrSource&#34;
+            },
+            &#34;metaData&#34;: {
+                &#34;type&#34;: &#34;OgrMetaData&#34;,
+                &#34;loadingInfo&#34;: {
+                    &#34;fileName&#34;: &#34;geo.json&#34;,
+                    &#34;layerName&#34;: &#34;geo&#34;,
+                    &#34;dataType&#34;: vector_type.value,
+                    &#34;time&#34;: time.to_dict(),
+                    &#34;columns&#34;: {
+                        &#34;x&#34;: &#34;&#34;,
+                        &#34;float&#34;: floats,
+                        &#34;int&#34;: ints,
+                        &#34;text&#34;: texts
+                    },
+                    &#34;onError&#34;: on_error.value
+                },
+                &#34;resultDescriptor&#34;: {
+                    &#34;type&#34;: &#34;vector&#34;,
+                    &#34;dataType&#34;: vector_type.value,
+                    &#34;columns&#34;: columns,
+                    &#34;spatialReference&#34;: df.crs.to_string()
+                }
+            }
+        }
+    }
+
+    response = req.post(f&#39;{session.server_url}/dataset&#39;,
+                        json=create, headers=session.auth_header).json()
+
+    if &#39;error&#39; in response:
+        raise GeoEngineException(response)
+
+    return InternalDatasetId.from_response(response[&#34;id&#34;])
+
+
+class StoredDataset(NamedTuple):
+    &#39;&#39;&#39;The result of a store dataset request is a combination of `upload_id` and `dataset_id`&#39;&#39;&#39;
+
+    dataset_id: InternalDatasetId
+    upload_id: UploadId</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="geoengine.datasets.pandas_dtype_to_column_type"><code class="name flex">
+<span>def <span class="ident">pandas_dtype_to_column_type</span></span>(<span>dtype: np.dtype) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a pandas <code>dtype</code> to a column type</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pandas_dtype_to_column_type(dtype: np.dtype) -&gt; str:
+    &#39;&#39;&#39;Convert a pandas `dtype` to a column type&#39;&#39;&#39;
+
+    if np.issubdtype(dtype, np.integer):
+        return &#39;int&#39;
+
+    if np.issubdtype(dtype, np.floating):
+        return &#39;float&#39;
+
+    if str(dtype) == &#39;object&#39;:
+        return &#39;text&#39;
+
+    raise InputException(
+        f&#39;pandas dtype {dtype} has no corresponding column type&#39;)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.datasets.upload_dataframe"><code class="name flex">
+<span>def <span class="ident">upload_dataframe</span></span>(<span>df: gpd.GeoDataFrame, name: str = 'Upload from Python', time: <a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a> = NoneOgrSourceDatasetTimeType(), on_error: <a title="geoengine.datasets.OgrOnError" href="#geoengine.datasets.OgrOnError">OgrOnError</a> = OgrOnError.ABORT) ‑> <a title="geoengine.types.DatasetId" href="types.html#geoengine.types.DatasetId">DatasetId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Uploads a given dataframe to Geo Engine and returns the id of the created dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def upload_dataframe(
+        df: gpd.GeoDataFrame,
+        name: str = &#34;Upload from Python&#34;,
+        time: OgrSourceDatasetTimeType = OgrSourceDatasetTimeType.none(),
+        on_error: OgrOnError = OgrOnError.ABORT) -&gt; DatasetId:
+    &#39;&#39;&#39;
+    Uploads a given dataframe to Geo Engine and returns the id of the created dataset
+    &#39;&#39;&#39;
+
+    if len(df) == 0:
+        raise InputException(&#34;Cannot upload empty dataframe&#34;)
+
+    if df.crs is None:
+        raise InputException(&#34;Dataframe must have a specified crs&#34;)
+
+    session = get_session()
+
+    df_json = df.to_json()
+
+    response = req.post(f&#39;{session.server_url}/upload&#39;,
+                        files={&#34;geo.json&#34;: df_json}, headers=session.auth_header).json()
+
+    if &#39;error&#39; in response:
+        raise GeoEngineException(response)
+
+    upload_id = UploadId.from_response(response)
+
+    vector_type = VectorDataType.from_geopandas_type_name(df.geom_type[0])
+
+    columns = {key: pandas_dtype_to_column_type(value) for (key, value) in df.dtypes.items()
+               if str(value) != &#39;geometry&#39;}
+
+    floats = [key for (key, value) in columns.items() if value == &#39;float&#39;]
+    ints = [key for (key, value) in columns.items() if value == &#39;int&#39;]
+    texts = [key for (key, value) in columns.items() if value == &#39;text&#39;]
+
+    create = {
+        &#34;upload&#34;: str(upload_id),
+        &#34;definition&#34;: {
+            &#34;properties&#34;: {
+                &#34;name&#34;: name,
+                &#34;description&#34;: &#34;&#34;,
+                &#34;sourceOperator&#34;: &#34;OgrSource&#34;
+            },
+            &#34;metaData&#34;: {
+                &#34;type&#34;: &#34;OgrMetaData&#34;,
+                &#34;loadingInfo&#34;: {
+                    &#34;fileName&#34;: &#34;geo.json&#34;,
+                    &#34;layerName&#34;: &#34;geo&#34;,
+                    &#34;dataType&#34;: vector_type.value,
+                    &#34;time&#34;: time.to_dict(),
+                    &#34;columns&#34;: {
+                        &#34;x&#34;: &#34;&#34;,
+                        &#34;float&#34;: floats,
+                        &#34;int&#34;: ints,
+                        &#34;text&#34;: texts
+                    },
+                    &#34;onError&#34;: on_error.value
+                },
+                &#34;resultDescriptor&#34;: {
+                    &#34;type&#34;: &#34;vector&#34;,
+                    &#34;dataType&#34;: vector_type.value,
+                    &#34;columns&#34;: columns,
+                    &#34;spatialReference&#34;: df.crs.to_string()
+                }
+            }
+        }
+    }
+
+    response = req.post(f&#39;{session.server_url}/dataset&#39;,
+                        json=create, headers=session.auth_header).json()
+
+    if &#39;error&#39; in response:
+        raise GeoEngineException(response)
+
+    return InternalDatasetId.from_response(response[&#34;id&#34;])</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="geoengine.datasets.AutoOgrSourceTimeFormat"><code class="flex name class">
+<span>class <span class="ident">AutoOgrSourceTimeFormat</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>An auto detection OGR time format</p>
+<p>Method generated by attrs for class AutoOgrSourceTimeFormat.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
+    &#39;&#39;&#39;An auto detection OGR time format&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;format&#34;: &#34;auto&#34;
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.AutoOgrSourceTimeFormat.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;format&#34;: &#34;auto&#34;
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.CustomOgrSourceTimeFormat"><code class="flex name class">
+<span>class <span class="ident">CustomOgrSourceTimeFormat</span></span>
+<span>(</span><span>custom: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A custom OGR time format</p>
+<p>Method generated by attrs for class CustomOgrSourceTimeFormat.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
+    &#39;&#39;&#39;A custom OGR time format&#39;&#39;&#39;
+
+    custom: str
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;format&#34;: &#34;custom&#34;,
+            &#34;customFormat&#34;: self.custom
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.datasets.CustomOgrSourceTimeFormat.custom"><code class="name flex">
+<span>def <span class="ident">custom</span></span>(<span>format_string: str) ‑> <a title="geoengine.datasets.CustomOgrSourceTimeFormat" href="#geoengine.datasets.CustomOgrSourceTimeFormat">CustomOgrSourceTimeFormat</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def custom(cls, format_string: str) -&gt; CustomOgrSourceTimeFormat:
+    return CustomOgrSourceTimeFormat(format_string)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.CustomOgrSourceTimeFormat.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;format&#34;: &#34;custom&#34;,
+        &#34;customFormat&#34;: self.custom
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.InfiniteOgrSourceDurationSpec"><code class="flex name class">
+<span>class <span class="ident">InfiniteOgrSourceDurationSpec</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>An open-ended time duration</p>
+<p>Method generated by attrs for class InfiniteOgrSourceDurationSpec.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class InfiniteOgrSourceDurationSpec(OgrSourceDuration):
+    &#39;&#39;&#39;An open-ended time duration&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;infinite&#34;,
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.OgrSourceDuration" href="#geoengine.datasets.OgrSourceDuration">OgrSourceDuration</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.InfiniteOgrSourceDurationSpec.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;type&#34;: &#34;infinite&#34;,
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.NoneOgrSourceDatasetTimeType"><code class="flex name class">
+<span>class <span class="ident">NoneOgrSourceDatasetTimeType</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Specify no time information</p>
+<p>Method generated by attrs for class NoneOgrSourceDatasetTimeType.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+    &#39;&#39;&#39;Specify no time information&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;none&#34;,
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.NoneOgrSourceDatasetTimeType.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;type&#34;: &#34;none&#34;,
+    }</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start" href="#geoengine.datasets.OgrSourceDatasetTimeType.start">start</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start_duration" href="#geoengine.datasets.OgrSourceDatasetTimeType.start_duration">start_duration</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start_end" href="#geoengine.datasets.OgrSourceDatasetTimeType.start_end">start_end</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.datasets.OgrOnError"><code class="flex name class">
+<span>class <span class="ident">OgrOnError</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrOnError(Enum):
+    IGNORE = &#34;ignore&#34;
+    ABORT = &#34;abort&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.datasets.OgrOnError.ABORT"><code class="name">var <span class="ident">ABORT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.OgrOnError.IGNORE"><code class="name">var <span class="ident">IGNORE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.OgrSourceDatasetTimeType"><code class="flex name class">
+<span>class <span class="ident">OgrSourceDatasetTimeType</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>A time type specification for OGR dataset definitions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrSourceDatasetTimeType:
+    &#39;&#39;&#39;A time type specification for OGR dataset definitions&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        pass
+
+    @classmethod
+    def none(cls) -&gt; OgrSourceTimeFormat:
+        return NoneOgrSourceDatasetTimeType()
+
+    @classmethod
+    def start(cls,
+              start_field: str,
+              start_format: OgrSourceTimeFormat,
+              duration: OgrSourceDuration) -&gt; OgrSourceTimeFormat:
+        &#39;&#39;&#39;Specify a start column and a fixed duration&#39;&#39;&#39;
+        return StartOgrSourceDatasetTimeType(start_field, start_format, duration)
+
+    @classmethod
+    def start_end(cls,
+                  start_field: str,
+                  start_format: OgrSourceTimeFormat,
+                  end_field: str,
+                  end_format: OgrSourceTimeFormat) -&gt; OgrSourceTimeFormat:
+        &#39;&#39;&#39;The dataset contains start and end column&#39;&#39;&#39;
+        return StartEndOgrSourceDatasetTimeType(start_field, start_format, end_field, end_format)
+
+    @classmethod
+    def start_duration(cls,
+                       start_field: str,
+                       start_format: OgrSourceTimeFormat,
+                       duration_field: str) -&gt; OgrSourceTimeFormat:
+        &#39;&#39;&#39;The dataset contains start and a duration column&#39;&#39;&#39;
+        return StartEndOgrSourceDatasetTimeType(start_field, start_format, duration_field)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.NoneOgrSourceDatasetTimeType" href="#geoengine.datasets.NoneOgrSourceDatasetTimeType">NoneOgrSourceDatasetTimeType</a></li>
+<li><a title="geoengine.datasets.StartDurationOgrSourceDatasetTimeType" href="#geoengine.datasets.StartDurationOgrSourceDatasetTimeType">StartDurationOgrSourceDatasetTimeType</a></li>
+<li><a title="geoengine.datasets.StartEndOgrSourceDatasetTimeType" href="#geoengine.datasets.StartEndOgrSourceDatasetTimeType">StartEndOgrSourceDatasetTimeType</a></li>
+<li><a title="geoengine.datasets.StartOgrSourceDatasetTimeType" href="#geoengine.datasets.StartOgrSourceDatasetTimeType">StartOgrSourceDatasetTimeType</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.datasets.OgrSourceDatasetTimeType.none"><code class="name flex">
+<span>def <span class="ident">none</span></span>(<span>) ‑> <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def none(cls) -&gt; OgrSourceTimeFormat:
+    return NoneOgrSourceDatasetTimeType()</code></pre>
+</details>
+</dd>
+<dt id="geoengine.datasets.OgrSourceDatasetTimeType.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>start_field: str, start_format: <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a>, duration: <a title="geoengine.datasets.OgrSourceDuration" href="#geoengine.datasets.OgrSourceDuration">OgrSourceDuration</a>) ‑> <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Specify a start column and a fixed duration</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def start(cls,
+          start_field: str,
+          start_format: OgrSourceTimeFormat,
+          duration: OgrSourceDuration) -&gt; OgrSourceTimeFormat:
+    &#39;&#39;&#39;Specify a start column and a fixed duration&#39;&#39;&#39;
+    return StartOgrSourceDatasetTimeType(start_field, start_format, duration)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.datasets.OgrSourceDatasetTimeType.start_duration"><code class="name flex">
+<span>def <span class="ident">start_duration</span></span>(<span>start_field: str, start_format: <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a>, duration_field: str) ‑> <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>The dataset contains start and a duration column</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def start_duration(cls,
+                   start_field: str,
+                   start_format: OgrSourceTimeFormat,
+                   duration_field: str) -&gt; OgrSourceTimeFormat:
+    &#39;&#39;&#39;The dataset contains start and a duration column&#39;&#39;&#39;
+    return StartEndOgrSourceDatasetTimeType(start_field, start_format, duration_field)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.datasets.OgrSourceDatasetTimeType.start_end"><code class="name flex">
+<span>def <span class="ident">start_end</span></span>(<span>start_field: str, start_format: <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a>, end_field: str, end_format: <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a>) ‑> <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>The dataset contains start and end column</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def start_end(cls,
+              start_field: str,
+              start_format: OgrSourceTimeFormat,
+              end_field: str,
+              end_format: OgrSourceTimeFormat) -&gt; OgrSourceTimeFormat:
+    &#39;&#39;&#39;The dataset contains start and end column&#39;&#39;&#39;
+    return StartEndOgrSourceDatasetTimeType(start_field, start_format, end_field, end_format)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.OgrSourceDatasetTimeType.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.OgrSourceDuration"><code class="flex name class">
+<span>class <span class="ident">OgrSourceDuration</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for the duration part of a OGR time format</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrSourceDuration:
+    &#39;&#39;&#39;Base class for the duration part of a OGR time format&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        pass
+
+    @classmethod
+    def zero(cls) -&gt; OgrSourceTimeFormat:
+        return ZeroOgrSourceDurationSpec()
+
+    @classmethod
+    def infinite(cls) -&gt; OgrSourceTimeFormat:
+        return InfiniteOgrSourceDurationSpec()
+
+    @classmethod
+    def value(cls, value: int, granularity: TimeStepGranularity = TimeStepGranularity.SECONDS) -&gt; OgrSourceTimeFormat:
+        return ValueOgrSourceDurationSpec(TimeStep(value, granularity))</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.InfiniteOgrSourceDurationSpec" href="#geoengine.datasets.InfiniteOgrSourceDurationSpec">InfiniteOgrSourceDurationSpec</a></li>
+<li><a title="geoengine.datasets.ValueOgrSourceDurationSpec" href="#geoengine.datasets.ValueOgrSourceDurationSpec">ValueOgrSourceDurationSpec</a></li>
+<li><a title="geoengine.datasets.ZeroOgrSourceDurationSpec" href="#geoengine.datasets.ZeroOgrSourceDurationSpec">ZeroOgrSourceDurationSpec</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.datasets.OgrSourceDuration.infinite"><code class="name flex">
+<span>def <span class="ident">infinite</span></span>(<span>) ‑> <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def infinite(cls) -&gt; OgrSourceTimeFormat:
+    return InfiniteOgrSourceDurationSpec()</code></pre>
+</details>
+</dd>
+<dt id="geoengine.datasets.OgrSourceDuration.value"><code class="name flex">
+<span>def <span class="ident">value</span></span>(<span>value: int, granularity: TimeStepGranularity = TimeStepGranularity.SECONDS) ‑> <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def value(cls, value: int, granularity: TimeStepGranularity = TimeStepGranularity.SECONDS) -&gt; OgrSourceTimeFormat:
+    return ValueOgrSourceDurationSpec(TimeStep(value, granularity))</code></pre>
+</details>
+</dd>
+<dt id="geoengine.datasets.OgrSourceDuration.zero"><code class="name flex">
+<span>def <span class="ident">zero</span></span>(<span>) ‑> <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def zero(cls) -&gt; OgrSourceTimeFormat:
+    return ZeroOgrSourceDurationSpec()</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.OgrSourceDuration.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.OgrSourceTimeFormat"><code class="flex name class">
+<span>class <span class="ident">OgrSourceTimeFormat</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for OGR time formats</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrSourceTimeFormat:
+    &#39;&#39;&#39;Base class for OGR time formats&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        pass
+
+    @classmethod
+    def seconds(cls) -&gt; SecondsOgrSourceTimeFormat:
+        return SecondsOgrSourceTimeFormat()
+
+    @classmethod
+    def auto(cls) -&gt; AutoOgrSourceTimeFormat:
+        return AutoOgrSourceTimeFormat()
+
+    @classmethod
+    def custom(cls, format_string: str) -&gt; CustomOgrSourceTimeFormat:
+        return CustomOgrSourceTimeFormat(format_string)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.AutoOgrSourceTimeFormat" href="#geoengine.datasets.AutoOgrSourceTimeFormat">AutoOgrSourceTimeFormat</a></li>
+<li><a title="geoengine.datasets.CustomOgrSourceTimeFormat" href="#geoengine.datasets.CustomOgrSourceTimeFormat">CustomOgrSourceTimeFormat</a></li>
+<li><a title="geoengine.datasets.SecondsOgrSourceTimeFormat" href="#geoengine.datasets.SecondsOgrSourceTimeFormat">SecondsOgrSourceTimeFormat</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.datasets.OgrSourceTimeFormat.auto"><code class="name flex">
+<span>def <span class="ident">auto</span></span>(<span>) ‑> <a title="geoengine.datasets.AutoOgrSourceTimeFormat" href="#geoengine.datasets.AutoOgrSourceTimeFormat">AutoOgrSourceTimeFormat</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def auto(cls) -&gt; AutoOgrSourceTimeFormat:
+    return AutoOgrSourceTimeFormat()</code></pre>
+</details>
+</dd>
+<dt id="geoengine.datasets.OgrSourceTimeFormat.custom"><code class="name flex">
+<span>def <span class="ident">custom</span></span>(<span>format_string: str) ‑> <a title="geoengine.datasets.CustomOgrSourceTimeFormat" href="#geoengine.datasets.CustomOgrSourceTimeFormat">CustomOgrSourceTimeFormat</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def custom(cls, format_string: str) -&gt; CustomOgrSourceTimeFormat:
+    return CustomOgrSourceTimeFormat(format_string)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.datasets.OgrSourceTimeFormat.seconds"><code class="name flex">
+<span>def <span class="ident">seconds</span></span>(<span>) ‑> <a title="geoengine.datasets.SecondsOgrSourceTimeFormat" href="#geoengine.datasets.SecondsOgrSourceTimeFormat">SecondsOgrSourceTimeFormat</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def seconds(cls) -&gt; SecondsOgrSourceTimeFormat:
+    return SecondsOgrSourceTimeFormat()</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.OgrSourceTimeFormat.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.SecondsOgrSourceTimeFormat"><code class="flex name class">
+<span>class <span class="ident">SecondsOgrSourceTimeFormat</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>An OGR time format specified in seconds (UNIX time)</p>
+<p>Method generated by attrs for class SecondsOgrSourceTimeFormat.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class SecondsOgrSourceTimeFormat(OgrSourceTimeFormat):
+    &#39;&#39;&#39;An OGR time format specified in seconds (UNIX time)&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;format&#34;: &#34;seconds&#34;
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.SecondsOgrSourceTimeFormat.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;format&#34;: &#34;seconds&#34;
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.StartDurationOgrSourceDatasetTimeType"><code class="flex name class">
+<span>class <span class="ident">StartDurationOgrSourceDatasetTimeType</span></span>
+<span>(</span><span>start_field: str, start_format: <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a>, duration_field: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The dataset contains start and a duration column</p>
+<p>Method generated by attrs for class StartDurationOgrSourceDatasetTimeType.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+    &#39;&#39;&#39;The dataset contains start and a duration column&#39;&#39;&#39;
+
+    start_field: str
+    start_format: OgrSourceTimeFormat
+    duration_field: str
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;start+duration&#34;,
+            &#34;startField&#34;: self.start_field,
+            &#34;startFormat&#34;: self.start_format.to_dict(),
+            &#34;durationField&#34;: self.duration_field
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.datasets.StartDurationOgrSourceDatasetTimeType.duration_field"><code class="name">var <span class="ident">duration_field</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.StartDurationOgrSourceDatasetTimeType.start_field"><code class="name">var <span class="ident">start_field</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.StartDurationOgrSourceDatasetTimeType.start_format"><code class="name">var <span class="ident">start_format</span> : <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.StartDurationOgrSourceDatasetTimeType.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;type&#34;: &#34;start+duration&#34;,
+        &#34;startField&#34;: self.start_field,
+        &#34;startFormat&#34;: self.start_format.to_dict(),
+        &#34;durationField&#34;: self.duration_field
+    }</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start" href="#geoengine.datasets.OgrSourceDatasetTimeType.start">start</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start_duration" href="#geoengine.datasets.OgrSourceDatasetTimeType.start_duration">start_duration</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start_end" href="#geoengine.datasets.OgrSourceDatasetTimeType.start_end">start_end</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.datasets.StartEndOgrSourceDatasetTimeType"><code class="flex name class">
+<span>class <span class="ident">StartEndOgrSourceDatasetTimeType</span></span>
+<span>(</span><span>start_field: str, start_format: <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a>, end_field: str, end_format: <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The dataset contains start and end column</p>
+<p>Method generated by attrs for class StartEndOgrSourceDatasetTimeType.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+    &#39;&#39;&#39;The dataset contains start and end column&#39;&#39;&#39;
+
+    start_field: str
+    start_format: OgrSourceTimeFormat
+    end_field: str
+    end_format: OgrSourceTimeFormat
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;start+end&#34;,
+            &#34;startField&#34;: self.start_field,
+            &#34;startFormat&#34;: self.start_format.to_dict(),
+            &#34;endField&#34;: self.end_field,
+            &#34;endFormat&#34;: self.end_format.to_dict(),
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.datasets.StartEndOgrSourceDatasetTimeType.end_field"><code class="name">var <span class="ident">end_field</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.StartEndOgrSourceDatasetTimeType.end_format"><code class="name">var <span class="ident">end_format</span> : <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.StartEndOgrSourceDatasetTimeType.start_field"><code class="name">var <span class="ident">start_field</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.StartEndOgrSourceDatasetTimeType.start_format"><code class="name">var <span class="ident">start_format</span> : <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.StartEndOgrSourceDatasetTimeType.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;type&#34;: &#34;start+end&#34;,
+        &#34;startField&#34;: self.start_field,
+        &#34;startFormat&#34;: self.start_format.to_dict(),
+        &#34;endField&#34;: self.end_field,
+        &#34;endFormat&#34;: self.end_format.to_dict(),
+    }</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start" href="#geoengine.datasets.OgrSourceDatasetTimeType.start">start</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start_duration" href="#geoengine.datasets.OgrSourceDatasetTimeType.start_duration">start_duration</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start_end" href="#geoengine.datasets.OgrSourceDatasetTimeType.start_end">start_end</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.datasets.StartOgrSourceDatasetTimeType"><code class="flex name class">
+<span>class <span class="ident">StartOgrSourceDatasetTimeType</span></span>
+<span>(</span><span>start_field: str, start_format: <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a>, duration: <a title="geoengine.datasets.OgrSourceDuration" href="#geoengine.datasets.OgrSourceDuration">OgrSourceDuration</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Specify a start column and a fixed duration</p>
+<p>Method generated by attrs for class StartOgrSourceDatasetTimeType.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+    &#39;&#39;&#39;Specify a start column and a fixed duration&#39;&#39;&#39;
+
+    start_field: str
+    start_format: OgrSourceTimeFormat
+    duration: OgrSourceDuration
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;start&#34;,
+            &#34;startField&#34;: self.start_field,
+            &#34;startFormat&#34;: self.start_format.to_dict(),
+            &#34;duration&#34;: self.duration.to_dict()
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.datasets.StartOgrSourceDatasetTimeType.duration"><code class="name">var <span class="ident">duration</span> : <a title="geoengine.datasets.OgrSourceDuration" href="#geoengine.datasets.OgrSourceDuration">OgrSourceDuration</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.StartOgrSourceDatasetTimeType.start_field"><code class="name">var <span class="ident">start_field</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.StartOgrSourceDatasetTimeType.start_format"><code class="name">var <span class="ident">start_format</span> : <a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.StartOgrSourceDatasetTimeType.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;type&#34;: &#34;start&#34;,
+        &#34;startField&#34;: self.start_field,
+        &#34;startFormat&#34;: self.start_format.to_dict(),
+        &#34;duration&#34;: self.duration.to_dict()
+    }</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start" href="#geoengine.datasets.OgrSourceDatasetTimeType.start">start</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start_duration" href="#geoengine.datasets.OgrSourceDatasetTimeType.start_duration">start_duration</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start_end" href="#geoengine.datasets.OgrSourceDatasetTimeType.start_end">start_end</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.datasets.StoredDataset"><code class="flex name class">
+<span>class <span class="ident">StoredDataset</span></span>
+<span>(</span><span>dataset_id: ForwardRef('InternalDatasetId'), upload_id: ForwardRef('<a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>'))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The result of a store dataset request is a combination of <code>upload_id</code> and <code>dataset_id</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StoredDataset(NamedTuple):
+    &#39;&#39;&#39;The result of a store dataset request is a combination of `upload_id` and `dataset_id`&#39;&#39;&#39;
+
+    dataset_id: InternalDatasetId
+    upload_id: UploadId</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.tuple</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="geoengine.datasets.StoredDataset.dataset_id"><code class="name">var <span class="ident">dataset_id</span> : <a title="geoengine.types.InternalDatasetId" href="types.html#geoengine.types.InternalDatasetId">InternalDatasetId</a></code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 0</p></div>
+</dd>
+<dt id="geoengine.datasets.StoredDataset.upload_id"><code class="name">var <span class="ident">upload_id</span> : <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a></code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 1</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.UploadId"><code class="flex name class">
+<span>class <span class="ident">UploadId</span></span>
+<span>(</span><span>upload_id: UUID)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A wrapper for an upload id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UploadId:
+    &#39;&#39;&#39;A wrapper for an upload id&#39;&#39;&#39;
+
+    __upload_id: UUID
+
+    def __init__(self, upload_id: UUID) -&gt; None:
+        self.__upload_id = upload_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; UploadId:
+        &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
+        if &#39;id&#39; not in response:
+            raise GeoEngineException(response)
+
+        return UploadId(response[&#39;id&#39;])
+
+    def __str__(self) -&gt; str:
+        return self.__upload_id
+
+    def __repr__(self) -&gt; str:
+        return str(self)
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two upload ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__upload_id == other.__upload_id  # pylint: disable=protected-access</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.datasets.UploadId.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a http response to an <code><a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: Dict[str, str]) -&gt; UploadId:
+    &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
+    if &#39;id&#39; not in response:
+        raise GeoEngineException(response)
+
+    return UploadId(response[&#39;id&#39;])</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.ValueOgrSourceDurationSpec"><code class="flex name class">
+<span>class <span class="ident">ValueOgrSourceDurationSpec</span></span>
+<span>(</span><span>step: TimeStep)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A fixed value for a source duration</p>
+<p>Method generated by attrs for class ValueOgrSourceDurationSpec.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class ValueOgrSourceDurationSpec(OgrSourceDuration):
+    &#39;&#39;&#39;A fixed value for a source duration&#39;&#39;&#39;
+
+    step: TimeStep
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;value&#34;,
+            &#34;step&#34;: self.step.step,
+            &#34;granularity&#34;: self.step.granularity.value
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.OgrSourceDuration" href="#geoengine.datasets.OgrSourceDuration">OgrSourceDuration</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.datasets.ValueOgrSourceDurationSpec.step"><code class="name">var <span class="ident">step</span> : <a title="geoengine.types.TimeStep" href="types.html#geoengine.types.TimeStep">TimeStep</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.ValueOgrSourceDurationSpec.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;type&#34;: &#34;value&#34;,
+        &#34;step&#34;: self.step.step,
+        &#34;granularity&#34;: self.step.granularity.value
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.ZeroOgrSourceDurationSpec"><code class="flex name class">
+<span>class <span class="ident">ZeroOgrSourceDurationSpec</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>An instant, i.e. no duration</p>
+<p>Method generated by attrs for class ZeroOgrSourceDurationSpec.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class ZeroOgrSourceDurationSpec(OgrSourceDuration):
+    &#39;&#39;&#39;An instant, i.e. no duration&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;zero&#34;,
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.datasets.OgrSourceDuration" href="#geoengine.datasets.OgrSourceDuration">OgrSourceDuration</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.ZeroOgrSourceDurationSpec.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;type&#34;: &#34;zero&#34;,
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="geoengine" href="index.html">geoengine</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="geoengine.datasets.pandas_dtype_to_column_type" href="#geoengine.datasets.pandas_dtype_to_column_type">pandas_dtype_to_column_type</a></code></li>
+<li><code><a title="geoengine.datasets.upload_dataframe" href="#geoengine.datasets.upload_dataframe">upload_dataframe</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="geoengine.datasets.AutoOgrSourceTimeFormat" href="#geoengine.datasets.AutoOgrSourceTimeFormat">AutoOgrSourceTimeFormat</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.AutoOgrSourceTimeFormat.to_dict" href="#geoengine.datasets.AutoOgrSourceTimeFormat.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.CustomOgrSourceTimeFormat" href="#geoengine.datasets.CustomOgrSourceTimeFormat">CustomOgrSourceTimeFormat</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.CustomOgrSourceTimeFormat.custom" href="#geoengine.datasets.CustomOgrSourceTimeFormat.custom">custom</a></code></li>
+<li><code><a title="geoengine.datasets.CustomOgrSourceTimeFormat.to_dict" href="#geoengine.datasets.CustomOgrSourceTimeFormat.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.InfiniteOgrSourceDurationSpec" href="#geoengine.datasets.InfiniteOgrSourceDurationSpec">InfiniteOgrSourceDurationSpec</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.InfiniteOgrSourceDurationSpec.to_dict" href="#geoengine.datasets.InfiniteOgrSourceDurationSpec.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.NoneOgrSourceDatasetTimeType" href="#geoengine.datasets.NoneOgrSourceDatasetTimeType">NoneOgrSourceDatasetTimeType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.NoneOgrSourceDatasetTimeType.to_dict" href="#geoengine.datasets.NoneOgrSourceDatasetTimeType.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.OgrOnError" href="#geoengine.datasets.OgrOnError">OgrOnError</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.OgrOnError.ABORT" href="#geoengine.datasets.OgrOnError.ABORT">ABORT</a></code></li>
+<li><code><a title="geoengine.datasets.OgrOnError.IGNORE" href="#geoengine.datasets.OgrOnError.IGNORE">IGNORE</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.none" href="#geoengine.datasets.OgrSourceDatasetTimeType.none">none</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start" href="#geoengine.datasets.OgrSourceDatasetTimeType.start">start</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start_duration" href="#geoengine.datasets.OgrSourceDatasetTimeType.start_duration">start_duration</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.start_end" href="#geoengine.datasets.OgrSourceDatasetTimeType.start_end">start_end</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDatasetTimeType.to_dict" href="#geoengine.datasets.OgrSourceDatasetTimeType.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.OgrSourceDuration" href="#geoengine.datasets.OgrSourceDuration">OgrSourceDuration</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.OgrSourceDuration.infinite" href="#geoengine.datasets.OgrSourceDuration.infinite">infinite</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDuration.to_dict" href="#geoengine.datasets.OgrSourceDuration.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDuration.value" href="#geoengine.datasets.OgrSourceDuration.value">value</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceDuration.zero" href="#geoengine.datasets.OgrSourceDuration.zero">zero</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.OgrSourceTimeFormat" href="#geoengine.datasets.OgrSourceTimeFormat">OgrSourceTimeFormat</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.OgrSourceTimeFormat.auto" href="#geoengine.datasets.OgrSourceTimeFormat.auto">auto</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceTimeFormat.custom" href="#geoengine.datasets.OgrSourceTimeFormat.custom">custom</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceTimeFormat.seconds" href="#geoengine.datasets.OgrSourceTimeFormat.seconds">seconds</a></code></li>
+<li><code><a title="geoengine.datasets.OgrSourceTimeFormat.to_dict" href="#geoengine.datasets.OgrSourceTimeFormat.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.SecondsOgrSourceTimeFormat" href="#geoengine.datasets.SecondsOgrSourceTimeFormat">SecondsOgrSourceTimeFormat</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.SecondsOgrSourceTimeFormat.to_dict" href="#geoengine.datasets.SecondsOgrSourceTimeFormat.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.StartDurationOgrSourceDatasetTimeType" href="#geoengine.datasets.StartDurationOgrSourceDatasetTimeType">StartDurationOgrSourceDatasetTimeType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.StartDurationOgrSourceDatasetTimeType.duration_field" href="#geoengine.datasets.StartDurationOgrSourceDatasetTimeType.duration_field">duration_field</a></code></li>
+<li><code><a title="geoengine.datasets.StartDurationOgrSourceDatasetTimeType.start_field" href="#geoengine.datasets.StartDurationOgrSourceDatasetTimeType.start_field">start_field</a></code></li>
+<li><code><a title="geoengine.datasets.StartDurationOgrSourceDatasetTimeType.start_format" href="#geoengine.datasets.StartDurationOgrSourceDatasetTimeType.start_format">start_format</a></code></li>
+<li><code><a title="geoengine.datasets.StartDurationOgrSourceDatasetTimeType.to_dict" href="#geoengine.datasets.StartDurationOgrSourceDatasetTimeType.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.StartEndOgrSourceDatasetTimeType" href="#geoengine.datasets.StartEndOgrSourceDatasetTimeType">StartEndOgrSourceDatasetTimeType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.StartEndOgrSourceDatasetTimeType.end_field" href="#geoengine.datasets.StartEndOgrSourceDatasetTimeType.end_field">end_field</a></code></li>
+<li><code><a title="geoengine.datasets.StartEndOgrSourceDatasetTimeType.end_format" href="#geoengine.datasets.StartEndOgrSourceDatasetTimeType.end_format">end_format</a></code></li>
+<li><code><a title="geoengine.datasets.StartEndOgrSourceDatasetTimeType.start_field" href="#geoengine.datasets.StartEndOgrSourceDatasetTimeType.start_field">start_field</a></code></li>
+<li><code><a title="geoengine.datasets.StartEndOgrSourceDatasetTimeType.start_format" href="#geoengine.datasets.StartEndOgrSourceDatasetTimeType.start_format">start_format</a></code></li>
+<li><code><a title="geoengine.datasets.StartEndOgrSourceDatasetTimeType.to_dict" href="#geoengine.datasets.StartEndOgrSourceDatasetTimeType.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.StartOgrSourceDatasetTimeType" href="#geoengine.datasets.StartOgrSourceDatasetTimeType">StartOgrSourceDatasetTimeType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.StartOgrSourceDatasetTimeType.duration" href="#geoengine.datasets.StartOgrSourceDatasetTimeType.duration">duration</a></code></li>
+<li><code><a title="geoengine.datasets.StartOgrSourceDatasetTimeType.start_field" href="#geoengine.datasets.StartOgrSourceDatasetTimeType.start_field">start_field</a></code></li>
+<li><code><a title="geoengine.datasets.StartOgrSourceDatasetTimeType.start_format" href="#geoengine.datasets.StartOgrSourceDatasetTimeType.start_format">start_format</a></code></li>
+<li><code><a title="geoengine.datasets.StartOgrSourceDatasetTimeType.to_dict" href="#geoengine.datasets.StartOgrSourceDatasetTimeType.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.StoredDataset" href="#geoengine.datasets.StoredDataset">StoredDataset</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.StoredDataset.dataset_id" href="#geoengine.datasets.StoredDataset.dataset_id">dataset_id</a></code></li>
+<li><code><a title="geoengine.datasets.StoredDataset.upload_id" href="#geoengine.datasets.StoredDataset.upload_id">upload_id</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.UploadId.from_response" href="#geoengine.datasets.UploadId.from_response">from_response</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.ValueOgrSourceDurationSpec" href="#geoengine.datasets.ValueOgrSourceDurationSpec">ValueOgrSourceDurationSpec</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.ValueOgrSourceDurationSpec.step" href="#geoengine.datasets.ValueOgrSourceDurationSpec.step">step</a></code></li>
+<li><code><a title="geoengine.datasets.ValueOgrSourceDurationSpec.to_dict" href="#geoengine.datasets.ValueOgrSourceDurationSpec.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.ZeroOgrSourceDurationSpec" href="#geoengine.datasets.ZeroOgrSourceDurationSpec">ZeroOgrSourceDurationSpec</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.ZeroOgrSourceDurationSpec.to_dict" href="#geoengine.datasets.ZeroOgrSourceDurationSpec.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

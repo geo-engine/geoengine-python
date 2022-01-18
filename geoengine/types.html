@@ -1,0 +1,2007 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>geoengine.types API documentation</title>
+<meta name="description" content="Different type mappings of geo engine types" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>geoengine.types</code></h1>
+</header>
+<section id="section-intro">
+<p>Different type mappings of geo engine types</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;
+Different type mappings of geo engine types
+&#39;&#39;&#39;
+
+from __future__ import annotations
+from typing import Any, Dict, Tuple
+from datetime import datetime
+from uuid import UUID
+
+from enum import Enum
+from attr import dataclass
+from numpy import number
+
+from geoengine.error import GeoEngineException, InputException, TypeException
+
+
+class QueryRectangle:
+    &#39;&#39;&#39;
+    A multi-dimensional query rectangle, consisting of spatial and temporal information.
+    &#39;&#39;&#39;
+
+    __spatial_bounds: Tuple[float, float, float, float]
+    __time_interval: Tuple[datetime, datetime]
+    __resolution: Tuple[float, float]
+    __srs: str
+
+    def __init__(self,
+                 spatial_bounds: Tuple[float, float, float, float],
+                 time_interval: Tuple[datetime, datetime],
+                 resolution: Tuple[float, float] = (0.1, 0.1),
+                 srs=&#39;EPSG:4326&#39;) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `QueryRectangle` object&#39;&#39;&#39;
+        xmin = spatial_bounds[0]
+        ymin = spatial_bounds[1]
+        xmax = spatial_bounds[2]
+        ymax = spatial_bounds[3]
+
+        if (xmin &gt; xmax) or (ymin &gt; ymax):
+            raise InputException(&#34;Bbox: Malformed since min must be &lt;= max&#34;)
+
+        self.__spatial_bounds = spatial_bounds
+
+        if time_interval[0] &gt; time_interval[1]:
+            raise InputException(&#34;Time inverval: Start must be &lt;= End&#34;)
+
+        self.__time_interval = time_interval
+
+        if resolution[0] &lt;= 0 or resolution[1] &lt;= 0:
+            raise InputException(&#34;Resolution: Must be positive&#34;)
+
+        self.__resolution = resolution
+
+        self.__srs = srs
+
+    @property
+    def bbox_str(self) -&gt; str:
+        &#39;&#39;&#39;
+        A comma-separated string representation of the spatial bounds
+        &#39;&#39;&#39;
+
+        return &#39;,&#39;.join(map(str, self.__spatial_bounds))
+
+    @property
+    def bbox_ogc_str(self) -&gt; str:
+        &#39;&#39;&#39;
+        A comma-separated string representation of the spatial bounds with OGC axis ordering
+        &#39;&#39;&#39;
+
+        return &#39;,&#39;.join(map(str, self.bbox_ogc))
+
+    @property
+    def bbox_ogc(self) -&gt; Tuple[float, float, float, float]:
+        &#39;&#39;&#39;
+        Return the bbox with OGC axis ordering of the srs
+        &#39;&#39;&#39;
+
+        # TODO: properly handle axis order
+        bbox = self.__spatial_bounds
+
+        if self.__srs == &#34;EPSG:4326&#34;:
+            return (bbox[1], bbox[0], bbox[3], bbox[2])
+
+        return bbox
+
+    @property
+    def resolution_ogc(self) -&gt; Tuple[float, float]:
+        &#39;&#39;&#39;
+        Return the resolution in OGC style
+        &#39;&#39;&#39;
+
+        # TODO: properly handle axis order
+        res = self.__resolution
+
+        if self.__srs == &#34;EPSG:4326&#34;:
+            return [-res[1], res[0]]
+
+        return res
+
+    @property
+    def xmin(self) -&gt; number:
+        return self.__spatial_bounds[0]
+
+    @property
+    def ymin(self) -&gt; number:
+        return self.__spatial_bounds[1]
+
+    @property
+    def xmax(self) -&gt; number:
+        return self.__spatial_bounds[2]
+
+    @property
+    def ymax(self) -&gt; number:
+        return self.__spatial_bounds[3]
+
+    @property
+    def time_str(self) -&gt; str:
+        &#39;&#39;&#39;
+        Return the time instance or interval as a string representation
+        &#39;&#39;&#39;
+
+        if self.__time_interval[0] == self.__time_interval[1]:
+            return self.__time_interval[0].isoformat(timespec=&#39;milliseconds&#39;)
+
+        return &#39;/&#39;.join(map(str, self.__time_interval))
+
+    @property
+    def resolution(self) -&gt; Tuple[float, float]:
+        &#39;&#39;&#39;
+        Return the resolution as is
+        &#39;&#39;&#39;
+
+        return self.__resolution
+
+    @property
+    def srs(self) -&gt; str:
+        &#39;&#39;&#39;
+        Return the SRS string
+        &#39;&#39;&#39;
+
+        return self.__srs
+
+    def __dict__(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;
+        Return a dictionary representation of the object
+        &#39;&#39;&#39;
+
+        time_start_unix = int(self.__time_interval[0].timestamp() * 1000)
+        time_end_unix = int(self.__time_interval[1].timestamp() * 1000)
+
+        left_x = min(self.__spatial_bounds[0], self.__spatial_bounds[2])
+        right_x = max(self.__spatial_bounds[0], self.__spatial_bounds[2])
+        lower_y = min(self.__spatial_bounds[1], self.__spatial_bounds[3])
+        upper_y = max(self.__spatial_bounds[1], self.__spatial_bounds[3])
+
+        # TODO: distinguish between raster, vector and plot query rectangle
+
+        return {
+            &#39;spatialBounds&#39;: {
+                &#39;upperLeftCoordinate&#39;: {
+                    &#34;x&#34;: left_x,
+                    &#34;y&#34;: upper_y,
+                },
+                &#39;lowerRightCoordinate&#39;: {
+                    &#34;x&#34;: right_x,
+                    &#34;y&#34;: lower_y,
+                }
+            },
+            &#39;timeInterval&#39;: {
+                &#39;start&#39;: time_start_unix,
+                &#39;end&#39;: time_end_unix,
+            },
+            &#39;spatialResolution&#39;: {
+                &#39;x&#39;: self.__resolution[0],
+                &#39;y&#39;: self.__resolution[1],
+            },
+        }
+
+
+class ResultDescriptor:  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;
+    Base class for result descriptors
+    &#39;&#39;&#39;
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -&gt; None:
+        &#39;&#39;&#39;
+        Parse a result descriptor from an http response
+        &#39;&#39;&#39;
+
+        if &#39;error&#39; in response:
+            raise GeoEngineException(response)
+
+        result_descriptor_type = response[&#39;type&#39;]
+
+        if result_descriptor_type == &#39;raster&#39;:
+            return RasterResultDescriptor(response)
+        if result_descriptor_type == &#39;vector&#39;:
+            return VectorResultDescriptor(response)
+        if result_descriptor_type == &#39;plot&#39;:
+            return PlotResultDescriptor(response)
+
+        raise TypeException(
+            f&#39;Unknown `ResultDescriptor` type: {result_descriptor_type}&#39;)
+
+    @classmethod
+    def is_raster_result(cls) -&gt; bool:
+        &#39;&#39;&#39;
+        Return true if the result is of type raster
+        &#39;&#39;&#39;
+
+        return False
+
+    @classmethod
+    def is_vector_result(cls) -&gt; bool:
+        &#39;&#39;&#39;
+        Return true if the result is of type vector
+        &#39;&#39;&#39;
+
+        return False
+
+    @classmethod
+    def is_plot_result(cls) -&gt; bool:
+        &#39;&#39;&#39;
+        Return true if the result is of type plot
+        &#39;&#39;&#39;
+
+        return False
+
+
+class VectorResultDescriptor(ResultDescriptor):
+    &#39;&#39;&#39;
+    A vector result descriptor
+    &#39;&#39;&#39;
+
+    __data_type: str
+    __spatial_reference: str
+    __columns: Dict[str, str]
+
+    def __init__(self, response: Dict[str, Any]) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `VectorResultDescriptor`&#39;&#39;&#39;
+        self.__data_type = response[&#39;dataType&#39;]
+        self.__spatial_reference = response[&#39;spatialReference&#39;]
+        self.__columns = response[&#39;columns&#39;]
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of the vector result descriptor&#39;&#39;&#39;
+        r = &#39;&#39;
+        r += f&#39;Data type:         {self.data_type}\n&#39;
+        r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
+
+        for i, key in enumerate(self.columns):
+            r += &#39;Columns:&#39; if i == 0 else &#39;        &#39;
+            r += &#39;           &#39;
+            r += f&#39;{key}: {self.columns[key]}\n&#39;
+
+        return r
+
+    @classmethod
+    def is_vector_result(cls) -&gt; bool:
+        return True
+
+    @property
+    def data_type(self) -&gt; str:
+        &#39;&#39;&#39;Return the data type&#39;&#39;&#39;
+
+        return self.__data_type
+
+    @property
+    def spatial_reference(self) -&gt; str:
+        &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
+
+        return self.__spatial_reference
+
+    @property
+    def columns(self) -&gt; Dict[str, str]:
+        &#39;&#39;&#39;Return the columns&#39;&#39;&#39;
+
+        return self.__columns
+
+
+class RasterResultDescriptor(ResultDescriptor):
+    &#39;&#39;&#39;
+    A raster result descriptor
+    &#39;&#39;&#39;
+
+    __data_type: str
+    __spatial_reference: str
+    __measurement: str
+    __no_data_value: str
+
+    def __init__(self, response: Dict[str, Any]) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `RasterResultDescriptor`&#39;&#39;&#39;
+        self.__data_type = response[&#39;dataType&#39;]
+        self.__spatial_reference = response[&#39;spatialReference&#39;]
+        self.__measurement = response[&#39;measurement&#39;]
+        self.__no_data_value = response[&#39;noDataValue&#39;]
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of the raster result descriptor&#39;&#39;&#39;
+        r = &#39;&#39;
+        r += f&#39;Data type:         {self.data_type}\n&#39;
+        r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
+        r += f&#39;Measurement:       {self.measurement}\n&#39;
+        r += f&#39;No Data Value:     {self.no_data_value}\n&#39;
+
+        return r
+
+    @classmethod
+    def is_raster_result(cls) -&gt; bool:
+        return True
+
+    @property
+    def data_type(self) -&gt; str:
+        return self.__data_type
+
+    @property
+    def spatial_reference(self) -&gt; str:
+        return self.__spatial_reference
+
+    @property
+    def measurement(self) -&gt; str:
+        return self.__measurement
+
+    @property
+    def no_data_value(self) -&gt; str:
+        return self.__no_data_value
+
+
+class PlotResultDescriptor(ResultDescriptor):
+    &#39;&#39;&#39;
+    A plot result descriptor
+    &#39;&#39;&#39;
+
+    def __init__(self, _response: Dict[str, Any]) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `PlotResultDescriptor`&#39;&#39;&#39;
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of the plot result descriptor&#39;&#39;&#39;
+        r = &#39;Plot Result&#39;
+
+        return r
+
+    @classmethod
+    def is_plot_result(cls) -&gt; bool:
+        return True
+
+
+class VectorDataType(Enum):
+    &#39;&#39;&#39;An enum of vector data types&#39;&#39;&#39;
+
+    DATA = &#39;Data&#39;
+    MULTI_POINT = &#39;MultiPoint&#39;
+    MULTI_LINE_STRING = &#39;MultiLineString&#39;
+    MULTI_POLYGON = &#39;MultiPolygon&#39;
+
+    @classmethod
+    def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
+        &#39;&#39;&#39;Resolve vector data type from geopandas geometry type&#39;&#39;&#39;
+
+        name_map = {
+            &#34;Point&#34;: VectorDataType.MULTI_POINT,
+            &#34;MultiPoint&#34;: VectorDataType.MULTI_POINT,
+            &#34;Line&#34;: VectorDataType.MULTI_LINE_STRING,
+            &#34;MultiLine&#34;: VectorDataType.MULTI_LINE_STRING,
+            &#34;Polygon&#34;: VectorDataType.MULTI_POLYGON,
+            &#34;MultiPolygon&#34;: VectorDataType.MULTI_POLYGON,
+        }
+
+        if name in name_map:
+            return name_map[name]
+
+        raise InputException(&#34;Invalid vector data type&#34;)
+
+
+class TimeStepGranularity(Enum):
+    &#39;&#39;&#39;An enum of time step granularities&#39;&#39;&#39;
+    MILLIS = &#39;Millis&#39;
+    SECONDS = &#39;Seconds&#39;
+    MINUTES = &#39;Minutes&#39;
+    HOURS = &#39;Hours&#39;
+    DAYS = &#39;Days&#39;
+    MONTHS = &#39;Months&#39;
+    YEARS = &#39;Years&#39;
+
+
+@dataclass
+class TimeStep:
+    &#39;&#39;&#39;A time step that consists of a granularity and a step size&#39;&#39;&#39;
+    step: int
+    granularity: TimeStepGranularity
+
+
+@dataclass
+class Provenance:
+    &#39;&#39;&#39;Provenance information as triplet of citation, license and uri&#39;&#39;&#39;
+
+    citation: str
+    license: str
+    uri: str
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; Provenance:
+        &#39;&#39;&#39;Parse an http response to a `Provenance` object&#39;&#39;&#39;
+        return Provenance(response[&#39;citation&#39;], response[&#39;license&#39;], response[&#39;uri&#39;])
+
+
+@dataclass
+class ProvenanceOutput:
+    &#39;&#39;&#39;Provenance of a dataset&#39;&#39;&#39;
+
+    dataset: DatasetId
+    provenance: Provenance
+
+    @classmethod
+    def from_response(cls, response: Dict[str, Dict[str, str]]) -&gt; ProvenanceOutput:
+        &#39;&#39;&#39;Parse an http response to a `ProvenanceOutput` object&#39;&#39;&#39;
+
+        dataset = DatasetId.from_response(response[&#39;dataset&#39;])
+        provenance = Provenance.from_response(response[&#39;provenance&#39;])
+
+        return ProvenanceOutput(dataset, provenance)
+
+
+class DatasetId:  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Base class for dataset ids&#39;&#39;&#39;
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; DatasetId:
+        &#39;&#39;&#39;Parse an http response to a `DatasetId` object&#39;&#39;&#39;
+
+        if response[&#34;type&#34;] == &#34;internal&#34;:
+            return InternalDatasetId.from_response(response)
+        if response[&#34;type&#34;] == &#34;external&#34;:
+            return ExternalDatasetId.from_response(response)
+
+        raise GeoEngineException(f&#34;Unknown DatasetId type: {response[&#39;type&#39;]}&#34;)
+
+
+class InternalDatasetId(DatasetId):
+    &#39;&#39;&#39;An internal dataset id&#39;&#39;&#39;
+
+    __dataset_id: UUID
+
+    def __init__(self, dataset_id: UUID):
+        self.__dataset_id = dataset_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; InternalDatasetId:
+        &#39;&#39;&#39;Parse an http response to a `InternalDatasetId` object&#39;&#39;&#39;
+
+        return InternalDatasetId(response[&#39;datasetId&#39;])
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;internal&#34;,
+            &#34;datasetId&#34;: self.__dataset_id
+        }
+
+    def __str__(self) -&gt; str:
+        return str(self.__dataset_id)
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of an internal dataset id&#39;&#39;&#39;
+        return str(self)
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Check if two internal dataset ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
+
+
+class ExternalDatasetId(DatasetId):
+    &#39;&#39;&#39;An external dataset id&#39;&#39;&#39;
+
+    __provider_id: UUID
+    __dataset_id: str
+
+    def __init__(self, provider_id: UUID, dataset_id: str):
+        self.__provider_id = provider_id
+        self.__dataset_id = dataset_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; ExternalDatasetId:
+        &#39;&#39;&#39;Parse an http response to a `ExternalDatasetId` object&#39;&#39;&#39;
+
+        return ExternalDatasetId(response[&#39;providerId&#39;], response[&#39;datasetId&#39;])
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;external&#34;,
+            &#34;providerId&#34;: self.__provider_id,
+            &#34;datasetId&#34;: self.__dataset_id,
+        }
+
+    def __str__(self) -&gt; str:
+        return f&#39;{self.__provider_id}:{self.__dataset_id}&#39;
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of an external dataset id&#39;&#39;&#39;
+        return str(self)
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Check if two external dataset ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__provider_id == other.__provider_id and self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="geoengine.types.DatasetId"><code class="flex name class">
+<span>class <span class="ident">DatasetId</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for dataset ids</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatasetId:  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Base class for dataset ids&#39;&#39;&#39;
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; DatasetId:
+        &#39;&#39;&#39;Parse an http response to a `DatasetId` object&#39;&#39;&#39;
+
+        if response[&#34;type&#34;] == &#34;internal&#34;:
+            return InternalDatasetId.from_response(response)
+        if response[&#34;type&#34;] == &#34;external&#34;:
+            return ExternalDatasetId.from_response(response)
+
+        raise GeoEngineException(f&#34;Unknown DatasetId type: {response[&#39;type&#39;]}&#34;)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.ExternalDatasetId" href="#geoengine.types.ExternalDatasetId">ExternalDatasetId</a></li>
+<li><a title="geoengine.types.InternalDatasetId" href="#geoengine.types.InternalDatasetId">InternalDatasetId</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.DatasetId.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></code> object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: Dict[str, str]) -&gt; DatasetId:
+    &#39;&#39;&#39;Parse an http response to a `DatasetId` object&#39;&#39;&#39;
+
+    if response[&#34;type&#34;] == &#34;internal&#34;:
+        return InternalDatasetId.from_response(response)
+    if response[&#34;type&#34;] == &#34;external&#34;:
+        return ExternalDatasetId.from_response(response)
+
+    raise GeoEngineException(f&#34;Unknown DatasetId type: {response[&#39;type&#39;]}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.ExternalDatasetId"><code class="flex name class">
+<span>class <span class="ident">ExternalDatasetId</span></span>
+<span>(</span><span>provider_id: UUID, dataset_id: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An external dataset id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ExternalDatasetId(DatasetId):
+    &#39;&#39;&#39;An external dataset id&#39;&#39;&#39;
+
+    __provider_id: UUID
+    __dataset_id: str
+
+    def __init__(self, provider_id: UUID, dataset_id: str):
+        self.__provider_id = provider_id
+        self.__dataset_id = dataset_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; ExternalDatasetId:
+        &#39;&#39;&#39;Parse an http response to a `ExternalDatasetId` object&#39;&#39;&#39;
+
+        return ExternalDatasetId(response[&#39;providerId&#39;], response[&#39;datasetId&#39;])
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;external&#34;,
+            &#34;providerId&#34;: self.__provider_id,
+            &#34;datasetId&#34;: self.__dataset_id,
+        }
+
+    def __str__(self) -&gt; str:
+        return f&#39;{self.__provider_id}:{self.__dataset_id}&#39;
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of an external dataset id&#39;&#39;&#39;
+        return str(self)
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Check if two external dataset ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__provider_id == other.__provider_id and self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.ExternalDatasetId.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.types.ExternalDatasetId" href="#geoengine.types.ExternalDatasetId">ExternalDatasetId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.ExternalDatasetId" href="#geoengine.types.ExternalDatasetId">ExternalDatasetId</a></code> object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: Dict[str, str]) -&gt; ExternalDatasetId:
+    &#39;&#39;&#39;Parse an http response to a `ExternalDatasetId` object&#39;&#39;&#39;
+
+    return ExternalDatasetId(response[&#39;providerId&#39;], response[&#39;datasetId&#39;])</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.ExternalDatasetId.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;type&#34;: &#34;external&#34;,
+        &#34;providerId&#34;: self.__provider_id,
+        &#34;datasetId&#34;: self.__dataset_id,
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.InternalDatasetId"><code class="flex name class">
+<span>class <span class="ident">InternalDatasetId</span></span>
+<span>(</span><span>dataset_id: UUID)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An internal dataset id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InternalDatasetId(DatasetId):
+    &#39;&#39;&#39;An internal dataset id&#39;&#39;&#39;
+
+    __dataset_id: UUID
+
+    def __init__(self, dataset_id: UUID):
+        self.__dataset_id = dataset_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; InternalDatasetId:
+        &#39;&#39;&#39;Parse an http response to a `InternalDatasetId` object&#39;&#39;&#39;
+
+        return InternalDatasetId(response[&#39;datasetId&#39;])
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        return {
+            &#34;type&#34;: &#34;internal&#34;,
+            &#34;datasetId&#34;: self.__dataset_id
+        }
+
+    def __str__(self) -&gt; str:
+        return str(self.__dataset_id)
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of an internal dataset id&#39;&#39;&#39;
+        return str(self)
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Check if two internal dataset ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.InternalDatasetId.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.types.InternalDatasetId" href="#geoengine.types.InternalDatasetId">InternalDatasetId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.InternalDatasetId" href="#geoengine.types.InternalDatasetId">InternalDatasetId</a></code> object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: Dict[str, str]) -&gt; InternalDatasetId:
+    &#39;&#39;&#39;Parse an http response to a `InternalDatasetId` object&#39;&#39;&#39;
+
+    return InternalDatasetId(response[&#39;datasetId&#39;])</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.InternalDatasetId.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    return {
+        &#34;type&#34;: &#34;internal&#34;,
+        &#34;datasetId&#34;: self.__dataset_id
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.PlotResultDescriptor"><code class="flex name class">
+<span>class <span class="ident">PlotResultDescriptor</span></span>
+<span>(</span><span>_response: Dict[str, Any])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A plot result descriptor</p>
+<p>Initialize a new <code><a title="geoengine.types.PlotResultDescriptor" href="#geoengine.types.PlotResultDescriptor">PlotResultDescriptor</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PlotResultDescriptor(ResultDescriptor):
+    &#39;&#39;&#39;
+    A plot result descriptor
+    &#39;&#39;&#39;
+
+    def __init__(self, _response: Dict[str, Any]) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `PlotResultDescriptor`&#39;&#39;&#39;
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of the plot result descriptor&#39;&#39;&#39;
+        r = &#39;Plot Result&#39;
+
+        return r
+
+    @classmethod
+    def is_plot_result(cls) -&gt; bool:
+        return True</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.ResultDescriptor" href="#geoengine.types.ResultDescriptor">ResultDescriptor</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.types.ResultDescriptor" href="#geoengine.types.ResultDescriptor">ResultDescriptor</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.types.ResultDescriptor.from_response" href="#geoengine.types.ResultDescriptor.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_plot_result" href="#geoengine.types.ResultDescriptor.is_plot_result">is_plot_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_raster_result" href="#geoengine.types.ResultDescriptor.is_raster_result">is_raster_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_vector_result" href="#geoengine.types.ResultDescriptor.is_vector_result">is_vector_result</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.types.Provenance"><code class="flex name class">
+<span>class <span class="ident">Provenance</span></span>
+<span>(</span><span>citation: str, license: str, uri: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Provenance information as triplet of citation, license and uri</p>
+<p>Method generated by attrs for class Provenance.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class Provenance:
+    &#39;&#39;&#39;Provenance information as triplet of citation, license and uri&#39;&#39;&#39;
+
+    citation: str
+    license: str
+    uri: str
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; Provenance:
+        &#39;&#39;&#39;Parse an http response to a `Provenance` object&#39;&#39;&#39;
+        return Provenance(response[&#39;citation&#39;], response[&#39;license&#39;], response[&#39;uri&#39;])</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.Provenance.citation"><code class="name">var <span class="ident">citation</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.Provenance.license"><code class="name">var <span class="ident">license</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.Provenance.uri"><code class="name">var <span class="ident">uri</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.Provenance.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.types.Provenance" href="#geoengine.types.Provenance">Provenance</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.Provenance" href="#geoengine.types.Provenance">Provenance</a></code> object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: Dict[str, str]) -&gt; Provenance:
+    &#39;&#39;&#39;Parse an http response to a `Provenance` object&#39;&#39;&#39;
+    return Provenance(response[&#39;citation&#39;], response[&#39;license&#39;], response[&#39;uri&#39;])</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.ProvenanceOutput"><code class="flex name class">
+<span>class <span class="ident">ProvenanceOutput</span></span>
+<span>(</span><span>dataset: <a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a>, provenance: <a title="geoengine.types.Provenance" href="#geoengine.types.Provenance">Provenance</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Provenance of a dataset</p>
+<p>Method generated by attrs for class ProvenanceOutput.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class ProvenanceOutput:
+    &#39;&#39;&#39;Provenance of a dataset&#39;&#39;&#39;
+
+    dataset: DatasetId
+    provenance: Provenance
+
+    @classmethod
+    def from_response(cls, response: Dict[str, Dict[str, str]]) -&gt; ProvenanceOutput:
+        &#39;&#39;&#39;Parse an http response to a `ProvenanceOutput` object&#39;&#39;&#39;
+
+        dataset = DatasetId.from_response(response[&#39;dataset&#39;])
+        provenance = Provenance.from_response(response[&#39;provenance&#39;])
+
+        return ProvenanceOutput(dataset, provenance)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.ProvenanceOutput.dataset"><code class="name">var <span class="ident">dataset</span> : <a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.ProvenanceOutput.provenance"><code class="name">var <span class="ident">provenance</span> : <a title="geoengine.types.Provenance" href="#geoengine.types.Provenance">Provenance</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.ProvenanceOutput.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, Dict[str, str]]) ‑> <a title="geoengine.types.ProvenanceOutput" href="#geoengine.types.ProvenanceOutput">ProvenanceOutput</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.ProvenanceOutput" href="#geoengine.types.ProvenanceOutput">ProvenanceOutput</a></code> object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: Dict[str, Dict[str, str]]) -&gt; ProvenanceOutput:
+    &#39;&#39;&#39;Parse an http response to a `ProvenanceOutput` object&#39;&#39;&#39;
+
+    dataset = DatasetId.from_response(response[&#39;dataset&#39;])
+    provenance = Provenance.from_response(response[&#39;provenance&#39;])
+
+    return ProvenanceOutput(dataset, provenance)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.QueryRectangle"><code class="flex name class">
+<span>class <span class="ident">QueryRectangle</span></span>
+<span>(</span><span>spatial_bounds: Tuple[float, float, float, float], time_interval: Tuple[datetime, datetime], resolution: Tuple[float, float] = (0.1, 0.1), srs='EPSG:4326')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A multi-dimensional query rectangle, consisting of spatial and temporal information.</p>
+<p>Initialize a new <code><a title="geoengine.types.QueryRectangle" href="#geoengine.types.QueryRectangle">QueryRectangle</a></code> object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class QueryRectangle:
+    &#39;&#39;&#39;
+    A multi-dimensional query rectangle, consisting of spatial and temporal information.
+    &#39;&#39;&#39;
+
+    __spatial_bounds: Tuple[float, float, float, float]
+    __time_interval: Tuple[datetime, datetime]
+    __resolution: Tuple[float, float]
+    __srs: str
+
+    def __init__(self,
+                 spatial_bounds: Tuple[float, float, float, float],
+                 time_interval: Tuple[datetime, datetime],
+                 resolution: Tuple[float, float] = (0.1, 0.1),
+                 srs=&#39;EPSG:4326&#39;) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `QueryRectangle` object&#39;&#39;&#39;
+        xmin = spatial_bounds[0]
+        ymin = spatial_bounds[1]
+        xmax = spatial_bounds[2]
+        ymax = spatial_bounds[3]
+
+        if (xmin &gt; xmax) or (ymin &gt; ymax):
+            raise InputException(&#34;Bbox: Malformed since min must be &lt;= max&#34;)
+
+        self.__spatial_bounds = spatial_bounds
+
+        if time_interval[0] &gt; time_interval[1]:
+            raise InputException(&#34;Time inverval: Start must be &lt;= End&#34;)
+
+        self.__time_interval = time_interval
+
+        if resolution[0] &lt;= 0 or resolution[1] &lt;= 0:
+            raise InputException(&#34;Resolution: Must be positive&#34;)
+
+        self.__resolution = resolution
+
+        self.__srs = srs
+
+    @property
+    def bbox_str(self) -&gt; str:
+        &#39;&#39;&#39;
+        A comma-separated string representation of the spatial bounds
+        &#39;&#39;&#39;
+
+        return &#39;,&#39;.join(map(str, self.__spatial_bounds))
+
+    @property
+    def bbox_ogc_str(self) -&gt; str:
+        &#39;&#39;&#39;
+        A comma-separated string representation of the spatial bounds with OGC axis ordering
+        &#39;&#39;&#39;
+
+        return &#39;,&#39;.join(map(str, self.bbox_ogc))
+
+    @property
+    def bbox_ogc(self) -&gt; Tuple[float, float, float, float]:
+        &#39;&#39;&#39;
+        Return the bbox with OGC axis ordering of the srs
+        &#39;&#39;&#39;
+
+        # TODO: properly handle axis order
+        bbox = self.__spatial_bounds
+
+        if self.__srs == &#34;EPSG:4326&#34;:
+            return (bbox[1], bbox[0], bbox[3], bbox[2])
+
+        return bbox
+
+    @property
+    def resolution_ogc(self) -&gt; Tuple[float, float]:
+        &#39;&#39;&#39;
+        Return the resolution in OGC style
+        &#39;&#39;&#39;
+
+        # TODO: properly handle axis order
+        res = self.__resolution
+
+        if self.__srs == &#34;EPSG:4326&#34;:
+            return [-res[1], res[0]]
+
+        return res
+
+    @property
+    def xmin(self) -&gt; number:
+        return self.__spatial_bounds[0]
+
+    @property
+    def ymin(self) -&gt; number:
+        return self.__spatial_bounds[1]
+
+    @property
+    def xmax(self) -&gt; number:
+        return self.__spatial_bounds[2]
+
+    @property
+    def ymax(self) -&gt; number:
+        return self.__spatial_bounds[3]
+
+    @property
+    def time_str(self) -&gt; str:
+        &#39;&#39;&#39;
+        Return the time instance or interval as a string representation
+        &#39;&#39;&#39;
+
+        if self.__time_interval[0] == self.__time_interval[1]:
+            return self.__time_interval[0].isoformat(timespec=&#39;milliseconds&#39;)
+
+        return &#39;/&#39;.join(map(str, self.__time_interval))
+
+    @property
+    def resolution(self) -&gt; Tuple[float, float]:
+        &#39;&#39;&#39;
+        Return the resolution as is
+        &#39;&#39;&#39;
+
+        return self.__resolution
+
+    @property
+    def srs(self) -&gt; str:
+        &#39;&#39;&#39;
+        Return the SRS string
+        &#39;&#39;&#39;
+
+        return self.__srs
+
+    def __dict__(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;
+        Return a dictionary representation of the object
+        &#39;&#39;&#39;
+
+        time_start_unix = int(self.__time_interval[0].timestamp() * 1000)
+        time_end_unix = int(self.__time_interval[1].timestamp() * 1000)
+
+        left_x = min(self.__spatial_bounds[0], self.__spatial_bounds[2])
+        right_x = max(self.__spatial_bounds[0], self.__spatial_bounds[2])
+        lower_y = min(self.__spatial_bounds[1], self.__spatial_bounds[3])
+        upper_y = max(self.__spatial_bounds[1], self.__spatial_bounds[3])
+
+        # TODO: distinguish between raster, vector and plot query rectangle
+
+        return {
+            &#39;spatialBounds&#39;: {
+                &#39;upperLeftCoordinate&#39;: {
+                    &#34;x&#34;: left_x,
+                    &#34;y&#34;: upper_y,
+                },
+                &#39;lowerRightCoordinate&#39;: {
+                    &#34;x&#34;: right_x,
+                    &#34;y&#34;: lower_y,
+                }
+            },
+            &#39;timeInterval&#39;: {
+                &#39;start&#39;: time_start_unix,
+                &#39;end&#39;: time_end_unix,
+            },
+            &#39;spatialResolution&#39;: {
+                &#39;x&#39;: self.__resolution[0],
+                &#39;y&#39;: self.__resolution[1],
+            },
+        }</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="geoengine.types.QueryRectangle.bbox_ogc"><code class="name">var <span class="ident">bbox_ogc</span> : Tuple[float, float, float, float]</code></dt>
+<dd>
+<div class="desc"><p>Return the bbox with OGC axis ordering of the srs</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def bbox_ogc(self) -&gt; Tuple[float, float, float, float]:
+    &#39;&#39;&#39;
+    Return the bbox with OGC axis ordering of the srs
+    &#39;&#39;&#39;
+
+    # TODO: properly handle axis order
+    bbox = self.__spatial_bounds
+
+    if self.__srs == &#34;EPSG:4326&#34;:
+        return (bbox[1], bbox[0], bbox[3], bbox[2])
+
+    return bbox</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.QueryRectangle.bbox_ogc_str"><code class="name">var <span class="ident">bbox_ogc_str</span> : str</code></dt>
+<dd>
+<div class="desc"><p>A comma-separated string representation of the spatial bounds with OGC axis ordering</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def bbox_ogc_str(self) -&gt; str:
+    &#39;&#39;&#39;
+    A comma-separated string representation of the spatial bounds with OGC axis ordering
+    &#39;&#39;&#39;
+
+    return &#39;,&#39;.join(map(str, self.bbox_ogc))</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.QueryRectangle.bbox_str"><code class="name">var <span class="ident">bbox_str</span> : str</code></dt>
+<dd>
+<div class="desc"><p>A comma-separated string representation of the spatial bounds</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def bbox_str(self) -&gt; str:
+    &#39;&#39;&#39;
+    A comma-separated string representation of the spatial bounds
+    &#39;&#39;&#39;
+
+    return &#39;,&#39;.join(map(str, self.__spatial_bounds))</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.QueryRectangle.resolution"><code class="name">var <span class="ident">resolution</span> : Tuple[float, float]</code></dt>
+<dd>
+<div class="desc"><p>Return the resolution as is</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def resolution(self) -&gt; Tuple[float, float]:
+    &#39;&#39;&#39;
+    Return the resolution as is
+    &#39;&#39;&#39;
+
+    return self.__resolution</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.QueryRectangle.resolution_ogc"><code class="name">var <span class="ident">resolution_ogc</span> : Tuple[float, float]</code></dt>
+<dd>
+<div class="desc"><p>Return the resolution in OGC style</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def resolution_ogc(self) -&gt; Tuple[float, float]:
+    &#39;&#39;&#39;
+    Return the resolution in OGC style
+    &#39;&#39;&#39;
+
+    # TODO: properly handle axis order
+    res = self.__resolution
+
+    if self.__srs == &#34;EPSG:4326&#34;:
+        return [-res[1], res[0]]
+
+    return res</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.QueryRectangle.srs"><code class="name">var <span class="ident">srs</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Return the SRS string</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def srs(self) -&gt; str:
+    &#39;&#39;&#39;
+    Return the SRS string
+    &#39;&#39;&#39;
+
+    return self.__srs</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.QueryRectangle.time_str"><code class="name">var <span class="ident">time_str</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Return the time instance or interval as a string representation</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def time_str(self) -&gt; str:
+    &#39;&#39;&#39;
+    Return the time instance or interval as a string representation
+    &#39;&#39;&#39;
+
+    if self.__time_interval[0] == self.__time_interval[1]:
+        return self.__time_interval[0].isoformat(timespec=&#39;milliseconds&#39;)
+
+    return &#39;/&#39;.join(map(str, self.__time_interval))</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.QueryRectangle.xmax"><code class="name">var <span class="ident">xmax</span> : numpy.number</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def xmax(self) -&gt; number:
+    return self.__spatial_bounds[2]</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.QueryRectangle.xmin"><code class="name">var <span class="ident">xmin</span> : numpy.number</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def xmin(self) -&gt; number:
+    return self.__spatial_bounds[0]</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.QueryRectangle.ymax"><code class="name">var <span class="ident">ymax</span> : numpy.number</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def ymax(self) -&gt; number:
+    return self.__spatial_bounds[3]</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.QueryRectangle.ymin"><code class="name">var <span class="ident">ymin</span> : numpy.number</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def ymin(self) -&gt; number:
+    return self.__spatial_bounds[1]</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.RasterResultDescriptor"><code class="flex name class">
+<span>class <span class="ident">RasterResultDescriptor</span></span>
+<span>(</span><span>response: Dict[str, Any])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A raster result descriptor</p>
+<p>Initialize a new <code><a title="geoengine.types.RasterResultDescriptor" href="#geoengine.types.RasterResultDescriptor">RasterResultDescriptor</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterResultDescriptor(ResultDescriptor):
+    &#39;&#39;&#39;
+    A raster result descriptor
+    &#39;&#39;&#39;
+
+    __data_type: str
+    __spatial_reference: str
+    __measurement: str
+    __no_data_value: str
+
+    def __init__(self, response: Dict[str, Any]) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `RasterResultDescriptor`&#39;&#39;&#39;
+        self.__data_type = response[&#39;dataType&#39;]
+        self.__spatial_reference = response[&#39;spatialReference&#39;]
+        self.__measurement = response[&#39;measurement&#39;]
+        self.__no_data_value = response[&#39;noDataValue&#39;]
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of the raster result descriptor&#39;&#39;&#39;
+        r = &#39;&#39;
+        r += f&#39;Data type:         {self.data_type}\n&#39;
+        r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
+        r += f&#39;Measurement:       {self.measurement}\n&#39;
+        r += f&#39;No Data Value:     {self.no_data_value}\n&#39;
+
+        return r
+
+    @classmethod
+    def is_raster_result(cls) -&gt; bool:
+        return True
+
+    @property
+    def data_type(self) -&gt; str:
+        return self.__data_type
+
+    @property
+    def spatial_reference(self) -&gt; str:
+        return self.__spatial_reference
+
+    @property
+    def measurement(self) -&gt; str:
+        return self.__measurement
+
+    @property
+    def no_data_value(self) -&gt; str:
+        return self.__no_data_value</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.ResultDescriptor" href="#geoengine.types.ResultDescriptor">ResultDescriptor</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="geoengine.types.RasterResultDescriptor.data_type"><code class="name">var <span class="ident">data_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def data_type(self) -&gt; str:
+    return self.__data_type</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.RasterResultDescriptor.measurement"><code class="name">var <span class="ident">measurement</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def measurement(self) -&gt; str:
+    return self.__measurement</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.RasterResultDescriptor.no_data_value"><code class="name">var <span class="ident">no_data_value</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def no_data_value(self) -&gt; str:
+    return self.__no_data_value</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.RasterResultDescriptor.spatial_reference"><code class="name">var <span class="ident">spatial_reference</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def spatial_reference(self) -&gt; str:
+    return self.__spatial_reference</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.types.ResultDescriptor" href="#geoengine.types.ResultDescriptor">ResultDescriptor</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.types.ResultDescriptor.from_response" href="#geoengine.types.ResultDescriptor.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_plot_result" href="#geoengine.types.ResultDescriptor.is_plot_result">is_plot_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_raster_result" href="#geoengine.types.ResultDescriptor.is_raster_result">is_raster_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_vector_result" href="#geoengine.types.ResultDescriptor.is_vector_result">is_vector_result</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.types.ResultDescriptor"><code class="flex name class">
+<span>class <span class="ident">ResultDescriptor</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for result descriptors</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ResultDescriptor:  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;
+    Base class for result descriptors
+    &#39;&#39;&#39;
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -&gt; None:
+        &#39;&#39;&#39;
+        Parse a result descriptor from an http response
+        &#39;&#39;&#39;
+
+        if &#39;error&#39; in response:
+            raise GeoEngineException(response)
+
+        result_descriptor_type = response[&#39;type&#39;]
+
+        if result_descriptor_type == &#39;raster&#39;:
+            return RasterResultDescriptor(response)
+        if result_descriptor_type == &#39;vector&#39;:
+            return VectorResultDescriptor(response)
+        if result_descriptor_type == &#39;plot&#39;:
+            return PlotResultDescriptor(response)
+
+        raise TypeException(
+            f&#39;Unknown `ResultDescriptor` type: {result_descriptor_type}&#39;)
+
+    @classmethod
+    def is_raster_result(cls) -&gt; bool:
+        &#39;&#39;&#39;
+        Return true if the result is of type raster
+        &#39;&#39;&#39;
+
+        return False
+
+    @classmethod
+    def is_vector_result(cls) -&gt; bool:
+        &#39;&#39;&#39;
+        Return true if the result is of type vector
+        &#39;&#39;&#39;
+
+        return False
+
+    @classmethod
+    def is_plot_result(cls) -&gt; bool:
+        &#39;&#39;&#39;
+        Return true if the result is of type plot
+        &#39;&#39;&#39;
+
+        return False</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.PlotResultDescriptor" href="#geoengine.types.PlotResultDescriptor">PlotResultDescriptor</a></li>
+<li><a title="geoengine.types.RasterResultDescriptor" href="#geoengine.types.RasterResultDescriptor">RasterResultDescriptor</a></li>
+<li><a title="geoengine.types.VectorResultDescriptor" href="#geoengine.types.VectorResultDescriptor">VectorResultDescriptor</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.ResultDescriptor.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, Any]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a result descriptor from an http response</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_response(response: Dict[str, Any]) -&gt; None:
+    &#39;&#39;&#39;
+    Parse a result descriptor from an http response
+    &#39;&#39;&#39;
+
+    if &#39;error&#39; in response:
+        raise GeoEngineException(response)
+
+    result_descriptor_type = response[&#39;type&#39;]
+
+    if result_descriptor_type == &#39;raster&#39;:
+        return RasterResultDescriptor(response)
+    if result_descriptor_type == &#39;vector&#39;:
+        return VectorResultDescriptor(response)
+    if result_descriptor_type == &#39;plot&#39;:
+        return PlotResultDescriptor(response)
+
+    raise TypeException(
+        f&#39;Unknown `ResultDescriptor` type: {result_descriptor_type}&#39;)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.ResultDescriptor.is_plot_result"><code class="name flex">
+<span>def <span class="ident">is_plot_result</span></span>(<span>) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return true if the result is of type plot</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def is_plot_result(cls) -&gt; bool:
+    &#39;&#39;&#39;
+    Return true if the result is of type plot
+    &#39;&#39;&#39;
+
+    return False</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.ResultDescriptor.is_raster_result"><code class="name flex">
+<span>def <span class="ident">is_raster_result</span></span>(<span>) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return true if the result is of type raster</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def is_raster_result(cls) -&gt; bool:
+    &#39;&#39;&#39;
+    Return true if the result is of type raster
+    &#39;&#39;&#39;
+
+    return False</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.ResultDescriptor.is_vector_result"><code class="name flex">
+<span>def <span class="ident">is_vector_result</span></span>(<span>) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return true if the result is of type vector</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def is_vector_result(cls) -&gt; bool:
+    &#39;&#39;&#39;
+    Return true if the result is of type vector
+    &#39;&#39;&#39;
+
+    return False</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.TimeStep"><code class="flex name class">
+<span>class <span class="ident">TimeStep</span></span>
+<span>(</span><span>step: int, granularity: <a title="geoengine.types.TimeStepGranularity" href="#geoengine.types.TimeStepGranularity">TimeStepGranularity</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A time step that consists of a granularity and a step size</p>
+<p>Method generated by attrs for class TimeStep.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class TimeStep:
+    &#39;&#39;&#39;A time step that consists of a granularity and a step size&#39;&#39;&#39;
+    step: int
+    granularity: TimeStepGranularity</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.TimeStep.granularity"><code class="name">var <span class="ident">granularity</span> : <a title="geoengine.types.TimeStepGranularity" href="#geoengine.types.TimeStepGranularity">TimeStepGranularity</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.TimeStep.step"><code class="name">var <span class="ident">step</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.TimeStepGranularity"><code class="flex name class">
+<span>class <span class="ident">TimeStepGranularity</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enum of time step granularities</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TimeStepGranularity(Enum):
+    &#39;&#39;&#39;An enum of time step granularities&#39;&#39;&#39;
+    MILLIS = &#39;Millis&#39;
+    SECONDS = &#39;Seconds&#39;
+    MINUTES = &#39;Minutes&#39;
+    HOURS = &#39;Hours&#39;
+    DAYS = &#39;Days&#39;
+    MONTHS = &#39;Months&#39;
+    YEARS = &#39;Years&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.TimeStepGranularity.DAYS"><code class="name">var <span class="ident">DAYS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.TimeStepGranularity.HOURS"><code class="name">var <span class="ident">HOURS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.TimeStepGranularity.MILLIS"><code class="name">var <span class="ident">MILLIS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.TimeStepGranularity.MINUTES"><code class="name">var <span class="ident">MINUTES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.TimeStepGranularity.MONTHS"><code class="name">var <span class="ident">MONTHS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.TimeStepGranularity.SECONDS"><code class="name">var <span class="ident">SECONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.TimeStepGranularity.YEARS"><code class="name">var <span class="ident">YEARS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.VectorDataType"><code class="flex name class">
+<span>class <span class="ident">VectorDataType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enum of vector data types</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VectorDataType(Enum):
+    &#39;&#39;&#39;An enum of vector data types&#39;&#39;&#39;
+
+    DATA = &#39;Data&#39;
+    MULTI_POINT = &#39;MultiPoint&#39;
+    MULTI_LINE_STRING = &#39;MultiLineString&#39;
+    MULTI_POLYGON = &#39;MultiPolygon&#39;
+
+    @classmethod
+    def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
+        &#39;&#39;&#39;Resolve vector data type from geopandas geometry type&#39;&#39;&#39;
+
+        name_map = {
+            &#34;Point&#34;: VectorDataType.MULTI_POINT,
+            &#34;MultiPoint&#34;: VectorDataType.MULTI_POINT,
+            &#34;Line&#34;: VectorDataType.MULTI_LINE_STRING,
+            &#34;MultiLine&#34;: VectorDataType.MULTI_LINE_STRING,
+            &#34;Polygon&#34;: VectorDataType.MULTI_POLYGON,
+            &#34;MultiPolygon&#34;: VectorDataType.MULTI_POLYGON,
+        }
+
+        if name in name_map:
+            return name_map[name]
+
+        raise InputException(&#34;Invalid vector data type&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.VectorDataType.DATA"><code class="name">var <span class="ident">DATA</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.VectorDataType.MULTI_LINE_STRING"><code class="name">var <span class="ident">MULTI_LINE_STRING</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.VectorDataType.MULTI_POINT"><code class="name">var <span class="ident">MULTI_POINT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.VectorDataType.MULTI_POLYGON"><code class="name">var <span class="ident">MULTI_POLYGON</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.VectorDataType.from_geopandas_type_name"><code class="name flex">
+<span>def <span class="ident">from_geopandas_type_name</span></span>(<span>name: str) ‑> <a title="geoengine.types.VectorDataType" href="#geoengine.types.VectorDataType">VectorDataType</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Resolve vector data type from geopandas geometry type</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
+    &#39;&#39;&#39;Resolve vector data type from geopandas geometry type&#39;&#39;&#39;
+
+    name_map = {
+        &#34;Point&#34;: VectorDataType.MULTI_POINT,
+        &#34;MultiPoint&#34;: VectorDataType.MULTI_POINT,
+        &#34;Line&#34;: VectorDataType.MULTI_LINE_STRING,
+        &#34;MultiLine&#34;: VectorDataType.MULTI_LINE_STRING,
+        &#34;Polygon&#34;: VectorDataType.MULTI_POLYGON,
+        &#34;MultiPolygon&#34;: VectorDataType.MULTI_POLYGON,
+    }
+
+    if name in name_map:
+        return name_map[name]
+
+    raise InputException(&#34;Invalid vector data type&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.VectorResultDescriptor"><code class="flex name class">
+<span>class <span class="ident">VectorResultDescriptor</span></span>
+<span>(</span><span>response: Dict[str, Any])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A vector result descriptor</p>
+<p>Initialize a new <code><a title="geoengine.types.VectorResultDescriptor" href="#geoengine.types.VectorResultDescriptor">VectorResultDescriptor</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VectorResultDescriptor(ResultDescriptor):
+    &#39;&#39;&#39;
+    A vector result descriptor
+    &#39;&#39;&#39;
+
+    __data_type: str
+    __spatial_reference: str
+    __columns: Dict[str, str]
+
+    def __init__(self, response: Dict[str, Any]) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `VectorResultDescriptor`&#39;&#39;&#39;
+        self.__data_type = response[&#39;dataType&#39;]
+        self.__spatial_reference = response[&#39;spatialReference&#39;]
+        self.__columns = response[&#39;columns&#39;]
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of the vector result descriptor&#39;&#39;&#39;
+        r = &#39;&#39;
+        r += f&#39;Data type:         {self.data_type}\n&#39;
+        r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
+
+        for i, key in enumerate(self.columns):
+            r += &#39;Columns:&#39; if i == 0 else &#39;        &#39;
+            r += &#39;           &#39;
+            r += f&#39;{key}: {self.columns[key]}\n&#39;
+
+        return r
+
+    @classmethod
+    def is_vector_result(cls) -&gt; bool:
+        return True
+
+    @property
+    def data_type(self) -&gt; str:
+        &#39;&#39;&#39;Return the data type&#39;&#39;&#39;
+
+        return self.__data_type
+
+    @property
+    def spatial_reference(self) -&gt; str:
+        &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
+
+        return self.__spatial_reference
+
+    @property
+    def columns(self) -&gt; Dict[str, str]:
+        &#39;&#39;&#39;Return the columns&#39;&#39;&#39;
+
+        return self.__columns</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.ResultDescriptor" href="#geoengine.types.ResultDescriptor">ResultDescriptor</a></li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="geoengine.types.VectorResultDescriptor.columns"><code class="name">var <span class="ident">columns</span> : Dict[str, str]</code></dt>
+<dd>
+<div class="desc"><p>Return the columns</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def columns(self) -&gt; Dict[str, str]:
+    &#39;&#39;&#39;Return the columns&#39;&#39;&#39;
+
+    return self.__columns</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.VectorResultDescriptor.data_type"><code class="name">var <span class="ident">data_type</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Return the data type</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def data_type(self) -&gt; str:
+    &#39;&#39;&#39;Return the data type&#39;&#39;&#39;
+
+    return self.__data_type</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.VectorResultDescriptor.spatial_reference"><code class="name">var <span class="ident">spatial_reference</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Return the spatial reference</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def spatial_reference(self) -&gt; str:
+    &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
+
+    return self.__spatial_reference</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.types.ResultDescriptor" href="#geoengine.types.ResultDescriptor">ResultDescriptor</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.types.ResultDescriptor.from_response" href="#geoengine.types.ResultDescriptor.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_plot_result" href="#geoengine.types.ResultDescriptor.is_plot_result">is_plot_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_raster_result" href="#geoengine.types.ResultDescriptor.is_raster_result">is_raster_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_vector_result" href="#geoengine.types.ResultDescriptor.is_vector_result">is_vector_result</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="geoengine" href="index.html">geoengine</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.DatasetId.from_response" href="#geoengine.types.DatasetId.from_response">from_response</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.ExternalDatasetId" href="#geoengine.types.ExternalDatasetId">ExternalDatasetId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.ExternalDatasetId.from_response" href="#geoengine.types.ExternalDatasetId.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.ExternalDatasetId.to_dict" href="#geoengine.types.ExternalDatasetId.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.InternalDatasetId" href="#geoengine.types.InternalDatasetId">InternalDatasetId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.InternalDatasetId.from_response" href="#geoengine.types.InternalDatasetId.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.InternalDatasetId.to_dict" href="#geoengine.types.InternalDatasetId.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.PlotResultDescriptor" href="#geoengine.types.PlotResultDescriptor">PlotResultDescriptor</a></code></h4>
+</li>
+<li>
+<h4><code><a title="geoengine.types.Provenance" href="#geoengine.types.Provenance">Provenance</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.Provenance.citation" href="#geoengine.types.Provenance.citation">citation</a></code></li>
+<li><code><a title="geoengine.types.Provenance.from_response" href="#geoengine.types.Provenance.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.Provenance.license" href="#geoengine.types.Provenance.license">license</a></code></li>
+<li><code><a title="geoengine.types.Provenance.uri" href="#geoengine.types.Provenance.uri">uri</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.ProvenanceOutput" href="#geoengine.types.ProvenanceOutput">ProvenanceOutput</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.ProvenanceOutput.dataset" href="#geoengine.types.ProvenanceOutput.dataset">dataset</a></code></li>
+<li><code><a title="geoengine.types.ProvenanceOutput.from_response" href="#geoengine.types.ProvenanceOutput.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.ProvenanceOutput.provenance" href="#geoengine.types.ProvenanceOutput.provenance">provenance</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.QueryRectangle" href="#geoengine.types.QueryRectangle">QueryRectangle</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.types.QueryRectangle.bbox_ogc" href="#geoengine.types.QueryRectangle.bbox_ogc">bbox_ogc</a></code></li>
+<li><code><a title="geoengine.types.QueryRectangle.bbox_ogc_str" href="#geoengine.types.QueryRectangle.bbox_ogc_str">bbox_ogc_str</a></code></li>
+<li><code><a title="geoengine.types.QueryRectangle.bbox_str" href="#geoengine.types.QueryRectangle.bbox_str">bbox_str</a></code></li>
+<li><code><a title="geoengine.types.QueryRectangle.resolution" href="#geoengine.types.QueryRectangle.resolution">resolution</a></code></li>
+<li><code><a title="geoengine.types.QueryRectangle.resolution_ogc" href="#geoengine.types.QueryRectangle.resolution_ogc">resolution_ogc</a></code></li>
+<li><code><a title="geoengine.types.QueryRectangle.srs" href="#geoengine.types.QueryRectangle.srs">srs</a></code></li>
+<li><code><a title="geoengine.types.QueryRectangle.time_str" href="#geoengine.types.QueryRectangle.time_str">time_str</a></code></li>
+<li><code><a title="geoengine.types.QueryRectangle.xmax" href="#geoengine.types.QueryRectangle.xmax">xmax</a></code></li>
+<li><code><a title="geoengine.types.QueryRectangle.xmin" href="#geoengine.types.QueryRectangle.xmin">xmin</a></code></li>
+<li><code><a title="geoengine.types.QueryRectangle.ymax" href="#geoengine.types.QueryRectangle.ymax">ymax</a></code></li>
+<li><code><a title="geoengine.types.QueryRectangle.ymin" href="#geoengine.types.QueryRectangle.ymin">ymin</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.RasterResultDescriptor" href="#geoengine.types.RasterResultDescriptor">RasterResultDescriptor</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.RasterResultDescriptor.data_type" href="#geoengine.types.RasterResultDescriptor.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.types.RasterResultDescriptor.measurement" href="#geoengine.types.RasterResultDescriptor.measurement">measurement</a></code></li>
+<li><code><a title="geoengine.types.RasterResultDescriptor.no_data_value" href="#geoengine.types.RasterResultDescriptor.no_data_value">no_data_value</a></code></li>
+<li><code><a title="geoengine.types.RasterResultDescriptor.spatial_reference" href="#geoengine.types.RasterResultDescriptor.spatial_reference">spatial_reference</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.ResultDescriptor" href="#geoengine.types.ResultDescriptor">ResultDescriptor</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.ResultDescriptor.from_response" href="#geoengine.types.ResultDescriptor.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_plot_result" href="#geoengine.types.ResultDescriptor.is_plot_result">is_plot_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_raster_result" href="#geoengine.types.ResultDescriptor.is_raster_result">is_raster_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.is_vector_result" href="#geoengine.types.ResultDescriptor.is_vector_result">is_vector_result</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.TimeStep" href="#geoengine.types.TimeStep">TimeStep</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.TimeStep.granularity" href="#geoengine.types.TimeStep.granularity">granularity</a></code></li>
+<li><code><a title="geoengine.types.TimeStep.step" href="#geoengine.types.TimeStep.step">step</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.TimeStepGranularity" href="#geoengine.types.TimeStepGranularity">TimeStepGranularity</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.types.TimeStepGranularity.DAYS" href="#geoengine.types.TimeStepGranularity.DAYS">DAYS</a></code></li>
+<li><code><a title="geoengine.types.TimeStepGranularity.HOURS" href="#geoengine.types.TimeStepGranularity.HOURS">HOURS</a></code></li>
+<li><code><a title="geoengine.types.TimeStepGranularity.MILLIS" href="#geoengine.types.TimeStepGranularity.MILLIS">MILLIS</a></code></li>
+<li><code><a title="geoengine.types.TimeStepGranularity.MINUTES" href="#geoengine.types.TimeStepGranularity.MINUTES">MINUTES</a></code></li>
+<li><code><a title="geoengine.types.TimeStepGranularity.MONTHS" href="#geoengine.types.TimeStepGranularity.MONTHS">MONTHS</a></code></li>
+<li><code><a title="geoengine.types.TimeStepGranularity.SECONDS" href="#geoengine.types.TimeStepGranularity.SECONDS">SECONDS</a></code></li>
+<li><code><a title="geoengine.types.TimeStepGranularity.YEARS" href="#geoengine.types.TimeStepGranularity.YEARS">YEARS</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.VectorDataType" href="#geoengine.types.VectorDataType">VectorDataType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.VectorDataType.DATA" href="#geoengine.types.VectorDataType.DATA">DATA</a></code></li>
+<li><code><a title="geoengine.types.VectorDataType.MULTI_LINE_STRING" href="#geoengine.types.VectorDataType.MULTI_LINE_STRING">MULTI_LINE_STRING</a></code></li>
+<li><code><a title="geoengine.types.VectorDataType.MULTI_POINT" href="#geoengine.types.VectorDataType.MULTI_POINT">MULTI_POINT</a></code></li>
+<li><code><a title="geoengine.types.VectorDataType.MULTI_POLYGON" href="#geoengine.types.VectorDataType.MULTI_POLYGON">MULTI_POLYGON</a></code></li>
+<li><code><a title="geoengine.types.VectorDataType.from_geopandas_type_name" href="#geoengine.types.VectorDataType.from_geopandas_type_name">from_geopandas_type_name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.VectorResultDescriptor" href="#geoengine.types.VectorResultDescriptor">VectorResultDescriptor</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.VectorResultDescriptor.columns" href="#geoengine.types.VectorResultDescriptor.columns">columns</a></code></li>
+<li><code><a title="geoengine.types.VectorResultDescriptor.data_type" href="#geoengine.types.VectorResultDescriptor.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.types.VectorResultDescriptor.spatial_reference" href="#geoengine.types.VectorResultDescriptor.spatial_reference">spatial_reference</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

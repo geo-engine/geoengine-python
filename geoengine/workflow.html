@@ -1,0 +1,1344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>geoengine.workflow API documentation</title>
+<meta name="description" content="A workflow representation and methods on workflows" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>geoengine.workflow</code></h1>
+</header>
+<section id="section-intro">
+<p>A workflow representation and methods on workflows</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;
+A workflow representation and methods on workflows
+&#39;&#39;&#39;
+
+from __future__ import annotations
+from typing import Any, Dict, List, Tuple
+
+from uuid import UUID
+from logging import debug
+from io import BytesIO
+import urllib.parse
+import json
+
+import requests as req
+import geopandas as gpd
+from owslib.util import Authentication
+from owslib.wcs import WebCoverageService
+import rasterio.io
+from vega import VegaLite
+import numpy as np
+from PIL import Image
+import xarray as xr
+
+from geoengine.types import InternalDatasetId, ProvenanceOutput, QueryRectangle, ResultDescriptor
+from geoengine.auth import get_session
+from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
+    MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
+from geoengine.datasets import StoredDataset, UploadId
+
+
+class WorkflowId:
+    &#39;&#39;&#39;
+    A wrapper around a workflow UUID
+    &#39;&#39;&#39;
+
+    __workflow_id: UUID
+
+    def __init__(self, workflow_id: UUID) -&gt; None:
+        self.__workflow_id = workflow_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; WorkflowId:
+        &#39;&#39;&#39;
+        Create a `WorkflowId` from an http response
+        &#39;&#39;&#39;
+        if &#39;id&#39; not in response:
+            raise GeoEngineException(response)
+
+        return WorkflowId(response[&#39;id&#39;])
+
+    def __str__(self) -&gt; str:
+        return self.__workflow_id
+
+    def __repr__(self) -&gt; str:
+        return str(self)
+
+
+class Workflow:
+    &#39;&#39;&#39;
+    Holds a workflow id and allows querying data
+    &#39;&#39;&#39;
+
+    __workflow_id: WorkflowId
+    __result_descriptor: ResultDescriptor
+
+    def __init__(self, workflow_id: WorkflowId) -&gt; None:
+        self.__workflow_id = workflow_id
+        self.__result_descriptor = self.__query_result_descriptor()
+
+    def __str__(self) -&gt; str:
+        return str(self.__workflow_id)
+
+    def __repr__(self) -&gt; str:
+        return repr(self.__workflow_id)
+
+    def __query_result_descriptor(self) -&gt; ResultDescriptor:
+        &#39;&#39;&#39;
+        Query the metadata of the workflow result
+        &#39;&#39;&#39;
+
+        session = get_session()
+
+        response = req.get(
+            f&#39;{session.server_url}/workflow/{self.__workflow_id}/metadata&#39;,
+            headers=session.auth_header
+        ).json()
+
+        debug(response)
+
+        return ResultDescriptor.from_response(response)
+
+    def get_result_descriptor(self) -&gt; ResultDescriptor:
+        &#39;&#39;&#39;
+        Return the metadata of the workflow result
+        &#39;&#39;&#39;
+
+        return self.__result_descriptor
+
+    def workflow_definition(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Return the workflow definition for this workflow&#39;&#39;&#39;
+
+        session = get_session()
+
+        response = req.get(
+            f&#39;{session.server_url}/workflow/{self.__workflow_id}&#39;,
+            headers=session.auth_header
+        ).json()
+
+        return response
+
+    def __get_wfs_url(self, bbox: QueryRectangle) -&gt; str:
+        &#39;&#39;&#39;Build a WFS url from a workflow and a `QueryRectangle`&#39;&#39;&#39;
+
+        session = get_session()
+
+        params = dict(
+            service=&#39;WFS&#39;,
+            version=&#34;2.0.0&#34;,
+            request=&#39;GetFeature&#39;,
+            outputFormat=&#39;application/json&#39;,
+            typeNames=f&#39;{self.__workflow_id}&#39;,
+            bbox=bbox.bbox_str,
+            time=bbox.time_str,
+            srsName=bbox.srs,
+            queryResolution=f&#39;{bbox.resolution[0]},{bbox.resolution[1]}&#39;
+        )
+
+        wfs_url = req.Request(
+            &#39;GET&#39;, url=f&#39;{session.server_url}/wfs/{self.__workflow_id}&#39;, params=params).prepare().url
+
+        debug(f&#39;WFS URL:\n{wfs_url}&#39;)
+
+        return wfs_url
+
+    def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -&gt; str:
+        &#39;&#39;&#39;Return the WFS url for a workflow and a `QueryRectangle` as a cURL command&#39;&#39;&#39;
+
+        if not self.__result_descriptor.is_vector_result():
+            raise MethodNotCalledOnVectorException()
+
+        wfs_request = req.Request(
+            &#39;GET&#39;,
+            url=self.__get_wfs_url(bbox),
+            headers=get_session().auth_header
+        ).prepare()
+
+        command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
+        headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wfs_request.headers.items()]
+        headers = &#34; -H &#34;.join(headers)
+        return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
+
+    def get_dataframe(self, bbox: QueryRectangle) -&gt; gpd.GeoDataFrame:
+        &#39;&#39;&#39;
+        Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
+        &#39;&#39;&#39;
+
+        if not self.__result_descriptor.is_vector_result():
+            raise MethodNotCalledOnVectorException()
+
+        session = get_session()
+
+        wfs_url = self.__get_wfs_url(bbox)
+
+        data_response = req.get(wfs_url, headers=session.auth_header)
+
+        check_response_for_error(data_response)
+
+        data = data_response.json()
+
+        def geo_json_with_time_to_geopandas(geo_json):
+            &#39;&#39;&#39;
+            GeoJson has no standard for time, so we parse the when field
+            separately and attach it to the data frame as columns `start`
+            and `end`.
+            &#39;&#39;&#39;
+
+            data = gpd.GeoDataFrame.from_features(geo_json)
+            data = data.set_crs(bbox.srs, allow_override=True)
+
+            start = [f[&#39;when&#39;][&#39;start&#39;] for f in geo_json[&#39;features&#39;]]
+            end = [f[&#39;when&#39;][&#39;end&#39;] for f in geo_json[&#39;features&#39;]]
+
+            # TODO: find a good way to infer BoT/EoT
+
+            data[&#39;start&#39;] = gpd.pd.to_datetime(start, errors=&#39;coerce&#39;)
+            data[&#39;end&#39;] = gpd.pd.to_datetime(end, errors=&#39;coerce&#39;)
+
+            return data
+
+        return geo_json_with_time_to_geopandas(data)
+
+    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -&gt; Image:
+        &#39;&#39;&#39;Return the result of a WMS request as a PIL Image&#39;&#39;&#39;
+
+        wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
+        response = req.Session().send(wms_request)
+
+        check_response_for_error(response)
+
+        return Image.open(BytesIO(response.content))
+
+    def __wms_get_map_request(self,
+                              bbox: QueryRectangle,
+                              colorizer_min_max: Tuple[float, float] = None) -&gt; req.PreparedRequest:
+        &#39;&#39;&#39;Return the WMS url for a workflow and a given `QueryRectangle`&#39;&#39;&#39;
+
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
+        session = get_session()
+
+        width = int((bbox.xmax - bbox.xmin) / bbox.resolution[0])
+        height = int((bbox.ymax - bbox.ymin) / bbox.resolution[1])
+
+        colorizer = &#39;&#39;
+        if colorizer_min_max is not None:
+            colorizer = &#39;custom:&#39; + json.dumps({
+                &#34;type&#34;: &#34;linearGradient&#34;,
+                &#34;breakpoints&#34;: [{
+                    &#34;value&#34;: colorizer_min_max[0],
+                    &#34;color&#34;: [0, 0, 0, 255]
+                }, {
+                    &#34;value&#34;: colorizer_min_max[1],
+                    &#34;color&#34;: [255, 255, 255, 255]
+                }],
+                &#34;noDataColor&#34;: [0, 0, 0, 0],
+                &#34;defaultColor&#34;: [0, 0, 0, 0]
+            })
+
+        params = dict(
+            service=&#39;WMS&#39;,
+            version=&#39;1.3.0&#39;,
+            request=&#34;GetMap&#34;,
+            layers=str(self),
+            time=bbox.time_str,
+            crs=bbox.srs,
+            bbox=bbox.bbox_ogc_str,
+            width=width,
+            height=height,
+            format=&#39;image/png&#39;,
+            styles=colorizer,  # TODO: incorporate styling properly
+        )
+
+        return req.Request(
+            &#39;GET&#39;,
+            url=f&#39;{session.server_url}/wms/{str(self)}&#39;,
+            params=params,
+            headers=session.auth_header
+        ).prepare()
+
+    def wms_get_map_curl(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -&gt; str:
+        &#39;&#39;&#39;Return the WMS curl command for a workflow and a given `QueryRectangle`&#39;&#39;&#39;
+
+        wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
+
+        command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
+        headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wms_request.headers.items()]
+        headers = &#34; -H &#34;.join(headers)
+        return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
+
+    def plot_chart(self, bbox: QueryRectangle) -&gt; VegaLite:
+        &#39;&#39;&#39;
+        Query a workflow and return the plot chart result as a vega plot
+        &#39;&#39;&#39;
+
+        if not self.__result_descriptor.is_plot_result():
+            raise MethodNotCalledOnPlotException()
+
+        session = get_session()
+
+        time = urllib.parse.quote(bbox.time_str)
+        spatial_bounds = urllib.parse.quote(bbox.bbox_str)
+        resolution = str(f&#39;{bbox.resolution[0]},{bbox.resolution[1]}&#39;)
+
+        plot_url = f&#39;{session.server_url}/plot/{self}?bbox={spatial_bounds}&amp;crs={bbox.srs}&amp;time={time}&#39;\
+            f&#39;&amp;spatialResolution={resolution}&#39;
+
+        response = req.get(plot_url, headers=session.auth_header)
+
+        check_response_for_error(response)
+
+        response = response.json()
+
+        vega_spec = json.loads(response[&#39;data&#39;][&#39;vegaString&#39;])
+
+        return VegaLite(vega_spec)
+
+    def __get_wcs_tiff_as_memory_file(self, bbox: QueryRectangle, timeout=3600) -&gt; rasterio.io.MemoryFile:
+        &#39;&#39;&#39;
+        Query a workflow and return the raster result as a memory mapped GeoTiff
+
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
+        &#39;&#39;&#39;
+
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
+        session = get_session()
+
+        # TODO: properly build CRS string for bbox
+        crs = f&#39;urn:ogc:def:crs:{bbox.srs.replace(&#34;:&#34;, &#34;::&#34;)}&#39;
+
+        wcs_url = f&#39;{session.server_url}/wcs/{self.__workflow_id}&#39;
+        wcs = WebCoverageService(
+            wcs_url,
+            version=&#39;1.1.1&#39;,
+            auth=Authentication(auth_delegate=session.requests_bearer_auth()),
+        )
+
+        [resx, resy] = bbox.resolution_ogc
+
+        response = wcs.getCoverage(
+            identifier=f&#39;{self.__workflow_id}&#39;,
+            bbox=bbox.bbox_ogc,
+            time=[urllib.parse.quote_plus(bbox.time_str)],
+            format=&#39;image/tiff&#39;,
+            crs=crs,
+            resx=resx,
+            resy=resy,
+            timeout=timeout,
+        ).read()
+
+        # response is checked via `raise_on_error` in `getCoverage` / `openUrl`
+
+        memory_file = rasterio.io.MemoryFile(response)
+
+        return memory_file
+
+    def get_array(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+        &#39;&#39;&#39;
+        Query a workflow and return the raster result as a numpy array
+
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
+        &#39;&#39;&#39;
+
+        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+            array = dataset.read(1)
+
+            # TODO: map nodata values to NaN?
+
+            return array
+
+    def get_xarray(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+        &#39;&#39;&#39;
+        Query a workflow and return the raster result as a georeferenced xarray
+
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
+        &#39;&#39;&#39;
+
+        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+            data_array = xr.open_rasterio(dataset)
+
+            # TODO: add time information to dataset
+
+            return data_array.load()
+
+    def get_provenance(self) -&gt; List[ProvenanceOutput]:
+        &#39;&#39;&#39;
+        Query the provenance of the workflow
+        &#39;&#39;&#39;
+
+        session = get_session()
+
+        provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/provenance&#39;
+
+        response = req.get(provenance_url, headers=session.auth_header).json()
+
+        return [ProvenanceOutput.from_response(item) for item in response]
+
+    def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = &#39;&#39;) -&gt; StoredDataset:
+        &#39;&#39;&#39;EXPERIMENTAL: Store the workflow result as a layer&#39;&#39;&#39;
+
+        # Currently, it only works for raster results
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
+        # The dataset is created in the spatial reference system of the workflow result
+        if self.get_result_descriptor().spatial_reference != bbox.srs:
+            raise SpatialReferenceMismatchException(
+                self.get_result_descriptor().spatial_reference,
+                bbox.spatial_reference
+            )
+
+        session = get_session()
+
+        request_body = {
+            &#39;name&#39;: name,
+            &#39;description&#39;: description,
+            &#39;query&#39;: bbox.__dict__(),
+        }
+
+        response = req.post(
+            url=f&#39;{session.server_url}/datasetFromWorkflow/{self.__workflow_id}&#39;,
+            json=request_body,
+            headers=session.auth_header,
+        )
+
+        check_response_for_error(response)
+
+        response = response.json()
+
+        return StoredDataset(
+            dataset_id=InternalDatasetId.from_response(response[&#39;dataset&#39;]),
+            upload_id=UploadId(response[&#39;upload&#39;])
+        )
+
+
+def register_workflow(workflow: Dict[str, Any]) -&gt; Workflow:
+    &#39;&#39;&#39;
+    Register a workflow in Geo Engine and receive a `WorkflowId`
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    workflow_response = req.post(
+        f&#39;{session.server_url}/workflow&#39;,
+        json=workflow,
+        headers=session.auth_header
+    ).json()
+
+    return Workflow(WorkflowId.from_response(workflow_response))
+
+
+def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
+    &#39;&#39;&#39;
+    Create a workflow object from a workflow id
+    &#39;&#39;&#39;
+
+    # TODO: check that workflow exists
+
+    return Workflow(WorkflowId(workflow_id))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="geoengine.workflow.register_workflow"><code class="name flex">
+<span>def <span class="ident">register_workflow</span></span>(<span>workflow: Dict[str, Any]) ‑> <a title="geoengine.workflow.Workflow" href="#geoengine.workflow.Workflow">Workflow</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Register a workflow in Geo Engine and receive a <code><a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def register_workflow(workflow: Dict[str, Any]) -&gt; Workflow:
+    &#39;&#39;&#39;
+    Register a workflow in Geo Engine and receive a `WorkflowId`
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    workflow_response = req.post(
+        f&#39;{session.server_url}/workflow&#39;,
+        json=workflow,
+        headers=session.auth_header
+    ).json()
+
+    return Workflow(WorkflowId.from_response(workflow_response))</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.workflow_by_id"><code class="name flex">
+<span>def <span class="ident">workflow_by_id</span></span>(<span>workflow_id: UUID) ‑> <a title="geoengine.workflow.Workflow" href="#geoengine.workflow.Workflow">Workflow</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a workflow object from a workflow id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
+    &#39;&#39;&#39;
+    Create a workflow object from a workflow id
+    &#39;&#39;&#39;
+
+    # TODO: check that workflow exists
+
+    return Workflow(WorkflowId(workflow_id))</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="geoengine.workflow.Workflow"><code class="flex name class">
+<span>class <span class="ident">Workflow</span></span>
+<span>(</span><span>workflow_id: <a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Holds a workflow id and allows querying data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Workflow:
+    &#39;&#39;&#39;
+    Holds a workflow id and allows querying data
+    &#39;&#39;&#39;
+
+    __workflow_id: WorkflowId
+    __result_descriptor: ResultDescriptor
+
+    def __init__(self, workflow_id: WorkflowId) -&gt; None:
+        self.__workflow_id = workflow_id
+        self.__result_descriptor = self.__query_result_descriptor()
+
+    def __str__(self) -&gt; str:
+        return str(self.__workflow_id)
+
+    def __repr__(self) -&gt; str:
+        return repr(self.__workflow_id)
+
+    def __query_result_descriptor(self) -&gt; ResultDescriptor:
+        &#39;&#39;&#39;
+        Query the metadata of the workflow result
+        &#39;&#39;&#39;
+
+        session = get_session()
+
+        response = req.get(
+            f&#39;{session.server_url}/workflow/{self.__workflow_id}/metadata&#39;,
+            headers=session.auth_header
+        ).json()
+
+        debug(response)
+
+        return ResultDescriptor.from_response(response)
+
+    def get_result_descriptor(self) -&gt; ResultDescriptor:
+        &#39;&#39;&#39;
+        Return the metadata of the workflow result
+        &#39;&#39;&#39;
+
+        return self.__result_descriptor
+
+    def workflow_definition(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Return the workflow definition for this workflow&#39;&#39;&#39;
+
+        session = get_session()
+
+        response = req.get(
+            f&#39;{session.server_url}/workflow/{self.__workflow_id}&#39;,
+            headers=session.auth_header
+        ).json()
+
+        return response
+
+    def __get_wfs_url(self, bbox: QueryRectangle) -&gt; str:
+        &#39;&#39;&#39;Build a WFS url from a workflow and a `QueryRectangle`&#39;&#39;&#39;
+
+        session = get_session()
+
+        params = dict(
+            service=&#39;WFS&#39;,
+            version=&#34;2.0.0&#34;,
+            request=&#39;GetFeature&#39;,
+            outputFormat=&#39;application/json&#39;,
+            typeNames=f&#39;{self.__workflow_id}&#39;,
+            bbox=bbox.bbox_str,
+            time=bbox.time_str,
+            srsName=bbox.srs,
+            queryResolution=f&#39;{bbox.resolution[0]},{bbox.resolution[1]}&#39;
+        )
+
+        wfs_url = req.Request(
+            &#39;GET&#39;, url=f&#39;{session.server_url}/wfs/{self.__workflow_id}&#39;, params=params).prepare().url
+
+        debug(f&#39;WFS URL:\n{wfs_url}&#39;)
+
+        return wfs_url
+
+    def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -&gt; str:
+        &#39;&#39;&#39;Return the WFS url for a workflow and a `QueryRectangle` as a cURL command&#39;&#39;&#39;
+
+        if not self.__result_descriptor.is_vector_result():
+            raise MethodNotCalledOnVectorException()
+
+        wfs_request = req.Request(
+            &#39;GET&#39;,
+            url=self.__get_wfs_url(bbox),
+            headers=get_session().auth_header
+        ).prepare()
+
+        command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
+        headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wfs_request.headers.items()]
+        headers = &#34; -H &#34;.join(headers)
+        return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
+
+    def get_dataframe(self, bbox: QueryRectangle) -&gt; gpd.GeoDataFrame:
+        &#39;&#39;&#39;
+        Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
+        &#39;&#39;&#39;
+
+        if not self.__result_descriptor.is_vector_result():
+            raise MethodNotCalledOnVectorException()
+
+        session = get_session()
+
+        wfs_url = self.__get_wfs_url(bbox)
+
+        data_response = req.get(wfs_url, headers=session.auth_header)
+
+        check_response_for_error(data_response)
+
+        data = data_response.json()
+
+        def geo_json_with_time_to_geopandas(geo_json):
+            &#39;&#39;&#39;
+            GeoJson has no standard for time, so we parse the when field
+            separately and attach it to the data frame as columns `start`
+            and `end`.
+            &#39;&#39;&#39;
+
+            data = gpd.GeoDataFrame.from_features(geo_json)
+            data = data.set_crs(bbox.srs, allow_override=True)
+
+            start = [f[&#39;when&#39;][&#39;start&#39;] for f in geo_json[&#39;features&#39;]]
+            end = [f[&#39;when&#39;][&#39;end&#39;] for f in geo_json[&#39;features&#39;]]
+
+            # TODO: find a good way to infer BoT/EoT
+
+            data[&#39;start&#39;] = gpd.pd.to_datetime(start, errors=&#39;coerce&#39;)
+            data[&#39;end&#39;] = gpd.pd.to_datetime(end, errors=&#39;coerce&#39;)
+
+            return data
+
+        return geo_json_with_time_to_geopandas(data)
+
+    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -&gt; Image:
+        &#39;&#39;&#39;Return the result of a WMS request as a PIL Image&#39;&#39;&#39;
+
+        wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
+        response = req.Session().send(wms_request)
+
+        check_response_for_error(response)
+
+        return Image.open(BytesIO(response.content))
+
+    def __wms_get_map_request(self,
+                              bbox: QueryRectangle,
+                              colorizer_min_max: Tuple[float, float] = None) -&gt; req.PreparedRequest:
+        &#39;&#39;&#39;Return the WMS url for a workflow and a given `QueryRectangle`&#39;&#39;&#39;
+
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
+        session = get_session()
+
+        width = int((bbox.xmax - bbox.xmin) / bbox.resolution[0])
+        height = int((bbox.ymax - bbox.ymin) / bbox.resolution[1])
+
+        colorizer = &#39;&#39;
+        if colorizer_min_max is not None:
+            colorizer = &#39;custom:&#39; + json.dumps({
+                &#34;type&#34;: &#34;linearGradient&#34;,
+                &#34;breakpoints&#34;: [{
+                    &#34;value&#34;: colorizer_min_max[0],
+                    &#34;color&#34;: [0, 0, 0, 255]
+                }, {
+                    &#34;value&#34;: colorizer_min_max[1],
+                    &#34;color&#34;: [255, 255, 255, 255]
+                }],
+                &#34;noDataColor&#34;: [0, 0, 0, 0],
+                &#34;defaultColor&#34;: [0, 0, 0, 0]
+            })
+
+        params = dict(
+            service=&#39;WMS&#39;,
+            version=&#39;1.3.0&#39;,
+            request=&#34;GetMap&#34;,
+            layers=str(self),
+            time=bbox.time_str,
+            crs=bbox.srs,
+            bbox=bbox.bbox_ogc_str,
+            width=width,
+            height=height,
+            format=&#39;image/png&#39;,
+            styles=colorizer,  # TODO: incorporate styling properly
+        )
+
+        return req.Request(
+            &#39;GET&#39;,
+            url=f&#39;{session.server_url}/wms/{str(self)}&#39;,
+            params=params,
+            headers=session.auth_header
+        ).prepare()
+
+    def wms_get_map_curl(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -&gt; str:
+        &#39;&#39;&#39;Return the WMS curl command for a workflow and a given `QueryRectangle`&#39;&#39;&#39;
+
+        wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
+
+        command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
+        headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wms_request.headers.items()]
+        headers = &#34; -H &#34;.join(headers)
+        return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
+
+    def plot_chart(self, bbox: QueryRectangle) -&gt; VegaLite:
+        &#39;&#39;&#39;
+        Query a workflow and return the plot chart result as a vega plot
+        &#39;&#39;&#39;
+
+        if not self.__result_descriptor.is_plot_result():
+            raise MethodNotCalledOnPlotException()
+
+        session = get_session()
+
+        time = urllib.parse.quote(bbox.time_str)
+        spatial_bounds = urllib.parse.quote(bbox.bbox_str)
+        resolution = str(f&#39;{bbox.resolution[0]},{bbox.resolution[1]}&#39;)
+
+        plot_url = f&#39;{session.server_url}/plot/{self}?bbox={spatial_bounds}&amp;crs={bbox.srs}&amp;time={time}&#39;\
+            f&#39;&amp;spatialResolution={resolution}&#39;
+
+        response = req.get(plot_url, headers=session.auth_header)
+
+        check_response_for_error(response)
+
+        response = response.json()
+
+        vega_spec = json.loads(response[&#39;data&#39;][&#39;vegaString&#39;])
+
+        return VegaLite(vega_spec)
+
+    def __get_wcs_tiff_as_memory_file(self, bbox: QueryRectangle, timeout=3600) -&gt; rasterio.io.MemoryFile:
+        &#39;&#39;&#39;
+        Query a workflow and return the raster result as a memory mapped GeoTiff
+
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
+        &#39;&#39;&#39;
+
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
+        session = get_session()
+
+        # TODO: properly build CRS string for bbox
+        crs = f&#39;urn:ogc:def:crs:{bbox.srs.replace(&#34;:&#34;, &#34;::&#34;)}&#39;
+
+        wcs_url = f&#39;{session.server_url}/wcs/{self.__workflow_id}&#39;
+        wcs = WebCoverageService(
+            wcs_url,
+            version=&#39;1.1.1&#39;,
+            auth=Authentication(auth_delegate=session.requests_bearer_auth()),
+        )
+
+        [resx, resy] = bbox.resolution_ogc
+
+        response = wcs.getCoverage(
+            identifier=f&#39;{self.__workflow_id}&#39;,
+            bbox=bbox.bbox_ogc,
+            time=[urllib.parse.quote_plus(bbox.time_str)],
+            format=&#39;image/tiff&#39;,
+            crs=crs,
+            resx=resx,
+            resy=resy,
+            timeout=timeout,
+        ).read()
+
+        # response is checked via `raise_on_error` in `getCoverage` / `openUrl`
+
+        memory_file = rasterio.io.MemoryFile(response)
+
+        return memory_file
+
+    def get_array(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+        &#39;&#39;&#39;
+        Query a workflow and return the raster result as a numpy array
+
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
+        &#39;&#39;&#39;
+
+        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+            array = dataset.read(1)
+
+            # TODO: map nodata values to NaN?
+
+            return array
+
+    def get_xarray(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+        &#39;&#39;&#39;
+        Query a workflow and return the raster result as a georeferenced xarray
+
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
+        &#39;&#39;&#39;
+
+        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+            data_array = xr.open_rasterio(dataset)
+
+            # TODO: add time information to dataset
+
+            return data_array.load()
+
+    def get_provenance(self) -&gt; List[ProvenanceOutput]:
+        &#39;&#39;&#39;
+        Query the provenance of the workflow
+        &#39;&#39;&#39;
+
+        session = get_session()
+
+        provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/provenance&#39;
+
+        response = req.get(provenance_url, headers=session.auth_header).json()
+
+        return [ProvenanceOutput.from_response(item) for item in response]
+
+    def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = &#39;&#39;) -&gt; StoredDataset:
+        &#39;&#39;&#39;EXPERIMENTAL: Store the workflow result as a layer&#39;&#39;&#39;
+
+        # Currently, it only works for raster results
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
+        # The dataset is created in the spatial reference system of the workflow result
+        if self.get_result_descriptor().spatial_reference != bbox.srs:
+            raise SpatialReferenceMismatchException(
+                self.get_result_descriptor().spatial_reference,
+                bbox.spatial_reference
+            )
+
+        session = get_session()
+
+        request_body = {
+            &#39;name&#39;: name,
+            &#39;description&#39;: description,
+            &#39;query&#39;: bbox.__dict__(),
+        }
+
+        response = req.post(
+            url=f&#39;{session.server_url}/datasetFromWorkflow/{self.__workflow_id}&#39;,
+            json=request_body,
+            headers=session.auth_header,
+        )
+
+        check_response_for_error(response)
+
+        response = response.json()
+
+        return StoredDataset(
+            dataset_id=InternalDatasetId.from_response(response[&#39;dataset&#39;]),
+            upload_id=UploadId(response[&#39;upload&#39;])
+        )</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow.Workflow.get_array"><code class="name flex">
+<span>def <span class="ident">get_array</span></span>(<span>self, bbox: QueryRectangle, timeout=3600) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Query a workflow and return the raster result as a numpy array</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>bbox</code></strong> :&ensp;<code>A bounding box for the query</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>timeout</code></strong> :&ensp;<code>HTTP request timeout in seconds</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_array(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+    &#39;&#39;&#39;
+    Query a workflow and return the raster result as a numpy array
+
+    Parameters
+    ----------
+    bbox : A bounding box for the query
+    timeout : HTTP request timeout in seconds
+    &#39;&#39;&#39;
+
+    with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+        array = dataset.read(1)
+
+        # TODO: map nodata values to NaN?
+
+        return array</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.Workflow.get_dataframe"><code class="name flex">
+<span>def <span class="ident">get_dataframe</span></span>(<span>self, bbox: QueryRectangle) ‑> geopandas.geodataframe.GeoDataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Query a workflow and return the WFS result as a GeoPandas <code>GeoDataFrame</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_dataframe(self, bbox: QueryRectangle) -&gt; gpd.GeoDataFrame:
+    &#39;&#39;&#39;
+    Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
+    &#39;&#39;&#39;
+
+    if not self.__result_descriptor.is_vector_result():
+        raise MethodNotCalledOnVectorException()
+
+    session = get_session()
+
+    wfs_url = self.__get_wfs_url(bbox)
+
+    data_response = req.get(wfs_url, headers=session.auth_header)
+
+    check_response_for_error(data_response)
+
+    data = data_response.json()
+
+    def geo_json_with_time_to_geopandas(geo_json):
+        &#39;&#39;&#39;
+        GeoJson has no standard for time, so we parse the when field
+        separately and attach it to the data frame as columns `start`
+        and `end`.
+        &#39;&#39;&#39;
+
+        data = gpd.GeoDataFrame.from_features(geo_json)
+        data = data.set_crs(bbox.srs, allow_override=True)
+
+        start = [f[&#39;when&#39;][&#39;start&#39;] for f in geo_json[&#39;features&#39;]]
+        end = [f[&#39;when&#39;][&#39;end&#39;] for f in geo_json[&#39;features&#39;]]
+
+        # TODO: find a good way to infer BoT/EoT
+
+        data[&#39;start&#39;] = gpd.pd.to_datetime(start, errors=&#39;coerce&#39;)
+        data[&#39;end&#39;] = gpd.pd.to_datetime(end, errors=&#39;coerce&#39;)
+
+        return data
+
+    return geo_json_with_time_to_geopandas(data)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.Workflow.get_provenance"><code class="name flex">
+<span>def <span class="ident">get_provenance</span></span>(<span>self) ‑> List[<a title="geoengine.types.ProvenanceOutput" href="types.html#geoengine.types.ProvenanceOutput">ProvenanceOutput</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Query the provenance of the workflow</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_provenance(self) -&gt; List[ProvenanceOutput]:
+    &#39;&#39;&#39;
+    Query the provenance of the workflow
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/provenance&#39;
+
+    response = req.get(provenance_url, headers=session.auth_header).json()
+
+    return [ProvenanceOutput.from_response(item) for item in response]</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.Workflow.get_result_descriptor"><code class="name flex">
+<span>def <span class="ident">get_result_descriptor</span></span>(<span>self) ‑> <a title="geoengine.types.ResultDescriptor" href="types.html#geoengine.types.ResultDescriptor">ResultDescriptor</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the metadata of the workflow result</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_result_descriptor(self) -&gt; ResultDescriptor:
+    &#39;&#39;&#39;
+    Return the metadata of the workflow result
+    &#39;&#39;&#39;
+
+    return self.__result_descriptor</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.Workflow.get_wfs_get_feature_curl"><code class="name flex">
+<span>def <span class="ident">get_wfs_get_feature_curl</span></span>(<span>self, bbox: QueryRectangle) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the WFS url for a workflow and a <code>QueryRectangle</code> as a cURL command</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -&gt; str:
+    &#39;&#39;&#39;Return the WFS url for a workflow and a `QueryRectangle` as a cURL command&#39;&#39;&#39;
+
+    if not self.__result_descriptor.is_vector_result():
+        raise MethodNotCalledOnVectorException()
+
+    wfs_request = req.Request(
+        &#39;GET&#39;,
+        url=self.__get_wfs_url(bbox),
+        headers=get_session().auth_header
+    ).prepare()
+
+    command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
+    headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wfs_request.headers.items()]
+    headers = &#34; -H &#34;.join(headers)
+    return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.Workflow.get_xarray"><code class="name flex">
+<span>def <span class="ident">get_xarray</span></span>(<span>self, bbox: QueryRectangle, timeout=3600) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Query a workflow and return the raster result as a georeferenced xarray</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>bbox</code></strong> :&ensp;<code>A bounding box for the query</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>timeout</code></strong> :&ensp;<code>HTTP request timeout in seconds</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_xarray(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+    &#39;&#39;&#39;
+    Query a workflow and return the raster result as a georeferenced xarray
+
+    Parameters
+    ----------
+    bbox : A bounding box for the query
+    timeout : HTTP request timeout in seconds
+    &#39;&#39;&#39;
+
+    with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+        data_array = xr.open_rasterio(dataset)
+
+        # TODO: add time information to dataset
+
+        return data_array.load()</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.Workflow.plot_chart"><code class="name flex">
+<span>def <span class="ident">plot_chart</span></span>(<span>self, bbox: QueryRectangle) ‑> vega.vegalite.VegaLite</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Query a workflow and return the plot chart result as a vega plot</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_chart(self, bbox: QueryRectangle) -&gt; VegaLite:
+    &#39;&#39;&#39;
+    Query a workflow and return the plot chart result as a vega plot
+    &#39;&#39;&#39;
+
+    if not self.__result_descriptor.is_plot_result():
+        raise MethodNotCalledOnPlotException()
+
+    session = get_session()
+
+    time = urllib.parse.quote(bbox.time_str)
+    spatial_bounds = urllib.parse.quote(bbox.bbox_str)
+    resolution = str(f&#39;{bbox.resolution[0]},{bbox.resolution[1]}&#39;)
+
+    plot_url = f&#39;{session.server_url}/plot/{self}?bbox={spatial_bounds}&amp;crs={bbox.srs}&amp;time={time}&#39;\
+        f&#39;&amp;spatialResolution={resolution}&#39;
+
+    response = req.get(plot_url, headers=session.auth_header)
+
+    check_response_for_error(response)
+
+    response = response.json()
+
+    vega_spec = json.loads(response[&#39;data&#39;][&#39;vegaString&#39;])
+
+    return VegaLite(vega_spec)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.Workflow.save_as_dataset"><code class="name flex">
+<span>def <span class="ident">save_as_dataset</span></span>(<span>self, bbox: QueryRectangle, name: str, description: str = '') ‑> <a title="geoengine.datasets.StoredDataset" href="datasets.html#geoengine.datasets.StoredDataset">StoredDataset</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>EXPERIMENTAL: Store the workflow result as a layer</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = &#39;&#39;) -&gt; StoredDataset:
+    &#39;&#39;&#39;EXPERIMENTAL: Store the workflow result as a layer&#39;&#39;&#39;
+
+    # Currently, it only works for raster results
+    if not self.__result_descriptor.is_raster_result():
+        raise MethodNotCalledOnRasterException()
+
+    # The dataset is created in the spatial reference system of the workflow result
+    if self.get_result_descriptor().spatial_reference != bbox.srs:
+        raise SpatialReferenceMismatchException(
+            self.get_result_descriptor().spatial_reference,
+            bbox.spatial_reference
+        )
+
+    session = get_session()
+
+    request_body = {
+        &#39;name&#39;: name,
+        &#39;description&#39;: description,
+        &#39;query&#39;: bbox.__dict__(),
+    }
+
+    response = req.post(
+        url=f&#39;{session.server_url}/datasetFromWorkflow/{self.__workflow_id}&#39;,
+        json=request_body,
+        headers=session.auth_header,
+    )
+
+    check_response_for_error(response)
+
+    response = response.json()
+
+    return StoredDataset(
+        dataset_id=InternalDatasetId.from_response(response[&#39;dataset&#39;]),
+        upload_id=UploadId(response[&#39;upload&#39;])
+    )</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.Workflow.wms_get_map_as_image"><code class="name flex">
+<span>def <span class="ident">wms_get_map_as_image</span></span>(<span>self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) ‑> Image</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the result of a WMS request as a PIL Image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -&gt; Image:
+    &#39;&#39;&#39;Return the result of a WMS request as a PIL Image&#39;&#39;&#39;
+
+    wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
+    response = req.Session().send(wms_request)
+
+    check_response_for_error(response)
+
+    return Image.open(BytesIO(response.content))</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.Workflow.wms_get_map_curl"><code class="name flex">
+<span>def <span class="ident">wms_get_map_curl</span></span>(<span>self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the WMS curl command for a workflow and a given <code>QueryRectangle</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wms_get_map_curl(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -&gt; str:
+    &#39;&#39;&#39;Return the WMS curl command for a workflow and a given `QueryRectangle`&#39;&#39;&#39;
+
+    wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
+
+    command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
+    headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wms_request.headers.items()]
+    headers = &#34; -H &#34;.join(headers)
+    return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.Workflow.workflow_definition"><code class="name flex">
+<span>def <span class="ident">workflow_definition</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the workflow definition for this workflow</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def workflow_definition(self) -&gt; Dict[str, Any]:
+    &#39;&#39;&#39;Return the workflow definition for this workflow&#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.get(
+        f&#39;{session.server_url}/workflow/{self.__workflow_id}&#39;,
+        headers=session.auth_header
+    ).json()
+
+    return response</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow.WorkflowId"><code class="flex name class">
+<span>class <span class="ident">WorkflowId</span></span>
+<span>(</span><span>workflow_id: UUID)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A wrapper around a workflow UUID</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class WorkflowId:
+    &#39;&#39;&#39;
+    A wrapper around a workflow UUID
+    &#39;&#39;&#39;
+
+    __workflow_id: UUID
+
+    def __init__(self, workflow_id: UUID) -&gt; None:
+        self.__workflow_id = workflow_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; WorkflowId:
+        &#39;&#39;&#39;
+        Create a `WorkflowId` from an http response
+        &#39;&#39;&#39;
+        if &#39;id&#39; not in response:
+            raise GeoEngineException(response)
+
+        return WorkflowId(response[&#39;id&#39;])
+
+    def __str__(self) -&gt; str:
+        return self.__workflow_id
+
+    def __repr__(self) -&gt; str:
+        return str(self)</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.workflow.WorkflowId.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a <code><a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a></code> from an http response</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: Dict[str, str]) -&gt; WorkflowId:
+    &#39;&#39;&#39;
+    Create a `WorkflowId` from an http response
+    &#39;&#39;&#39;
+    if &#39;id&#39; not in response:
+        raise GeoEngineException(response)
+
+    return WorkflowId(response[&#39;id&#39;])</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="geoengine" href="index.html">geoengine</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="geoengine.workflow.register_workflow" href="#geoengine.workflow.register_workflow">register_workflow</a></code></li>
+<li><code><a title="geoengine.workflow.workflow_by_id" href="#geoengine.workflow.workflow_by_id">workflow_by_id</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="geoengine.workflow.Workflow" href="#geoengine.workflow.Workflow">Workflow</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.Workflow.get_array" href="#geoengine.workflow.Workflow.get_array">get_array</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.get_dataframe" href="#geoengine.workflow.Workflow.get_dataframe">get_dataframe</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.get_provenance" href="#geoengine.workflow.Workflow.get_provenance">get_provenance</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.get_result_descriptor" href="#geoengine.workflow.Workflow.get_result_descriptor">get_result_descriptor</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.get_wfs_get_feature_curl" href="#geoengine.workflow.Workflow.get_wfs_get_feature_curl">get_wfs_get_feature_curl</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.get_xarray" href="#geoengine.workflow.Workflow.get_xarray">get_xarray</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.plot_chart" href="#geoengine.workflow.Workflow.plot_chart">plot_chart</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.save_as_dataset" href="#geoengine.workflow.Workflow.save_as_dataset">save_as_dataset</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.wms_get_map_as_image" href="#geoengine.workflow.Workflow.wms_get_map_as_image">wms_get_map_as_image</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.wms_get_map_curl" href="#geoengine.workflow.Workflow.wms_get_map_curl">wms_get_map_curl</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.workflow_definition" href="#geoengine.workflow.Workflow.workflow_definition">workflow_definition</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.WorkflowId.from_response" href="#geoengine.workflow.WorkflowId.from_response">from_response</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
