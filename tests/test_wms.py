@@ -173,7 +173,7 @@ class WmsTests(unittest.TestCase):
                     [time, time],
                     resolution=(1.8, 1.8)
                 ),
-                colorizer_min_max=(0, 255)
+                ge.workflow.Colorizer((0, 254))
             )
 
             self.assertEqual(img, Image.open("tests/responses/wms-ndvi.png"))
@@ -246,7 +246,7 @@ class WmsTests(unittest.TestCase):
                         [time, time],
                         resolution=(1.8, 1.8)
                     ),
-                    colorizer_min_max=(0, 255)
+                    ge.workflow.Colorizer((0, 254))
                 )
 
             self.assertEqual(str(ctx.exception),
