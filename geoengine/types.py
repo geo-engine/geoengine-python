@@ -181,6 +181,11 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
     Base class for result descriptors
     '''
 
+    __spatial_reference: str
+
+    def __init__(self, spatial_reference: str) -> None:
+        self.__spatial_reference = spatial_reference
+
     @staticmethod
     def from_response(response: Dict[str, Any]) -> None:
         '''
@@ -226,6 +231,12 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
 
         return False
 
+    @property
+    def spatial_reference(self) -> str:
+        '''Return the spatial reference'''
+
+        return self.__spatial_reference
+
 
 class VectorResultDescriptor(ResultDescriptor):
     '''
@@ -233,13 +244,12 @@ class VectorResultDescriptor(ResultDescriptor):
     '''
 
     __data_type: str
-    __spatial_reference: str
     __columns: Dict[str, str]
 
     def __init__(self, response: Dict[str, Any]) -> None:
         '''Initialize a new `VectorResultDescriptor`'''
+        super().__init__(response['spatialReference'])
         self.__data_type = response['dataType']
-        self.__spatial_reference = response['spatialReference']
         self.__columns = response['columns']
 
     def __repr__(self) -> str:
@@ -269,7 +279,7 @@ class VectorResultDescriptor(ResultDescriptor):
     def spatial_reference(self) -> str:
         '''Return the spatial reference'''
 
-        return self.__spatial_reference
+        return super().spatial_reference
 
     @property
     def columns(self) -> Dict[str, str]:
@@ -284,14 +294,13 @@ class RasterResultDescriptor(ResultDescriptor):
     '''
 
     __data_type: str
-    __spatial_reference: str
     __measurement: str
     __no_data_value: str
 
     def __init__(self, response: Dict[str, Any]) -> None:
         '''Initialize a new `RasterResultDescriptor`'''
+        super().__init__(response['spatialReference'])
         self.__data_type = response['dataType']
-        self.__spatial_reference = response['spatialReference']
         self.__measurement = response['measurement']
         self.__no_data_value = response['noDataValue']
 
@@ -314,10 +323,6 @@ class RasterResultDescriptor(ResultDescriptor):
         return self.__data_type
 
     @property
-    def spatial_reference(self) -> str:
-        return self.__spatial_reference
-
-    @property
     def measurement(self) -> str:
         return self.__measurement
 
@@ -325,14 +330,22 @@ class RasterResultDescriptor(ResultDescriptor):
     def no_data_value(self) -> str:
         return self.__no_data_value
 
+    @property
+    def spatial_reference(self) -> str:
+        '''Return the spatial reference'''
+
+        return super().spatial_reference
+
 
 class PlotResultDescriptor(ResultDescriptor):
     '''
     A plot result descriptor
     '''
 
-    def __init__(self, _response: Dict[str, Any]) -> None:
+    def __init__(self, response: Dict[str, Any]) -> None:
         '''Initialize a new `PlotResultDescriptor`'''
+
+        super().__init__(response['spatialReference'])
 
     def __repr__(self) -> str:
         '''Display representation of the plot result descriptor'''
@@ -343,6 +356,12 @@ class PlotResultDescriptor(ResultDescriptor):
     @classmethod
     def is_plot_result(cls) -> bool:
         return True
+
+    @property
+    def spatial_reference(self) -> str:
+        '''Return the spatial reference'''
+
+        return super().spatial_reference
 
 
 class VectorDataType(Enum):
