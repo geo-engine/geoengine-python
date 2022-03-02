@@ -416,7 +416,7 @@ class Workflow:
         if self.get_result_descriptor().spatial_reference != bbox.srs:
             raise SpatialReferenceMismatchException(
                 self.get_result_descriptor().spatial_reference,
-                bbox.spatial_reference
+                bbox.srs
             )
 
         session = get_session()
@@ -867,7 +867,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
         if self.get_result_descriptor().spatial_reference != bbox.srs:
             raise SpatialReferenceMismatchException(
                 self.get_result_descriptor().spatial_reference,
-                bbox.spatial_reference
+                bbox.srs
             )
 
         session = get_session()
@@ -1137,7 +1137,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
     if self.get_result_descriptor().spatial_reference != bbox.srs:
         raise SpatialReferenceMismatchException(
             self.get_result_descriptor().spatial_reference,
-            bbox.spatial_reference
+            bbox.srs
         )
 
     session = get_session()

@@ -210,6 +210,11 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
     Base class for result descriptors
     &#39;&#39;&#39;
 
+    __spatial_reference: str
+
+    def __init__(self, spatial_reference: str) -&gt; None:
+        self.__spatial_reference = spatial_reference
+
     @staticmethod
     def from_response(response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;
@@ -255,6 +260,12 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
 
         return False
 
+    @property
+    def spatial_reference(self) -&gt; str:
+        &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
+
+        return self.__spatial_reference
+
 
 class VectorResultDescriptor(ResultDescriptor):
     &#39;&#39;&#39;
@@ -262,13 +273,12 @@ class VectorResultDescriptor(ResultDescriptor):
     &#39;&#39;&#39;
 
     __data_type: str
-    __spatial_reference: str
     __columns: Dict[str, str]
 
     def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `VectorResultDescriptor`&#39;&#39;&#39;
+        super().__init__(response[&#39;spatialReference&#39;])
         self.__data_type = response[&#39;dataType&#39;]
-        self.__spatial_reference = response[&#39;spatialReference&#39;]
         self.__columns = response[&#39;columns&#39;]
 
     def __repr__(self) -&gt; str:
@@ -298,7 +308,7 @@ class VectorResultDescriptor(ResultDescriptor):
     def spatial_reference(self) -&gt; str:
         &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
 
-        return self.__spatial_reference
+        return super().spatial_reference
 
     @property
     def columns(self) -&gt; Dict[str, str]:
@@ -313,14 +323,13 @@ class RasterResultDescriptor(ResultDescriptor):
     &#39;&#39;&#39;
 
     __data_type: str
-    __spatial_reference: str
     __measurement: str
     __no_data_value: str
 
     def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterResultDescriptor`&#39;&#39;&#39;
+        super().__init__(response[&#39;spatialReference&#39;])
         self.__data_type = response[&#39;dataType&#39;]
-        self.__spatial_reference = response[&#39;spatialReference&#39;]
         self.__measurement = response[&#39;measurement&#39;]
         self.__no_data_value = response[&#39;noDataValue&#39;]
 
@@ -343,10 +352,6 @@ class RasterResultDescriptor(ResultDescriptor):
         return self.__data_type
 
     @property
-    def spatial_reference(self) -&gt; str:
-        return self.__spatial_reference
-
-    @property
     def measurement(self) -&gt; str:
         return self.__measurement
 
@@ -354,14 +359,22 @@ class RasterResultDescriptor(ResultDescriptor):
     def no_data_value(self) -&gt; str:
         return self.__no_data_value
 
+    @property
+    def spatial_reference(self) -&gt; str:
+        &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
+
+        return super().spatial_reference
+
 
 class PlotResultDescriptor(ResultDescriptor):
     &#39;&#39;&#39;
     A plot result descriptor
     &#39;&#39;&#39;
 
-    def __init__(self, _response: Dict[str, Any]) -&gt; None:
+    def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `PlotResultDescriptor`&#39;&#39;&#39;
+
+        super().__init__(response[&#39;spatialReference&#39;])
 
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of the plot result descriptor&#39;&#39;&#39;
@@ -372,6 +385,12 @@ class PlotResultDescriptor(ResultDescriptor):
     @classmethod
     def is_plot_result(cls) -&gt; bool:
         return True
+
+    @property
+    def spatial_reference(self) -&gt; str:
+        &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
+
+        return super().spatial_reference
 
 
 class VectorDataType(Enum):
@@ -778,7 +797,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; InternalDatasetId:
 </dd>
 <dt id="geoengine.types.PlotResultDescriptor"><code class="flex name class">
 <span>class <span class="ident">PlotResultDescriptor</span></span>
-<span>(</span><span>_response: Dict[str, Any])</span>
+<span>(</span><span>response: Dict[str, Any])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A plot result descriptor</p>
@@ -792,8 +811,10 @@ def from_response(cls, response: Dict[str, str]) -&gt; InternalDatasetId:
     A plot result descriptor
     &#39;&#39;&#39;
 
-    def __init__(self, _response: Dict[str, Any]) -&gt; None:
+    def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `PlotResultDescriptor`&#39;&#39;&#39;
+
+        super().__init__(response[&#39;spatialReference&#39;])
 
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of the plot result descriptor&#39;&#39;&#39;
@@ -803,7 +824,13 @@ def from_response(cls, response: Dict[str, str]) -&gt; InternalDatasetId:
 
     @classmethod
     def is_plot_result(cls) -&gt; bool:
-        return True</code></pre>
+        return True
+
+    @property
+    def spatial_reference(self) -&gt; str:
+        &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
+
+        return super().spatial_reference</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -817,6 +844,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; InternalDatasetId:
 <li><code><a title="geoengine.types.ResultDescriptor.is_plot_result" href="#geoengine.types.ResultDescriptor.is_plot_result">is_plot_result</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.is_raster_result" href="#geoengine.types.ResultDescriptor.is_raster_result">is_raster_result</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.is_vector_result" href="#geoengine.types.ResultDescriptor.is_vector_result">is_vector_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.spatial_reference" href="#geoengine.types.ResultDescriptor.spatial_reference">spatial_reference</a></code></li>
 </ul>
 </li>
 </ul>
@@ -1308,14 +1336,13 @@ def ymin(self) -&gt; number:
     &#39;&#39;&#39;
 
     __data_type: str
-    __spatial_reference: str
     __measurement: str
     __no_data_value: str
 
     def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterResultDescriptor`&#39;&#39;&#39;
+        super().__init__(response[&#39;spatialReference&#39;])
         self.__data_type = response[&#39;dataType&#39;]
-        self.__spatial_reference = response[&#39;spatialReference&#39;]
         self.__measurement = response[&#39;measurement&#39;]
         self.__no_data_value = response[&#39;noDataValue&#39;]
 
@@ -1338,16 +1365,18 @@ def ymin(self) -&gt; number:
         return self.__data_type
 
     @property
-    def spatial_reference(self) -&gt; str:
-        return self.__spatial_reference
-
-    @property
     def measurement(self) -&gt; str:
         return self.__measurement
 
     @property
     def no_data_value(self) -&gt; str:
-        return self.__no_data_value</code></pre>
+        return self.__no_data_value
+
+    @property
+    def spatial_reference(self) -&gt; str:
+        &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
+
+        return super().spatial_reference</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1391,18 +1420,6 @@ def no_data_value(self) -&gt; str:
     return self.__no_data_value</code></pre>
 </details>
 </dd>
-<dt id="geoengine.types.RasterResultDescriptor.spatial_reference"><code class="name">var <span class="ident">spatial_reference</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def spatial_reference(self) -&gt; str:
-    return self.__spatial_reference</code></pre>
-</details>
-</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -1412,12 +1429,14 @@ def spatial_reference(self) -&gt; str:
 <li><code><a title="geoengine.types.ResultDescriptor.is_plot_result" href="#geoengine.types.ResultDescriptor.is_plot_result">is_plot_result</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.is_raster_result" href="#geoengine.types.ResultDescriptor.is_raster_result">is_raster_result</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.is_vector_result" href="#geoengine.types.ResultDescriptor.is_vector_result">is_vector_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.spatial_reference" href="#geoengine.types.ResultDescriptor.spatial_reference">spatial_reference</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
 <dt id="geoengine.types.ResultDescriptor"><code class="flex name class">
 <span>class <span class="ident">ResultDescriptor</span></span>
+<span>(</span><span>spatial_reference: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Base class for result descriptors</p></div>
@@ -1429,6 +1448,11 @@ def spatial_reference(self) -&gt; str:
     &#39;&#39;&#39;
     Base class for result descriptors
     &#39;&#39;&#39;
+
+    __spatial_reference: str
+
+    def __init__(self, spatial_reference: str) -&gt; None:
+        self.__spatial_reference = spatial_reference
 
     @staticmethod
     def from_response(response: Dict[str, Any]) -&gt; None:
@@ -1473,7 +1497,13 @@ def spatial_reference(self) -&gt; str:
         Return true if the result is of type plot
         &#39;&#39;&#39;
 
-        return False</code></pre>
+        return False
+
+    @property
+    def spatial_reference(self) -&gt; str:
+        &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
+
+        return self.__spatial_reference</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -1566,6 +1596,23 @@ def is_vector_result(cls) -&gt; bool:
     &#39;&#39;&#39;
 
     return False</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="geoengine.types.ResultDescriptor.spatial_reference"><code class="name">var <span class="ident">spatial_reference</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Return the spatial reference</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def spatial_reference(self) -&gt; str:
+    &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
+
+    return self.__spatial_reference</code></pre>
 </details>
 </dd>
 </dl>
@@ -1763,13 +1810,12 @@ def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
     &#39;&#39;&#39;
 
     __data_type: str
-    __spatial_reference: str
     __columns: Dict[str, str]
 
     def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `VectorResultDescriptor`&#39;&#39;&#39;
+        super().__init__(response[&#39;spatialReference&#39;])
         self.__data_type = response[&#39;dataType&#39;]
-        self.__spatial_reference = response[&#39;spatialReference&#39;]
         self.__columns = response[&#39;columns&#39;]
 
     def __repr__(self) -&gt; str:
@@ -1799,7 +1845,7 @@ def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
     def spatial_reference(self) -&gt; str:
         &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
 
-        return self.__spatial_reference
+        return super().spatial_reference
 
     @property
     def columns(self) -&gt; Dict[str, str]:
@@ -1841,20 +1887,6 @@ def data_type(self) -&gt; str:
     return self.__data_type</code></pre>
 </details>
 </dd>
-<dt id="geoengine.types.VectorResultDescriptor.spatial_reference"><code class="name">var <span class="ident">spatial_reference</span> : str</code></dt>
-<dd>
-<div class="desc"><p>Return the spatial reference</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def spatial_reference(self) -&gt; str:
-    &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
-
-    return self.__spatial_reference</code></pre>
-</details>
-</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -1864,6 +1896,7 @@ def spatial_reference(self) -&gt; str:
 <li><code><a title="geoengine.types.ResultDescriptor.is_plot_result" href="#geoengine.types.ResultDescriptor.is_plot_result">is_plot_result</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.is_raster_result" href="#geoengine.types.ResultDescriptor.is_raster_result">is_raster_result</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.is_vector_result" href="#geoengine.types.ResultDescriptor.is_vector_result">is_vector_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.spatial_reference" href="#geoengine.types.ResultDescriptor.spatial_reference">spatial_reference</a></code></li>
 </ul>
 </li>
 </ul>
@@ -1946,7 +1979,6 @@ def spatial_reference(self) -&gt; str:
 <li><code><a title="geoengine.types.RasterResultDescriptor.data_type" href="#geoengine.types.RasterResultDescriptor.data_type">data_type</a></code></li>
 <li><code><a title="geoengine.types.RasterResultDescriptor.measurement" href="#geoengine.types.RasterResultDescriptor.measurement">measurement</a></code></li>
 <li><code><a title="geoengine.types.RasterResultDescriptor.no_data_value" href="#geoengine.types.RasterResultDescriptor.no_data_value">no_data_value</a></code></li>
-<li><code><a title="geoengine.types.RasterResultDescriptor.spatial_reference" href="#geoengine.types.RasterResultDescriptor.spatial_reference">spatial_reference</a></code></li>
 </ul>
 </li>
 <li>
@@ -1956,6 +1988,7 @@ def spatial_reference(self) -&gt; str:
 <li><code><a title="geoengine.types.ResultDescriptor.is_plot_result" href="#geoengine.types.ResultDescriptor.is_plot_result">is_plot_result</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.is_raster_result" href="#geoengine.types.ResultDescriptor.is_raster_result">is_raster_result</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.is_vector_result" href="#geoengine.types.ResultDescriptor.is_vector_result">is_vector_result</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.spatial_reference" href="#geoengine.types.ResultDescriptor.spatial_reference">spatial_reference</a></code></li>
 </ul>
 </li>
 <li>
@@ -1992,7 +2025,6 @@ def spatial_reference(self) -&gt; str:
 <ul class="">
 <li><code><a title="geoengine.types.VectorResultDescriptor.columns" href="#geoengine.types.VectorResultDescriptor.columns">columns</a></code></li>
 <li><code><a title="geoengine.types.VectorResultDescriptor.data_type" href="#geoengine.types.VectorResultDescriptor.data_type">data_type</a></code></li>
-<li><code><a title="geoengine.types.VectorResultDescriptor.spatial_reference" href="#geoengine.types.VectorResultDescriptor.spatial_reference">spatial_reference</a></code></li>
 </ul>
 </li>
 </ul>
