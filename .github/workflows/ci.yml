@@ -35,15 +35,17 @@ jobs:
       - name: Check Formatting
         run: |
           python -m pycodestyle
-      - name: Linter
+      - name: Lint code
         run: |
           python -m pylint geoengine
-          python -m pylint tests
       - name: Build
         run: python -m build .
       - name: Install test dependencies
         run: |
           pip install -e .[test]
+      - name: Lint tests
+        run: |
+          python -m pylint tests
       - name: Test
         run: pytest
       # - name: Publish
