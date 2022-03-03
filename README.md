@@ -10,8 +10,8 @@ Create a virtual environment (e.g., `python3 -m venv env`).
 Then, install the dependencies with:
 
 ```bash
-python3 -m pip install -r requirements.txt
 python3 -m pip install -e .
+python3 -m pip install -e .[test]
 ```
 
 Run tests with:
@@ -38,7 +38,7 @@ sudo apt-get install libgeos-dev libproj-dev
 You can build the package with:
 
 ```bash
-python3 -m pip install --upgrade build
+python3 -m pip install -e .[dev]
 python3 -m build
 ```
 
@@ -72,6 +72,15 @@ Generate documentation HTML with:
 
 ```bash
 pdoc3 --html --output-dir docs geoengine
+```
+
+## Examples
+
+There are several examples in the `examples` folder.
+It is necessary to install the dependencies with:
+
+```bash
+python3 -m pip install -e .[examples]
 ```
 
 ## Distribute to PyPI
