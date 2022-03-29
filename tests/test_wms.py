@@ -56,7 +56,7 @@ class WmsTests(unittest.TestCase):
 
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=200&height=100&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0%2C+%22color%22%3A+%5B0%2C+0%2C+0%2C+255%5D%7D%2C+%7B%22value%22%3A+255%2C+%22color%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22defaultColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%7D',
+                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=200&height=100&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0.0%2C+%22color%22%3A+%5B68%2C+1%2C+84%2C+255%5D%7D%2C+%7B%22value%22%3A+16.933333333333334%2C+%22color%22%3A+%5B72%2C+25%2C+107%2C+255%5D%7D%2C+%7B%22value%22%3A+33.86666666666667%2C+%22color%22%3A+%5B70%2C+47%2C+124%2C+255%5D%7D%2C+%7B%22value%22%3A+50.8%2C+%22color%22%3A+%5B64%2C+67%2C+135%2C+255%5D%7D%2C+%7B%22value%22%3A+67.73333333333333%2C+%22color%22%3A+%5B56%2C+86%2C+139%2C+255%5D%7D%2C+%7B%22value%22%3A+84.66666666666667%2C+%22color%22%3A+%5B48%2C+103%2C+141%2C+255%5D%7D%2C+%7B%22value%22%3A+101.6%2C+%22color%22%3A+%5B41%2C+120%2C+142%2C+255%5D%7D%2C+%7B%22value%22%3A+118.53333333333333%2C+%22color%22%3A+%5B35%2C+136%2C+141%2C+255%5D%7D%2C+%7B%22value%22%3A+135.46666666666667%2C+%22color%22%3A+%5B30%2C+152%2C+138%2C+255%5D%7D%2C+%7B%22value%22%3A+152.4%2C+%22color%22%3A+%5B34%2C+167%2C+132%2C+255%5D%7D%2C+%7B%22value%22%3A+169.33333333333334%2C+%22color%22%3A+%5B53%2C+183%2C+120%2C+255%5D%7D%2C+%7B%22value%22%3A+186.26666666666668%2C+%22color%22%3A+%5B83%2C+197%2C+103%2C+255%5D%7D%2C+%7B%22value%22%3A+203.2%2C+%22color%22%3A+%5B121%2C+209%2C+81%2C+255%5D%7D%2C+%7B%22value%22%3A+220.13333333333333%2C+%22color%22%3A+%5B165%2C+218%2C+53%2C+255%5D%7D%2C+%7B%22value%22%3A+237.06666666666666%2C+%22color%22%3A+%5B210%2C+225%2C+27%2C+255%5D%7D%2C+%7B%22value%22%3A+254.0%2C+%22color%22%3A+%5B253%2C+231%2C+36%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22defaultColor%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D',
                 body=ndvi_png,
             )
 
@@ -86,7 +86,7 @@ class WmsTests(unittest.TestCase):
                     [time, time],
                     resolution=(1.8, 1.8)
                 ),
-                colorizer_min_max=(0, 255)
+                ge.workflow.Colorizer((0, 254))
             )
 
             self.assertEqual(img, Image.open("tests/responses/wms-ndvi.png"))
@@ -123,7 +123,7 @@ class WmsTests(unittest.TestCase):
             # Unfortunately, we need a separate library to catch the request from the WMS call
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=200&height=100&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0%2C+%22color%22%3A+%5B0%2C+0%2C+0%2C+255%5D%7D%2C+%7B%22value%22%3A+255%2C+%22color%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22defaultColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%7D',
+                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=200&height=100&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0.0%2C+%22color%22%3A+%5B68%2C+1%2C+84%2C+255%5D%7D%2C+%7B%22value%22%3A+16.933333333333334%2C+%22color%22%3A+%5B72%2C+25%2C+107%2C+255%5D%7D%2C+%7B%22value%22%3A+33.86666666666667%2C+%22color%22%3A+%5B70%2C+47%2C+124%2C+255%5D%7D%2C+%7B%22value%22%3A+50.8%2C+%22color%22%3A+%5B64%2C+67%2C+135%2C+255%5D%7D%2C+%7B%22value%22%3A+67.73333333333333%2C+%22color%22%3A+%5B56%2C+86%2C+139%2C+255%5D%7D%2C+%7B%22value%22%3A+84.66666666666667%2C+%22color%22%3A+%5B48%2C+103%2C+141%2C+255%5D%7D%2C+%7B%22value%22%3A+101.6%2C+%22color%22%3A+%5B41%2C+120%2C+142%2C+255%5D%7D%2C+%7B%22value%22%3A+118.53333333333333%2C+%22color%22%3A+%5B35%2C+136%2C+141%2C+255%5D%7D%2C+%7B%22value%22%3A+135.46666666666667%2C+%22color%22%3A+%5B30%2C+152%2C+138%2C+255%5D%7D%2C+%7B%22value%22%3A+152.4%2C+%22color%22%3A+%5B34%2C+167%2C+132%2C+255%5D%7D%2C+%7B%22value%22%3A+169.33333333333334%2C+%22color%22%3A+%5B53%2C+183%2C+120%2C+255%5D%7D%2C+%7B%22value%22%3A+186.26666666666668%2C+%22color%22%3A+%5B83%2C+197%2C+103%2C+255%5D%7D%2C+%7B%22value%22%3A+203.2%2C+%22color%22%3A+%5B121%2C+209%2C+81%2C+255%5D%7D%2C+%7B%22value%22%3A+220.13333333333333%2C+%22color%22%3A+%5B165%2C+218%2C+53%2C+255%5D%7D%2C+%7B%22value%22%3A+237.06666666666666%2C+%22color%22%3A+%5B210%2C+225%2C+27%2C+255%5D%7D%2C+%7B%22value%22%3A+254.0%2C+%22color%22%3A+%5B253%2C+231%2C+36%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22defaultColor%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D',
                 json={
                     "error": "Operator",
                     "message": 'Operator: Could not open gdal dataset for file path '
@@ -159,7 +159,7 @@ class WmsTests(unittest.TestCase):
                         [time, time],
                         resolution=(1.8, 1.8)
                     ),
-                    colorizer_min_max=(0, 255)
+                    ge.workflow.Colorizer((0, 254))
                 )
 
             self.assertEqual(str(ctx.exception),
