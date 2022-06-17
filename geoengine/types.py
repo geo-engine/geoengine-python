@@ -244,7 +244,7 @@ class VectorResultDescriptor(ResultDescriptor):
     '''
 
     __data_type: str
-    __columns: Dict[str, str]
+    __columns: Dict[str, Dict[str, Any]]
 
     def __init__(self, response: Dict[str, Any]) -> None:
         '''Initialize a new `VectorResultDescriptor`'''
@@ -258,10 +258,15 @@ class VectorResultDescriptor(ResultDescriptor):
         r += f'Data type:         {self.data_type}\n'
         r += f'Spatial Reference: {self.spatial_reference}\n'
 
-        for i, key in enumerate(self.columns):
-            r += 'Columns:' if i == 0 else '        '
-            r += '           '
-            r += f'{key}: {self.columns[key]}\n'
+        r += 'Columns:\n'
+        for column_name in self.columns:
+            print(column_name, self.columns[column_name])
+
+            column_type = self.columns[column_name]['dataType']
+            measurement = self.columns[column_name]['measurement']
+            r += f'  {column_name}:\n'
+            r += f'    Column Type: {column_type}\n'
+            r += f'    Measurement: {measurement}\n'
 
         return r
 
@@ -282,7 +287,7 @@ class VectorResultDescriptor(ResultDescriptor):
         return super().spatial_reference
 
     @property
-    def columns(self) -> Dict[str, str]:
+    def columns(self) -> Dict[str, Dict[str, Any]]:
         '''Return the columns'''
 
         return self.__columns
