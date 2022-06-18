@@ -3,7 +3,7 @@ Different type mappings of geo engine types
 '''
 
 from __future__ import annotations
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 from datetime import datetime
 from uuid import UUID
 
@@ -244,13 +244,13 @@ class VectorResultDescriptor(ResultDescriptor):
     '''
 
     __data_type: str
-    __columns: Dict[str, Dict[str, Any]]
+    __columns: Dict[str, VectorColumnInfo]
 
     def __init__(self, response: Dict[str, Any]) -> None:
         '''Initialize a new `VectorResultDescriptor`'''
         super().__init__(response['spatialReference'])
         self.__data_type = response['dataType']
-        self.__columns = response['columns']
+        self.__columns = {name: VectorColumnInfo.from_response(info) for name, info in response['columns'].items()}
 
     def __repr__(self) -> str:
         '''Display representation of the vector result descriptor'''
@@ -260,13 +260,10 @@ class VectorResultDescriptor(ResultDescriptor):
 
         r += 'Columns:\n'
         for column_name in self.columns:
-            print(column_name, self.columns[column_name])
-
-            column_type = self.columns[column_name]['dataType']
-            measurement = self.columns[column_name]['measurement']
+            column_info = self.columns[column_name]
             r += f'  {column_name}:\n'
-            r += f'    Column Type: {column_type}\n'
-            r += f'    Measurement: {measurement}\n'
+            r += f'    Column Type: {column_info.data_type}\n'
+            r += f'    Measurement: {column_info.measurement}\n'
 
         return r
 
@@ -293,20 +290,34 @@ class VectorResultDescriptor(ResultDescriptor):
         return self.__columns
 
 
+@dataclass
+class VectorColumnInfo:
+    '''Vector column information'''
+
+    data_type: str
+    measurement: Measurement
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -> VectorColumnInfo:
+        '''Create a new `VectorColumnInfo` from a JSON response'''
+
+        return VectorColumnInfo(response['dataType'], Measurement.from_response(response['measurement']))
+
+
 class RasterResultDescriptor(ResultDescriptor):
     '''
     A raster result descriptor
     '''
 
     __data_type: str
-    __measurement: str
+    __measurement: Measurement
     __no_data_value: str
 
     def __init__(self, response: Dict[str, Any]) -> None:
         '''Initialize a new `RasterResultDescriptor`'''
         super().__init__(response['spatialReference'])
         self.__data_type = response['dataType']
-        self.__measurement = response['measurement']
+        self.__measurement = Measurement.from_response(response['measurement'])
         self.__no_data_value = response['noDataValue']
 
     def __repr__(self) -> str:
@@ -328,7 +339,7 @@ class RasterResultDescriptor(ResultDescriptor):
         return self.__data_type
 
     @property
-    def measurement(self) -> str:
+    def measurement(self) -> Measurement:
         return self.__measurement
 
     @property
@@ -530,3 +541,125 @@ class ExternalDatasetId(DatasetId):
             return False
 
         return self.__provider_id == other.__provider_id and self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
+
+
+class Measurement:  # pylint: disable=too-few-public-methods
+    '''
+    Base class for measurements
+    '''
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -> None:
+        '''
+        Parse a result descriptor from an http response
+        '''
+
+        if 'error' in response:
+            raise GeoEngineException(response)
+
+        measurement_type = response['type']
+
+        if measurement_type == 'unitless':
+            return UnitlessMeasurement()
+        if measurement_type == 'continuous':
+            return ContiuousMeasurement.from_response(response)
+        if measurement_type == 'classification':
+            return ClassificationMeasurement.from_response(response)
+
+        raise TypeException(
+            f'Unknown `Measurement` type: {measurement_type}')
+
+
+class UnitlessMeasurement(Measurement):
+    '''A measurement that is unitless'''
+
+    def __str__(self) -> str:
+        '''String representation of a unitless measurement'''
+        return 'unitless'
+
+    def __repr__(self) -> str:
+        '''Display representation of a unitless measurement'''
+        return str(self)
+
+
+class ContiuousMeasurement(Measurement):
+    '''A measurement that is continuous'''
+
+    __measurement: str
+    __unit: Optional[str]
+
+    def __init__(self, measurement: str, unit: Optional[str]) -> None:
+        '''Initialize a new `ContiuousMeasurement`'''
+
+        super().__init__()
+
+        self.__measurement = measurement
+        self.__unit = unit
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -> ContiuousMeasurement:
+        '''Initialize a new `ContiuousMeasurement from a JSON response'''
+
+        return ContiuousMeasurement(response['measurement'], response.get('unit', None))
+
+    def __str__(self) -> str:
+        '''String representation of a continuous measurement'''
+        if self.__unit is None:
+            return self.__measurement
+        else:
+            return f'{self.__measurement} ({self.__unit})'
+
+    def __repr__(self) -> str:
+        '''Display representation of a continuous measurement'''
+        return str(self)
+
+    @property
+    def measurement(self) -> str:
+        return self.__measurement
+
+    @property
+    def unit(self) -> Optional[str]:
+        return self.__unit
+
+
+class ClassificationMeasurement(Measurement):
+    '''A measurement that is a classification'''
+
+    __measurement: str
+    __classes: Dict[number, str]
+
+    def __init__(self, measurement: str, classes: Dict[number, str]) -> None:
+        '''Initialize a new `ClassificationMeasurement`'''
+
+        super().__init__()
+
+        self.__measurement = measurement
+        self.__classes = classes
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -> ClassificationMeasurement:
+        '''Initialize a new `ClassificationMeasurement from a JSON response'''
+
+        measurement = response['measurement']
+
+        str_classes: Dict[str, str] = response['classes']
+        classes = {int(k): v for k, v in str_classes.items()}
+
+        return ClassificationMeasurement(measurement, classes)
+
+    def __str__(self) -> str:
+        '''String representation of a classification measurement'''
+        classes_str = ', '.join(f'{k}: {v}' for k, v in self.__classes.items())
+        return f'{self.__measurement} ({classes_str})'
+
+    def __repr__(self) -> str:
+        '''Display representation of a classification measurement'''
+        return str(self)
+
+    @property
+    def measurement(self) -> str:
+        return self.__measurement
+
+    @property
+    def classes(self) -> Dict[number, str]:
+        return self.__classes

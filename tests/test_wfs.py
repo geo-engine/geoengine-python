@@ -740,22 +740,22 @@ class WfsTests(unittest.TestCase):
                 Columns:
                   scalerank:
                     Column Type: int
-                    Measurement: {'type': 'unitless'}
+                    Measurement: unitless
                   NDVI:
                     Column Type: int
-                    Measurement: {'type': 'continuous', 'measurement': 'vegetation'}
+                    Measurement: vegetation
                   featurecla:
                     Column Type: text
-                    Measurement: {'type': 'unitless'}
+                    Measurement: unitless
                   natlscale:
                     Column Type: float
-                    Measurement: {'type': 'unitless'}
+                    Measurement: unitless
                   website:
                     Column Type: text
-                    Measurement: {'type': 'unitless'}
+                    Measurement: unitless
                   name:
                     Column Type: text
-                    Measurement: {'type': 'unitless'}
+                    Measurement: unitless
                 '''
 
             self.assertEqual(

@@ -302,12 +302,13 @@ def upload_dataframe(
 
     vector_type = VectorDataType.from_geopandas_type_name(df.geom_type[0])
 
-    columns = {key: pandas_dtype_to_column_type(value) for (key, value) in df.dtypes.items()
+    columns = {key: {'dataType': pandas_dtype_to_column_type(value), 'measurement': {'type': 'unitless'}}
+               for (key, value) in df.dtypes.items()
                if str(value) != 'geometry'}
 
-    floats = [key for (key, value) in columns.items() if value == 'float']
-    ints = [key for (key, value) in columns.items() if value == 'int']
-    texts = [key for (key, value) in columns.items() if value == 'text']
+    floats = [key for (key, value) in columns.items() if value['dataType'] == 'float']
+    ints = [key for (key, value) in columns.items() if value['dataType'] == 'int']
+    texts = [key for (key, value) in columns.items() if value['dataType'] == 'text']
 
     create = {
         "upload": str(upload_id),
