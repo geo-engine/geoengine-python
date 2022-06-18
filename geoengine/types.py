@@ -604,10 +604,11 @@ class ContiuousMeasurement(Measurement):
 
     def __str__(self) -> str:
         '''String representation of a continuous measurement'''
+
         if self.__unit is None:
             return self.__measurement
-        else:
-            return f'{self.__measurement} ({self.__unit})'
+
+        return f'{self.__measurement} ({self.__unit})'
 
     def __repr__(self) -> str:
         '''Display representation of a continuous measurement'''
