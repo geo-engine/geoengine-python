@@ -331,12 +331,13 @@ def upload_dataframe(
 
     vector_type = VectorDataType.from_geopandas_type_name(df.geom_type[0])
 
-    columns = {key: pandas_dtype_to_column_type(value) for (key, value) in df.dtypes.items()
+    columns = {key: {&#39;dataType&#39;: pandas_dtype_to_column_type(value), &#39;measurement&#39;: {&#39;type&#39;: &#39;unitless&#39;}}
+               for (key, value) in df.dtypes.items()
                if str(value) != &#39;geometry&#39;}
 
-    floats = [key for (key, value) in columns.items() if value == &#39;float&#39;]
-    ints = [key for (key, value) in columns.items() if value == &#39;int&#39;]
-    texts = [key for (key, value) in columns.items() if value == &#39;text&#39;]
+    floats = [key for (key, value) in columns.items() if value[&#39;dataType&#39;] == &#39;float&#39;]
+    ints = [key for (key, value) in columns.items() if value[&#39;dataType&#39;] == &#39;int&#39;]
+    texts = [key for (key, value) in columns.items() if value[&#39;dataType&#39;] == &#39;text&#39;]
 
     create = {
         &#34;upload&#34;: str(upload_id),
@@ -457,12 +458,13 @@ class StoredDataset(NamedTuple):
 
     vector_type = VectorDataType.from_geopandas_type_name(df.geom_type[0])
 
-    columns = {key: pandas_dtype_to_column_type(value) for (key, value) in df.dtypes.items()
+    columns = {key: {&#39;dataType&#39;: pandas_dtype_to_column_type(value), &#39;measurement&#39;: {&#39;type&#39;: &#39;unitless&#39;}}
+               for (key, value) in df.dtypes.items()
                if str(value) != &#39;geometry&#39;}
 
-    floats = [key for (key, value) in columns.items() if value == &#39;float&#39;]
-    ints = [key for (key, value) in columns.items() if value == &#39;int&#39;]
-    texts = [key for (key, value) in columns.items() if value == &#39;text&#39;]
+    floats = [key for (key, value) in columns.items() if value[&#39;dataType&#39;] == &#39;float&#39;]
+    ints = [key for (key, value) in columns.items() if value[&#39;dataType&#39;] == &#39;int&#39;]
+    texts = [key for (key, value) in columns.items() if value[&#39;dataType&#39;] == &#39;text&#39;]
 
     create = {
         &#34;upload&#34;: str(upload_id),

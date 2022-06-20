@@ -32,7 +32,7 @@ Different type mappings of geo engine types
 &#39;&#39;&#39;
 
 from __future__ import annotations
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 from datetime import datetime
 from uuid import UUID
 
@@ -273,13 +273,13 @@ class VectorResultDescriptor(ResultDescriptor):
     &#39;&#39;&#39;
 
     __data_type: str
-    __columns: Dict[str, str]
+    __columns: Dict[str, VectorColumnInfo]
 
     def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `VectorResultDescriptor`&#39;&#39;&#39;
         super().__init__(response[&#39;spatialReference&#39;])
         self.__data_type = response[&#39;dataType&#39;]
-        self.__columns = response[&#39;columns&#39;]
+        self.__columns = {name: VectorColumnInfo.from_response(info) for name, info in response[&#39;columns&#39;].items()}
 
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of the vector result descriptor&#39;&#39;&#39;
@@ -287,10 +287,12 @@ class VectorResultDescriptor(ResultDescriptor):
         r += f&#39;Data type:         {self.data_type}\n&#39;
         r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
 
-        for i, key in enumerate(self.columns):
-            r += &#39;Columns:&#39; if i == 0 else &#39;        &#39;
-            r += &#39;           &#39;
-            r += f&#39;{key}: {self.columns[key]}\n&#39;
+        r += &#39;Columns:\n&#39;
+        for column_name in self.columns:
+            column_info = self.columns[column_name]
+            r += f&#39;  {column_name}:\n&#39;
+            r += f&#39;    Column Type: {column_info.data_type}\n&#39;
+            r += f&#39;    Measurement: {column_info.measurement}\n&#39;
 
         return r
 
@@ -311,10 +313,24 @@ class VectorResultDescriptor(ResultDescriptor):
         return super().spatial_reference
 
     @property
-    def columns(self) -&gt; Dict[str, str]:
+    def columns(self) -&gt; Dict[str, Dict[str, Any]]:
         &#39;&#39;&#39;Return the columns&#39;&#39;&#39;
 
         return self.__columns
+
+
+@dataclass
+class VectorColumnInfo:
+    &#39;&#39;&#39;Vector column information&#39;&#39;&#39;
+
+    data_type: str
+    measurement: Measurement
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -&gt; VectorColumnInfo:
+        &#39;&#39;&#39;Create a new `VectorColumnInfo` from a JSON response&#39;&#39;&#39;
+
+        return VectorColumnInfo(response[&#39;dataType&#39;], Measurement.from_response(response[&#39;measurement&#39;]))
 
 
 class RasterResultDescriptor(ResultDescriptor):
@@ -323,14 +339,14 @@ class RasterResultDescriptor(ResultDescriptor):
     &#39;&#39;&#39;
 
     __data_type: str
-    __measurement: str
+    __measurement: Measurement
     __no_data_value: str
 
     def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterResultDescriptor`&#39;&#39;&#39;
         super().__init__(response[&#39;spatialReference&#39;])
         self.__data_type = response[&#39;dataType&#39;]
-        self.__measurement = response[&#39;measurement&#39;]
+        self.__measurement = Measurement.from_response(response[&#39;measurement&#39;])
         self.__no_data_value = response[&#39;noDataValue&#39;]
 
     def __repr__(self) -&gt; str:
@@ -352,7 +368,7 @@ class RasterResultDescriptor(ResultDescriptor):
         return self.__data_type
 
     @property
-    def measurement(self) -&gt; str:
+    def measurement(self) -&gt; Measurement:
         return self.__measurement
 
     @property
@@ -553,7 +569,130 @@ class ExternalDatasetId(DatasetId):
         if not isinstance(other, self.__class__):
             return False
 
-        return self.__provider_id == other.__provider_id and self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access</code></pre>
+        return self.__provider_id == other.__provider_id and self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
+
+
+class Measurement:  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;
+    Base class for measurements
+    &#39;&#39;&#39;
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -&gt; None:
+        &#39;&#39;&#39;
+        Parse a result descriptor from an http response
+        &#39;&#39;&#39;
+
+        if &#39;error&#39; in response:
+            raise GeoEngineException(response)
+
+        measurement_type = response[&#39;type&#39;]
+
+        if measurement_type == &#39;unitless&#39;:
+            return UnitlessMeasurement()
+        if measurement_type == &#39;continuous&#39;:
+            return ContiuousMeasurement.from_response(response)
+        if measurement_type == &#39;classification&#39;:
+            return ClassificationMeasurement.from_response(response)
+
+        raise TypeException(
+            f&#39;Unknown `Measurement` type: {measurement_type}&#39;)
+
+
+class UnitlessMeasurement(Measurement):
+    &#39;&#39;&#39;A measurement that is unitless&#39;&#39;&#39;
+
+    def __str__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a unitless measurement&#39;&#39;&#39;
+        return &#39;unitless&#39;
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of a unitless measurement&#39;&#39;&#39;
+        return str(self)
+
+
+class ContiuousMeasurement(Measurement):
+    &#39;&#39;&#39;A measurement that is continuous&#39;&#39;&#39;
+
+    __measurement: str
+    __unit: Optional[str]
+
+    def __init__(self, measurement: str, unit: Optional[str]) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `ContiuousMeasurement`&#39;&#39;&#39;
+
+        super().__init__()
+
+        self.__measurement = measurement
+        self.__unit = unit
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -&gt; ContiuousMeasurement:
+        &#39;&#39;&#39;Initialize a new `ContiuousMeasurement from a JSON response&#39;&#39;&#39;
+
+        return ContiuousMeasurement(response[&#39;measurement&#39;], response.get(&#39;unit&#39;, None))
+
+    def __str__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a continuous measurement&#39;&#39;&#39;
+
+        if self.__unit is None:
+            return self.__measurement
+
+        return f&#39;{self.__measurement} ({self.__unit})&#39;
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of a continuous measurement&#39;&#39;&#39;
+        return str(self)
+
+    @property
+    def measurement(self) -&gt; str:
+        return self.__measurement
+
+    @property
+    def unit(self) -&gt; Optional[str]:
+        return self.__unit
+
+
+class ClassificationMeasurement(Measurement):
+    &#39;&#39;&#39;A measurement that is a classification&#39;&#39;&#39;
+
+    __measurement: str
+    __classes: Dict[number, str]
+
+    def __init__(self, measurement: str, classes: Dict[number, str]) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `ClassificationMeasurement`&#39;&#39;&#39;
+
+        super().__init__()
+
+        self.__measurement = measurement
+        self.__classes = classes
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -&gt; ClassificationMeasurement:
+        &#39;&#39;&#39;Initialize a new `ClassificationMeasurement from a JSON response&#39;&#39;&#39;
+
+        measurement = response[&#39;measurement&#39;]
+
+        str_classes: Dict[str, str] = response[&#39;classes&#39;]
+        classes = {int(k): v for k, v in str_classes.items()}
+
+        return ClassificationMeasurement(measurement, classes)
+
+    def __str__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a classification measurement&#39;&#39;&#39;
+        classes_str = &#39;, &#39;.join(f&#39;{k}: {v}&#39; for k, v in self.__classes.items())
+        return f&#39;{self.__measurement} ({classes_str})&#39;
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of a classification measurement&#39;&#39;&#39;
+        return str(self)
+
+    @property
+    def measurement(self) -&gt; str:
+        return self.__measurement
+
+    @property
+    def classes(self) -&gt; Dict[number, str]:
+        return self.__classes</code></pre>
 </details>
 </section>
 <section>
@@ -565,6 +704,217 @@ class ExternalDatasetId(DatasetId):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="geoengine.types.ClassificationMeasurement"><code class="flex name class">
+<span>class <span class="ident">ClassificationMeasurement</span></span>
+<span>(</span><span>measurement: str, classes: Dict[number, str])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A measurement that is a classification</p>
+<p>Initialize a new <code><a title="geoengine.types.ClassificationMeasurement" href="#geoengine.types.ClassificationMeasurement">ClassificationMeasurement</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ClassificationMeasurement(Measurement):
+    &#39;&#39;&#39;A measurement that is a classification&#39;&#39;&#39;
+
+    __measurement: str
+    __classes: Dict[number, str]
+
+    def __init__(self, measurement: str, classes: Dict[number, str]) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `ClassificationMeasurement`&#39;&#39;&#39;
+
+        super().__init__()
+
+        self.__measurement = measurement
+        self.__classes = classes
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -&gt; ClassificationMeasurement:
+        &#39;&#39;&#39;Initialize a new `ClassificationMeasurement from a JSON response&#39;&#39;&#39;
+
+        measurement = response[&#39;measurement&#39;]
+
+        str_classes: Dict[str, str] = response[&#39;classes&#39;]
+        classes = {int(k): v for k, v in str_classes.items()}
+
+        return ClassificationMeasurement(measurement, classes)
+
+    def __str__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a classification measurement&#39;&#39;&#39;
+        classes_str = &#39;, &#39;.join(f&#39;{k}: {v}&#39; for k, v in self.__classes.items())
+        return f&#39;{self.__measurement} ({classes_str})&#39;
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of a classification measurement&#39;&#39;&#39;
+        return str(self)
+
+    @property
+    def measurement(self) -&gt; str:
+        return self.__measurement
+
+    @property
+    def classes(self) -&gt; Dict[number, str]:
+        return self.__classes</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.ClassificationMeasurement.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, Any]) ‑> <a title="geoengine.types.ClassificationMeasurement" href="#geoengine.types.ClassificationMeasurement">ClassificationMeasurement</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initialize a new `ClassificationMeasurement from a JSON response</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_response(response: Dict[str, Any]) -&gt; ClassificationMeasurement:
+    &#39;&#39;&#39;Initialize a new `ClassificationMeasurement from a JSON response&#39;&#39;&#39;
+
+    measurement = response[&#39;measurement&#39;]
+
+    str_classes: Dict[str, str] = response[&#39;classes&#39;]
+    classes = {int(k): v for k, v in str_classes.items()}
+
+    return ClassificationMeasurement(measurement, classes)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="geoengine.types.ClassificationMeasurement.classes"><code class="name">var <span class="ident">classes</span> : Dict[numpy.number, str]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def classes(self) -&gt; Dict[number, str]:
+    return self.__classes</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.ClassificationMeasurement.measurement"><code class="name">var <span class="ident">measurement</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def measurement(self) -&gt; str:
+    return self.__measurement</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.ContiuousMeasurement"><code class="flex name class">
+<span>class <span class="ident">ContiuousMeasurement</span></span>
+<span>(</span><span>measurement: str, unit: Optional[str])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A measurement that is continuous</p>
+<p>Initialize a new <code><a title="geoengine.types.ContiuousMeasurement" href="#geoengine.types.ContiuousMeasurement">ContiuousMeasurement</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ContiuousMeasurement(Measurement):
+    &#39;&#39;&#39;A measurement that is continuous&#39;&#39;&#39;
+
+    __measurement: str
+    __unit: Optional[str]
+
+    def __init__(self, measurement: str, unit: Optional[str]) -&gt; None:
+        &#39;&#39;&#39;Initialize a new `ContiuousMeasurement`&#39;&#39;&#39;
+
+        super().__init__()
+
+        self.__measurement = measurement
+        self.__unit = unit
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -&gt; ContiuousMeasurement:
+        &#39;&#39;&#39;Initialize a new `ContiuousMeasurement from a JSON response&#39;&#39;&#39;
+
+        return ContiuousMeasurement(response[&#39;measurement&#39;], response.get(&#39;unit&#39;, None))
+
+    def __str__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a continuous measurement&#39;&#39;&#39;
+
+        if self.__unit is None:
+            return self.__measurement
+
+        return f&#39;{self.__measurement} ({self.__unit})&#39;
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of a continuous measurement&#39;&#39;&#39;
+        return str(self)
+
+    @property
+    def measurement(self) -&gt; str:
+        return self.__measurement
+
+    @property
+    def unit(self) -&gt; Optional[str]:
+        return self.__unit</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.ContiuousMeasurement.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, Any]) ‑> <a title="geoengine.types.ContiuousMeasurement" href="#geoengine.types.ContiuousMeasurement">ContiuousMeasurement</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initialize a new `ContiuousMeasurement from a JSON response</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_response(response: Dict[str, Any]) -&gt; ContiuousMeasurement:
+    &#39;&#39;&#39;Initialize a new `ContiuousMeasurement from a JSON response&#39;&#39;&#39;
+
+    return ContiuousMeasurement(response[&#39;measurement&#39;], response.get(&#39;unit&#39;, None))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="geoengine.types.ContiuousMeasurement.measurement"><code class="name">var <span class="ident">measurement</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def measurement(self) -&gt; str:
+    return self.__measurement</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.ContiuousMeasurement.unit"><code class="name">var <span class="ident">unit</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def unit(self) -&gt; Optional[str]:
+    return self.__unit</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.types.DatasetId"><code class="flex name class">
 <span>class <span class="ident">DatasetId</span></span>
 </code></dt>
@@ -791,6 +1141,82 @@ def from_response(cls, response: Dict[str, str]) -&gt; InternalDatasetId:
         &#34;type&#34;: &#34;internal&#34;,
         &#34;datasetId&#34;: self.__dataset_id
     }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.Measurement"><code class="flex name class">
+<span>class <span class="ident">Measurement</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for measurements</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Measurement:  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;
+    Base class for measurements
+    &#39;&#39;&#39;
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -&gt; None:
+        &#39;&#39;&#39;
+        Parse a result descriptor from an http response
+        &#39;&#39;&#39;
+
+        if &#39;error&#39; in response:
+            raise GeoEngineException(response)
+
+        measurement_type = response[&#39;type&#39;]
+
+        if measurement_type == &#39;unitless&#39;:
+            return UnitlessMeasurement()
+        if measurement_type == &#39;continuous&#39;:
+            return ContiuousMeasurement.from_response(response)
+        if measurement_type == &#39;classification&#39;:
+            return ClassificationMeasurement.from_response(response)
+
+        raise TypeException(
+            f&#39;Unknown `Measurement` type: {measurement_type}&#39;)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.ClassificationMeasurement" href="#geoengine.types.ClassificationMeasurement">ClassificationMeasurement</a></li>
+<li><a title="geoengine.types.ContiuousMeasurement" href="#geoengine.types.ContiuousMeasurement">ContiuousMeasurement</a></li>
+<li><a title="geoengine.types.UnitlessMeasurement" href="#geoengine.types.UnitlessMeasurement">UnitlessMeasurement</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.Measurement.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, Any]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a result descriptor from an http response</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_response(response: Dict[str, Any]) -&gt; None:
+    &#39;&#39;&#39;
+    Parse a result descriptor from an http response
+    &#39;&#39;&#39;
+
+    if &#39;error&#39; in response:
+        raise GeoEngineException(response)
+
+    measurement_type = response[&#39;type&#39;]
+
+    if measurement_type == &#39;unitless&#39;:
+        return UnitlessMeasurement()
+    if measurement_type == &#39;continuous&#39;:
+        return ContiuousMeasurement.from_response(response)
+    if measurement_type == &#39;classification&#39;:
+        return ClassificationMeasurement.from_response(response)
+
+    raise TypeException(
+        f&#39;Unknown `Measurement` type: {measurement_type}&#39;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1336,14 +1762,14 @@ def ymin(self) -&gt; number:
     &#39;&#39;&#39;
 
     __data_type: str
-    __measurement: str
+    __measurement: Measurement
     __no_data_value: str
 
     def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterResultDescriptor`&#39;&#39;&#39;
         super().__init__(response[&#39;spatialReference&#39;])
         self.__data_type = response[&#39;dataType&#39;]
-        self.__measurement = response[&#39;measurement&#39;]
+        self.__measurement = Measurement.from_response(response[&#39;measurement&#39;])
         self.__no_data_value = response[&#39;noDataValue&#39;]
 
     def __repr__(self) -&gt; str:
@@ -1365,7 +1791,7 @@ def ymin(self) -&gt; number:
         return self.__data_type
 
     @property
-    def measurement(self) -&gt; str:
+    def measurement(self) -&gt; Measurement:
         return self.__measurement
 
     @property
@@ -1396,7 +1822,7 @@ def data_type(self) -&gt; str:
     return self.__data_type</code></pre>
 </details>
 </dd>
-<dt id="geoengine.types.RasterResultDescriptor.measurement"><code class="name">var <span class="ident">measurement</span> : str</code></dt>
+<dt id="geoengine.types.RasterResultDescriptor.measurement"><code class="name">var <span class="ident">measurement</span> : <a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1404,7 +1830,7 @@ def data_type(self) -&gt; str:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def measurement(self) -&gt; str:
+def measurement(self) -&gt; Measurement:
     return self.__measurement</code></pre>
 </details>
 </dd>
@@ -1702,6 +2128,94 @@ class TimeStep:
 </dd>
 </dl>
 </dd>
+<dt id="geoengine.types.UnitlessMeasurement"><code class="flex name class">
+<span>class <span class="ident">UnitlessMeasurement</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>A measurement that is unitless</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UnitlessMeasurement(Measurement):
+    &#39;&#39;&#39;A measurement that is unitless&#39;&#39;&#39;
+
+    def __str__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a unitless measurement&#39;&#39;&#39;
+        return &#39;unitless&#39;
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of a unitless measurement&#39;&#39;&#39;
+        return str(self)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.types.Measurement.from_response" href="#geoengine.types.Measurement.from_response">from_response</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.types.VectorColumnInfo"><code class="flex name class">
+<span>class <span class="ident">VectorColumnInfo</span></span>
+<span>(</span><span>data_type: str, measurement: <a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Vector column information</p>
+<p>Method generated by attrs for class VectorColumnInfo.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class VectorColumnInfo:
+    &#39;&#39;&#39;Vector column information&#39;&#39;&#39;
+
+    data_type: str
+    measurement: Measurement
+
+    @staticmethod
+    def from_response(response: Dict[str, Any]) -&gt; VectorColumnInfo:
+        &#39;&#39;&#39;Create a new `VectorColumnInfo` from a JSON response&#39;&#39;&#39;
+
+        return VectorColumnInfo(response[&#39;dataType&#39;], Measurement.from_response(response[&#39;measurement&#39;]))</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.VectorColumnInfo.data_type"><code class="name">var <span class="ident">data_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.VectorColumnInfo.measurement"><code class="name">var <span class="ident">measurement</span> : <a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.VectorColumnInfo.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, Any]) ‑> <a title="geoengine.types.VectorColumnInfo" href="#geoengine.types.VectorColumnInfo">VectorColumnInfo</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a new <code><a title="geoengine.types.VectorColumnInfo" href="#geoengine.types.VectorColumnInfo">VectorColumnInfo</a></code> from a JSON response</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_response(response: Dict[str, Any]) -&gt; VectorColumnInfo:
+    &#39;&#39;&#39;Create a new `VectorColumnInfo` from a JSON response&#39;&#39;&#39;
+
+    return VectorColumnInfo(response[&#39;dataType&#39;], Measurement.from_response(response[&#39;measurement&#39;]))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.types.VectorDataType"><code class="flex name class">
 <span>class <span class="ident">VectorDataType</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
@@ -1810,13 +2324,13 @@ def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
     &#39;&#39;&#39;
 
     __data_type: str
-    __columns: Dict[str, str]
+    __columns: Dict[str, VectorColumnInfo]
 
     def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `VectorResultDescriptor`&#39;&#39;&#39;
         super().__init__(response[&#39;spatialReference&#39;])
         self.__data_type = response[&#39;dataType&#39;]
-        self.__columns = response[&#39;columns&#39;]
+        self.__columns = {name: VectorColumnInfo.from_response(info) for name, info in response[&#39;columns&#39;].items()}
 
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of the vector result descriptor&#39;&#39;&#39;
@@ -1824,10 +2338,12 @@ def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
         r += f&#39;Data type:         {self.data_type}\n&#39;
         r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
 
-        for i, key in enumerate(self.columns):
-            r += &#39;Columns:&#39; if i == 0 else &#39;        &#39;
-            r += &#39;           &#39;
-            r += f&#39;{key}: {self.columns[key]}\n&#39;
+        r += &#39;Columns:\n&#39;
+        for column_name in self.columns:
+            column_info = self.columns[column_name]
+            r += f&#39;  {column_name}:\n&#39;
+            r += f&#39;    Column Type: {column_info.data_type}\n&#39;
+            r += f&#39;    Measurement: {column_info.measurement}\n&#39;
 
         return r
 
@@ -1848,7 +2364,7 @@ def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
         return super().spatial_reference
 
     @property
-    def columns(self) -&gt; Dict[str, str]:
+    def columns(self) -&gt; Dict[str, Dict[str, Any]]:
         &#39;&#39;&#39;Return the columns&#39;&#39;&#39;
 
         return self.__columns</code></pre>
@@ -1859,7 +2375,7 @@ def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="geoengine.types.VectorResultDescriptor.columns"><code class="name">var <span class="ident">columns</span> : Dict[str, str]</code></dt>
+<dt id="geoengine.types.VectorResultDescriptor.columns"><code class="name">var <span class="ident">columns</span> : Dict[str, Dict[str, Any]]</code></dt>
 <dd>
 <div class="desc"><p>Return the columns</p></div>
 <details class="source">
@@ -1867,7 +2383,7 @@ def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def columns(self) -&gt; Dict[str, str]:
+def columns(self) -&gt; Dict[str, Dict[str, Any]]:
     &#39;&#39;&#39;Return the columns&#39;&#39;&#39;
 
     return self.__columns</code></pre>
@@ -1918,6 +2434,22 @@ def data_type(self) -&gt; str:
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="geoengine.types.ClassificationMeasurement" href="#geoengine.types.ClassificationMeasurement">ClassificationMeasurement</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.ClassificationMeasurement.classes" href="#geoengine.types.ClassificationMeasurement.classes">classes</a></code></li>
+<li><code><a title="geoengine.types.ClassificationMeasurement.from_response" href="#geoengine.types.ClassificationMeasurement.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.ClassificationMeasurement.measurement" href="#geoengine.types.ClassificationMeasurement.measurement">measurement</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.ContiuousMeasurement" href="#geoengine.types.ContiuousMeasurement">ContiuousMeasurement</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.ContiuousMeasurement.from_response" href="#geoengine.types.ContiuousMeasurement.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.ContiuousMeasurement.measurement" href="#geoengine.types.ContiuousMeasurement.measurement">measurement</a></code></li>
+<li><code><a title="geoengine.types.ContiuousMeasurement.unit" href="#geoengine.types.ContiuousMeasurement.unit">unit</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.types.DatasetId.from_response" href="#geoengine.types.DatasetId.from_response">from_response</a></code></li>
@@ -1935,6 +2467,12 @@ def data_type(self) -&gt; str:
 <ul class="">
 <li><code><a title="geoengine.types.InternalDatasetId.from_response" href="#geoengine.types.InternalDatasetId.from_response">from_response</a></code></li>
 <li><code><a title="geoengine.types.InternalDatasetId.to_dict" href="#geoengine.types.InternalDatasetId.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.Measurement.from_response" href="#geoengine.types.Measurement.from_response">from_response</a></code></li>
 </ul>
 </li>
 <li>
@@ -2008,6 +2546,17 @@ def data_type(self) -&gt; str:
 <li><code><a title="geoengine.types.TimeStepGranularity.MONTHS" href="#geoengine.types.TimeStepGranularity.MONTHS">MONTHS</a></code></li>
 <li><code><a title="geoengine.types.TimeStepGranularity.SECONDS" href="#geoengine.types.TimeStepGranularity.SECONDS">SECONDS</a></code></li>
 <li><code><a title="geoengine.types.TimeStepGranularity.YEARS" href="#geoengine.types.TimeStepGranularity.YEARS">YEARS</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.UnitlessMeasurement" href="#geoengine.types.UnitlessMeasurement">UnitlessMeasurement</a></code></h4>
+</li>
+<li>
+<h4><code><a title="geoengine.types.VectorColumnInfo" href="#geoengine.types.VectorColumnInfo">VectorColumnInfo</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.VectorColumnInfo.data_type" href="#geoengine.types.VectorColumnInfo.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.types.VectorColumnInfo.from_response" href="#geoengine.types.VectorColumnInfo.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.VectorColumnInfo.measurement" href="#geoengine.types.VectorColumnInfo.measurement">measurement</a></code></li>
 </ul>
 </li>
 <li>
