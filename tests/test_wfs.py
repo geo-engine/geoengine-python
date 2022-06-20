@@ -45,12 +45,43 @@ class WfsTests(unittest.TestCase):
                       'dataType': 'MultiPoint',
                       'spatialReference': 'EPSG:4326',
                       'columns': {
-                              'scalerank': 'int',
-                              'NDVI': 'int',
-                              'featurecla': 'text',
-                              'natlscale': 'float',
-                              'website': 'text',
-                              'name': 'text'
+                          'scalerank': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'NDVI': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'continuous',
+                                  'measurement': 'vegetation',
+                              },
+                          },
+                          'featurecla': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'natlscale': {
+                              'dataType': 'float',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'website': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'name': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          }
                       }
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
@@ -343,12 +374,43 @@ class WfsTests(unittest.TestCase):
                       "dataType": "MultiPoint",
                       "spatialReference": "EPSG:4326",
                       "columns": {
-                          "natlscale": "float",
-                          "featurecla": "text",
-                          "scalerank": "int",
-                          "name": "text",
-                          "NDVI": "int",
-                          "website": "text"
+                          'scalerank': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'NDVI': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'continuous',
+                                  'measurement': 'vegetation',
+                              },
+                          },
+                          'featurecla': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'natlscale': {
+                              'dataType': 'float',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'website': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'name': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          }
                       }
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
@@ -429,12 +491,43 @@ class WfsTests(unittest.TestCase):
                       "dataType": "MultiPoint",
                       "spatialReference": "EPSG:4326",
                       "columns": {
-                          "natlscale": "float",
-                          "featurecla": "text",
-                          "scalerank": "int",
-                          "name": "text",
-                          "NDVI": "int",
-                          "website": "text"
+                          'scalerank': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'NDVI': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'continuous',
+                                  'measurement': 'vegetation',
+                              },
+                          },
+                          'featurecla': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'natlscale': {
+                              'dataType': 'float',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'website': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'name': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          }
                       }
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
@@ -520,12 +613,43 @@ class WfsTests(unittest.TestCase):
                       'dataType': 'MultiPoint',
                       'spatialReference': 'EPSG:4326',
                       'columns': {
-                          'scalerank': 'int',
-                          'NDVI': 'int',
-                          'featurecla': 'text',
-                          'natlscale': 'float',
-                          'website': 'text',
-                          'name': 'text'
+                          'scalerank': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'NDVI': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'continuous',
+                                  'measurement': 'vegetation',
+                              },
+                          },
+                          'featurecla': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'natlscale': {
+                              'dataType': 'float',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'website': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'name': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          }
                       }
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
@@ -555,12 +679,43 @@ class WfsTests(unittest.TestCase):
                       'dataType': 'MultiPoint',
                       'spatialReference': 'EPSG:4326',
                       'columns': {
-                          'scalerank': 'int',
-                          'NDVI': 'int',
-                          'featurecla': 'text',
-                          'natlscale': 'float',
-                          'website': 'text',
-                          'name': 'text'
+                          'scalerank': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'NDVI': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'continuous',
+                                  'measurement': 'vegetation',
+                              },
+                          },
+                          'featurecla': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'natlscale': {
+                              'dataType': 'float',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'website': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'name': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          }
                       }
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
@@ -582,12 +737,25 @@ class WfsTests(unittest.TestCase):
             expected_repr = '''\
                 Data type:         MultiPoint
                 Spatial Reference: EPSG:4326
-                Columns:           scalerank: int
-                                   NDVI: int
-                                   featurecla: text
-                                   natlscale: float
-                                   website: text
-                                   name: text
+                Columns:
+                  scalerank:
+                    Column Type: int
+                    Measurement: unitless
+                  NDVI:
+                    Column Type: int
+                    Measurement: vegetation
+                  featurecla:
+                    Column Type: text
+                    Measurement: unitless
+                  natlscale:
+                    Column Type: float
+                    Measurement: unitless
+                  website:
+                    Column Type: text
+                    Measurement: unitless
+                  name:
+                    Column Type: text
+                    Measurement: unitless
                 '''
 
             self.assertEqual(
@@ -660,12 +828,43 @@ class WfsTests(unittest.TestCase):
                       "dataType": "MultiPoint",
                       "spatialReference": "EPSG:4326",
                       "columns": {
-                          "name": "text",
-                          "scalerank": "int",
-                          "NDVI": "int",
-                          "natlscale": "float",
-                          "featurecla": "text",
-                          "website": "text"
+                          'scalerank': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'NDVI': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'continuous',
+                                  'measurement': 'vegetation',
+                              },
+                          },
+                          'featurecla': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'natlscale': {
+                              'dataType': 'float',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'website': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'name': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          }
                       }
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})

@@ -263,7 +263,7 @@ class WmsTests(unittest.TestCase):
             expected_repr = '''\
                 Data type:         U8
                 Spatial Reference: EPSG:4326
-                Measurement:       {'type': 'unitless'}
+                Measurement:       unitless
                 No Data Value:     0.0
                 '''
 
