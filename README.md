@@ -6,13 +6,40 @@ This package allows easy access to Geo Engine functionality from Python environm
 
 ## Test
 
+### Create a virtual environment
+
 Create a virtual environment (e.g., `python3 -m venv env`).
+
+```bash
+# create new venv
+python3 -m venv env
+# activate new venv
+source env/bin/activate
+```
+
+#### Re-create virtual environment
+
+```bash
+# go out of old venv
+deactivate
+# delete oldv env
+rm -r env
+# create new venv
+python3 -m venv env
+# activate new venv
+source env/bin/activate
+```
+
+### Install dependencies
+
 Then, install the dependencies with:
 
 ```bash
 python3 -m pip install -e .
 python3 -m pip install -e .[test]
 ```
+
+### Run tests
 
 Run tests with:
 
@@ -44,7 +71,7 @@ python3 -m build
 
 ## Formatting
 
-This packages is formatted according to `pycodestyle`.
+This package is formatted according to `pycodestyle`.
 You can check it by calling:
 
 ```bash
