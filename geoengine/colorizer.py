@@ -1,45 +1,79 @@
-from __future__ import annotations
-from typing import Any, Dict, List, Tuple
+"""This module is used to generate geoengine compatible color map definitions as a json string."""
 
-from logging import debug
-from io import BytesIO
-import urllib.parse
 import json
-
-import requests as req
-import geopandas as gpd
-from owslib.util import Authentication
-from owslib.wcs import WebCoverageService
-import rasterio.io
-from vega import VegaLite
+from ast import Tuple
 import numpy as np
-from PIL import Image
-import xarray as xr
-
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+from matplotlib.colors import ListedColormap
+from matplotlib.cm import ScalarMappable
 
 
-class Colorizer:
-    def __init__(self):
-        self.type = type
+class Colorizer():
+    """This class is used to generate geoengine compatible color map definitions as a json string."""
 
-    def test(self) -> Colorizer:
-        return Colorizer()
+    def __init__(self, steps: int = 10, min_max: Tuple(int, int) = (0, 255)):
+        """Initialize the colorizer."""
+        self.steps = steps
+        self.min_max = min_max
 
-    def colormapper(self, map_name: str, n_steps: int):
+    def set_default_steps(self, steps: int):
+        """Set the default number of steps for the colorizer.
 
-        # get the map
-        map = cm.get_cmap(map_name)
-        vals = map(np.linspace(0, 1, n_steps))
+        Args:
+            steps (int): the number of steps.
+        """
+        self.steps = steps
 
-        breakpoints = [
-            {"value": int(np.floor(i * 255 / len(vals))), "color": list(vals[i])}
-            for i in range(len(vals))
+    def set_default_min_max(self, min_max: Tuple(int, int)):
+        """Set the default min and max values for the colorizer.
+
+        Args:
+            min_max (Tuple(int, int)): the min and max values.
+        """
+        self.min_max = min_max
+
+    def colorize(
+        self, map_name: ListedColormap, n_steps: int = None, min_max: Tuple(int, int) = None
+    ):
+        """Generate a json dump that is compatible with the geoengine config protocol.
+
+        Args:
+            map_name (str): a name of a defined colormap.
+            n_steps (int): how many steps the colormap should have.
+
+        Returns:
+            str: Returns the geoengine compatible json configuration string.
+        """
+        # set parameters or use defaults
+        if n_steps is None:
+            n_steps = self.steps
+        if min_max is None:
+            min_max = self.min_max
+
+        # assert correct parameters are given
+        if n_steps < 2:
+            raise ValueError(f"n_steps must be greater than or equal to 2, got {n_steps} instead.")
+        if min_max[0] < 0 or min_max[0] > 255:
+            raise ValueError(f"min_max[0] must be between 0 and 255, got {min_max[0]} instead.")
+        if min_max[1] < 0 or min_max[1] > 255:
+            raise ValueError(f"min_max[1] must be between 0 and 255, got {min_max[1]} instead.")
+        if min_max[1] <= min_max[0]:
+            raise ValueError(f"min_max[1] must be greater than min_max[0], got {min_max[1]} and {min_max[0]}.")
+
+        # get the map, and transform it to [0,255] values
+        colormap = ScalarMappable(cmap=map_name).to_rgba(
+            np.linspace(min_max[0], min_max[1], n_steps), bytes=True).tolist()
+
+        # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
+        value_bounds = [
+            int(x) for x in np.linspace(min_max[0], min_max[1], n_steps).tolist()
         ]
 
+        # generate color map steps for geoengine
+        breakpoints = [
+            {"value": value, "color": color} for (value, color) in zip(value_bounds, colormap)
+        ]
+
+        # create the json string for geoengine
         colorizer = "custom:" + json.dumps(
             {
                 "type": "linearGradient",
@@ -51,71 +85,9 @@ class Colorizer:
 
         return colorizer
 
-    def viridis(self, **kwargs):
-        colorizer_min_max = kwargs.get("colorizer_min_max", None)
-        colorizer = ""
-        if colorizer_min_max is not None:
-            colorizer = "custom:" + json.dumps(
-                {
-                    "type": "linearGradient",
-                    "breakpoints": [
-                        {"value": colorizer_min_max[0], "color": [255, 0, 255, 255]},
-                        {"value": colorizer_min_max[1], "color": [255, 255, 255, 255]},
-                    ],
-                    "noDataColor": [0, 0, 0, 0],
-                    "defaultColor": [0, 0, 0, 0],
-                }
-            )
 
-            return colorizer
-
-        else:
-            colorizer = "custom:" + json.dumps(
-                {
-                    "type": "linearGradient",
-                    "breakpoints": [
-                        {"value": 0, "color": [253, 231, 37, 255]},
-                        {"value": 64, "color": [94, 201, 98, 255]},
-                        {"value": 128, "color": [33, 145, 140, 255]},
-                        {"value": 191, "color": [59, 82, 139, 255]},
-                        {"value": 255, "color": [68, 1, 84, 255]},
-                    ],
-                    "noDataColor": [0, 0, 0, 0],
-                    "defaultColor": [0, 0, 0, 0],
-                }
-            )
-
-            return colorizer
-
-    def grayscale(self, **kwargs):
-        colorizer_min_max = kwargs.get("colorizer_min_max", None)
-        colorizer = ""
-        if colorizer_min_max is not None:
-            colorizer = "custom:" + json.dumps(
-                {
-                    "type": "linearGradient",
-                    "breakpoints": [
-                        {"value": colorizer_min_max[0], "color": [255, 0, 255, 255]},
-                        {"value": colorizer_min_max[1], "color": [255, 255, 255, 255]},
-                    ],
-                    "noDataColor": [0, 0, 0, 0],
-                    "defaultColor": [0, 0, 0, 0],
-                }
-            )
-
-            return colorizer
-
-        else:
-            colorizer = "custom:" + json.dumps(
-                {
-                    "type": "linearGradient",
-                    "breakpoints": [
-                        {"value": 0, "color": [0, 0, 0, 255]},
-                        {"value": 255, "color": [255, 255, 255, 255]},
-                    ],
-                    "noDataColor": [0, 0, 0, 0],
-                    "defaultColor": [0, 0, 0, 0],
-                }
-            )
-
-            return colorizer
+# expose module methods as functions
+_inst = Colorizer()
+colorize = _inst.colorize
+set_default_steps = _inst.set_default_steps
+set_default_min_max = _inst.set_default_min_max
