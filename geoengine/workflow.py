@@ -21,11 +21,11 @@ import numpy as np
 from PIL import Image
 import xarray as xr
 
-from geoengine.types import InternalDatasetId, ProvenanceOutput, QueryRectangle, ResultDescriptor
+from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
     MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
-from geoengine.datasets import StoredDataset, UploadId
+from geoengine.datasets import DatasetId, StoredDataset, UploadId
 
 
 class WorkflowId:
@@ -409,7 +409,7 @@ class Workflow:
         response = response.json()
 
         return StoredDataset(
-            dataset_id=InternalDatasetId.from_response(response['dataset']),
+            dataset_id=DatasetId(response['dataset']),
             upload_id=UploadId(response['upload'])
         )
 

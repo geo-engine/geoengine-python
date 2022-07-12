@@ -15,7 +15,7 @@ import requests as req
 
 from geoengine.error import GeoEngineException, InputException
 from geoengine.auth import get_session
-from geoengine.types import TimeStep, TimeStepGranularity, DatasetId, VectorDataType, InternalDatasetId
+from geoengine.types import TimeStep, TimeStepGranularity, VectorDataType
 
 
 class OgrSourceTimeFormat:
@@ -227,6 +227,36 @@ class OgrOnError(Enum):
     ABORT = "abort"
 
 
+class DatasetId:
+    '''A wrapper for a dataset id'''
+
+    __dataset_id: UUID
+
+    def __init__(self, dataset_id: UUID) -> None:
+        self.__dataset_id = dataset_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -> DatasetId:
+        '''Parse a http response to an `DatasetId`'''
+        if 'id' not in response:
+            raise GeoEngineException(response)
+
+        return DatasetId(response['id'])
+
+    def __str__(self) -> str:
+        return self.__dataset_id
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __eq__(self, other) -> bool:
+        '''Checks if two dataset ids are equal'''
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
+
+
 class UploadId:
     '''A wrapper for an upload id'''
 
@@ -349,11 +379,11 @@ def upload_dataframe(
     if 'error' in response:
         raise GeoEngineException(response)
 
-    return InternalDatasetId.from_response(response["id"])
+    return DatasetId(response["id"])
 
 
 class StoredDataset(NamedTuple):
     '''The result of a store dataset request is a combination of `upload_id` and `dataset_id`'''
 
-    dataset_id: InternalDatasetId
+    dataset_id: DatasetId
     upload_id: UploadId

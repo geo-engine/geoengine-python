@@ -6,7 +6,7 @@ import pandas as pd
 import geopandas
 
 import geoengine as ge
-from geoengine.datasets import InternalDatasetId, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat
+from geoengine.datasets import DatasetId, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat
 from geoengine.types import TimeStepGranularity
 
 
@@ -32,10 +32,7 @@ class UploadTests(unittest.TestCase):
 
             m.post('http://mock-instance/dataset',
                    json={
-                       'id': {
-                           'type': 'internal',
-                           'datasetId': 'fc5f9e0f-ac97-421f-a5be-d701915ceb6f'
-                       }
+                       'id': 'fc5f9e0f-ac97-421f-a5be-d701915ceb6f'
                    },
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -57,10 +54,9 @@ class UploadTests(unittest.TestCase):
             gdf = geopandas.GeoDataFrame(
                 df, geometry=geopandas.GeoSeries.from_wkt(polygons), crs="EPSG:4326")
 
-            upload_id = ge.upload_dataframe(gdf)
+            dataset_id = ge.upload_dataframe(gdf)
 
-            self.assertEqual(upload_id, InternalDatasetId(
-                "fc5f9e0f-ac97-421f-a5be-d701915ceb6f"))
+            self.assertEqual(dataset_id, DatasetId("fc5f9e0f-ac97-421f-a5be-d701915ceb6f"))
 
     def test_time_specification(self):
         time = OgrSourceDatasetTimeType.start(
