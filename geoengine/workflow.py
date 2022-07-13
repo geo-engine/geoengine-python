@@ -286,11 +286,11 @@ class Workflow:
         return VegaLite(vega_spec)
 
     def __get_wcs_tiff_as_memory_file(
-            self,
-            bbox: QueryRectangle,
-            timeout=3600,
-            force_no_data_value=None
-        ) -> rasterio.io.MemoryFile:
+        self,
+        bbox: QueryRectangle,
+        timeout=3600,
+        force_no_data_value=None
+    ) -> rasterio.io.MemoryFile:
         '''
         Query a workflow and return the raster result as a memory mapped GeoTiff
 
