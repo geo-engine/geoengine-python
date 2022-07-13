@@ -114,14 +114,14 @@ python3 -m pip install -e .[examples]
 
 ### Test-PyPI
 
-```
+```bash
 python3 -m build
 python3 -m twine upload --repository testpypi dist/*
 ```
 
 ### PyPI
 
-```
+```bash
 python3 -m build
 python3 -m twine upload --repository pypi dist/*
 ```
