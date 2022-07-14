@@ -115,7 +115,7 @@ class WcsTests(unittest.TestCase):
                 "operator": {
                     "type": "GdalSource",
                     "params": {
-                        "dataset": {
+                        "data": {
                             "type": "internal",
                             "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
                         }
@@ -252,7 +252,7 @@ class WcsTests(unittest.TestCase):
                 "operator": {
                     "type": "GdalSource",
                     "params": {
-                        "dataset": {
+                        "data": {
                             "type": "internal",
                             "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
                         }
@@ -375,7 +375,7 @@ class WcsTests(unittest.TestCase):
                 "operator": {
                     "type": "GdalSource",
                     "params": {
-                        "dataset": {
+                        "data": {
                             "type": "internal",
                             "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
                         }
