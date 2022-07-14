@@ -269,7 +269,7 @@ class WfsTests(unittest.TestCase):
                         "vector": {
                             "type": "OgrSource",
                             "params": {
-                                "dataset": {
+                                "data": {
                                     "type": "internal",
                                     "datasetId": "a9623a5b-b6c5-404b-bc5a-313ff72e4e75"
                                 },
@@ -279,7 +279,7 @@ class WfsTests(unittest.TestCase):
                         "rasters": [{
                             "type": "GdalSource",
                             "params": {
-                                "dataset": {
+                                "data": {
                                     "type": "internal",
                                     "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
                                 }
@@ -430,7 +430,7 @@ class WfsTests(unittest.TestCase):
                         "vector": {
                             "type": "OgrSource",
                             "params": {
-                                "dataset": {
+                                "data": {
                                     "type": "internal",
                                     "datasetId": "a9623a5b-b6c5-404b-bc5a-313ff72e4e75"
                                 },
@@ -440,10 +440,10 @@ class WfsTests(unittest.TestCase):
                         "rasters": [{
                             "type": "GdalSource",
                             "params": {
-                                    "dataset": {
-                                        "type": "internal",
-                                        "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
-                                    }
+                                "data": {
+                                    "type": "internal",
+                                    "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                                }
                             }
                         }]
                     }
@@ -557,7 +557,7 @@ class WfsTests(unittest.TestCase):
                         "vector": {
                             "type": "OgrSource",
                             "params": {
-                                "dataset": {
+                                "data": {
                                     "type": "internal",
                                     "datasetId": "a9623a5b-b6c5-404b-bc5a-313ff72e4e75"
                                 },
@@ -567,10 +567,10 @@ class WfsTests(unittest.TestCase):
                         "rasters": [{
                             "type": "GdalSource",
                             "params": {
-                                    "dataset": {
-                                        "type": "internal",
-                                        "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
-                                    }
+                                "data": {
+                                    "type": "internal",
+                                    "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                                }
                             }
                         }]
                     }
@@ -787,7 +787,7 @@ class WfsTests(unittest.TestCase):
                     "vector": {
                         "type": "OgrSource",
                         "params": {
-                            "dataset": {
+                            "data": {
                                 "type": "internal",
                                 "datasetId": "a9623a5b-b6c5-404b-bc5a-313ff72e4e75"
                             },
@@ -798,7 +798,7 @@ class WfsTests(unittest.TestCase):
                         {
                             "type": "GdalSource",
                             "params": {
-                                "dataset": {
+                                "data": {
                                     "type": "internal",
                                     "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
                                 }

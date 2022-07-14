@@ -6,8 +6,8 @@ import json
 
 import requests_mock
 
-from geoengine.types import InternalDatasetId, QueryRectangle
-from geoengine.datasets import UploadId
+from geoengine.types import QueryRectangle
+from geoengine.datasets import DatasetId, UploadId
 import geoengine as ge
 
 
@@ -69,13 +69,9 @@ class WorkflowStorageTests(unittest.TestCase):
                    }),
                    json={
                        "upload": "3086f494-d5a4-4b51-a14b-3b29f8bf7bb0",
-                       "dataset": {
-                           "type": "internal",
-                           "datasetId": "94230f0b-4e8a-4cba-9adc-3ace837fe5d4"
-                       }
+                       "dataset": "94230f0b-4e8a-4cba-9adc-3ace837fe5d4"
                    },
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
-
             ge.initialize("http://mock-instance")
 
             workflow_definition = {
@@ -83,7 +79,7 @@ class WorkflowStorageTests(unittest.TestCase):
                 "operator": {
                     "type": "GdalSource",
                     "params": {
-                        "dataset": {
+                        "data": {
                             "type": "internal",
                             "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
                         }
@@ -106,5 +102,5 @@ class WorkflowStorageTests(unittest.TestCase):
                 "Bar",
             )
 
-            self.assertEqual(stored_dataset.dataset_id, InternalDatasetId("94230f0b-4e8a-4cba-9adc-3ace837fe5d4"))
+            self.assertEqual(stored_dataset.dataset_id, DatasetId("94230f0b-4e8a-4cba-9adc-3ace837fe5d4"))
             self.assertEqual(stored_dataset.upload_id, UploadId("3086f494-d5a4-4b51-a14b-3b29f8bf7bb0"))
