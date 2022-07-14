@@ -3,7 +3,7 @@ A workflow representation and methods on workflows
 '''
 
 from __future__ import annotations
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from uuid import UUID
 from logging import debug
@@ -289,7 +289,7 @@ class Workflow:
         self,
         bbox: QueryRectangle,
         timeout=3600,
-        force_no_data_value=None
+        force_no_data_value: Optional[float] = None
     ) -> rasterio.io.MemoryFile:
         '''
         Query a workflow and return the raster result as a memory mapped GeoTiff
@@ -341,7 +341,12 @@ class Workflow:
 
         return memory_file
 
-    def get_array(self, bbox: QueryRectangle, timeout=3600, force_no_data_value=None) -> np.ndarray:
+    def get_array(
+        self,
+        bbox: QueryRectangle,
+        timeout=3600,
+        force_no_data_value: Optional[float] = None
+    ) -> np.ndarray:
         '''
         Query a workflow and return the raster result as a numpy array
 
@@ -362,7 +367,12 @@ class Workflow:
 
             return array
 
-    def get_xarray(self, bbox: QueryRectangle, timeout=3600, force_no_data_value=None) -> np.ndarray:
+    def get_xarray(
+        self,
+        bbox: QueryRectangle,
+        timeout=3600,
+        force_no_data_value: Optional[float] = None
+    ) -> np.ndarray:
         '''
         Query a workflow and return the raster result as a georeferenced xarray
 
