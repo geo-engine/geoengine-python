@@ -472,35 +472,35 @@ class Provenance:
 class ProvenanceOutput:
     &#39;&#39;&#39;Provenance of a dataset&#39;&#39;&#39;
 
-    dataset: DatasetId
+    data: DataId
     provenance: Provenance
 
     @classmethod
     def from_response(cls, response: Dict[str, Dict[str, str]]) -&gt; ProvenanceOutput:
         &#39;&#39;&#39;Parse an http response to a `ProvenanceOutput` object&#39;&#39;&#39;
 
-        dataset = DatasetId.from_response(response[&#39;dataset&#39;])
+        dataset = DataId.from_response(response[&#39;data&#39;])
         provenance = Provenance.from_response(response[&#39;provenance&#39;])
 
         return ProvenanceOutput(dataset, provenance)
 
 
-class DatasetId:  # pylint: disable=too-few-public-methods
-    &#39;&#39;&#39;Base class for dataset ids&#39;&#39;&#39;
+class DataId:  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Base class for data ids&#39;&#39;&#39;
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -&gt; DatasetId:
-        &#39;&#39;&#39;Parse an http response to a `DatasetId` object&#39;&#39;&#39;
+    def from_response(cls, response: Dict[str, str]) -&gt; DataId:
+        &#39;&#39;&#39;Parse an http response to a `DataId` object&#39;&#39;&#39;
 
         if response[&#34;type&#34;] == &#34;internal&#34;:
-            return InternalDatasetId.from_response(response)
+            return InternalDataId.from_response(response)
         if response[&#34;type&#34;] == &#34;external&#34;:
-            return ExternalDatasetId.from_response(response)
+            return ExternalDataId.from_response(response)
 
-        raise GeoEngineException(f&#34;Unknown DatasetId type: {response[&#39;type&#39;]}&#34;)
+        raise GeoEngineException(f&#34;Unknown DataId type: {response[&#39;type&#39;]}&#34;)
 
 
-class InternalDatasetId(DatasetId):
-    &#39;&#39;&#39;An internal dataset id&#39;&#39;&#39;
+class InternalDataId(DataId):
+    &#39;&#39;&#39;An internal data id&#39;&#39;&#39;
 
     __dataset_id: UUID
 
@@ -508,10 +508,10 @@ class InternalDatasetId(DatasetId):
         self.__dataset_id = dataset_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -&gt; InternalDatasetId:
-        &#39;&#39;&#39;Parse an http response to a `InternalDatasetId` object&#39;&#39;&#39;
+    def from_response(cls, response: Dict[str, str]) -&gt; InternalDataId:
+        &#39;&#39;&#39;Parse an http response to a `InternalDataId` object&#39;&#39;&#39;
 
-        return InternalDatasetId(response[&#39;datasetId&#39;])
+        return InternalDataId(response[&#39;datasetId&#39;])
 
     def to_dict(self) -&gt; Dict[str, str]:
         return {
@@ -523,53 +523,53 @@ class InternalDatasetId(DatasetId):
         return str(self.__dataset_id)
 
     def __repr__(self) -&gt; str:
-        &#39;&#39;&#39;Display representation of an internal dataset id&#39;&#39;&#39;
+        &#39;&#39;&#39;Display representation of an internal data id&#39;&#39;&#39;
         return str(self)
 
     def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Check if two internal dataset ids are equal&#39;&#39;&#39;
+        &#39;&#39;&#39;Check if two internal data ids are equal&#39;&#39;&#39;
         if not isinstance(other, self.__class__):
             return False
 
         return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
 
 
-class ExternalDatasetId(DatasetId):
-    &#39;&#39;&#39;An external dataset id&#39;&#39;&#39;
+class ExternalDataId(DataId):
+    &#39;&#39;&#39;An external data id&#39;&#39;&#39;
 
     __provider_id: UUID
-    __dataset_id: str
+    __layer_id: str
 
-    def __init__(self, provider_id: UUID, dataset_id: str):
+    def __init__(self, provider_id: UUID, layer_id: str):
         self.__provider_id = provider_id
-        self.__dataset_id = dataset_id
+        self.__layer_id = layer_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -&gt; ExternalDatasetId:
-        &#39;&#39;&#39;Parse an http response to a `ExternalDatasetId` object&#39;&#39;&#39;
+    def from_response(cls, response: Dict[str, str]) -&gt; ExternalDataId:
+        &#39;&#39;&#39;Parse an http response to a `ExternalDataId` object&#39;&#39;&#39;
 
-        return ExternalDatasetId(response[&#39;providerId&#39;], response[&#39;datasetId&#39;])
+        return ExternalDataId(response[&#39;providerId&#39;], response[&#39;layerId&#39;])
 
     def to_dict(self) -&gt; Dict[str, str]:
         return {
             &#34;type&#34;: &#34;external&#34;,
             &#34;providerId&#34;: self.__provider_id,
-            &#34;datasetId&#34;: self.__dataset_id,
+            &#34;layerId&#34;: self.__layer_id,
         }
 
     def __str__(self) -&gt; str:
-        return f&#39;{self.__provider_id}:{self.__dataset_id}&#39;
+        return f&#39;{self.__provider_id}:{self.__layer_id}&#39;
 
     def __repr__(self) -&gt; str:
-        &#39;&#39;&#39;Display representation of an external dataset id&#39;&#39;&#39;
+        &#39;&#39;&#39;Display representation of an external data id&#39;&#39;&#39;
         return str(self)
 
     def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Check if two external dataset ids are equal&#39;&#39;&#39;
+        &#39;&#39;&#39;Check if two external data ids are equal&#39;&#39;&#39;
         if not isinstance(other, self.__class__):
             return False
 
-        return self.__provider_id == other.__provider_id and self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
+        return self.__provider_id == other.__provider_id and self.__layer_id == other.__layer_id  # pylint: disable=protected-access
 
 
 class Measurement:  # pylint: disable=too-few-public-methods
@@ -915,131 +915,131 @@ def unit(self) -&gt; Optional[str]:
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.types.DatasetId"><code class="flex name class">
-<span>class <span class="ident">DatasetId</span></span>
+<dt id="geoengine.types.DataId"><code class="flex name class">
+<span>class <span class="ident">DataId</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Base class for dataset ids</p></div>
+<div class="desc"><p>Base class for data ids</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DatasetId:  # pylint: disable=too-few-public-methods
-    &#39;&#39;&#39;Base class for dataset ids&#39;&#39;&#39;
+<pre><code class="python">class DataId:  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Base class for data ids&#39;&#39;&#39;
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -&gt; DatasetId:
-        &#39;&#39;&#39;Parse an http response to a `DatasetId` object&#39;&#39;&#39;
+    def from_response(cls, response: Dict[str, str]) -&gt; DataId:
+        &#39;&#39;&#39;Parse an http response to a `DataId` object&#39;&#39;&#39;
 
         if response[&#34;type&#34;] == &#34;internal&#34;:
-            return InternalDatasetId.from_response(response)
+            return InternalDataId.from_response(response)
         if response[&#34;type&#34;] == &#34;external&#34;:
-            return ExternalDatasetId.from_response(response)
+            return ExternalDataId.from_response(response)
 
-        raise GeoEngineException(f&#34;Unknown DatasetId type: {response[&#39;type&#39;]}&#34;)</code></pre>
+        raise GeoEngineException(f&#34;Unknown DataId type: {response[&#39;type&#39;]}&#34;)</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="geoengine.types.ExternalDatasetId" href="#geoengine.types.ExternalDatasetId">ExternalDatasetId</a></li>
-<li><a title="geoengine.types.InternalDatasetId" href="#geoengine.types.InternalDatasetId">InternalDatasetId</a></li>
+<li><a title="geoengine.types.ExternalDataId" href="#geoengine.types.ExternalDataId">ExternalDataId</a></li>
+<li><a title="geoengine.types.InternalDataId" href="#geoengine.types.InternalDataId">InternalDataId</a></li>
 </ul>
 <h3>Static methods</h3>
 <dl>
-<dt id="geoengine.types.DatasetId.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></span>
+<dt id="geoengine.types.DataId.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.types.DataId" href="#geoengine.types.DataId">DataId</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></code> object</p></div>
+<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.DataId" href="#geoengine.types.DataId">DataId</a></code> object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response: Dict[str, str]) -&gt; DatasetId:
-    &#39;&#39;&#39;Parse an http response to a `DatasetId` object&#39;&#39;&#39;
+def from_response(cls, response: Dict[str, str]) -&gt; DataId:
+    &#39;&#39;&#39;Parse an http response to a `DataId` object&#39;&#39;&#39;
 
     if response[&#34;type&#34;] == &#34;internal&#34;:
-        return InternalDatasetId.from_response(response)
+        return InternalDataId.from_response(response)
     if response[&#34;type&#34;] == &#34;external&#34;:
-        return ExternalDatasetId.from_response(response)
+        return ExternalDataId.from_response(response)
 
-    raise GeoEngineException(f&#34;Unknown DatasetId type: {response[&#39;type&#39;]}&#34;)</code></pre>
+    raise GeoEngineException(f&#34;Unknown DataId type: {response[&#39;type&#39;]}&#34;)</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.types.ExternalDatasetId"><code class="flex name class">
-<span>class <span class="ident">ExternalDatasetId</span></span>
-<span>(</span><span>provider_id: UUID, dataset_id: str)</span>
+<dt id="geoengine.types.ExternalDataId"><code class="flex name class">
+<span>class <span class="ident">ExternalDataId</span></span>
+<span>(</span><span>provider_id: UUID, layer_id: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An external dataset id</p></div>
+<div class="desc"><p>An external data id</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ExternalDatasetId(DatasetId):
-    &#39;&#39;&#39;An external dataset id&#39;&#39;&#39;
+<pre><code class="python">class ExternalDataId(DataId):
+    &#39;&#39;&#39;An external data id&#39;&#39;&#39;
 
     __provider_id: UUID
-    __dataset_id: str
+    __layer_id: str
 
-    def __init__(self, provider_id: UUID, dataset_id: str):
+    def __init__(self, provider_id: UUID, layer_id: str):
         self.__provider_id = provider_id
-        self.__dataset_id = dataset_id
+        self.__layer_id = layer_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -&gt; ExternalDatasetId:
-        &#39;&#39;&#39;Parse an http response to a `ExternalDatasetId` object&#39;&#39;&#39;
+    def from_response(cls, response: Dict[str, str]) -&gt; ExternalDataId:
+        &#39;&#39;&#39;Parse an http response to a `ExternalDataId` object&#39;&#39;&#39;
 
-        return ExternalDatasetId(response[&#39;providerId&#39;], response[&#39;datasetId&#39;])
+        return ExternalDataId(response[&#39;providerId&#39;], response[&#39;layerId&#39;])
 
     def to_dict(self) -&gt; Dict[str, str]:
         return {
             &#34;type&#34;: &#34;external&#34;,
             &#34;providerId&#34;: self.__provider_id,
-            &#34;datasetId&#34;: self.__dataset_id,
+            &#34;layerId&#34;: self.__layer_id,
         }
 
     def __str__(self) -&gt; str:
-        return f&#39;{self.__provider_id}:{self.__dataset_id}&#39;
+        return f&#39;{self.__provider_id}:{self.__layer_id}&#39;
 
     def __repr__(self) -&gt; str:
-        &#39;&#39;&#39;Display representation of an external dataset id&#39;&#39;&#39;
+        &#39;&#39;&#39;Display representation of an external data id&#39;&#39;&#39;
         return str(self)
 
     def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Check if two external dataset ids are equal&#39;&#39;&#39;
+        &#39;&#39;&#39;Check if two external data ids are equal&#39;&#39;&#39;
         if not isinstance(other, self.__class__):
             return False
 
-        return self.__provider_id == other.__provider_id and self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access</code></pre>
+        return self.__provider_id == other.__provider_id and self.__layer_id == other.__layer_id  # pylint: disable=protected-access</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></li>
+<li><a title="geoengine.types.DataId" href="#geoengine.types.DataId">DataId</a></li>
 </ul>
 <h3>Static methods</h3>
 <dl>
-<dt id="geoengine.types.ExternalDatasetId.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.types.ExternalDatasetId" href="#geoengine.types.ExternalDatasetId">ExternalDatasetId</a></span>
+<dt id="geoengine.types.ExternalDataId.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.types.ExternalDataId" href="#geoengine.types.ExternalDataId">ExternalDataId</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.ExternalDatasetId" href="#geoengine.types.ExternalDatasetId">ExternalDatasetId</a></code> object</p></div>
+<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.ExternalDataId" href="#geoengine.types.ExternalDataId">ExternalDataId</a></code> object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response: Dict[str, str]) -&gt; ExternalDatasetId:
-    &#39;&#39;&#39;Parse an http response to a `ExternalDatasetId` object&#39;&#39;&#39;
+def from_response(cls, response: Dict[str, str]) -&gt; ExternalDataId:
+    &#39;&#39;&#39;Parse an http response to a `ExternalDataId` object&#39;&#39;&#39;
 
-    return ExternalDatasetId(response[&#39;providerId&#39;], response[&#39;datasetId&#39;])</code></pre>
+    return ExternalDataId(response[&#39;providerId&#39;], response[&#39;layerId&#39;])</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="geoengine.types.ExternalDatasetId.to_dict"><code class="name flex">
+<dt id="geoengine.types.ExternalDataId.to_dict"><code class="name flex">
 <span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
 </code></dt>
 <dd>
@@ -1052,24 +1052,24 @@ def from_response(cls, response: Dict[str, str]) -&gt; ExternalDatasetId:
     return {
         &#34;type&#34;: &#34;external&#34;,
         &#34;providerId&#34;: self.__provider_id,
-        &#34;datasetId&#34;: self.__dataset_id,
+        &#34;layerId&#34;: self.__layer_id,
     }</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.types.InternalDatasetId"><code class="flex name class">
-<span>class <span class="ident">InternalDatasetId</span></span>
+<dt id="geoengine.types.InternalDataId"><code class="flex name class">
+<span>class <span class="ident">InternalDataId</span></span>
 <span>(</span><span>dataset_id: UUID)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An internal dataset id</p></div>
+<div class="desc"><p>An internal data id</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class InternalDatasetId(DatasetId):
-    &#39;&#39;&#39;An internal dataset id&#39;&#39;&#39;
+<pre><code class="python">class InternalDataId(DataId):
+    &#39;&#39;&#39;An internal data id&#39;&#39;&#39;
 
     __dataset_id: UUID
 
@@ -1077,10 +1077,10 @@ def from_response(cls, response: Dict[str, str]) -&gt; ExternalDatasetId:
         self.__dataset_id = dataset_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -&gt; InternalDatasetId:
-        &#39;&#39;&#39;Parse an http response to a `InternalDatasetId` object&#39;&#39;&#39;
+    def from_response(cls, response: Dict[str, str]) -&gt; InternalDataId:
+        &#39;&#39;&#39;Parse an http response to a `InternalDataId` object&#39;&#39;&#39;
 
-        return InternalDatasetId(response[&#39;datasetId&#39;])
+        return InternalDataId(response[&#39;datasetId&#39;])
 
     def to_dict(self) -&gt; Dict[str, str]:
         return {
@@ -1092,11 +1092,11 @@ def from_response(cls, response: Dict[str, str]) -&gt; ExternalDatasetId:
         return str(self.__dataset_id)
 
     def __repr__(self) -&gt; str:
-        &#39;&#39;&#39;Display representation of an internal dataset id&#39;&#39;&#39;
+        &#39;&#39;&#39;Display representation of an internal data id&#39;&#39;&#39;
         return str(self)
 
     def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Check if two internal dataset ids are equal&#39;&#39;&#39;
+        &#39;&#39;&#39;Check if two internal data ids are equal&#39;&#39;&#39;
         if not isinstance(other, self.__class__):
             return False
 
@@ -1104,30 +1104,30 @@ def from_response(cls, response: Dict[str, str]) -&gt; ExternalDatasetId:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></li>
+<li><a title="geoengine.types.DataId" href="#geoengine.types.DataId">DataId</a></li>
 </ul>
 <h3>Static methods</h3>
 <dl>
-<dt id="geoengine.types.InternalDatasetId.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.types.InternalDatasetId" href="#geoengine.types.InternalDatasetId">InternalDatasetId</a></span>
+<dt id="geoengine.types.InternalDataId.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.types.InternalDataId" href="#geoengine.types.InternalDataId">InternalDataId</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.InternalDatasetId" href="#geoengine.types.InternalDatasetId">InternalDatasetId</a></code> object</p></div>
+<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.InternalDataId" href="#geoengine.types.InternalDataId">InternalDataId</a></code> object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response: Dict[str, str]) -&gt; InternalDatasetId:
-    &#39;&#39;&#39;Parse an http response to a `InternalDatasetId` object&#39;&#39;&#39;
+def from_response(cls, response: Dict[str, str]) -&gt; InternalDataId:
+    &#39;&#39;&#39;Parse an http response to a `InternalDataId` object&#39;&#39;&#39;
 
-    return InternalDatasetId(response[&#39;datasetId&#39;])</code></pre>
+    return InternalDataId(response[&#39;datasetId&#39;])</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="geoengine.types.InternalDatasetId.to_dict"><code class="name flex">
+<dt id="geoengine.types.InternalDataId.to_dict"><code class="name flex">
 <span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
 </code></dt>
 <dd>
@@ -1335,7 +1335,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; Provenance:
 </dd>
 <dt id="geoengine.types.ProvenanceOutput"><code class="flex name class">
 <span>class <span class="ident">ProvenanceOutput</span></span>
-<span>(</span><span>dataset: <a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a>, provenance: <a title="geoengine.types.Provenance" href="#geoengine.types.Provenance">Provenance</a>)</span>
+<span>(</span><span>data: <a title="geoengine.types.DataId" href="#geoengine.types.DataId">DataId</a>, provenance: <a title="geoengine.types.Provenance" href="#geoengine.types.Provenance">Provenance</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Provenance of a dataset</p>
@@ -1348,21 +1348,21 @@ def from_response(cls, response: Dict[str, str]) -&gt; Provenance:
 class ProvenanceOutput:
     &#39;&#39;&#39;Provenance of a dataset&#39;&#39;&#39;
 
-    dataset: DatasetId
+    data: DataId
     provenance: Provenance
 
     @classmethod
     def from_response(cls, response: Dict[str, Dict[str, str]]) -&gt; ProvenanceOutput:
         &#39;&#39;&#39;Parse an http response to a `ProvenanceOutput` object&#39;&#39;&#39;
 
-        dataset = DatasetId.from_response(response[&#39;dataset&#39;])
+        dataset = DataId.from_response(response[&#39;data&#39;])
         provenance = Provenance.from_response(response[&#39;provenance&#39;])
 
         return ProvenanceOutput(dataset, provenance)</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.types.ProvenanceOutput.dataset"><code class="name">var <span class="ident">dataset</span> : <a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></code></dt>
+<dt id="geoengine.types.ProvenanceOutput.data"><code class="name">var <span class="ident">data</span> : <a title="geoengine.types.DataId" href="#geoengine.types.DataId">DataId</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1386,7 +1386,7 @@ class ProvenanceOutput:
 def from_response(cls, response: Dict[str, Dict[str, str]]) -&gt; ProvenanceOutput:
     &#39;&#39;&#39;Parse an http response to a `ProvenanceOutput` object&#39;&#39;&#39;
 
-    dataset = DatasetId.from_response(response[&#39;dataset&#39;])
+    dataset = DataId.from_response(response[&#39;data&#39;])
     provenance = Provenance.from_response(response[&#39;provenance&#39;])
 
     return ProvenanceOutput(dataset, provenance)</code></pre>
@@ -2450,23 +2450,23 @@ def data_type(self) -&gt; str:
 </ul>
 </li>
 <li>
-<h4><code><a title="geoengine.types.DatasetId" href="#geoengine.types.DatasetId">DatasetId</a></code></h4>
+<h4><code><a title="geoengine.types.DataId" href="#geoengine.types.DataId">DataId</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.types.DatasetId.from_response" href="#geoengine.types.DatasetId.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.DataId.from_response" href="#geoengine.types.DataId.from_response">from_response</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="geoengine.types.ExternalDatasetId" href="#geoengine.types.ExternalDatasetId">ExternalDatasetId</a></code></h4>
+<h4><code><a title="geoengine.types.ExternalDataId" href="#geoengine.types.ExternalDataId">ExternalDataId</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.types.ExternalDatasetId.from_response" href="#geoengine.types.ExternalDatasetId.from_response">from_response</a></code></li>
-<li><code><a title="geoengine.types.ExternalDatasetId.to_dict" href="#geoengine.types.ExternalDatasetId.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.types.ExternalDataId.from_response" href="#geoengine.types.ExternalDataId.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.ExternalDataId.to_dict" href="#geoengine.types.ExternalDataId.to_dict">to_dict</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="geoengine.types.InternalDatasetId" href="#geoengine.types.InternalDatasetId">InternalDatasetId</a></code></h4>
+<h4><code><a title="geoengine.types.InternalDataId" href="#geoengine.types.InternalDataId">InternalDataId</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.types.InternalDatasetId.from_response" href="#geoengine.types.InternalDatasetId.from_response">from_response</a></code></li>
-<li><code><a title="geoengine.types.InternalDatasetId.to_dict" href="#geoengine.types.InternalDatasetId.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.types.InternalDataId.from_response" href="#geoengine.types.InternalDataId.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.InternalDataId.to_dict" href="#geoengine.types.InternalDataId.to_dict">to_dict</a></code></li>
 </ul>
 </li>
 <li>
@@ -2490,7 +2490,7 @@ def data_type(self) -&gt; str:
 <li>
 <h4><code><a title="geoengine.types.ProvenanceOutput" href="#geoengine.types.ProvenanceOutput">ProvenanceOutput</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.types.ProvenanceOutput.dataset" href="#geoengine.types.ProvenanceOutput.dataset">dataset</a></code></li>
+<li><code><a title="geoengine.types.ProvenanceOutput.data" href="#geoengine.types.ProvenanceOutput.data">data</a></code></li>
 <li><code><a title="geoengine.types.ProvenanceOutput.from_response" href="#geoengine.types.ProvenanceOutput.from_response">from_response</a></code></li>
 <li><code><a title="geoengine.types.ProvenanceOutput.provenance" href="#geoengine.types.ProvenanceOutput.provenance">provenance</a></code></li>
 </ul>

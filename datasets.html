@@ -44,7 +44,7 @@ import requests as req
 
 from geoengine.error import GeoEngineException, InputException
 from geoengine.auth import get_session
-from geoengine.types import TimeStep, TimeStepGranularity, DatasetId, VectorDataType, InternalDatasetId
+from geoengine.types import TimeStep, TimeStepGranularity, VectorDataType
 
 
 class OgrSourceTimeFormat:
@@ -256,6 +256,36 @@ class OgrOnError(Enum):
     ABORT = &#34;abort&#34;
 
 
+class DatasetId:
+    &#39;&#39;&#39;A wrapper for a dataset id&#39;&#39;&#39;
+
+    __dataset_id: UUID
+
+    def __init__(self, dataset_id: UUID) -&gt; None:
+        self.__dataset_id = dataset_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; DatasetId:
+        &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
+        if &#39;id&#39; not in response:
+            raise GeoEngineException(response)
+
+        return DatasetId(response[&#39;id&#39;])
+
+    def __str__(self) -&gt; str:
+        return self.__dataset_id
+
+    def __repr__(self) -&gt; str:
+        return str(self)
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two dataset ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
+
+
 class UploadId:
     &#39;&#39;&#39;A wrapper for an upload id&#39;&#39;&#39;
 
@@ -378,13 +408,13 @@ def upload_dataframe(
     if &#39;error&#39; in response:
         raise GeoEngineException(response)
 
-    return InternalDatasetId.from_response(response[&#34;id&#34;])
+    return DatasetId(response[&#34;id&#34;])
 
 
 class StoredDataset(NamedTuple):
     &#39;&#39;&#39;The result of a store dataset request is a combination of `upload_id` and `dataset_id`&#39;&#39;&#39;
 
-    dataset_id: InternalDatasetId
+    dataset_id: DatasetId
     upload_id: UploadId</code></pre>
 </details>
 </section>
@@ -421,7 +451,7 @@ class StoredDataset(NamedTuple):
 </details>
 </dd>
 <dt id="geoengine.datasets.upload_dataframe"><code class="name flex">
-<span>def <span class="ident">upload_dataframe</span></span>(<span>df: gpd.GeoDataFrame, name: str = 'Upload from Python', time: <a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a> = NoneOgrSourceDatasetTimeType(), on_error: <a title="geoengine.datasets.OgrOnError" href="#geoengine.datasets.OgrOnError">OgrOnError</a> = OgrOnError.ABORT) ‑> <a title="geoengine.types.DatasetId" href="types.html#geoengine.types.DatasetId">DatasetId</a></span>
+<span>def <span class="ident">upload_dataframe</span></span>(<span>df: gpd.GeoDataFrame, name: str = 'Upload from Python', time: <a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a> = NoneOgrSourceDatasetTimeType(), on_error: <a title="geoengine.datasets.OgrOnError" href="#geoengine.datasets.OgrOnError">OgrOnError</a> = OgrOnError.ABORT) ‑> <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Uploads a given dataframe to Geo Engine and returns the id of the created dataset</p></div>
@@ -505,7 +535,7 @@ class StoredDataset(NamedTuple):
     if &#39;error&#39; in response:
         raise GeoEngineException(response)
 
-    return InternalDatasetId.from_response(response[&#34;id&#34;])</code></pre>
+    return DatasetId(response[&#34;id&#34;])</code></pre>
 </details>
 </dd>
 </dl>
@@ -615,6 +645,67 @@ def custom(cls, format_string: str) -&gt; CustomOgrSourceTimeFormat:
         &#34;format&#34;: &#34;custom&#34;,
         &#34;customFormat&#34;: self.custom
     }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.DatasetId"><code class="flex name class">
+<span>class <span class="ident">DatasetId</span></span>
+<span>(</span><span>dataset_id: UUID)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A wrapper for a dataset id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatasetId:
+    &#39;&#39;&#39;A wrapper for a dataset id&#39;&#39;&#39;
+
+    __dataset_id: UUID
+
+    def __init__(self, dataset_id: UUID) -&gt; None:
+        self.__dataset_id = dataset_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; DatasetId:
+        &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
+        if &#39;id&#39; not in response:
+            raise GeoEngineException(response)
+
+        return DatasetId(response[&#39;id&#39;])
+
+    def __str__(self) -&gt; str:
+        return self.__dataset_id
+
+    def __repr__(self) -&gt; str:
+        return str(self)
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two dataset ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.datasets.DatasetId.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a http response to an <code><a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: Dict[str, str]) -&gt; DatasetId:
+    &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
+    if &#39;id&#39; not in response:
+        raise GeoEngineException(response)
+
+    return DatasetId(response[&#39;id&#39;])</code></pre>
 </details>
 </dd>
 </dl>
@@ -1358,7 +1449,7 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 </dd>
 <dt id="geoengine.datasets.StoredDataset"><code class="flex name class">
 <span>class <span class="ident">StoredDataset</span></span>
-<span>(</span><span>dataset_id: ForwardRef('InternalDatasetId'), upload_id: ForwardRef('<a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>'))</span>
+<span>(</span><span>dataset_id: ForwardRef('<a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a>'), upload_id: ForwardRef('<a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>'))</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The result of a store dataset request is a combination of <code>upload_id</code> and <code>dataset_id</code></p></div>
@@ -1369,7 +1460,7 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <pre><code class="python">class StoredDataset(NamedTuple):
     &#39;&#39;&#39;The result of a store dataset request is a combination of `upload_id` and `dataset_id`&#39;&#39;&#39;
 
-    dataset_id: InternalDatasetId
+    dataset_id: DatasetId
     upload_id: UploadId</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1378,7 +1469,7 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="geoengine.datasets.StoredDataset.dataset_id"><code class="name">var <span class="ident">dataset_id</span> : <a title="geoengine.types.InternalDatasetId" href="types.html#geoengine.types.InternalDatasetId">InternalDatasetId</a></code></dt>
+<dt id="geoengine.datasets.StoredDataset.dataset_id"><code class="name">var <span class="ident">dataset_id</span> : <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
@@ -1580,6 +1671,12 @@ class ZeroOgrSourceDurationSpec(OgrSourceDuration):
 <ul class="">
 <li><code><a title="geoengine.datasets.CustomOgrSourceTimeFormat.custom" href="#geoengine.datasets.CustomOgrSourceTimeFormat.custom">custom</a></code></li>
 <li><code><a title="geoengine.datasets.CustomOgrSourceTimeFormat.to_dict" href="#geoengine.datasets.CustomOgrSourceTimeFormat.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.DatasetId.from_response" href="#geoengine.datasets.DatasetId.from_response">from_response</a></code></li>
 </ul>
 </li>
 <li>
