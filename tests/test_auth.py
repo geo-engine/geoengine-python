@@ -8,6 +8,7 @@ import os
 import requests_mock
 
 import geoengine as ge
+from geoengine.error import GeoEngineException
 from geoengine.types import QueryRectangle
 
 
@@ -143,6 +144,9 @@ class AuthTests(unittest.TestCase):
 
             self.assertEqual(type(ge.get_session()),
                              ge.Session)
+
+    def test_initialize_credentials_and_token(self):
+        self.assertRaises(GeoEngineException, ge.initialize, "http://mock-instance", ("user", "pass"), "token")
 
 
 if __name__ == '__main__':

@@ -42,13 +42,16 @@ class Session:
         Initialize communication between this library and a Geo Engine instance
 
         If credentials or a token are provided, the session will be authenticated.
-        The credentials take precedence over the token.
+        Credentials and token must not be provided at the same time.
 
         optional arguments: (email, password) as tuple or token as a string
         optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_TOKEN
         '''
 
         session = None
+
+        if credentials is not None and token is not None:
+            raise GeoEngineException('Cannot provide both credentials and token')
 
         if credentials is not None:
             session = req.post(f'{server_url}/login', json={"email": credentials[0], "password": credentials[1]}).json()
@@ -134,7 +137,7 @@ def initialize(server_url: str, credentials: Tuple[str, str] = None, token: str 
     Initialize communication between this library and a Geo Engine instance
 
     If credentials or a token are provided, the session will be authenticated.
-    The credentials take precedence over the token.
+    Credentials and token must not be provided at the same time.
 
     optional arugments: (email, password) as tuple or token as a string
     optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_TOKEN
