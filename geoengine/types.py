@@ -311,14 +311,12 @@ class RasterResultDescriptor(ResultDescriptor):
 
     __data_type: str
     __measurement: Measurement
-    __no_data_value: str
 
     def __init__(self, response: Dict[str, Any]) -> None:
         '''Initialize a new `RasterResultDescriptor`'''
         super().__init__(response['spatialReference'])
         self.__data_type = response['dataType']
         self.__measurement = Measurement.from_response(response['measurement'])
-        self.__no_data_value = response['noDataValue']
 
     def __repr__(self) -> str:
         '''Display representation of the raster result descriptor'''
@@ -326,7 +324,6 @@ class RasterResultDescriptor(ResultDescriptor):
         r += f'Data type:         {self.data_type}\n'
         r += f'Spatial Reference: {self.spatial_reference}\n'
         r += f'Measurement:       {self.measurement}\n'
-        r += f'No Data Value:     {self.no_data_value}\n'
 
         return r
 
@@ -341,10 +338,6 @@ class RasterResultDescriptor(ResultDescriptor):
     @property
     def measurement(self) -> Measurement:
         return self.__measurement
-
-    @property
-    def no_data_value(self) -> str:
-        return self.__no_data_value
 
     @property
     def spatial_reference(self) -> str:

@@ -40,8 +40,7 @@ class WmsTests(unittest.TestCase):
                       "spatialReference": "EPSG:4326",
                       "measurement": {
                               "type": "unitless"
-                      },
-                      "noDataValue": 0.0
+                      }
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -113,8 +112,7 @@ class WmsTests(unittest.TestCase):
                       "spatialReference": "EPSG:4326",
                       "measurement": {
                               "type": "unitless"
-                      },
-                      "noDataValue": 0.0
+                      }
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -187,8 +185,7 @@ class WmsTests(unittest.TestCase):
                       "spatialReference": "EPSG:4326",
                       "measurement": {
                               "type": "unitless"
-                      },
-                      "noDataValue": 0.0
+                      }
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -242,7 +239,6 @@ class WmsTests(unittest.TestCase):
                       "measurement": {
                           "type": "unitless"
                       },
-                      "noDataValue": 0.0
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -264,7 +260,6 @@ class WmsTests(unittest.TestCase):
                 Data type:         U8
                 Spatial Reference: EPSG:4326
                 Measurement:       unitless
-                No Data Value:     0.0
                 '''
 
             self.assertEqual(
