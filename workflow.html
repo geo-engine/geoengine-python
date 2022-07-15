@@ -32,7 +32,7 @@ A workflow representation and methods on workflows
 &#39;&#39;&#39;
 
 from __future__ import annotations
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from uuid import UUID
 from logging import debug
@@ -314,7 +314,12 @@ class Workflow:
 
         return VegaLite(vega_spec)
 
-    def __get_wcs_tiff_as_memory_file(self, bbox: QueryRectangle, timeout=3600) -&gt; rasterio.io.MemoryFile:
+    def __get_wcs_tiff_as_memory_file(
+        self,
+        bbox: QueryRectangle,
+        timeout=3600,
+        force_no_data_value: Optional[float] = None
+    ) -&gt; rasterio.io.MemoryFile:
         &#39;&#39;&#39;
         Query a workflow and return the raster result as a memory mapped GeoTiff
 
@@ -322,6 +327,8 @@ class Workflow:
         ----------
         bbox : A bounding box for the query
         timeout : HTTP request timeout in seconds
+        force_no_data_value: If not None, use this value as no data value for the requested raster data. \
+            Otherwise, use the Geo Engine will produce masked rasters.
         &#39;&#39;&#39;
 
         if not self.__result_descriptor.is_raster_result():
@@ -341,6 +348,10 @@ class Workflow:
 
         [resx, resy] = bbox.resolution_ogc
 
+        no_data_value = &#34;&#34;
+        if force_no_data_value is not None:
+            no_data_value = str(float(force_no_data_value))
+
         response = wcs.getCoverage(
             identifier=f&#39;{self.__workflow_id}&#39;,
             bbox=bbox.bbox_ogc,
@@ -350,6 +361,7 @@ class Workflow:
             resx=resx,
             resy=resy,
             timeout=timeout,
+            nodatavalue=no_data_value,
         ).read()
 
         # response is checked via `raise_on_error` in `getCoverage` / `openUrl`
@@ -358,7 +370,12 @@ class Workflow:
 
         return memory_file
 
-    def get_array(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+    def get_array(
+        self,
+        bbox: QueryRectangle,
+        timeout=3600,
+        force_no_data_value: Optional[float] = None
+    ) -&gt; np.ndarray:
         &#39;&#39;&#39;
         Query a workflow and return the raster result as a numpy array
 
@@ -366,16 +383,25 @@ class Workflow:
         ----------
         bbox : A bounding box for the query
         timeout : HTTP request timeout in seconds
+        force_no_data_value: If not None, use this value as no data value for the requested raster data. \
+            Otherwise, use the Geo Engine will produce masked rasters.
         &#39;&#39;&#39;
 
-        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+        with self.__get_wcs_tiff_as_memory_file(
+            bbox,
+            timeout,
+            force_no_data_value
+        ) as memfile, memfile.open() as dataset:
             array = dataset.read(1)
-
-            # TODO: map nodata values to NaN?
 
             return array
 
-    def get_xarray(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+    def get_xarray(
+        self,
+        bbox: QueryRectangle,
+        timeout=3600,
+        force_no_data_value: Optional[float] = None
+    ) -&gt; np.ndarray:
         &#39;&#39;&#39;
         Query a workflow and return the raster result as a georeferenced xarray
 
@@ -383,9 +409,15 @@ class Workflow:
         ----------
         bbox : A bounding box for the query
         timeout : HTTP request timeout in seconds
+        force_no_data_value: If not None, use this value as no data value for the requested raster data. \
+            Otherwise, use the Geo Engine will produce masked rasters.
         &#39;&#39;&#39;
 
-        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+        with self.__get_wcs_tiff_as_memory_file(
+            bbox,
+            timeout,
+            force_no_data_value
+        ) as memfile, memfile.open() as dataset:
             data_array = xr.open_rasterio(dataset)
 
             # TODO: add time information to dataset
@@ -765,7 +797,12 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         return VegaLite(vega_spec)
 
-    def __get_wcs_tiff_as_memory_file(self, bbox: QueryRectangle, timeout=3600) -&gt; rasterio.io.MemoryFile:
+    def __get_wcs_tiff_as_memory_file(
+        self,
+        bbox: QueryRectangle,
+        timeout=3600,
+        force_no_data_value: Optional[float] = None
+    ) -&gt; rasterio.io.MemoryFile:
         &#39;&#39;&#39;
         Query a workflow and return the raster result as a memory mapped GeoTiff
 
@@ -773,6 +810,8 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
         ----------
         bbox : A bounding box for the query
         timeout : HTTP request timeout in seconds
+        force_no_data_value: If not None, use this value as no data value for the requested raster data. \
+            Otherwise, use the Geo Engine will produce masked rasters.
         &#39;&#39;&#39;
 
         if not self.__result_descriptor.is_raster_result():
@@ -792,6 +831,10 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         [resx, resy] = bbox.resolution_ogc
 
+        no_data_value = &#34;&#34;
+        if force_no_data_value is not None:
+            no_data_value = str(float(force_no_data_value))
+
         response = wcs.getCoverage(
             identifier=f&#39;{self.__workflow_id}&#39;,
             bbox=bbox.bbox_ogc,
@@ -801,6 +844,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
             resx=resx,
             resy=resy,
             timeout=timeout,
+            nodatavalue=no_data_value,
         ).read()
 
         # response is checked via `raise_on_error` in `getCoverage` / `openUrl`
@@ -809,7 +853,12 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         return memory_file
 
-    def get_array(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+    def get_array(
+        self,
+        bbox: QueryRectangle,
+        timeout=3600,
+        force_no_data_value: Optional[float] = None
+    ) -&gt; np.ndarray:
         &#39;&#39;&#39;
         Query a workflow and return the raster result as a numpy array
 
@@ -817,16 +866,25 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
         ----------
         bbox : A bounding box for the query
         timeout : HTTP request timeout in seconds
+        force_no_data_value: If not None, use this value as no data value for the requested raster data. \
+            Otherwise, use the Geo Engine will produce masked rasters.
         &#39;&#39;&#39;
 
-        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+        with self.__get_wcs_tiff_as_memory_file(
+            bbox,
+            timeout,
+            force_no_data_value
+        ) as memfile, memfile.open() as dataset:
             array = dataset.read(1)
-
-            # TODO: map nodata values to NaN?
 
             return array
 
-    def get_xarray(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+    def get_xarray(
+        self,
+        bbox: QueryRectangle,
+        timeout=3600,
+        force_no_data_value: Optional[float] = None
+    ) -&gt; np.ndarray:
         &#39;&#39;&#39;
         Query a workflow and return the raster result as a georeferenced xarray
 
@@ -834,9 +892,15 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
         ----------
         bbox : A bounding box for the query
         timeout : HTTP request timeout in seconds
+        force_no_data_value: If not None, use this value as no data value for the requested raster data. \
+            Otherwise, use the Geo Engine will produce masked rasters.
         &#39;&#39;&#39;
 
-        with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+        with self.__get_wcs_tiff_as_memory_file(
+            bbox,
+            timeout,
+            force_no_data_value
+        ) as memfile, memfile.open() as dataset:
             data_array = xr.open_rasterio(dataset)
 
             # TODO: add time information to dataset
@@ -896,7 +960,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.workflow.Workflow.get_array"><code class="name flex">
-<span>def <span class="ident">get_array</span></span>(<span>self, bbox: QueryRectangle, timeout=3600) ‑> numpy.ndarray</span>
+<span>def <span class="ident">get_array</span></span>(<span>self, bbox: QueryRectangle, timeout=3600, force_no_data_value: Optional[float] = None) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Query a workflow and return the raster result as a numpy array</p>
@@ -906,12 +970,19 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 <dd>&nbsp;</dd>
 <dt><strong><code>timeout</code></strong> :&ensp;<code>HTTP request timeout in seconds</code></dt>
 <dd>&nbsp;</dd>
-</dl></div>
+</dl>
+<p>force_no_data_value: If not None, use this value as no data value for the requested raster data.
+Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_array(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+<pre><code class="python">def get_array(
+    self,
+    bbox: QueryRectangle,
+    timeout=3600,
+    force_no_data_value: Optional[float] = None
+) -&gt; np.ndarray:
     &#39;&#39;&#39;
     Query a workflow and return the raster result as a numpy array
 
@@ -919,12 +990,16 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
     ----------
     bbox : A bounding box for the query
     timeout : HTTP request timeout in seconds
+    force_no_data_value: If not None, use this value as no data value for the requested raster data. \
+        Otherwise, use the Geo Engine will produce masked rasters.
     &#39;&#39;&#39;
 
-    with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+    with self.__get_wcs_tiff_as_memory_file(
+        bbox,
+        timeout,
+        force_no_data_value
+    ) as memfile, memfile.open() as dataset:
         array = dataset.read(1)
-
-        # TODO: map nodata values to NaN?
 
         return array</code></pre>
 </details>
@@ -1047,7 +1122,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.get_xarray"><code class="name flex">
-<span>def <span class="ident">get_xarray</span></span>(<span>self, bbox: QueryRectangle, timeout=3600) ‑> numpy.ndarray</span>
+<span>def <span class="ident">get_xarray</span></span>(<span>self, bbox: QueryRectangle, timeout=3600, force_no_data_value: Optional[float] = None) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Query a workflow and return the raster result as a georeferenced xarray</p>
@@ -1057,12 +1132,19 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 <dd>&nbsp;</dd>
 <dt><strong><code>timeout</code></strong> :&ensp;<code>HTTP request timeout in seconds</code></dt>
 <dd>&nbsp;</dd>
-</dl></div>
+</dl>
+<p>force_no_data_value: If not None, use this value as no data value for the requested raster data.
+Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_xarray(self, bbox: QueryRectangle, timeout=3600) -&gt; np.ndarray:
+<pre><code class="python">def get_xarray(
+    self,
+    bbox: QueryRectangle,
+    timeout=3600,
+    force_no_data_value: Optional[float] = None
+) -&gt; np.ndarray:
     &#39;&#39;&#39;
     Query a workflow and return the raster result as a georeferenced xarray
 
@@ -1070,9 +1152,15 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
     ----------
     bbox : A bounding box for the query
     timeout : HTTP request timeout in seconds
+    force_no_data_value: If not None, use this value as no data value for the requested raster data. \
+        Otherwise, use the Geo Engine will produce masked rasters.
     &#39;&#39;&#39;
 
-    with self.__get_wcs_tiff_as_memory_file(bbox, timeout) as memfile, memfile.open() as dataset:
+    with self.__get_wcs_tiff_as_memory_file(
+        bbox,
+        timeout,
+        force_no_data_value
+    ) as memfile, memfile.open() as dataset:
         data_array = xr.open_rasterio(dataset)
 
         # TODO: add time information to dataset

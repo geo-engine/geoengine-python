@@ -340,14 +340,12 @@ class RasterResultDescriptor(ResultDescriptor):
 
     __data_type: str
     __measurement: Measurement
-    __no_data_value: str
 
     def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterResultDescriptor`&#39;&#39;&#39;
         super().__init__(response[&#39;spatialReference&#39;])
         self.__data_type = response[&#39;dataType&#39;]
         self.__measurement = Measurement.from_response(response[&#39;measurement&#39;])
-        self.__no_data_value = response[&#39;noDataValue&#39;]
 
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of the raster result descriptor&#39;&#39;&#39;
@@ -355,7 +353,6 @@ class RasterResultDescriptor(ResultDescriptor):
         r += f&#39;Data type:         {self.data_type}\n&#39;
         r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
         r += f&#39;Measurement:       {self.measurement}\n&#39;
-        r += f&#39;No Data Value:     {self.no_data_value}\n&#39;
 
         return r
 
@@ -370,10 +367,6 @@ class RasterResultDescriptor(ResultDescriptor):
     @property
     def measurement(self) -&gt; Measurement:
         return self.__measurement
-
-    @property
-    def no_data_value(self) -&gt; str:
-        return self.__no_data_value
 
     @property
     def spatial_reference(self) -&gt; str:
@@ -1763,14 +1756,12 @@ def ymin(self) -&gt; number:
 
     __data_type: str
     __measurement: Measurement
-    __no_data_value: str
 
     def __init__(self, response: Dict[str, Any]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterResultDescriptor`&#39;&#39;&#39;
         super().__init__(response[&#39;spatialReference&#39;])
         self.__data_type = response[&#39;dataType&#39;]
         self.__measurement = Measurement.from_response(response[&#39;measurement&#39;])
-        self.__no_data_value = response[&#39;noDataValue&#39;]
 
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of the raster result descriptor&#39;&#39;&#39;
@@ -1778,7 +1769,6 @@ def ymin(self) -&gt; number:
         r += f&#39;Data type:         {self.data_type}\n&#39;
         r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
         r += f&#39;Measurement:       {self.measurement}\n&#39;
-        r += f&#39;No Data Value:     {self.no_data_value}\n&#39;
 
         return r
 
@@ -1793,10 +1783,6 @@ def ymin(self) -&gt; number:
     @property
     def measurement(self) -&gt; Measurement:
         return self.__measurement
-
-    @property
-    def no_data_value(self) -&gt; str:
-        return self.__no_data_value
 
     @property
     def spatial_reference(self) -&gt; str:
@@ -1832,18 +1818,6 @@ def data_type(self) -&gt; str:
 <pre><code class="python">@property
 def measurement(self) -&gt; Measurement:
     return self.__measurement</code></pre>
-</details>
-</dd>
-<dt id="geoengine.types.RasterResultDescriptor.no_data_value"><code class="name">var <span class="ident">no_data_value</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def no_data_value(self) -&gt; str:
-    return self.__no_data_value</code></pre>
 </details>
 </dd>
 </dl>
@@ -2516,7 +2490,6 @@ def data_type(self) -&gt; str:
 <ul class="">
 <li><code><a title="geoengine.types.RasterResultDescriptor.data_type" href="#geoengine.types.RasterResultDescriptor.data_type">data_type</a></code></li>
 <li><code><a title="geoengine.types.RasterResultDescriptor.measurement" href="#geoengine.types.RasterResultDescriptor.measurement">measurement</a></code></li>
-<li><code><a title="geoengine.types.RasterResultDescriptor.no_data_value" href="#geoengine.types.RasterResultDescriptor.no_data_value">no_data_value</a></code></li>
 </ul>
 </li>
 <li>
