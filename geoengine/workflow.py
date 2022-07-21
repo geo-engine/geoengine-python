@@ -423,8 +423,8 @@ class Workflow:
         if isinstance(path, BytesIO):
             path.write(response)
         else:
-            with open(path, 'wb') as f:
-                f.write(response)
+            with open(path, 'wb') as file:
+                file.write(response)
 
     def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = '') -> StoredDataset:
         '''EXPERIMENTAL: Store the workflow result as a layer'''
