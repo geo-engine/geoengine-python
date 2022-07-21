@@ -3,7 +3,8 @@ A workflow representation and methods on workflows
 '''
 
 from __future__ import annotations
-from typing import Any, Dict, List, Optional, Tuple
+from os import PathLike
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from uuid import UUID
 from logging import debug
@@ -407,6 +408,23 @@ class Workflow:
         response = req.get(provenance_url, headers=session.auth_header).json()
 
         return [ProvenanceOutput.from_response(item) for item in response]
+
+    def metadata_zip(self, path: Union[PathLike, BytesIO]) -> None:
+        '''
+        Query workflow metadata and citations and stores it as zip file to `path`
+        '''
+
+        session = get_session()
+
+        provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/all_metadata/zip'
+
+        response = req.get(provenance_url, headers=session.auth_header).content
+
+        if isinstance(path, BytesIO):
+            path.write(response)
+        else:
+            with open(path, 'wb') as f:
+                f.write(response)
 
     def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = '') -> StoredDataset:
         '''EXPERIMENTAL: Store the workflow result as a layer'''
