@@ -1,7 +1,7 @@
 """This module is used to generate geoengine compatible color map definitions as a json string."""
 
 import json
-from ast import Tuple
+from typing import Tuple
 import numpy as np
 from matplotlib.colors import ListedColormap
 from matplotlib.cm import ScalarMappable
@@ -9,31 +9,28 @@ from matplotlib.cm import ScalarMappable
 
 class Colorizer():
     """This class is used to generate geoengine compatible color map definitions as a json string."""
+    # pylint: disable=too-few-public-methods
 
-    def __init__(self, steps: int = 10, min_max: Tuple(int, int) = (0, 255)):
+    def __init__(
+            self,
+            steps: int = 10,
+            min_max: Tuple[int, int] = None,
+            default_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
+            no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)):
         """Initialize the colorizer."""
-        self.steps = steps
-        self.min_max = min_max
+        self.__steps = steps
+        self.__min_max = min_max
+        self.__default_color = default_color
+        self.__no_data_color = no_data_color
 
-    def set_default_steps(self, steps: int):
-        """Set the default number of steps for the colorizer.
-
-        Args:
-            steps (int): the number of steps.
-        """
-        self.steps = steps
-
-    def set_default_min_max(self, min_max: Tuple(int, int)):
-        """Set the default min and max values for the colorizer.
-
-        Args:
-            min_max (Tuple(int, int)): the min and max values.
-        """
-        self.min_max = min_max
-
-    def colorize(
-        self, map_name: ListedColormap, n_steps: int = None, min_max: Tuple(int, int) = None
-    ):
+    def to_query_string(
+        self,
+        map_name: ListedColormap,
+        n_steps: int = None,
+        min_max: Tuple[int, int] = None,
+        default_color: Tuple[int, int, int, int] = None,
+        no_data_color: Tuple[int, int, int, int] = None
+    ) -> str:
         """Generate a json dump that is compatible with the geoengine config protocol.
 
         Args:
@@ -43,21 +40,32 @@ class Colorizer():
         Returns:
             str: Returns the geoengine compatible json configuration string.
         """
+        # pylint: disable=too-many-arguments
         # set parameters or use defaults
         if n_steps is None:
-            n_steps = self.steps
+            n_steps = self.__steps
         if min_max is None:
-            min_max = self.min_max
+            if self.__min_max is None:
+                raise ValueError("min_max is not set, please specify a range for your values.")
+            min_max = self.__min_max
+        if default_color is None:
+            default_color = self.__default_color
+        if no_data_color is None:
+            no_data_color = self.__no_data_color
 
         # assert correct parameters are given
         if n_steps < 2:
             raise ValueError(f"n_steps must be greater than or equal to 2, got {n_steps} instead.")
-        if min_max[0] < 0 or min_max[0] > 255:
-            raise ValueError(f"min_max[0] must be between 0 and 255, got {min_max[0]} instead.")
-        if min_max[1] < 0 or min_max[1] > 255:
-            raise ValueError(f"min_max[1] must be between 0 and 255, got {min_max[1]} instead.")
         if min_max[1] <= min_max[0]:
             raise ValueError(f"min_max[1] must be greater than min_max[0], got {min_max[1]} and {min_max[0]}.")
+        if len(default_color) != 4:
+            raise ValueError(f"defaultColor must be a tuple of length 4, got {len(default_color)} instead.")
+        if len(no_data_color) != 4:
+            raise ValueError(f"noDataColor must be a tuple of length 4, got {len(no_data_color)} instead.")
+        if not all(0 <= elem < 256 for elem in no_data_color):
+            raise ValueError(f"noDataColor must be a RGBA color specification, got {no_data_color} instead.")
+        if not all(0 <= elem < 256 for elem in default_color):
+            raise ValueError(f"defaultColor must be a RGBA color specification, got {default_color} instead.")
 
         # get the map, and transform it to [0,255] values
         colormap = ScalarMappable(cmap=map_name).to_rgba(
@@ -78,16 +86,9 @@ class Colorizer():
             {
                 "type": "linearGradient",
                 "breakpoints": breakpoints,
-                "noDataColor": [0, 0, 0, 0],
-                "defaultColor": [0, 0, 0, 0],
+                "noDataColor": no_data_color,
+                "defaultColor": default_color,
             }
         )
 
         return colorizer
-
-
-# expose module methods as functions
-_inst = Colorizer()
-colorize = _inst.colorize
-set_default_steps = _inst.set_default_steps
-set_default_min_max = _inst.set_default_min_max

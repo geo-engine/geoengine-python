@@ -3,7 +3,7 @@ A workflow representation and methods on workflows
 '''
 
 from __future__ import annotations
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from uuid import UUID
 from logging import debug
@@ -189,10 +189,10 @@ class Workflow:
 
         return geo_json_with_time_to_geopandas(data)
 
-    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -> Image:
+    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: str = None) -> Image:
         '''Return the result of a WMS request as a PIL Image'''
 
-        wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
+        wms_request = self.__wms_get_map_request(bbox, colorizer)
         response = req.Session().send(wms_request)
 
         check_response_for_error(response)
@@ -201,7 +201,7 @@ class Workflow:
 
     def __wms_get_map_request(self,
                               bbox: QueryRectangle,
-                              colorizer_min_max: Tuple[float, float] = None) -> req.PreparedRequest:
+                              colorizer) -> req.PreparedRequest:
         '''Return the WMS url for a workflow and a given `QueryRectangle`'''
 
         if not self.__result_descriptor.is_raster_result():
@@ -212,21 +212,9 @@ class Workflow:
         width = int((bbox.xmax - bbox.xmin) / bbox.resolution[0])
         height = int((bbox.ymax - bbox.ymin) / bbox.resolution[1])
 
-        colorizer = ''
-        if colorizer_min_max is not None:
-            colorizer = 'custom:' + json.dumps({
-                "type": "linearGradient",
-                "breakpoints": [{
-                    "value": colorizer_min_max[0],
-                    "color": [0, 0, 0, 255]
-                }, {
-                    "value": colorizer_min_max[1],
-                    "color": [255, 255, 255, 255]
-                }],
-                "noDataColor": [0, 0, 0, 0],
-                "defaultColor": [0, 0, 0, 0]
-            })
-
+        custom_colorizer = ''
+        if colorizer is not None:
+            custom_colorizer = colorizer
         params = dict(
             service='WMS',
             version='1.3.0',
@@ -238,7 +226,7 @@ class Workflow:
             width=width,
             height=height,
             format='image/png',
-            styles=colorizer,  # TODO: incorporate styling properly
+            styles=custom_colorizer,  # TODO: incorporate styling properly
         )
 
         return req.Request(
@@ -248,7 +236,7 @@ class Workflow:
             headers=session.auth_header
         ).prepare()
 
-    def wms_get_map_curl(self, bbox: QueryRectangle, colorizer_min_max: Tuple[float, float] = None) -> str:
+    def wms_get_map_curl(self, bbox: QueryRectangle, colorizer_min_max: str = None) -> str:
         '''Return the WMS curl command for a workflow and a given `QueryRectangle`'''
 
         wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)

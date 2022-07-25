@@ -1,6 +1,7 @@
 '''Tests for WMS calls'''
 
 from datetime import datetime
+import json
 import unittest
 import textwrap
 from PIL import Image
@@ -85,7 +86,18 @@ class WmsTests(unittest.TestCase):
                     [time, time],
                     resolution=(1.8, 1.8)
                 ),
-                colorizer_min_max=(0, 255)
+                colorizer='custom:' + json.dumps({
+                    "type": "linearGradient",
+                    "breakpoints": [{
+                        "value": 0,
+                        "color": [0, 0, 0, 255]
+                    }, {
+                        "value": 255,
+                        "color": [255, 255, 255, 255]
+                    }],
+                    "noDataColor": [0, 0, 0, 0],
+                    "defaultColor": [0, 0, 0, 0]
+                })
             )
 
             self.assertEqual(img, Image.open("tests/responses/wms-ndvi.png"))
@@ -157,7 +169,18 @@ class WmsTests(unittest.TestCase):
                         [time, time],
                         resolution=(1.8, 1.8)
                     ),
-                    colorizer_min_max=(0, 255)
+                    colorizer='custom:' + json.dumps({
+                        "type": "linearGradient",
+                        "breakpoints": [{
+                            "value": 0,
+                            "color": [0, 0, 0, 255]
+                        }, {
+                            "value": 255,
+                            "color": [255, 255, 255, 255]
+                        }],
+                        "noDataColor": [0, 0, 0, 0],
+                        "defaultColor": [0, 0, 0, 0]
+                    })
                 )
 
             self.assertEqual(str(ctx.exception),
