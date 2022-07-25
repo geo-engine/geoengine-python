@@ -39,8 +39,7 @@ class WcsTests(unittest.TestCase):
                       "spatialReference": "EPSG:4326",
                       "measurement": {
                               "type": "unitless"
-                      },
-                      "noDataValue": 0.0
+                      }
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -116,7 +115,7 @@ class WcsTests(unittest.TestCase):
                 "operator": {
                     "type": "GdalSource",
                     "params": {
-                        "dataset": {
+                        "data": {
                             "type": "internal",
                             "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
                         }
@@ -172,8 +171,7 @@ class WcsTests(unittest.TestCase):
                       "spatialReference": "EPSG:4326",
                       "measurement": {
                               "type": "unitless"
-                      },
-                      "noDataValue": 0.0
+                      }
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -254,7 +252,7 @@ class WcsTests(unittest.TestCase):
                 "operator": {
                     "type": "GdalSource",
                     "params": {
-                        "dataset": {
+                        "data": {
                             "type": "internal",
                             "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
                         }
@@ -301,8 +299,7 @@ class WcsTests(unittest.TestCase):
                       "spatialReference": "EPSG:4326",
                       "measurement": {
                               "type": "unitless"
-                      },
-                      "noDataValue": 0.0
+                      }
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -378,7 +375,7 @@ class WcsTests(unittest.TestCase):
                 "operator": {
                     "type": "GdalSource",
                     "params": {
-                        "dataset": {
+                        "data": {
                             "type": "internal",
                             "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
                         }

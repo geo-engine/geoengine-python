@@ -3,7 +3,7 @@
 import unittest
 import requests_mock
 
-from geoengine.types import InternalDatasetId, Provenance, ProvenanceOutput
+from geoengine.types import InternalDataId, Provenance, ProvenanceOutput
 import geoengine as ge
 
 
@@ -34,8 +34,7 @@ class ProvenanceTests(unittest.TestCase):
                       "spatialReference": "EPSG:4326",
                       "measurement": {
                           "type": "unitless"
-                      },
-                      "noDataValue": 0.0
+                      }
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -43,7 +42,7 @@ class ProvenanceTests(unittest.TestCase):
                 # pylint: disable=line-too-long
                 'http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/provenance',
                 json=[{
-                      "dataset": {
+                      "data": {
                           "type": "internal",
                           "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
                       },
@@ -64,7 +63,7 @@ class ProvenanceTests(unittest.TestCase):
                 "operator": {
                     "type": "GdalSource",
                     "params": {
-                        "dataset": {
+                        "data": {
                             "type": "internal",
                             "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
                         }
@@ -79,7 +78,7 @@ class ProvenanceTests(unittest.TestCase):
             self.assertEqual(provenance, [
                 ProvenanceOutput(
                     # pylint: disable=line-too-long
-                    InternalDatasetId("36574dc3-560a-4b09-9d22-d5945f2b8093"),
+                    InternalDataId("36574dc3-560a-4b09-9d22-d5945f2b8093"),
                     Provenance(
                         "Nasa Earth Observations, MODIS Vegetation Index Products",
                         "https://earthdata.nasa.gov/collaborate/open-data-services-and-software/data-information-policy",

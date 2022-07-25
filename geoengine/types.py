@@ -311,14 +311,12 @@ class RasterResultDescriptor(ResultDescriptor):
 
     __data_type: str
     __measurement: Measurement
-    __no_data_value: str
 
     def __init__(self, response: Dict[str, Any]) -> None:
         '''Initialize a new `RasterResultDescriptor`'''
         super().__init__(response['spatialReference'])
         self.__data_type = response['dataType']
         self.__measurement = Measurement.from_response(response['measurement'])
-        self.__no_data_value = response['noDataValue']
 
     def __repr__(self) -> str:
         '''Display representation of the raster result descriptor'''
@@ -326,7 +324,6 @@ class RasterResultDescriptor(ResultDescriptor):
         r += f'Data type:         {self.data_type}\n'
         r += f'Spatial Reference: {self.spatial_reference}\n'
         r += f'Measurement:       {self.measurement}\n'
-        r += f'No Data Value:     {self.no_data_value}\n'
 
         return r
 
@@ -341,10 +338,6 @@ class RasterResultDescriptor(ResultDescriptor):
     @property
     def measurement(self) -> Measurement:
         return self.__measurement
-
-    @property
-    def no_data_value(self) -> str:
-        return self.__no_data_value
 
     @property
     def spatial_reference(self) -> str:
@@ -443,35 +436,35 @@ class Provenance:
 class ProvenanceOutput:
     '''Provenance of a dataset'''
 
-    dataset: DatasetId
+    data: DataId
     provenance: Provenance
 
     @classmethod
     def from_response(cls, response: Dict[str, Dict[str, str]]) -> ProvenanceOutput:
         '''Parse an http response to a `ProvenanceOutput` object'''
 
-        dataset = DatasetId.from_response(response['dataset'])
+        dataset = DataId.from_response(response['data'])
         provenance = Provenance.from_response(response['provenance'])
 
         return ProvenanceOutput(dataset, provenance)
 
 
-class DatasetId:  # pylint: disable=too-few-public-methods
-    '''Base class for dataset ids'''
+class DataId:  # pylint: disable=too-few-public-methods
+    '''Base class for data ids'''
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> DatasetId:
-        '''Parse an http response to a `DatasetId` object'''
+    def from_response(cls, response: Dict[str, str]) -> DataId:
+        '''Parse an http response to a `DataId` object'''
 
         if response["type"] == "internal":
-            return InternalDatasetId.from_response(response)
+            return InternalDataId.from_response(response)
         if response["type"] == "external":
-            return ExternalDatasetId.from_response(response)
+            return ExternalDataId.from_response(response)
 
-        raise GeoEngineException(f"Unknown DatasetId type: {response['type']}")
+        raise GeoEngineException(f"Unknown DataId type: {response['type']}")
 
 
-class InternalDatasetId(DatasetId):
-    '''An internal dataset id'''
+class InternalDataId(DataId):
+    '''An internal data id'''
 
     __dataset_id: UUID
 
@@ -479,10 +472,10 @@ class InternalDatasetId(DatasetId):
         self.__dataset_id = dataset_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> InternalDatasetId:
-        '''Parse an http response to a `InternalDatasetId` object'''
+    def from_response(cls, response: Dict[str, str]) -> InternalDataId:
+        '''Parse an http response to a `InternalDataId` object'''
 
-        return InternalDatasetId(response['datasetId'])
+        return InternalDataId(response['datasetId'])
 
     def to_dict(self) -> Dict[str, str]:
         return {
@@ -494,53 +487,53 @@ class InternalDatasetId(DatasetId):
         return str(self.__dataset_id)
 
     def __repr__(self) -> str:
-        '''Display representation of an internal dataset id'''
+        '''Display representation of an internal data id'''
         return str(self)
 
     def __eq__(self, other) -> bool:
-        '''Check if two internal dataset ids are equal'''
+        '''Check if two internal data ids are equal'''
         if not isinstance(other, self.__class__):
             return False
 
         return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
 
 
-class ExternalDatasetId(DatasetId):
-    '''An external dataset id'''
+class ExternalDataId(DataId):
+    '''An external data id'''
 
     __provider_id: UUID
-    __dataset_id: str
+    __layer_id: str
 
-    def __init__(self, provider_id: UUID, dataset_id: str):
+    def __init__(self, provider_id: UUID, layer_id: str):
         self.__provider_id = provider_id
-        self.__dataset_id = dataset_id
+        self.__layer_id = layer_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> ExternalDatasetId:
-        '''Parse an http response to a `ExternalDatasetId` object'''
+    def from_response(cls, response: Dict[str, str]) -> ExternalDataId:
+        '''Parse an http response to a `ExternalDataId` object'''
 
-        return ExternalDatasetId(response['providerId'], response['datasetId'])
+        return ExternalDataId(response['providerId'], response['layerId'])
 
     def to_dict(self) -> Dict[str, str]:
         return {
             "type": "external",
             "providerId": self.__provider_id,
-            "datasetId": self.__dataset_id,
+            "layerId": self.__layer_id,
         }
 
     def __str__(self) -> str:
-        return f'{self.__provider_id}:{self.__dataset_id}'
+        return f'{self.__provider_id}:{self.__layer_id}'
 
     def __repr__(self) -> str:
-        '''Display representation of an external dataset id'''
+        '''Display representation of an external data id'''
         return str(self)
 
     def __eq__(self, other) -> bool:
-        '''Check if two external dataset ids are equal'''
+        '''Check if two external data ids are equal'''
         if not isinstance(other, self.__class__):
             return False
 
-        return self.__provider_id == other.__provider_id and self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
+        return self.__provider_id == other.__provider_id and self.__layer_id == other.__layer_id  # pylint: disable=protected-access
 
 
 class Measurement:  # pylint: disable=too-few-public-methods

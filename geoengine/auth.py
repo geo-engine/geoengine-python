@@ -37,17 +37,21 @@ class Session:
 
     session: ClassVar[req.Session] = None
 
-    def __init__(self, server_url: str, credentials: Tuple[str, str] = None) -> None:
+    def __init__(self, server_url: str, credentials: Tuple[str, str] = None, token: str = None) -> None:
         '''
         Initialize communication between this library and a Geo Engine instance
 
-        if credentials are provided, the session will be authenticated
+        If credentials or a token are provided, the session will be authenticated.
+        Credentials and token must not be provided at the same time.
 
-        optional arguments: (email, password) as tuple
-        optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD
+        optional arguments: (email, password) as tuple or token as a string
+        optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_TOKEN
         '''
 
         session = None
+
+        if credentials is not None and token is not None:
+            raise GeoEngineException('Cannot provide both credentials and token')
 
         if credentials is not None:
             session = req.post(f'{server_url}/login', json={"email": credentials[0], "password": credentials[1]}).json()
@@ -55,6 +59,11 @@ class Session:
             session = req.post(f'{server_url}/login',
                                json={"email": os.environ.get("GEOENGINE_EMAIL"),
                                      "password": os.environ.get("GEOENGINE_PASSWORD")}).json()
+        elif token is not None:
+            session = req.get(f'{server_url}/session', headers={'Authorization': f'Bearer {token}'}).json()
+        elif "GEOENGINE_TOKEN" in os.environ:
+            session = req.get(f'{server_url}/session',
+                              headers={'Authorization': f'Bearer {os.environ.get("GEOENGINE_TOKEN")}'}).json()
         else:
             session = req.post(f'{server_url}/anonymous').json()
 
@@ -123,20 +132,21 @@ def get_session() -> Session:
     return Session.session
 
 
-def initialize(server_url: str, credentials: Tuple[str, str] = None) -> None:
+def initialize(server_url: str, credentials: Tuple[str, str] = None, token: str = None) -> None:
     '''
     Initialize communication between this library and a Geo Engine instance
 
-    if credentials are provided, the session will be authenticated
+    If credentials or a token are provided, the session will be authenticated.
+    Credentials and token must not be provided at the same time.
 
-    optional arugments: (email, password) as tuple
-    optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD
-    optional .env file defining: GEOENGINE_EMAIL, GEOENGINE_PASSWORD
+    optional arugments: (email, password) as tuple or token as a string
+    optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_TOKEN
+    optional .env file defining: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_TOKEN
     '''
 
     load_dotenv()
 
-    Session.session = Session(server_url, credentials)
+    Session.session = Session(server_url, credentials, token)
 
 
 def reset(logout: bool = True) -> None:
