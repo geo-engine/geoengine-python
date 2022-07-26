@@ -416,7 +416,7 @@ class Workflow:
 
         session = get_session()
 
-        provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/all_metadata/zip'
+        provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/allMetadata/zip'
 
         response = req.get(provenance_url, headers=session.auth_header).content
 
