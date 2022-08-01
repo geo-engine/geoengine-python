@@ -32,7 +32,8 @@ A workflow representation and methods on workflows
 &#39;&#39;&#39;
 
 from __future__ import annotations
-from typing import Any, Dict, List, Optional, Tuple
+from os import PathLike
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from uuid import UUID
 from logging import debug
@@ -436,6 +437,23 @@ class Workflow:
         response = req.get(provenance_url, headers=session.auth_header).json()
 
         return [ProvenanceOutput.from_response(item) for item in response]
+
+    def metadata_zip(self, path: Union[PathLike, BytesIO]) -&gt; None:
+        &#39;&#39;&#39;
+        Query workflow metadata and citations and stores it as zip file to `path`
+        &#39;&#39;&#39;
+
+        session = get_session()
+
+        provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/allMetadata/zip&#39;
+
+        response = req.get(provenance_url, headers=session.auth_header).content
+
+        if isinstance(path, BytesIO):
+            path.write(response)
+        else:
+            with open(path, &#39;wb&#39;) as file:
+                file.write(response)
 
     def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = &#39;&#39;) -&gt; StoredDataset:
         &#39;&#39;&#39;EXPERIMENTAL: Store the workflow result as a layer&#39;&#39;&#39;
@@ -920,6 +938,23 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         return [ProvenanceOutput.from_response(item) for item in response]
 
+    def metadata_zip(self, path: Union[PathLike, BytesIO]) -&gt; None:
+        &#39;&#39;&#39;
+        Query workflow metadata and citations and stores it as zip file to `path`
+        &#39;&#39;&#39;
+
+        session = get_session()
+
+        provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/allMetadata/zip&#39;
+
+        response = req.get(provenance_url, headers=session.auth_header).content
+
+        if isinstance(path, BytesIO):
+            path.write(response)
+        else:
+            with open(path, &#39;wb&#39;) as file:
+                file.write(response)
+
     def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = &#39;&#39;) -&gt; StoredDataset:
         &#39;&#39;&#39;EXPERIMENTAL: Store the workflow result as a layer&#39;&#39;&#39;
 
@@ -1168,6 +1203,33 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
         return data_array.load()</code></pre>
 </details>
 </dd>
+<dt id="geoengine.workflow.Workflow.metadata_zip"><code class="name flex">
+<span>def <span class="ident">metadata_zip</span></span>(<span>self, path: Union[PathLike, BytesIO]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Query workflow metadata and citations and stores it as zip file to <code>path</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def metadata_zip(self, path: Union[PathLike, BytesIO]) -&gt; None:
+    &#39;&#39;&#39;
+    Query workflow metadata and citations and stores it as zip file to `path`
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/allMetadata/zip&#39;
+
+    response = req.get(provenance_url, headers=session.auth_header).content
+
+    if isinstance(path, BytesIO):
+        path.write(response)
+    else:
+        with open(path, &#39;wb&#39;) as file:
+            file.write(response)</code></pre>
+</details>
+</dd>
 <dt id="geoengine.workflow.Workflow.plot_chart"><code class="name flex">
 <span>def <span class="ident">plot_chart</span></span>(<span>self, bbox: QueryRectangle) ‑> vega.vegalite.VegaLite</span>
 </code></dt>
@@ -1407,6 +1469,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; WorkflowId:
 <li><code><a title="geoengine.workflow.Workflow.get_result_descriptor" href="#geoengine.workflow.Workflow.get_result_descriptor">get_result_descriptor</a></code></li>
 <li><code><a title="geoengine.workflow.Workflow.get_wfs_get_feature_curl" href="#geoengine.workflow.Workflow.get_wfs_get_feature_curl">get_wfs_get_feature_curl</a></code></li>
 <li><code><a title="geoengine.workflow.Workflow.get_xarray" href="#geoengine.workflow.Workflow.get_xarray">get_xarray</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.metadata_zip" href="#geoengine.workflow.Workflow.metadata_zip">metadata_zip</a></code></li>
 <li><code><a title="geoengine.workflow.Workflow.plot_chart" href="#geoengine.workflow.Workflow.plot_chart">plot_chart</a></code></li>
 <li><code><a title="geoengine.workflow.Workflow.save_as_dataset" href="#geoengine.workflow.Workflow.save_as_dataset">save_as_dataset</a></code></li>
 <li><code><a title="geoengine.workflow.Workflow.wms_get_map_as_image" href="#geoengine.workflow.Workflow.wms_get_map_as_image">wms_get_map_as_image</a></code></li>
