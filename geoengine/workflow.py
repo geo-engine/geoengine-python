@@ -26,6 +26,7 @@ from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
     MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
 from geoengine.datasets import DatasetId, StoredDataset, UploadId
+from geoengine.colorizer import Colorizer
 
 
 class WorkflowId:
@@ -189,7 +190,7 @@ class Workflow:
 
         return geo_json_with_time_to_geopandas(data)
 
-    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: str = None) -> Image:
+    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -> Image:
         '''Return the result of a WMS request as a PIL Image'''
 
         wms_request = self.__wms_get_map_request(bbox, colorizer)
@@ -201,7 +202,7 @@ class Workflow:
 
     def __wms_get_map_request(self,
                               bbox: QueryRectangle,
-                              colorizer) -> req.PreparedRequest:
+                              colorizer: Colorizer) -> req.PreparedRequest:
         '''Return the WMS url for a workflow and a given `QueryRectangle`'''
 
         if not self.__result_descriptor.is_raster_result():
@@ -212,9 +213,6 @@ class Workflow:
         width = int((bbox.xmax - bbox.xmin) / bbox.resolution[0])
         height = int((bbox.ymax - bbox.ymin) / bbox.resolution[1])
 
-        custom_colorizer = ''
-        if colorizer is not None:
-            custom_colorizer = colorizer
         params = dict(
             service='WMS',
             version='1.3.0',
@@ -226,7 +224,7 @@ class Workflow:
             width=width,
             height=height,
             format='image/png',
-            styles=custom_colorizer,  # TODO: incorporate styling properly
+            styles=colorizer.to_query_string(),
         )
 
         return req.Request(
@@ -236,10 +234,10 @@ class Workflow:
             headers=session.auth_header
         ).prepare()
 
-    def wms_get_map_curl(self, bbox: QueryRectangle, colorizer_min_max: str = None) -> str:
+    def wms_get_map_curl(self, bbox: QueryRectangle, colorizer: Colorizer) -> str:
         '''Return the WMS curl command for a workflow and a given `QueryRectangle`'''
 
-        wms_request = self.__wms_get_map_request(bbox, colorizer_min_max)
+        wms_request = self.__wms_get_map_request(bbox, colorizer)
 
         command = "curl -X {method} -H {headers} '{uri}'"
         headers = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
