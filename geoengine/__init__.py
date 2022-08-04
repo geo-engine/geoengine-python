@@ -7,3 +7,4 @@ from .error import GeoEngineException, InputException, UninitializedException, T
 from .types import QueryRectangle
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow
 from .datasets import upload_dataframe, StoredDataset
+from .colorizer import Colorizer
