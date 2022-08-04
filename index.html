@@ -35,7 +35,8 @@ from .error import GeoEngineException, InputException, UninitializedException, T
     SpatialReferenceMismatchException, check_response_for_error
 from .types import QueryRectangle
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow
-from .datasets import upload_dataframe, StoredDataset</code></pre>
+from .datasets import upload_dataframe, StoredDataset
+from .colorizer import Colorizer</code></pre>
 </details>
 </section>
 <section>
@@ -44,6 +45,10 @@ from .datasets import upload_dataframe, StoredDataset</code></pre>
 <dt><code class="name"><a title="geoengine.auth" href="auth.html">geoengine.auth</a></code></dt>
 <dd>
 <div class="desc"><p>Module for encapsulating Geo Engine authentication</p></div>
+</dd>
+<dt><code class="name"><a title="geoengine.colorizer" href="colorizer.html">geoengine.colorizer</a></code></dt>
+<dd>
+<div class="desc"><p>This module is used to generate geoengine compatible color map definitions as a json string.</p></div>
 </dd>
 <dt><code class="name"><a title="geoengine.datasets" href="datasets.html">geoengine.datasets</a></code></dt>
 <dd>
@@ -79,6 +84,7 @@ from .datasets import upload_dataframe, StoredDataset</code></pre>
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
 <li><code><a title="geoengine.auth" href="auth.html">geoengine.auth</a></code></li>
+<li><code><a title="geoengine.colorizer" href="colorizer.html">geoengine.colorizer</a></code></li>
 <li><code><a title="geoengine.datasets" href="datasets.html">geoengine.datasets</a></code></li>
 <li><code><a title="geoengine.error" href="error.html">geoengine.error</a></code></li>
 <li><code><a title="geoengine.types" href="types.html">geoengine.types</a></code></li>
