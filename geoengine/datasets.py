@@ -307,7 +307,8 @@ def upload_dataframe(
         df: gpd.GeoDataFrame,
         name: str = "Upload from Python",
         time: OgrSourceDatasetTimeType = OgrSourceDatasetTimeType.none(),
-        on_error: OgrOnError = OgrOnError.ABORT) -> DatasetId:
+        on_error: OgrOnError = OgrOnError.ABORT,
+        timeout: int = 3600) -> DatasetId:
     '''
     Uploads a given dataframe to Geo Engine and returns the id of the created dataset
     '''
@@ -323,7 +324,9 @@ def upload_dataframe(
     df_json = df.to_json()
 
     response = req.post(f'{session.server_url}/upload',
-                        files={"geo.json": df_json}, headers=session.auth_header).json()
+                        files={"geo.json": df_json},
+                        headers=session.auth_header,
+                        timeout=timeout).json()
 
     if 'error' in response:
         raise GeoEngineException(response)
@@ -374,7 +377,9 @@ def upload_dataframe(
     }
 
     response = req.post(f'{session.server_url}/dataset',
-                        json=create, headers=session.auth_header).json()
+                        json=create, headers=session.auth_header,
+                        timeout=timeout
+                        ).json()
 
     if 'error' in response:
         raise GeoEngineException(response)

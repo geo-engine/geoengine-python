@@ -75,7 +75,7 @@ class Workflow:
     def __repr__(self) -> str:
         return repr(self.__workflow_id)
 
-    def __query_result_descriptor(self) -> ResultDescriptor:
+    def __query_result_descriptor(self, timeout: int = 60) -> ResultDescriptor:
         '''
         Query the metadata of the workflow result
         '''
@@ -84,7 +84,8 @@ class Workflow:
 
         response = req.get(
             f'{session.server_url}/workflow/{self.__workflow_id}/metadata',
-            headers=session.auth_header
+            headers=session.auth_header,
+            timeout=timeout
         ).json()
 
         debug(response)
@@ -98,14 +99,15 @@ class Workflow:
 
         return self.__result_descriptor
 
-    def workflow_definition(self) -> Dict[str, Any]:
+    def workflow_definition(self, timeout: int = 60) -> Dict[str, Any]:
         '''Return the workflow definition for this workflow'''
 
         session = get_session()
 
         response = req.get(
             f'{session.server_url}/workflow/{self.__workflow_id}',
-            headers=session.auth_header
+            headers=session.auth_header,
+            timeout=timeout
         ).json()
 
         return response
@@ -151,7 +153,7 @@ class Workflow:
         headers = " -H ".join(headers)
         return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
 
-    def get_dataframe(self, bbox: QueryRectangle) -> gpd.GeoDataFrame:
+    def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -> gpd.GeoDataFrame:
         '''
         Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
         '''
@@ -163,7 +165,7 @@ class Workflow:
 
         wfs_url = self.__get_wfs_url(bbox)
 
-        data_response = req.get(wfs_url, headers=session.auth_header)
+        data_response = req.get(wfs_url, headers=session.auth_header, timeout=timeout)
 
         check_response_for_error(data_response)
 
@@ -245,7 +247,7 @@ class Workflow:
         headers = " -H ".join(headers)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
 
-    def plot_chart(self, bbox: QueryRectangle) -> VegaLite:
+    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
         '''
         Query a workflow and return the plot chart result as a vega plot
         '''
@@ -262,7 +264,7 @@ class Workflow:
         plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&crs={bbox.srs}&time={time}'\
             f'&spatialResolution={resolution}'
 
-        response = req.get(plot_url, headers=session.auth_header)
+        response = req.get(plot_url, headers=session.auth_header, timeout=timeout)
 
         check_response_for_error(response)
 
@@ -382,7 +384,7 @@ class Workflow:
 
             return data_array.load()
 
-    def get_provenance(self) -> List[ProvenanceOutput]:
+    def get_provenance(self, timeout: int = 60) -> List[ProvenanceOutput]:
         '''
         Query the provenance of the workflow
         '''
@@ -391,11 +393,11 @@ class Workflow:
 
         provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/provenance'
 
-        response = req.get(provenance_url, headers=session.auth_header).json()
+        response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).json()
 
         return [ProvenanceOutput.from_response(item) for item in response]
 
-    def metadata_zip(self, path: Union[PathLike, BytesIO]) -> None:
+    def metadata_zip(self, path: Union[PathLike, BytesIO], timeout: int = 60) -> None:
         '''
         Query workflow metadata and citations and stores it as zip file to `path`
         '''
@@ -404,7 +406,7 @@ class Workflow:
 
         provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/allMetadata/zip'
 
-        response = req.get(provenance_url, headers=session.auth_header).content
+        response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).content
 
         if isinstance(path, BytesIO):
             path.write(response)
@@ -412,7 +414,12 @@ class Workflow:
             with open(path, 'wb') as file:
                 file.write(response)
 
-    def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = '') -> StoredDataset:
+    def save_as_dataset(
+            self,
+            bbox: QueryRectangle,
+            name: str,
+            description: str = '',
+            timeout: int = 3600) -> StoredDataset:
         '''EXPERIMENTAL: Store the workflow result as a layer'''
 
         # Currently, it only works for raster results
@@ -438,6 +445,7 @@ class Workflow:
             url=f'{session.server_url}/datasetFromWorkflow/{self.__workflow_id}',
             json=request_body,
             headers=session.auth_header,
+            timeout=timeout
         )
 
         check_response_for_error(response)
@@ -450,7 +458,7 @@ class Workflow:
         )
 
 
-def register_workflow(workflow: Dict[str, Any]) -> Workflow:
+def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -> Workflow:
     '''
     Register a workflow in Geo Engine and receive a `WorkflowId`
     '''
@@ -460,7 +468,8 @@ def register_workflow(workflow: Dict[str, Any]) -> Workflow:
     workflow_response = req.post(
         f'{session.server_url}/workflow',
         json=workflow,
-        headers=session.auth_header
+        headers=session.auth_header,
+        timeout=timeout
     ).json()
 
     return Workflow(WorkflowId.from_response(workflow_response))
