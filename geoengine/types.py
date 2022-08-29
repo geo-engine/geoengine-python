@@ -9,7 +9,6 @@ from uuid import UUID
 
 from enum import Enum
 from attr import dataclass
-from numpy import number
 
 from geoengine.error import GeoEngineException, InputException, TypeException
 
@@ -92,24 +91,24 @@ class QueryRectangle:
         res = self.__resolution
 
         if self.__srs == "EPSG:4326":
-            return [-res[1], res[0]]
+            return (-res[1], res[0])
 
         return res
 
     @property
-    def xmin(self) -> number:
+    def xmin(self) -> float:
         return self.__spatial_bounds[0]
 
     @property
-    def ymin(self) -> number:
+    def ymin(self) -> float:
         return self.__spatial_bounds[1]
 
     @property
-    def xmax(self) -> number:
+    def xmax(self) -> float:
         return self.__spatial_bounds[2]
 
     @property
-    def ymax(self) -> number:
+    def ymax(self) -> float:
         return self.__spatial_bounds[3]
 
     @property
@@ -139,7 +138,7 @@ class QueryRectangle:
 
         return self.__srs
 
-    def __dict__(self) -> Dict[str, Any]:
+    def __dict__(self):
         '''
         Return a dictionary representation of the object
         '''
@@ -187,7 +186,7 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         self.__spatial_reference = spatial_reference
 
     @staticmethod
-    def from_response(response: Dict[str, Any]) -> None:
+    def from_response(response: Dict[str, Any]) -> ResultDescriptor:
         '''
         Parse a result descriptor from an http response
         '''
@@ -284,7 +283,7 @@ class VectorResultDescriptor(ResultDescriptor):
         return super().spatial_reference
 
     @property
-    def columns(self) -> Dict[str, Dict[str, Any]]:
+    def columns(self) -> Dict[str, VectorColumnInfo]:
         '''Return the columns'''
 
         return self.__columns
@@ -460,7 +459,7 @@ class DataId:  # pylint: disable=too-few-public-methods
         if response["type"] == "external":
             return ExternalDataId.from_response(response)
 
-        raise GeoEngineException(f"Unknown DataId type: {response['type']}")
+        raise GeoEngineException({"message": f"Unknown DataId type: {response['type']}"})
 
 
 class InternalDataId(DataId):
@@ -475,12 +474,12 @@ class InternalDataId(DataId):
     def from_response(cls, response: Dict[str, str]) -> InternalDataId:
         '''Parse an http response to a `InternalDataId` object'''
 
-        return InternalDataId(response['datasetId'])
+        return InternalDataId(UUID(response['datasetId']))
 
     def to_dict(self) -> Dict[str, str]:
         return {
             "type": "internal",
-            "datasetId": self.__dataset_id
+            "datasetId": str(self.__dataset_id)
         }
 
     def __str__(self) -> str:
@@ -512,12 +511,12 @@ class ExternalDataId(DataId):
     def from_response(cls, response: Dict[str, str]) -> ExternalDataId:
         '''Parse an http response to a `ExternalDataId` object'''
 
-        return ExternalDataId(response['providerId'], response['layerId'])
+        return ExternalDataId(UUID(response['providerId']), response['layerId'])
 
     def to_dict(self) -> Dict[str, str]:
         return {
             "type": "external",
-            "providerId": self.__provider_id,
+            "providerId": str(self.__provider_id),
             "layerId": self.__layer_id,
         }
 
@@ -542,7 +541,7 @@ class Measurement:  # pylint: disable=too-few-public-methods
     '''
 
     @staticmethod
-    def from_response(response: Dict[str, Any]) -> None:
+    def from_response(response: Dict[str, Any]) -> Measurement:
         '''
         Parse a result descriptor from an http response
         '''
@@ -620,9 +619,9 @@ class ClassificationMeasurement(Measurement):
     '''A measurement that is a classification'''
 
     __measurement: str
-    __classes: Dict[number, str]
+    __classes: Dict[int, str]
 
-    def __init__(self, measurement: str, classes: Dict[number, str]) -> None:
+    def __init__(self, measurement: str, classes: Dict[int, str]) -> None:
         '''Initialize a new `ClassificationMeasurement`'''
 
         super().__init__()
@@ -655,5 +654,5 @@ class ClassificationMeasurement(Measurement):
         return self.__measurement
 
     @property
-    def classes(self) -> Dict[number, str]:
+    def classes(self) -> Dict[int, str]:
         return self.__classes

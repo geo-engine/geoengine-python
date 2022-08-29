@@ -35,7 +35,7 @@ class Session:
     __valid_until: Optional[str] = None
     __server_url: str
 
-    session: ClassVar[req.Session] = None
+    session: ClassVar = None
 
     def __init__(self, server_url: str, credentials: Tuple[str, str] = None, token: str = None) -> None:
         '''
@@ -51,7 +51,7 @@ class Session:
         session = None
 
         if credentials is not None and token is not None:
-            raise GeoEngineException('Cannot provide both credentials and token')
+            raise GeoEngineException({'message': 'Cannot provide both credentials and token'})
 
         if credentials is not None:
             session = req.post(f'{server_url}/login', json={"email": credentials[0], "password": credentials[1]}).json()
@@ -94,7 +94,7 @@ class Session:
         Create an authentication header for the current session
         '''
 
-        return {'Authorization': 'Bearer ' + self.__id}
+        return {'Authorization': 'Bearer ' + str(self.__id)}
 
     @property
     def server_url(self) -> str:
@@ -109,7 +109,7 @@ class Session:
         Return a Bearer authentication object for the current session
         '''
 
-        return BearerAuth(self.__id)
+        return BearerAuth(str(self.__id))
 
     def logout(self):
         '''

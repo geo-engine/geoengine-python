@@ -48,10 +48,10 @@ class WorkflowId:
         if 'id' not in response:
             raise GeoEngineException(response)
 
-        return WorkflowId(response['id'])
+        return WorkflowId(UUID(response['id']))
 
     def __str__(self) -> str:
-        return self.__workflow_id
+        return str(self.__workflow_id)
 
     def __repr__(self) -> str:
         return str(self)
@@ -132,6 +132,8 @@ class Workflow:
 
         debug(f'WFS URL:\n{wfs_url}')
 
+        if not wfs_url:
+            raise Exception('Failed to build WFS URL for workflow {self.__workflow_id}.')
         return wfs_url
 
     def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -> str:
@@ -147,8 +149,8 @@ class Workflow:
         ).prepare()
 
         command = "curl -X {method} -H {headers} '{uri}'"
-        headers = [f'"{k}: {v}"' for k, v in wfs_request.headers.items()]
-        headers = " -H ".join(headers)
+        headers_list = [f'"{k}: {v}"' for k, v in wfs_request.headers.items()]
+        headers = " -H ".join(headers_list)
         return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
 
     def get_dataframe(self, bbox: QueryRectangle) -> gpd.GeoDataFrame:
@@ -241,8 +243,8 @@ class Workflow:
         wms_request = self.__wms_get_map_request(bbox, colorizer)
 
         command = "curl -X {method} -H {headers} '{uri}'"
-        headers = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
-        headers = " -H ".join(headers)
+        headers_list = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
+        headers = " -H ".join(headers_list)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
 
     def plot_chart(self, bbox: QueryRectangle) -> VegaLite:
@@ -266,9 +268,9 @@ class Workflow:
 
         check_response_for_error(response)
 
-        response = response.json()
+        response_json: Dict[str, Any] = response.json()
 
-        vega_spec = json.loads(response['data']['vegaString'])
+        vega_spec = json.loads(response_json['data']['vegaString'])
 
         return VegaLite(vega_spec)
 
@@ -442,11 +444,11 @@ class Workflow:
 
         check_response_for_error(response)
 
-        response = response.json()
+        response_json: Dict[str, Any] = response.json()
 
         return StoredDataset(
-            dataset_id=DatasetId(response['dataset']),
-            upload_id=UploadId(response['upload'])
+            dataset_id=DatasetId(response_json['dataset']),
+            upload_id=UploadId(response_json['upload'])
         )
 
 

@@ -1,6 +1,7 @@
 '''Tests for querying provenance information'''
 
 import unittest
+from uuid import UUID
 import requests_mock
 
 from geoengine.types import InternalDataId, Provenance, ProvenanceOutput
@@ -78,7 +79,7 @@ class ProvenanceTests(unittest.TestCase):
             self.assertEqual(provenance, [
                 ProvenanceOutput(
                     # pylint: disable=line-too-long
-                    InternalDataId("36574dc3-560a-4b09-9d22-d5945f2b8093"),
+                    InternalDataId(UUID("36574dc3-560a-4b09-9d22-d5945f2b8093")),
                     Provenance(
                         "Nasa Earth Observations, MODIS Vegetation Index Products",
                         "https://earthdata.nasa.gov/collaborate/open-data-services-and-software/data-information-policy",
