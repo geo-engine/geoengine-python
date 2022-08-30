@@ -104,7 +104,7 @@ class Workflow:
     def __repr__(self) -&gt; str:
         return repr(self.__workflow_id)
 
-    def __query_result_descriptor(self) -&gt; ResultDescriptor:
+    def __query_result_descriptor(self, timeout: int = 60) -&gt; ResultDescriptor:
         &#39;&#39;&#39;
         Query the metadata of the workflow result
         &#39;&#39;&#39;
@@ -113,7 +113,8 @@ class Workflow:
 
         response = req.get(
             f&#39;{session.server_url}/workflow/{self.__workflow_id}/metadata&#39;,
-            headers=session.auth_header
+            headers=session.auth_header,
+            timeout=timeout
         ).json()
 
         debug(response)
@@ -127,14 +128,15 @@ class Workflow:
 
         return self.__result_descriptor
 
-    def workflow_definition(self) -&gt; Dict[str, Any]:
+    def workflow_definition(self, timeout: int = 60) -&gt; Dict[str, Any]:
         &#39;&#39;&#39;Return the workflow definition for this workflow&#39;&#39;&#39;
 
         session = get_session()
 
         response = req.get(
             f&#39;{session.server_url}/workflow/{self.__workflow_id}&#39;,
-            headers=session.auth_header
+            headers=session.auth_header,
+            timeout=timeout
         ).json()
 
         return response
@@ -180,7 +182,7 @@ class Workflow:
         headers = &#34; -H &#34;.join(headers)
         return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
 
-    def get_dataframe(self, bbox: QueryRectangle) -&gt; gpd.GeoDataFrame:
+    def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; gpd.GeoDataFrame:
         &#39;&#39;&#39;
         Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
         &#39;&#39;&#39;
@@ -192,7 +194,7 @@ class Workflow:
 
         wfs_url = self.__get_wfs_url(bbox)
 
-        data_response = req.get(wfs_url, headers=session.auth_header)
+        data_response = req.get(wfs_url, headers=session.auth_header, timeout=timeout)
 
         check_response_for_error(data_response)
 
@@ -274,7 +276,7 @@ class Workflow:
         headers = &#34; -H &#34;.join(headers)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
 
-    def plot_chart(self, bbox: QueryRectangle) -&gt; VegaLite:
+    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; VegaLite:
         &#39;&#39;&#39;
         Query a workflow and return the plot chart result as a vega plot
         &#39;&#39;&#39;
@@ -291,7 +293,7 @@ class Workflow:
         plot_url = f&#39;{session.server_url}/plot/{self}?bbox={spatial_bounds}&amp;crs={bbox.srs}&amp;time={time}&#39;\
             f&#39;&amp;spatialResolution={resolution}&#39;
 
-        response = req.get(plot_url, headers=session.auth_header)
+        response = req.get(plot_url, headers=session.auth_header, timeout=timeout)
 
         check_response_for_error(response)
 
@@ -411,7 +413,7 @@ class Workflow:
 
             return data_array.load()
 
-    def get_provenance(self) -&gt; List[ProvenanceOutput]:
+    def get_provenance(self, timeout: int = 60) -&gt; List[ProvenanceOutput]:
         &#39;&#39;&#39;
         Query the provenance of the workflow
         &#39;&#39;&#39;
@@ -420,11 +422,11 @@ class Workflow:
 
         provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/provenance&#39;
 
-        response = req.get(provenance_url, headers=session.auth_header).json()
+        response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).json()
 
         return [ProvenanceOutput.from_response(item) for item in response]
 
-    def metadata_zip(self, path: Union[PathLike, BytesIO]) -&gt; None:
+    def metadata_zip(self, path: Union[PathLike, BytesIO], timeout: int = 60) -&gt; None:
         &#39;&#39;&#39;
         Query workflow metadata and citations and stores it as zip file to `path`
         &#39;&#39;&#39;
@@ -433,7 +435,7 @@ class Workflow:
 
         provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/allMetadata/zip&#39;
 
-        response = req.get(provenance_url, headers=session.auth_header).content
+        response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).content
 
         if isinstance(path, BytesIO):
             path.write(response)
@@ -441,7 +443,12 @@ class Workflow:
             with open(path, &#39;wb&#39;) as file:
                 file.write(response)
 
-    def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = &#39;&#39;) -&gt; StoredDataset:
+    def save_as_dataset(
+            self,
+            bbox: QueryRectangle,
+            name: str,
+            description: str = &#39;&#39;,
+            timeout: int = 3600) -&gt; StoredDataset:
         &#39;&#39;&#39;EXPERIMENTAL: Store the workflow result as a layer&#39;&#39;&#39;
 
         # Currently, it only works for raster results
@@ -467,6 +474,7 @@ class Workflow:
             url=f&#39;{session.server_url}/datasetFromWorkflow/{self.__workflow_id}&#39;,
             json=request_body,
             headers=session.auth_header,
+            timeout=timeout
         )
 
         check_response_for_error(response)
@@ -479,7 +487,7 @@ class Workflow:
         )
 
 
-def register_workflow(workflow: Dict[str, Any]) -&gt; Workflow:
+def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -&gt; Workflow:
     &#39;&#39;&#39;
     Register a workflow in Geo Engine and receive a `WorkflowId`
     &#39;&#39;&#39;
@@ -489,7 +497,8 @@ def register_workflow(workflow: Dict[str, Any]) -&gt; Workflow:
     workflow_response = req.post(
         f&#39;{session.server_url}/workflow&#39;,
         json=workflow,
-        headers=session.auth_header
+        headers=session.auth_header,
+        timeout=timeout
     ).json()
 
     return Workflow(WorkflowId.from_response(workflow_response))
@@ -513,7 +522,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="geoengine.workflow.register_workflow"><code class="name flex">
-<span>def <span class="ident">register_workflow</span></span>(<span>workflow: Dict[str, Any]) ‑> <a title="geoengine.workflow.Workflow" href="#geoengine.workflow.Workflow">Workflow</a></span>
+<span>def <span class="ident">register_workflow</span></span>(<span>workflow: Dict[str, Any], timeout: int = 60) ‑> <a title="geoengine.workflow.Workflow" href="#geoengine.workflow.Workflow">Workflow</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Register a workflow in Geo Engine and receive a <code><a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a></code></p></div>
@@ -521,7 +530,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def register_workflow(workflow: Dict[str, Any]) -&gt; Workflow:
+<pre><code class="python">def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -&gt; Workflow:
     &#39;&#39;&#39;
     Register a workflow in Geo Engine and receive a `WorkflowId`
     &#39;&#39;&#39;
@@ -531,7 +540,8 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
     workflow_response = req.post(
         f&#39;{session.server_url}/workflow&#39;,
         json=workflow,
-        headers=session.auth_header
+        headers=session.auth_header,
+        timeout=timeout
     ).json()
 
     return Workflow(WorkflowId.from_response(workflow_response))</code></pre>
@@ -589,7 +599,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
     def __repr__(self) -&gt; str:
         return repr(self.__workflow_id)
 
-    def __query_result_descriptor(self) -&gt; ResultDescriptor:
+    def __query_result_descriptor(self, timeout: int = 60) -&gt; ResultDescriptor:
         &#39;&#39;&#39;
         Query the metadata of the workflow result
         &#39;&#39;&#39;
@@ -598,7 +608,8 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         response = req.get(
             f&#39;{session.server_url}/workflow/{self.__workflow_id}/metadata&#39;,
-            headers=session.auth_header
+            headers=session.auth_header,
+            timeout=timeout
         ).json()
 
         debug(response)
@@ -612,14 +623,15 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         return self.__result_descriptor
 
-    def workflow_definition(self) -&gt; Dict[str, Any]:
+    def workflow_definition(self, timeout: int = 60) -&gt; Dict[str, Any]:
         &#39;&#39;&#39;Return the workflow definition for this workflow&#39;&#39;&#39;
 
         session = get_session()
 
         response = req.get(
             f&#39;{session.server_url}/workflow/{self.__workflow_id}&#39;,
-            headers=session.auth_header
+            headers=session.auth_header,
+            timeout=timeout
         ).json()
 
         return response
@@ -665,7 +677,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
         headers = &#34; -H &#34;.join(headers)
         return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
 
-    def get_dataframe(self, bbox: QueryRectangle) -&gt; gpd.GeoDataFrame:
+    def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; gpd.GeoDataFrame:
         &#39;&#39;&#39;
         Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
         &#39;&#39;&#39;
@@ -677,7 +689,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         wfs_url = self.__get_wfs_url(bbox)
 
-        data_response = req.get(wfs_url, headers=session.auth_header)
+        data_response = req.get(wfs_url, headers=session.auth_header, timeout=timeout)
 
         check_response_for_error(data_response)
 
@@ -759,7 +771,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
         headers = &#34; -H &#34;.join(headers)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
 
-    def plot_chart(self, bbox: QueryRectangle) -&gt; VegaLite:
+    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; VegaLite:
         &#39;&#39;&#39;
         Query a workflow and return the plot chart result as a vega plot
         &#39;&#39;&#39;
@@ -776,7 +788,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
         plot_url = f&#39;{session.server_url}/plot/{self}?bbox={spatial_bounds}&amp;crs={bbox.srs}&amp;time={time}&#39;\
             f&#39;&amp;spatialResolution={resolution}&#39;
 
-        response = req.get(plot_url, headers=session.auth_header)
+        response = req.get(plot_url, headers=session.auth_header, timeout=timeout)
 
         check_response_for_error(response)
 
@@ -896,7 +908,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
             return data_array.load()
 
-    def get_provenance(self) -&gt; List[ProvenanceOutput]:
+    def get_provenance(self, timeout: int = 60) -&gt; List[ProvenanceOutput]:
         &#39;&#39;&#39;
         Query the provenance of the workflow
         &#39;&#39;&#39;
@@ -905,11 +917,11 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/provenance&#39;
 
-        response = req.get(provenance_url, headers=session.auth_header).json()
+        response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).json()
 
         return [ProvenanceOutput.from_response(item) for item in response]
 
-    def metadata_zip(self, path: Union[PathLike, BytesIO]) -&gt; None:
+    def metadata_zip(self, path: Union[PathLike, BytesIO], timeout: int = 60) -&gt; None:
         &#39;&#39;&#39;
         Query workflow metadata and citations and stores it as zip file to `path`
         &#39;&#39;&#39;
@@ -918,7 +930,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/allMetadata/zip&#39;
 
-        response = req.get(provenance_url, headers=session.auth_header).content
+        response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).content
 
         if isinstance(path, BytesIO):
             path.write(response)
@@ -926,7 +938,12 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
             with open(path, &#39;wb&#39;) as file:
                 file.write(response)
 
-    def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = &#39;&#39;) -&gt; StoredDataset:
+    def save_as_dataset(
+            self,
+            bbox: QueryRectangle,
+            name: str,
+            description: str = &#39;&#39;,
+            timeout: int = 3600) -&gt; StoredDataset:
         &#39;&#39;&#39;EXPERIMENTAL: Store the workflow result as a layer&#39;&#39;&#39;
 
         # Currently, it only works for raster results
@@ -952,6 +969,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
             url=f&#39;{session.server_url}/datasetFromWorkflow/{self.__workflow_id}&#39;,
             json=request_body,
             headers=session.auth_header,
+            timeout=timeout
         )
 
         check_response_for_error(response)
@@ -1011,7 +1029,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.get_dataframe"><code class="name flex">
-<span>def <span class="ident">get_dataframe</span></span>(<span>self, bbox: QueryRectangle) ‑> geopandas.geodataframe.GeoDataFrame</span>
+<span>def <span class="ident">get_dataframe</span></span>(<span>self, bbox: QueryRectangle, timeout: int = 3600) ‑> geopandas.geodataframe.GeoDataFrame</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Query a workflow and return the WFS result as a GeoPandas <code>GeoDataFrame</code></p></div>
@@ -1019,7 +1037,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_dataframe(self, bbox: QueryRectangle) -&gt; gpd.GeoDataFrame:
+<pre><code class="python">def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; gpd.GeoDataFrame:
     &#39;&#39;&#39;
     Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
     &#39;&#39;&#39;
@@ -1031,7 +1049,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 
     wfs_url = self.__get_wfs_url(bbox)
 
-    data_response = req.get(wfs_url, headers=session.auth_header)
+    data_response = req.get(wfs_url, headers=session.auth_header, timeout=timeout)
 
     check_response_for_error(data_response)
 
@@ -1061,7 +1079,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.get_provenance"><code class="name flex">
-<span>def <span class="ident">get_provenance</span></span>(<span>self) ‑> List[<a title="geoengine.types.ProvenanceOutput" href="types.html#geoengine.types.ProvenanceOutput">ProvenanceOutput</a>]</span>
+<span>def <span class="ident">get_provenance</span></span>(<span>self, timeout: int = 60) ‑> List[<a title="geoengine.types.ProvenanceOutput" href="types.html#geoengine.types.ProvenanceOutput">ProvenanceOutput</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Query the provenance of the workflow</p></div>
@@ -1069,7 +1087,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_provenance(self) -&gt; List[ProvenanceOutput]:
+<pre><code class="python">def get_provenance(self, timeout: int = 60) -&gt; List[ProvenanceOutput]:
     &#39;&#39;&#39;
     Query the provenance of the workflow
     &#39;&#39;&#39;
@@ -1078,7 +1096,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 
     provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/provenance&#39;
 
-    response = req.get(provenance_url, headers=session.auth_header).json()
+    response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).json()
 
     return [ProvenanceOutput.from_response(item) for item in response]</code></pre>
 </details>
@@ -1175,7 +1193,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.metadata_zip"><code class="name flex">
-<span>def <span class="ident">metadata_zip</span></span>(<span>self, path: Union[PathLike, BytesIO]) ‑> None</span>
+<span>def <span class="ident">metadata_zip</span></span>(<span>self, path: Union[PathLike, BytesIO], timeout: int = 60) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Query workflow metadata and citations and stores it as zip file to <code>path</code></p></div>
@@ -1183,7 +1201,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def metadata_zip(self, path: Union[PathLike, BytesIO]) -&gt; None:
+<pre><code class="python">def metadata_zip(self, path: Union[PathLike, BytesIO], timeout: int = 60) -&gt; None:
     &#39;&#39;&#39;
     Query workflow metadata and citations and stores it as zip file to `path`
     &#39;&#39;&#39;
@@ -1192,7 +1210,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 
     provenance_url = f&#39;{session.server_url}/workflow/{self.__workflow_id}/allMetadata/zip&#39;
 
-    response = req.get(provenance_url, headers=session.auth_header).content
+    response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).content
 
     if isinstance(path, BytesIO):
         path.write(response)
@@ -1202,7 +1220,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.plot_chart"><code class="name flex">
-<span>def <span class="ident">plot_chart</span></span>(<span>self, bbox: QueryRectangle) ‑> vega.vegalite.VegaLite</span>
+<span>def <span class="ident">plot_chart</span></span>(<span>self, bbox: QueryRectangle, timeout: int = 3600) ‑> vega.vegalite.VegaLite</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Query a workflow and return the plot chart result as a vega plot</p></div>
@@ -1210,7 +1228,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def plot_chart(self, bbox: QueryRectangle) -&gt; VegaLite:
+<pre><code class="python">def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; VegaLite:
     &#39;&#39;&#39;
     Query a workflow and return the plot chart result as a vega plot
     &#39;&#39;&#39;
@@ -1227,7 +1245,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
     plot_url = f&#39;{session.server_url}/plot/{self}?bbox={spatial_bounds}&amp;crs={bbox.srs}&amp;time={time}&#39;\
         f&#39;&amp;spatialResolution={resolution}&#39;
 
-    response = req.get(plot_url, headers=session.auth_header)
+    response = req.get(plot_url, headers=session.auth_header, timeout=timeout)
 
     check_response_for_error(response)
 
@@ -1239,7 +1257,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.save_as_dataset"><code class="name flex">
-<span>def <span class="ident">save_as_dataset</span></span>(<span>self, bbox: QueryRectangle, name: str, description: str = '') ‑> <a title="geoengine.datasets.StoredDataset" href="datasets.html#geoengine.datasets.StoredDataset">StoredDataset</a></span>
+<span>def <span class="ident">save_as_dataset</span></span>(<span>self, bbox: QueryRectangle, name: str, description: str = '', timeout: int = 3600) ‑> <a title="geoengine.datasets.StoredDataset" href="datasets.html#geoengine.datasets.StoredDataset">StoredDataset</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>EXPERIMENTAL: Store the workflow result as a layer</p></div>
@@ -1247,7 +1265,12 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def save_as_dataset(self, bbox: QueryRectangle, name: str, description: str = &#39;&#39;) -&gt; StoredDataset:
+<pre><code class="python">def save_as_dataset(
+        self,
+        bbox: QueryRectangle,
+        name: str,
+        description: str = &#39;&#39;,
+        timeout: int = 3600) -&gt; StoredDataset:
     &#39;&#39;&#39;EXPERIMENTAL: Store the workflow result as a layer&#39;&#39;&#39;
 
     # Currently, it only works for raster results
@@ -1273,6 +1296,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
         url=f&#39;{session.server_url}/datasetFromWorkflow/{self.__workflow_id}&#39;,
         json=request_body,
         headers=session.auth_header,
+        timeout=timeout
     )
 
     check_response_for_error(response)
@@ -1326,7 +1350,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.workflow_definition"><code class="name flex">
-<span>def <span class="ident">workflow_definition</span></span>(<span>self) ‑> Dict[str, Any]</span>
+<span>def <span class="ident">workflow_definition</span></span>(<span>self, timeout: int = 60) ‑> Dict[str, Any]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Return the workflow definition for this workflow</p></div>
@@ -1334,14 +1358,15 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def workflow_definition(self) -&gt; Dict[str, Any]:
+<pre><code class="python">def workflow_definition(self, timeout: int = 60) -&gt; Dict[str, Any]:
     &#39;&#39;&#39;Return the workflow definition for this workflow&#39;&#39;&#39;
 
     session = get_session()
 
     response = req.get(
         f&#39;{session.server_url}/workflow/{self.__workflow_id}&#39;,
-        headers=session.auth_header
+        headers=session.auth_header,
+        timeout=timeout
     ).json()
 
     return response</code></pre>

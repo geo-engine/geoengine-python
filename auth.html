@@ -63,6 +63,7 @@ class Session:
     __id: UUID
     __valid_until: Optional[str] = None
     __server_url: str
+    __timeout: int = 60
 
     session: ClassVar[req.Session] = None
 
@@ -83,18 +84,22 @@ class Session:
             raise GeoEngineException(&#39;Cannot provide both credentials and token&#39;)
 
         if credentials is not None:
-            session = req.post(f&#39;{server_url}/login&#39;, json={&#34;email&#34;: credentials[0], &#34;password&#34;: credentials[1]}).json()
+            session = req.post(f&#39;{server_url}/login&#39;, json={&#34;email&#34;: credentials[0],
+                                                            &#34;password&#34;: credentials[1]}, timeout=self.__timeout).json()
         elif &#34;GEOENGINE_EMAIL&#34; in os.environ and &#34;GEOENGINE_PASSWORD&#34; in os.environ:
             session = req.post(f&#39;{server_url}/login&#39;,
                                json={&#34;email&#34;: os.environ.get(&#34;GEOENGINE_EMAIL&#34;),
-                                     &#34;password&#34;: os.environ.get(&#34;GEOENGINE_PASSWORD&#34;)}).json()
+                                     &#34;password&#34;: os.environ.get(&#34;GEOENGINE_PASSWORD&#34;)},
+                               timeout=self.__timeout).json()
         elif token is not None:
-            session = req.get(f&#39;{server_url}/session&#39;, headers={&#39;Authorization&#39;: f&#39;Bearer {token}&#39;}).json()
+            session = req.get(f&#39;{server_url}/session&#39;, headers={&#39;Authorization&#39;: f&#39;Bearer {token}&#39;},
+                              timeout=self.__timeout).json()
         elif &#34;GEOENGINE_TOKEN&#34; in os.environ:
             session = req.get(f&#39;{server_url}/session&#39;,
-                              headers={&#39;Authorization&#39;: f&#39;Bearer {os.environ.get(&#34;GEOENGINE_TOKEN&#34;)}&#39;}).json()
+                              headers={&#39;Authorization&#39;: f&#39;Bearer {os.environ.get(&#34;GEOENGINE_TOKEN&#34;)}&#39;},
+                              timeout=self.__timeout).json()
         else:
-            session = req.post(f&#39;{server_url}/anonymous&#39;).json()
+            session = req.post(f&#39;{server_url}/anonymous&#39;, timeout=self.__timeout).json()
 
         if &#39;error&#39; in session:
             raise GeoEngineException(session)
@@ -145,7 +150,7 @@ class Session:
         Logout the current session
         &#39;&#39;&#39;
 
-        req.post(f&#39;{self.server_url}/logout&#39;, headers=self.auth_header)
+        req.post(f&#39;{self.server_url}/logout&#39;, headers=self.auth_header, timeout=self.__timeout)
 
 
 def get_session() -&gt; Session:
@@ -325,6 +330,7 @@ optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_T
     __id: UUID
     __valid_until: Optional[str] = None
     __server_url: str
+    __timeout: int = 60
 
     session: ClassVar[req.Session] = None
 
@@ -345,18 +351,22 @@ optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_T
             raise GeoEngineException(&#39;Cannot provide both credentials and token&#39;)
 
         if credentials is not None:
-            session = req.post(f&#39;{server_url}/login&#39;, json={&#34;email&#34;: credentials[0], &#34;password&#34;: credentials[1]}).json()
+            session = req.post(f&#39;{server_url}/login&#39;, json={&#34;email&#34;: credentials[0],
+                                                            &#34;password&#34;: credentials[1]}, timeout=self.__timeout).json()
         elif &#34;GEOENGINE_EMAIL&#34; in os.environ and &#34;GEOENGINE_PASSWORD&#34; in os.environ:
             session = req.post(f&#39;{server_url}/login&#39;,
                                json={&#34;email&#34;: os.environ.get(&#34;GEOENGINE_EMAIL&#34;),
-                                     &#34;password&#34;: os.environ.get(&#34;GEOENGINE_PASSWORD&#34;)}).json()
+                                     &#34;password&#34;: os.environ.get(&#34;GEOENGINE_PASSWORD&#34;)},
+                               timeout=self.__timeout).json()
         elif token is not None:
-            session = req.get(f&#39;{server_url}/session&#39;, headers={&#39;Authorization&#39;: f&#39;Bearer {token}&#39;}).json()
+            session = req.get(f&#39;{server_url}/session&#39;, headers={&#39;Authorization&#39;: f&#39;Bearer {token}&#39;},
+                              timeout=self.__timeout).json()
         elif &#34;GEOENGINE_TOKEN&#34; in os.environ:
             session = req.get(f&#39;{server_url}/session&#39;,
-                              headers={&#39;Authorization&#39;: f&#39;Bearer {os.environ.get(&#34;GEOENGINE_TOKEN&#34;)}&#39;}).json()
+                              headers={&#39;Authorization&#39;: f&#39;Bearer {os.environ.get(&#34;GEOENGINE_TOKEN&#34;)}&#39;},
+                              timeout=self.__timeout).json()
         else:
-            session = req.post(f&#39;{server_url}/anonymous&#39;).json()
+            session = req.post(f&#39;{server_url}/anonymous&#39;, timeout=self.__timeout).json()
 
         if &#39;error&#39; in session:
             raise GeoEngineException(session)
@@ -407,7 +417,7 @@ optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_T
         Logout the current session
         &#39;&#39;&#39;
 
-        req.post(f&#39;{self.server_url}/logout&#39;, headers=self.auth_header)</code></pre>
+        req.post(f&#39;{self.server_url}/logout&#39;, headers=self.auth_header, timeout=self.__timeout)</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -467,7 +477,7 @@ def server_url(self) -&gt; str:
     Logout the current session
     &#39;&#39;&#39;
 
-    req.post(f&#39;{self.server_url}/logout&#39;, headers=self.auth_header)</code></pre>
+    req.post(f&#39;{self.server_url}/logout&#39;, headers=self.auth_header, timeout=self.__timeout)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.auth.Session.requests_bearer_auth"><code class="name flex">
