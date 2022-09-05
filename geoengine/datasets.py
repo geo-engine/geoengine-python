@@ -4,7 +4,8 @@ Module for working with datasets and source definitions
 
 from __future__ import annotations
 from abc import abstractmethod
-from typing import Dict, NamedTuple, Any, Union
+from typing import Dict, NamedTuple, Union, Generic, TypeVar
+
 
 from enum import Enum
 from uuid import UUID
@@ -18,6 +19,8 @@ from geoengine.error import GeoEngineException, InputException
 from geoengine.auth import get_session
 from geoengine.types import TimeStep, TimeStepGranularity, VectorDataType
 
+
+_OrgSourceDurationDictT = TypeVar('_OrgSourceDurationDictT', str, Union[str, int, TimeStepGranularity])
 
 class OgrSourceTimeFormat:
     '''Base class for OGR time formats'''
@@ -72,11 +75,11 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
         }
 
 
-class OgrSourceDuration:
+class OgrSourceDuration(Generic[_OrgSourceDurationDictT]):
     '''Base class for the duration part of a OGR time format'''
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, _OrgSourceDurationDictT]:
         pass
 
     @classmethod
