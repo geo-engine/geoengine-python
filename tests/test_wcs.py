@@ -426,7 +426,6 @@ class WcsTests(unittest.TestCase):
                 },
             )
 
-            # https://github.com/corteva/rioxarray/blob/ca62a67a3db3aa62afc85e57bb6153dbc503e1dd/test/integration/test_integration_rioxarray.py
             # test actual array data
             self.assertTrue(np.array_equal(array.data, expected.data), msg=f'{array.data} \n!=\n {expected.data}')
 
