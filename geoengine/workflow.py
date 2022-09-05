@@ -4,7 +4,7 @@ A workflow representation and methods on workflows
 
 from __future__ import annotations
 from os import PathLike
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Type
 
 from uuid import UUID
 from logging import debug
@@ -28,6 +28,8 @@ from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, 
     MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
 from geoengine.datasets import DatasetId, StoredDataset, UploadId
 from geoengine.colorizer import Colorizer
+
+JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
 
 
 class WorkflowId:
@@ -270,7 +272,8 @@ class Workflow:
 
         check_response_for_error(response)
 
-        response_json: Dict[str, Any] = response.json()
+        response_json: JsonType = response.json()
+        assert isinstance(response_json, Dict)
 
         vega_spec = json.loads(response_json['data']['vegaString'])
 
@@ -452,7 +455,8 @@ class Workflow:
 
         check_response_for_error(response)
 
-        response_json: Dict[str, Any] = response.json()
+        response_json: JsonType = response.json()
+        assert isinstance(response_json, Dict)
 
         return StoredDataset(
             dataset_id=DatasetId(response_json['dataset']),

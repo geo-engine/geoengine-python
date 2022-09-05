@@ -22,6 +22,7 @@ from geoengine.types import TimeStep, TimeStepGranularity, VectorDataType
 
 _OrgSourceDurationDictT = TypeVar('_OrgSourceDurationDictT', str, Union[str, int, TimeStepGranularity])
 
+
 class OgrSourceTimeFormat:
     '''Base class for OGR time formats'''
 
