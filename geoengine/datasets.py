@@ -3,6 +3,7 @@ Module for working with datasets and source definitions
 '''
 
 from __future__ import annotations
+from abc import abstractmethod
 from typing import Dict, NamedTuple, Any, Union
 
 from enum import Enum
@@ -21,6 +22,7 @@ from geoengine.types import TimeStep, TimeStepGranularity, VectorDataType
 class OgrSourceTimeFormat:
     '''Base class for OGR time formats'''
 
+    @abstractmethod
     def to_dict(self) -> Dict[str, str]:
         pass
 
@@ -61,7 +63,6 @@ class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
 class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
     '''A custom OGR time format'''
 
-    # related: https://github.com/python/mypy/issues/12975
     custom_format: str
 
     def to_dict(self) -> Dict[str, str]:
@@ -74,7 +75,8 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 class OgrSourceDuration:
     '''Base class for the duration part of a OGR time format'''
 
-    def to_dict(self) -> Dict[str, str]:
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
         pass
 
     @classmethod
@@ -100,7 +102,7 @@ class ValueOgrSourceDurationSpec(OgrSourceDuration):
 
     step: TimeStep
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Union[str, int, TimeStepGranularity]]:
         return {
             "type": "value",
             "step": self.step.step,
@@ -131,6 +133,7 @@ class InfiniteOgrSourceDurationSpec(OgrSourceDuration):
 class OgrSourceDatasetTimeType:
     '''A time type specification for OGR dataset definitions'''
 
+    @abstractmethod
     def to_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
         pass
 
