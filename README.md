@@ -93,6 +93,30 @@ python3 -m pylint tests
 
 Our tip is to activate linting with `pylint` in your IDE.
 
+
+## Type Checking
+
+Our CI automatically checks for typing errors.
+We use `mypy` to check the code.
+You can check it by calling:
+
+```bash
+python3 -m mypy geoengine
+python3 -m mypy tests
+```
+
+Using the config file `mypy.ini`, you can suppress missing stub errors for external libraries.
+You can ignore a library by adding two lines to the config file. For example, suppressing matplotlib would look like this:
+
+```
+[mypy-matplotlib.*]
+ignore_missing_imports = True
+
+```
+
+Our tip is to activate type checking with `mypy` in your IDE.
+
+
 ## Documentation
 
 Generate documentation HTML with:
