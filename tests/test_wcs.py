@@ -408,26 +408,42 @@ class WcsTests(unittest.TestCase):
                     [255, 255, 115, 255, 139, 255, 255, 255],
                     [255, 255, 255, 255, 255, 255, 255, 255],
                     [255, 255, 255, 255, 255, 255, 255, 255]
-                ]]),
+                ]], dtype=np.uint8),
                 coords={
                     'band': [1],
+                    'x': [-157.5, -112.5, -67.5, -22.5, 22.5, 67.5, 112.5, 157.5],
                     'y': [78.75, 56.25, 33.75, 11.25, -11.25, -33.75, -56.25, -78.75],
-                    'x': [-157.5, -112.5, -67.5, -22.5, 22.5, 67.5, 112.5, 157.5]
+                    'spatial_ref': 0,
                 },
                 dims=["band", "y", "x"],
                 attrs={
-                    'transform': (45.0, 0.0, -180.0, 0.0, -22.5, 90.0),
-                    'crs': '+init=epsg:4326',
-                    'res': (45.0, 22.5),
-                    'is_tiled': False,
-                    'nodatavals': (0.0,),
-                    'scales': (1.0,),
-                    'offsets': (0.0,),
-                    'AREA_OR_POINT': 'Area',
+                    'transform': (45.0, 0.0, -180.0, 0.0, -22.5, 90.0, 0.0, 0.0, 1.0),
+                    'crs': 'EPSG:4326',
+                    'res': (45.0, -22.5),
+                    'scale_factor': 1.0,
+                    '_FillValue': 0.0,
+                    'add_offset': 0.0,
                 },
             )
 
-            self.assertTrue(array.identical(expected), msg=f'{array}\n!=\n{expected}')
+            # test actual array data
+            self.assertTrue(np.array_equal(array.data, expected.data), msg=f'{array.data} \n!=\n {expected.data}')
+
+            # test dims
+            self.assertEqual(array.dims, expected.dims, msg=f'{array.dims} \n!=\n {expected.dims}')
+
+            # test coords
+            self.assertTrue(
+                np.array_equal(
+                    array.coords,
+                    expected.coords),
+                msg=f'{array.coords} \n!=\n {expected.coords}')
+
+            # test attributes
+            self.assertTrue(
+                np.array_equal(
+                    array.attrs, expected.attrs),
+                msg=f'{array.attrs} \n!=\n {expected.attrs}')
 
 
 if __name__ == '__main__':

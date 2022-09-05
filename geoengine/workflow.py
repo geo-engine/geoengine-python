@@ -20,7 +20,8 @@ import rasterio.io
 from vega import VegaLite
 import numpy as np
 from PIL import Image
-import xarray as xr
+import rioxarray
+from xarray import DataArray
 
 from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
@@ -366,7 +367,7 @@ class Workflow:
         bbox: QueryRectangle,
         timeout=3600,
         force_no_data_value: Optional[float] = None
-    ) -> np.ndarray:
+    ) -> DataArray:
         '''
         Query a workflow and return the raster result as a georeferenced xarray
 
@@ -383,10 +384,19 @@ class Workflow:
             timeout,
             force_no_data_value
         ) as memfile, memfile.open() as dataset:
-            data_array = xr.open_rasterio(dataset)
+            data_array = rioxarray.open_rasterio(dataset)
+
+            # helping mypy with inference
+            assert isinstance(data_array, DataArray)
+
+            rio: DataArray = data_array.rio
+            rio.update_attrs({
+                'crs': rio.crs,
+                'res': rio.resolution(),
+                'transform': rio.transform(),
+            }, inplace=True)
 
             # TODO: add time information to dataset
-
             return data_array.load()
 
     def get_provenance(self, timeout: int = 60) -> List[ProvenanceOutput]:
