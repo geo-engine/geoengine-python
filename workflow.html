@@ -49,7 +49,8 @@ import rasterio.io
 from vega import VegaLite
 import numpy as np
 from PIL import Image
-import xarray as xr
+import rioxarray
+from xarray import DataArray
 
 from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
@@ -390,7 +391,7 @@ class Workflow:
         bbox: QueryRectangle,
         timeout=3600,
         force_no_data_value: Optional[float] = None
-    ) -&gt; np.ndarray:
+    ) -&gt; DataArray:
         &#39;&#39;&#39;
         Query a workflow and return the raster result as a georeferenced xarray
 
@@ -407,10 +408,19 @@ class Workflow:
             timeout,
             force_no_data_value
         ) as memfile, memfile.open() as dataset:
-            data_array = xr.open_rasterio(dataset)
+            data_array = rioxarray.open_rasterio(dataset)
+
+            # helping mypy with inference
+            assert isinstance(data_array, DataArray)
+
+            rio: DataArray = data_array.rio
+            rio.update_attrs({
+                &#39;crs&#39;: rio.crs,
+                &#39;res&#39;: rio.resolution(),
+                &#39;transform&#39;: rio.transform(),
+            }, inplace=True)
 
             # TODO: add time information to dataset
-
             return data_array.load()
 
     def get_provenance(self, timeout: int = 60) -&gt; List[ProvenanceOutput]:
@@ -885,7 +895,7 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
         bbox: QueryRectangle,
         timeout=3600,
         force_no_data_value: Optional[float] = None
-    ) -&gt; np.ndarray:
+    ) -&gt; DataArray:
         &#39;&#39;&#39;
         Query a workflow and return the raster result as a georeferenced xarray
 
@@ -902,10 +912,19 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
             timeout,
             force_no_data_value
         ) as memfile, memfile.open() as dataset:
-            data_array = xr.open_rasterio(dataset)
+            data_array = rioxarray.open_rasterio(dataset)
+
+            # helping mypy with inference
+            assert isinstance(data_array, DataArray)
+
+            rio: DataArray = data_array.rio
+            rio.update_attrs({
+                &#39;crs&#39;: rio.crs,
+                &#39;res&#39;: rio.resolution(),
+                &#39;transform&#39;: rio.transform(),
+            }, inplace=True)
 
             # TODO: add time information to dataset
-
             return data_array.load()
 
     def get_provenance(self, timeout: int = 60) -&gt; List[ProvenanceOutput]:
@@ -1146,7 +1165,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.get_xarray"><code class="name flex">
-<span>def <span class="ident">get_xarray</span></span>(<span>self, bbox: QueryRectangle, timeout=3600, force_no_data_value: Optional[float] = None) ‑> numpy.ndarray</span>
+<span>def <span class="ident">get_xarray</span></span>(<span>self, bbox: QueryRectangle, timeout=3600, force_no_data_value: Optional[float] = None) ‑> xarray.core.dataarray.DataArray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Query a workflow and return the raster result as a georeferenced xarray</p>
@@ -1168,7 +1187,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
     bbox: QueryRectangle,
     timeout=3600,
     force_no_data_value: Optional[float] = None
-) -&gt; np.ndarray:
+) -&gt; DataArray:
     &#39;&#39;&#39;
     Query a workflow and return the raster result as a georeferenced xarray
 
@@ -1185,10 +1204,19 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
         timeout,
         force_no_data_value
     ) as memfile, memfile.open() as dataset:
-        data_array = xr.open_rasterio(dataset)
+        data_array = rioxarray.open_rasterio(dataset)
+
+        # helping mypy with inference
+        assert isinstance(data_array, DataArray)
+
+        rio: DataArray = data_array.rio
+        rio.update_attrs({
+            &#39;crs&#39;: rio.crs,
+            &#39;res&#39;: rio.resolution(),
+            &#39;transform&#39;: rio.transform(),
+        }, inplace=True)
 
         # TODO: add time information to dataset
-
         return data_array.load()</code></pre>
 </details>
 </dd>
