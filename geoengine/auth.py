@@ -2,6 +2,7 @@
 Module for encapsulating Geo Engine authentication
 '''
 
+from __future__ import annotations
 from typing import ClassVar, Dict, Optional, Tuple
 from uuid import UUID
 
@@ -36,7 +37,7 @@ class Session:
     __server_url: str
     __timeout: int = 60
 
-    session: ClassVar = None
+    session: ClassVar[Optional[Session]] = None
 
     def __init__(self, server_url: str, credentials: Tuple[str, str] = None, token: str = None) -> None:
         '''
