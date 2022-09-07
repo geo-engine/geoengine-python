@@ -11,7 +11,7 @@ from logging import debug
 from io import BytesIO
 import urllib.parse
 import json
-
+from typing_extensions import TypedDict
 import requests as req
 import geopandas as gpd
 from owslib.util import Authentication
@@ -31,6 +31,17 @@ from geoengine.datasets import DatasetId, StoredDataset, UploadId
 from geoengine.colorizer import Colorizer
 
 JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
+
+Axis = TypedDict('Axis', {'title': str})
+Bin = TypedDict('Bin', {'binned': bool, 'step': float})
+Field = TypedDict('Field', {'field': str})
+DatasetIds = TypedDict('DatasetIds', {'upload': UUID, 'dataset': UUID})
+Values = TypedDict('Values', {'binStart': float, 'binEnd': float, 'Frequency': int})
+X = TypedDict('X', {'field': Field, 'bin': Bin, 'axis': Axis})
+X2 = TypedDict('X2', {'field': Field})
+Y = TypedDict('Y', {'field': Field, 'type': str})
+Encoding = TypedDict('Encoding', {'x': X, 'x2': X2, 'y': Y})
+VegaSpec = TypedDict('VegaSpec', {'$schema': str, 'data': List[Values], 'mark': str, 'encoding': Encoding})
 
 
 class WorkflowId:
@@ -276,7 +287,7 @@ class Workflow:
         response_json: JsonType = response.json()
         assert isinstance(response_json, Dict)
 
-        vega_spec = json.loads(response_json['data']['vegaString'])
+        vega_spec: VegaSpec = json.loads(response_json['data']['vegaString'])
 
         return VegaLite(vega_spec)
 
@@ -465,8 +476,7 @@ class Workflow:
 
         check_response_for_error(response)
 
-        response_json: JsonType = response.json()
-        assert isinstance(response_json, Dict)
+        response_json: DatasetIds = response.json()
 
         return StoredDataset(
             dataset_id=DatasetId(response_json['dataset']),
