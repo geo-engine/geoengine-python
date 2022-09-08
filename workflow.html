@@ -33,7 +33,7 @@ A workflow representation and methods on workflows
 
 from __future__ import annotations
 from os import PathLike
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Type
 
 from uuid import UUID
 from logging import debug
@@ -41,6 +41,8 @@ from io import BytesIO
 import urllib.parse
 import json
 
+# TODO: can be imported directly from `typing` with python &gt;= 3.8
+from typing_extensions import TypedDict
 import requests as req
 import geopandas as gpd
 from owslib.util import Authentication
@@ -58,6 +60,20 @@ from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, 
     MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
 from geoengine.datasets import DatasetId, StoredDataset, UploadId
 from geoengine.colorizer import Colorizer
+
+# TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
+JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
+
+Axis = TypedDict(&#39;Axis&#39;, {&#39;title&#39;: str})
+Bin = TypedDict(&#39;Bin&#39;, {&#39;binned&#39;: bool, &#39;step&#39;: float})
+Field = TypedDict(&#39;Field&#39;, {&#39;field&#39;: str})
+DatasetIds = TypedDict(&#39;DatasetIds&#39;, {&#39;upload&#39;: UUID, &#39;dataset&#39;: UUID})
+Values = TypedDict(&#39;Values&#39;, {&#39;binStart&#39;: float, &#39;binEnd&#39;: float, &#39;Frequency&#39;: int})
+X = TypedDict(&#39;X&#39;, {&#39;field&#39;: Field, &#39;bin&#39;: Bin, &#39;axis&#39;: Axis})
+X2 = TypedDict(&#39;X2&#39;, {&#39;field&#39;: Field})
+Y = TypedDict(&#39;Y&#39;, {&#39;field&#39;: Field, &#39;type&#39;: str})
+Encoding = TypedDict(&#39;Encoding&#39;, {&#39;x&#39;: X, &#39;x2&#39;: X2, &#39;y&#39;: Y})
+VegaSpec = TypedDict(&#39;VegaSpec&#39;, {&#39;$schema&#39;: str, &#39;data&#39;: List[Values], &#39;mark&#39;: str, &#39;encoding&#39;: Encoding})
 
 
 class WorkflowId:
@@ -78,10 +94,10 @@ class WorkflowId:
         if &#39;id&#39; not in response:
             raise GeoEngineException(response)
 
-        return WorkflowId(response[&#39;id&#39;])
+        return WorkflowId(UUID(response[&#39;id&#39;]))
 
     def __str__(self) -&gt; str:
-        return self.__workflow_id
+        return str(self.__workflow_id)
 
     def __repr__(self) -&gt; str:
         return str(self)
@@ -164,6 +180,8 @@ class Workflow:
 
         debug(f&#39;WFS URL:\n{wfs_url}&#39;)
 
+        if not wfs_url:
+            raise Exception(&#39;Failed to build WFS URL for workflow {self.__workflow_id}.&#39;)
         return wfs_url
 
     def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -&gt; str:
@@ -179,8 +197,8 @@ class Workflow:
         ).prepare()
 
         command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
-        headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wfs_request.headers.items()]
-        headers = &#34; -H &#34;.join(headers)
+        headers_list = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wfs_request.headers.items()]
+        headers = &#34; -H &#34;.join(headers_list)
         return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
 
     def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; gpd.GeoDataFrame:
@@ -273,8 +291,8 @@ class Workflow:
         wms_request = self.__wms_get_map_request(bbox, colorizer)
 
         command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
-        headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wms_request.headers.items()]
-        headers = &#34; -H &#34;.join(headers)
+        headers_list = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wms_request.headers.items()]
+        headers = &#34; -H &#34;.join(headers_list)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
 
     def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; VegaLite:
@@ -298,9 +316,10 @@ class Workflow:
 
         check_response_for_error(response)
 
-        response = response.json()
+        response_json: JsonType = response.json()
+        assert isinstance(response_json, Dict)
 
-        vega_spec = json.loads(response[&#39;data&#39;][&#39;vegaString&#39;])
+        vega_spec: VegaSpec = json.loads(response_json[&#39;data&#39;][&#39;vegaString&#39;])
 
         return VegaLite(vega_spec)
 
@@ -489,11 +508,11 @@ class Workflow:
 
         check_response_for_error(response)
 
-        response = response.json()
+        response_json: DatasetIds = response.json()
 
         return StoredDataset(
-            dataset_id=DatasetId(response[&#39;dataset&#39;]),
-            upload_id=UploadId(response[&#39;upload&#39;])
+            dataset_id=DatasetId(response_json[&#39;dataset&#39;]),
+            upload_id=UploadId(response_json[&#39;upload&#39;])
         )
 
 
@@ -581,6 +600,238 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="geoengine.workflow.Axis"><code class="flex name class">
+<span>class <span class="ident">Axis</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow.Axis.title"><code class="name">var <span class="ident">title</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow.Bin"><code class="flex name class">
+<span>class <span class="ident">Bin</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow.Bin.binned"><code class="name">var <span class="ident">binned</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.Bin.step"><code class="name">var <span class="ident">step</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow.DatasetIds"><code class="flex name class">
+<span>class <span class="ident">DatasetIds</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow.DatasetIds.dataset"><code class="name">var <span class="ident">dataset</span> : uuid.UUID</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.DatasetIds.upload"><code class="name">var <span class="ident">upload</span> : uuid.UUID</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow.Encoding"><code class="flex name class">
+<span>class <span class="ident">Encoding</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow.Encoding.x"><code class="name">var <span class="ident">x</span> : <a title="geoengine.workflow.X" href="#geoengine.workflow.X">X</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.Encoding.x2"><code class="name">var <span class="ident">x2</span> : <a title="geoengine.workflow.X2" href="#geoengine.workflow.X2">X2</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.Encoding.y"><code class="name">var <span class="ident">y</span> : <a title="geoengine.workflow.Y" href="#geoengine.workflow.Y">Y</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow.Field"><code class="flex name class">
+<span>class <span class="ident">Field</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow.Field.field"><code class="name">var <span class="ident">field</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow.Values"><code class="flex name class">
+<span>class <span class="ident">Values</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow.Values.Frequency"><code class="name">var <span class="ident">Frequency</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.Values.binEnd"><code class="name">var <span class="ident">binEnd</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.Values.binStart"><code class="name">var <span class="ident">binStart</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow.VegaSpec"><code class="flex name class">
+<span>class <span class="ident">VegaSpec</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow.VegaSpec.$schema"><code class="name">var <span class="ident">$schema</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.VegaSpec.data"><code class="name">var <span class="ident">data</span> : List[<a title="geoengine.workflow.Values" href="#geoengine.workflow.Values">Values</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.VegaSpec.encoding"><code class="name">var <span class="ident">encoding</span> : <a title="geoengine.workflow.Encoding" href="#geoengine.workflow.Encoding">Encoding</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.VegaSpec.mark"><code class="name">var <span class="ident">mark</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.workflow.Workflow"><code class="flex name class">
 <span>class <span class="ident">Workflow</span></span>
 <span>(</span><span>workflow_id: <a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a>)</span>
@@ -668,6 +919,8 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         debug(f&#39;WFS URL:\n{wfs_url}&#39;)
 
+        if not wfs_url:
+            raise Exception(&#39;Failed to build WFS URL for workflow {self.__workflow_id}.&#39;)
         return wfs_url
 
     def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -&gt; str:
@@ -683,8 +936,8 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
         ).prepare()
 
         command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
-        headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wfs_request.headers.items()]
-        headers = &#34; -H &#34;.join(headers)
+        headers_list = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wfs_request.headers.items()]
+        headers = &#34; -H &#34;.join(headers_list)
         return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
 
     def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; gpd.GeoDataFrame:
@@ -777,8 +1030,8 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
         wms_request = self.__wms_get_map_request(bbox, colorizer)
 
         command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
-        headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wms_request.headers.items()]
-        headers = &#34; -H &#34;.join(headers)
+        headers_list = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wms_request.headers.items()]
+        headers = &#34; -H &#34;.join(headers_list)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
 
     def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; VegaLite:
@@ -802,9 +1055,10 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         check_response_for_error(response)
 
-        response = response.json()
+        response_json: JsonType = response.json()
+        assert isinstance(response_json, Dict)
 
-        vega_spec = json.loads(response[&#39;data&#39;][&#39;vegaString&#39;])
+        vega_spec: VegaSpec = json.loads(response_json[&#39;data&#39;][&#39;vegaString&#39;])
 
         return VegaLite(vega_spec)
 
@@ -993,11 +1247,11 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
         check_response_for_error(response)
 
-        response = response.json()
+        response_json: DatasetIds = response.json()
 
         return StoredDataset(
-            dataset_id=DatasetId(response[&#39;dataset&#39;]),
-            upload_id=UploadId(response[&#39;upload&#39;])
+            dataset_id=DatasetId(response_json[&#39;dataset&#39;]),
+            upload_id=UploadId(response_json[&#39;upload&#39;])
         )</code></pre>
 </details>
 <h3>Methods</h3>
@@ -1159,8 +1413,8 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
     ).prepare()
 
     command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
-    headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wfs_request.headers.items()]
-    headers = &#34; -H &#34;.join(headers)
+    headers_list = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wfs_request.headers.items()]
+    headers = &#34; -H &#34;.join(headers_list)
     return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)</code></pre>
 </details>
 </dd>
@@ -1277,9 +1531,10 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 
     check_response_for_error(response)
 
-    response = response.json()
+    response_json: JsonType = response.json()
+    assert isinstance(response_json, Dict)
 
-    vega_spec = json.loads(response[&#39;data&#39;][&#39;vegaString&#39;])
+    vega_spec: VegaSpec = json.loads(response_json[&#39;data&#39;][&#39;vegaString&#39;])
 
     return VegaLite(vega_spec)</code></pre>
 </details>
@@ -1329,11 +1584,11 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 
     check_response_for_error(response)
 
-    response = response.json()
+    response_json: DatasetIds = response.json()
 
     return StoredDataset(
-        dataset_id=DatasetId(response[&#39;dataset&#39;]),
-        upload_id=UploadId(response[&#39;upload&#39;])
+        dataset_id=DatasetId(response_json[&#39;dataset&#39;]),
+        upload_id=UploadId(response_json[&#39;upload&#39;])
     )</code></pre>
 </details>
 </dd>
@@ -1372,8 +1627,8 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
     wms_request = self.__wms_get_map_request(bbox, colorizer)
 
     command = &#34;curl -X {method} -H {headers} &#39;{uri}&#39;&#34;
-    headers = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wms_request.headers.items()]
-    headers = &#34; -H &#34;.join(headers)
+    headers_list = [f&#39;&#34;{k}: {v}&#34;&#39; for k, v in wms_request.headers.items()]
+    headers = &#34; -H &#34;.join(headers_list)
     return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)</code></pre>
 </details>
 </dd>
@@ -1430,10 +1685,10 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
         if &#39;id&#39; not in response:
             raise GeoEngineException(response)
 
-        return WorkflowId(response[&#39;id&#39;])
+        return WorkflowId(UUID(response[&#39;id&#39;]))
 
     def __str__(self) -&gt; str:
-        return self.__workflow_id
+        return str(self.__workflow_id)
 
     def __repr__(self) -&gt; str:
         return str(self)</code></pre>
@@ -1457,8 +1712,104 @@ def from_response(cls, response: Dict[str, str]) -&gt; WorkflowId:
     if &#39;id&#39; not in response:
         raise GeoEngineException(response)
 
-    return WorkflowId(response[&#39;id&#39;])</code></pre>
+    return WorkflowId(UUID(response[&#39;id&#39;]))</code></pre>
 </details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow.X"><code class="flex name class">
+<span>class <span class="ident">X</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow.X.axis"><code class="name">var <span class="ident">axis</span> : <a title="geoengine.workflow.Axis" href="#geoengine.workflow.Axis">Axis</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.X.bin"><code class="name">var <span class="ident">bin</span> : <a title="geoengine.workflow.Bin" href="#geoengine.workflow.Bin">Bin</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.X.field"><code class="name">var <span class="ident">field</span> : <a title="geoengine.workflow.Field" href="#geoengine.workflow.Field">Field</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow.X2"><code class="flex name class">
+<span>class <span class="ident">X2</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow.X2.field"><code class="name">var <span class="ident">field</span> : <a title="geoengine.workflow.Field" href="#geoengine.workflow.Field">Field</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow.Y"><code class="flex name class">
+<span>class <span class="ident">Y</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow.Y.field"><code class="name">var <span class="ident">field</span> : <a title="geoengine.workflow.Field" href="#geoengine.workflow.Field">Field</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow.Y.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 </dl>
 </dd>
@@ -1485,6 +1836,57 @@ def from_response(cls, response: Dict[str, str]) -&gt; WorkflowId:
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="geoengine.workflow.Axis" href="#geoengine.workflow.Axis">Axis</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.Axis.title" href="#geoengine.workflow.Axis.title">title</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow.Bin" href="#geoengine.workflow.Bin">Bin</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.Bin.binned" href="#geoengine.workflow.Bin.binned">binned</a></code></li>
+<li><code><a title="geoengine.workflow.Bin.step" href="#geoengine.workflow.Bin.step">step</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow.DatasetIds" href="#geoengine.workflow.DatasetIds">DatasetIds</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.DatasetIds.dataset" href="#geoengine.workflow.DatasetIds.dataset">dataset</a></code></li>
+<li><code><a title="geoengine.workflow.DatasetIds.upload" href="#geoengine.workflow.DatasetIds.upload">upload</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow.Encoding" href="#geoengine.workflow.Encoding">Encoding</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.Encoding.x" href="#geoengine.workflow.Encoding.x">x</a></code></li>
+<li><code><a title="geoengine.workflow.Encoding.x2" href="#geoengine.workflow.Encoding.x2">x2</a></code></li>
+<li><code><a title="geoengine.workflow.Encoding.y" href="#geoengine.workflow.Encoding.y">y</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow.Field" href="#geoengine.workflow.Field">Field</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.Field.field" href="#geoengine.workflow.Field.field">field</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow.Values" href="#geoengine.workflow.Values">Values</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.Values.Frequency" href="#geoengine.workflow.Values.Frequency">Frequency</a></code></li>
+<li><code><a title="geoengine.workflow.Values.binEnd" href="#geoengine.workflow.Values.binEnd">binEnd</a></code></li>
+<li><code><a title="geoengine.workflow.Values.binStart" href="#geoengine.workflow.Values.binStart">binStart</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow.VegaSpec" href="#geoengine.workflow.VegaSpec">VegaSpec</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.VegaSpec.$schema" href="#geoengine.workflow.VegaSpec.$schema">$schema</a></code></li>
+<li><code><a title="geoengine.workflow.VegaSpec.data" href="#geoengine.workflow.VegaSpec.data">data</a></code></li>
+<li><code><a title="geoengine.workflow.VegaSpec.encoding" href="#geoengine.workflow.VegaSpec.encoding">encoding</a></code></li>
+<li><code><a title="geoengine.workflow.VegaSpec.mark" href="#geoengine.workflow.VegaSpec.mark">mark</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.workflow.Workflow" href="#geoengine.workflow.Workflow">Workflow</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.workflow.Workflow.get_array" href="#geoengine.workflow.Workflow.get_array">get_array</a></code></li>
@@ -1505,6 +1907,27 @@ def from_response(cls, response: Dict[str, str]) -&gt; WorkflowId:
 <h4><code><a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.workflow.WorkflowId.from_response" href="#geoengine.workflow.WorkflowId.from_response">from_response</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow.X" href="#geoengine.workflow.X">X</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.X.axis" href="#geoengine.workflow.X.axis">axis</a></code></li>
+<li><code><a title="geoengine.workflow.X.bin" href="#geoengine.workflow.X.bin">bin</a></code></li>
+<li><code><a title="geoengine.workflow.X.field" href="#geoengine.workflow.X.field">field</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow.X2" href="#geoengine.workflow.X2">X2</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.X2.field" href="#geoengine.workflow.X2.field">field</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow.Y" href="#geoengine.workflow.Y">Y</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.Y.field" href="#geoengine.workflow.Y.field">field</a></code></li>
+<li><code><a title="geoengine.workflow.Y.type" href="#geoengine.workflow.Y.type">type</a></code></li>
 </ul>
 </li>
 </ul>

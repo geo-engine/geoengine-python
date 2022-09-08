@@ -31,6 +31,7 @@
 Module for encapsulating Geo Engine authentication
 &#39;&#39;&#39;
 
+from __future__ import annotations
 from typing import ClassVar, Dict, Optional, Tuple
 from uuid import UUID
 
@@ -65,7 +66,7 @@ class Session:
     __server_url: str
     __timeout: int = 60
 
-    session: ClassVar[req.Session] = None
+    session: ClassVar[Optional[Session]] = None
 
     def __init__(self, server_url: str, credentials: Tuple[str, str] = None, token: str = None) -&gt; None:
         &#39;&#39;&#39;
@@ -81,7 +82,7 @@ class Session:
         session = None
 
         if credentials is not None and token is not None:
-            raise GeoEngineException(&#39;Cannot provide both credentials and token&#39;)
+            raise GeoEngineException({&#39;message&#39;: &#39;Cannot provide both credentials and token&#39;})
 
         if credentials is not None:
             session = req.post(f&#39;{server_url}/login&#39;, json={&#34;email&#34;: credentials[0],
@@ -128,7 +129,7 @@ class Session:
         Create an authentication header for the current session
         &#39;&#39;&#39;
 
-        return {&#39;Authorization&#39;: &#39;Bearer &#39; + self.__id}
+        return {&#39;Authorization&#39;: &#39;Bearer &#39; + str(self.__id)}
 
     @property
     def server_url(self) -&gt; str:
@@ -143,7 +144,7 @@ class Session:
         Return a Bearer authentication object for the current session
         &#39;&#39;&#39;
 
-        return BearerAuth(self.__id)
+        return BearerAuth(str(self.__id))
 
     def logout(self):
         &#39;&#39;&#39;
@@ -332,7 +333,7 @@ optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_T
     __server_url: str
     __timeout: int = 60
 
-    session: ClassVar[req.Session] = None
+    session: ClassVar[Optional[Session]] = None
 
     def __init__(self, server_url: str, credentials: Tuple[str, str] = None, token: str = None) -&gt; None:
         &#39;&#39;&#39;
@@ -348,7 +349,7 @@ optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_T
         session = None
 
         if credentials is not None and token is not None:
-            raise GeoEngineException(&#39;Cannot provide both credentials and token&#39;)
+            raise GeoEngineException({&#39;message&#39;: &#39;Cannot provide both credentials and token&#39;})
 
         if credentials is not None:
             session = req.post(f&#39;{server_url}/login&#39;, json={&#34;email&#34;: credentials[0],
@@ -395,7 +396,7 @@ optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_T
         Create an authentication header for the current session
         &#39;&#39;&#39;
 
-        return {&#39;Authorization&#39;: &#39;Bearer &#39; + self.__id}
+        return {&#39;Authorization&#39;: &#39;Bearer &#39; + str(self.__id)}
 
     @property
     def server_url(self) -&gt; str:
@@ -410,7 +411,7 @@ optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_T
         Return a Bearer authentication object for the current session
         &#39;&#39;&#39;
 
-        return BearerAuth(self.__id)
+        return BearerAuth(str(self.__id))
 
     def logout(self):
         &#39;&#39;&#39;
@@ -421,7 +422,7 @@ optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_T
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.auth.Session.session"><code class="name">var <span class="ident">session</span> : ClassVar[requests.sessions.Session]</code></dt>
+<dt id="geoengine.auth.Session.session"><code class="name">var <span class="ident">session</span> : ClassVar[Optional[<a title="geoengine.auth.Session" href="#geoengine.auth.Session">Session</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -441,7 +442,7 @@ def auth_header(self) -&gt; Dict[str, str]:
     Create an authentication header for the current session
     &#39;&#39;&#39;
 
-    return {&#39;Authorization&#39;: &#39;Bearer &#39; + self.__id}</code></pre>
+    return {&#39;Authorization&#39;: &#39;Bearer &#39; + str(self.__id)}</code></pre>
 </details>
 </dd>
 <dt id="geoengine.auth.Session.server_url"><code class="name">var <span class="ident">server_url</span> : str</code></dt>
@@ -494,7 +495,7 @@ def server_url(self) -&gt; str:
     Return a Bearer authentication object for the current session
     &#39;&#39;&#39;
 
-    return BearerAuth(self.__id)</code></pre>
+    return BearerAuth(str(self.__id))</code></pre>
 </details>
 </dd>
 </dl>

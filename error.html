@@ -140,7 +140,7 @@ class SpatialReferenceMismatchException(Exception):
         return f&#34;Spatial reference mismatch {self.__spatial_reference_a} != {self.__spatial_reference_b}&#34;
 
 
-def check_response_for_error(response: Response):
+def check_response_for_error(response: Response) -&gt; None:
     &#39;&#39;&#39;
     Checks a `Response` for an error and raises it if there is one.
     &#39;&#39;&#39;
@@ -155,13 +155,14 @@ def check_response_for_error(response: Response):
     # try to parse it as a Geo Engine error
     try:
         response_json = response.json()
-        if &#39;error&#39; in response_json:
-            # override exception with `GeoEngineException`
-            exception = GeoEngineException(response_json)
     except Exception:  # pylint: disable=broad-except
         pass  # ignore errors, it seemed not to be JSON
+    else:
+        # if parsing was successful, raise the appropriate exception
+        if &#39;error&#39; in response_json:
+            raise GeoEngineException(response_json)
 
-    # either raise the `GeoEngineException` or any other `HTTPError`
+    # raise `HTTPError` if `GeoEngineException` or any other was not thrown
     raise exception</code></pre>
 </details>
 </section>
@@ -173,7 +174,7 @@ def check_response_for_error(response: Response):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="geoengine.error.check_response_for_error"><code class="name flex">
-<span>def <span class="ident">check_response_for_error</span></span>(<span>response: requests.models.Response)</span>
+<span>def <span class="ident">check_response_for_error</span></span>(<span>response: requests.models.Response) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Checks a <code>Response</code> for an error and raises it if there is one.</p></div>
@@ -181,7 +182,7 @@ def check_response_for_error(response: Response):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def check_response_for_error(response: Response):
+<pre><code class="python">def check_response_for_error(response: Response) -&gt; None:
     &#39;&#39;&#39;
     Checks a `Response` for an error and raises it if there is one.
     &#39;&#39;&#39;
@@ -196,13 +197,14 @@ def check_response_for_error(response: Response):
     # try to parse it as a Geo Engine error
     try:
         response_json = response.json()
-        if &#39;error&#39; in response_json:
-            # override exception with `GeoEngineException`
-            exception = GeoEngineException(response_json)
     except Exception:  # pylint: disable=broad-except
         pass  # ignore errors, it seemed not to be JSON
+    else:
+        # if parsing was successful, raise the appropriate exception
+        if &#39;error&#39; in response_json:
+            raise GeoEngineException(response_json)
 
-    # either raise the `GeoEngineException` or any other `HTTPError`
+    # raise `HTTPError` if `GeoEngineException` or any other was not thrown
     raise exception</code></pre>
 </details>
 </dd>

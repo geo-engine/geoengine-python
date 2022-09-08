@@ -38,7 +38,6 @@ from uuid import UUID
 
 from enum import Enum
 from attr import dataclass
-from numpy import number
 
 from geoengine.error import GeoEngineException, InputException, TypeException
 
@@ -121,24 +120,24 @@ class QueryRectangle:
         res = self.__resolution
 
         if self.__srs == &#34;EPSG:4326&#34;:
-            return [-res[1], res[0]]
+            return (-res[1], res[0])
 
         return res
 
     @property
-    def xmin(self) -&gt; number:
+    def xmin(self) -&gt; float:
         return self.__spatial_bounds[0]
 
     @property
-    def ymin(self) -&gt; number:
+    def ymin(self) -&gt; float:
         return self.__spatial_bounds[1]
 
     @property
-    def xmax(self) -&gt; number:
+    def xmax(self) -&gt; float:
         return self.__spatial_bounds[2]
 
     @property
-    def ymax(self) -&gt; number:
+    def ymax(self) -&gt; float:
         return self.__spatial_bounds[3]
 
     @property
@@ -168,7 +167,7 @@ class QueryRectangle:
 
         return self.__srs
 
-    def __dict__(self) -&gt; Dict[str, Any]:
+    def __dict__(self):
         &#39;&#39;&#39;
         Return a dictionary representation of the object
         &#39;&#39;&#39;
@@ -216,7 +215,7 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         self.__spatial_reference = spatial_reference
 
     @staticmethod
-    def from_response(response: Dict[str, Any]) -&gt; None:
+    def from_response(response: Dict[str, Any]) -&gt; ResultDescriptor:
         &#39;&#39;&#39;
         Parse a result descriptor from an http response
         &#39;&#39;&#39;
@@ -313,7 +312,7 @@ class VectorResultDescriptor(ResultDescriptor):
         return super().spatial_reference
 
     @property
-    def columns(self) -&gt; Dict[str, Dict[str, Any]]:
+    def columns(self) -&gt; Dict[str, VectorColumnInfo]:
         &#39;&#39;&#39;Return the columns&#39;&#39;&#39;
 
         return self.__columns
@@ -489,7 +488,7 @@ class DataId:  # pylint: disable=too-few-public-methods
         if response[&#34;type&#34;] == &#34;external&#34;:
             return ExternalDataId.from_response(response)
 
-        raise GeoEngineException(f&#34;Unknown DataId type: {response[&#39;type&#39;]}&#34;)
+        raise GeoEngineException({&#34;message&#34;: f&#34;Unknown DataId type: {response[&#39;type&#39;]}&#34;})
 
 
 class InternalDataId(DataId):
@@ -504,12 +503,12 @@ class InternalDataId(DataId):
     def from_response(cls, response: Dict[str, str]) -&gt; InternalDataId:
         &#39;&#39;&#39;Parse an http response to a `InternalDataId` object&#39;&#39;&#39;
 
-        return InternalDataId(response[&#39;datasetId&#39;])
+        return InternalDataId(UUID(response[&#39;datasetId&#39;]))
 
     def to_dict(self) -&gt; Dict[str, str]:
         return {
             &#34;type&#34;: &#34;internal&#34;,
-            &#34;datasetId&#34;: self.__dataset_id
+            &#34;datasetId&#34;: str(self.__dataset_id)
         }
 
     def __str__(self) -&gt; str:
@@ -541,12 +540,12 @@ class ExternalDataId(DataId):
     def from_response(cls, response: Dict[str, str]) -&gt; ExternalDataId:
         &#39;&#39;&#39;Parse an http response to a `ExternalDataId` object&#39;&#39;&#39;
 
-        return ExternalDataId(response[&#39;providerId&#39;], response[&#39;layerId&#39;])
+        return ExternalDataId(UUID(response[&#39;providerId&#39;]), response[&#39;layerId&#39;])
 
     def to_dict(self) -&gt; Dict[str, str]:
         return {
             &#34;type&#34;: &#34;external&#34;,
-            &#34;providerId&#34;: self.__provider_id,
+            &#34;providerId&#34;: str(self.__provider_id),
             &#34;layerId&#34;: self.__layer_id,
         }
 
@@ -571,7 +570,7 @@ class Measurement:  # pylint: disable=too-few-public-methods
     &#39;&#39;&#39;
 
     @staticmethod
-    def from_response(response: Dict[str, Any]) -&gt; None:
+    def from_response(response: Dict[str, Any]) -&gt; Measurement:
         &#39;&#39;&#39;
         Parse a result descriptor from an http response
         &#39;&#39;&#39;
@@ -649,9 +648,9 @@ class ClassificationMeasurement(Measurement):
     &#39;&#39;&#39;A measurement that is a classification&#39;&#39;&#39;
 
     __measurement: str
-    __classes: Dict[number, str]
+    __classes: Dict[int, str]
 
-    def __init__(self, measurement: str, classes: Dict[number, str]) -&gt; None:
+    def __init__(self, measurement: str, classes: Dict[int, str]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `ClassificationMeasurement`&#39;&#39;&#39;
 
         super().__init__()
@@ -684,7 +683,7 @@ class ClassificationMeasurement(Measurement):
         return self.__measurement
 
     @property
-    def classes(self) -&gt; Dict[number, str]:
+    def classes(self) -&gt; Dict[int, str]:
         return self.__classes</code></pre>
 </details>
 </section>
@@ -699,7 +698,7 @@ class ClassificationMeasurement(Measurement):
 <dl>
 <dt id="geoengine.types.ClassificationMeasurement"><code class="flex name class">
 <span>class <span class="ident">ClassificationMeasurement</span></span>
-<span>(</span><span>measurement: str, classes: Dict[number, str])</span>
+<span>(</span><span>measurement: str, classes: Dict[int, str])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A measurement that is a classification</p>
@@ -712,9 +711,9 @@ class ClassificationMeasurement(Measurement):
     &#39;&#39;&#39;A measurement that is a classification&#39;&#39;&#39;
 
     __measurement: str
-    __classes: Dict[number, str]
+    __classes: Dict[int, str]
 
-    def __init__(self, measurement: str, classes: Dict[number, str]) -&gt; None:
+    def __init__(self, measurement: str, classes: Dict[int, str]) -&gt; None:
         &#39;&#39;&#39;Initialize a new `ClassificationMeasurement`&#39;&#39;&#39;
 
         super().__init__()
@@ -747,7 +746,7 @@ class ClassificationMeasurement(Measurement):
         return self.__measurement
 
     @property
-    def classes(self) -&gt; Dict[number, str]:
+    def classes(self) -&gt; Dict[int, str]:
         return self.__classes</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -780,7 +779,7 @@ def from_response(response: Dict[str, Any]) -&gt; ClassificationMeasurement:
 </dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="geoengine.types.ClassificationMeasurement.classes"><code class="name">var <span class="ident">classes</span> : Dict[numpy.number, str]</code></dt>
+<dt id="geoengine.types.ClassificationMeasurement.classes"><code class="name">var <span class="ident">classes</span> : Dict[int, str]</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -788,7 +787,7 @@ def from_response(response: Dict[str, Any]) -&gt; ClassificationMeasurement:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def classes(self) -&gt; Dict[number, str]:
+def classes(self) -&gt; Dict[int, str]:
     return self.__classes</code></pre>
 </details>
 </dd>
@@ -928,7 +927,7 @@ def unit(self) -&gt; Optional[str]:
         if response[&#34;type&#34;] == &#34;external&#34;:
             return ExternalDataId.from_response(response)
 
-        raise GeoEngineException(f&#34;Unknown DataId type: {response[&#39;type&#39;]}&#34;)</code></pre>
+        raise GeoEngineException({&#34;message&#34;: f&#34;Unknown DataId type: {response[&#39;type&#39;]}&#34;})</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -955,7 +954,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; DataId:
     if response[&#34;type&#34;] == &#34;external&#34;:
         return ExternalDataId.from_response(response)
 
-    raise GeoEngineException(f&#34;Unknown DataId type: {response[&#39;type&#39;]}&#34;)</code></pre>
+    raise GeoEngineException({&#34;message&#34;: f&#34;Unknown DataId type: {response[&#39;type&#39;]}&#34;})</code></pre>
 </details>
 </dd>
 </dl>
@@ -984,12 +983,12 @@ def from_response(cls, response: Dict[str, str]) -&gt; DataId:
     def from_response(cls, response: Dict[str, str]) -&gt; ExternalDataId:
         &#39;&#39;&#39;Parse an http response to a `ExternalDataId` object&#39;&#39;&#39;
 
-        return ExternalDataId(response[&#39;providerId&#39;], response[&#39;layerId&#39;])
+        return ExternalDataId(UUID(response[&#39;providerId&#39;]), response[&#39;layerId&#39;])
 
     def to_dict(self) -&gt; Dict[str, str]:
         return {
             &#34;type&#34;: &#34;external&#34;,
-            &#34;providerId&#34;: self.__provider_id,
+            &#34;providerId&#34;: str(self.__provider_id),
             &#34;layerId&#34;: self.__layer_id,
         }
 
@@ -1026,7 +1025,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; DataId:
 def from_response(cls, response: Dict[str, str]) -&gt; ExternalDataId:
     &#39;&#39;&#39;Parse an http response to a `ExternalDataId` object&#39;&#39;&#39;
 
-    return ExternalDataId(response[&#39;providerId&#39;], response[&#39;layerId&#39;])</code></pre>
+    return ExternalDataId(UUID(response[&#39;providerId&#39;]), response[&#39;layerId&#39;])</code></pre>
 </details>
 </dd>
 </dl>
@@ -1044,7 +1043,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; ExternalDataId:
 <pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
     return {
         &#34;type&#34;: &#34;external&#34;,
-        &#34;providerId&#34;: self.__provider_id,
+        &#34;providerId&#34;: str(self.__provider_id),
         &#34;layerId&#34;: self.__layer_id,
     }</code></pre>
 </details>
@@ -1073,12 +1072,12 @@ def from_response(cls, response: Dict[str, str]) -&gt; ExternalDataId:
     def from_response(cls, response: Dict[str, str]) -&gt; InternalDataId:
         &#39;&#39;&#39;Parse an http response to a `InternalDataId` object&#39;&#39;&#39;
 
-        return InternalDataId(response[&#39;datasetId&#39;])
+        return InternalDataId(UUID(response[&#39;datasetId&#39;]))
 
     def to_dict(self) -&gt; Dict[str, str]:
         return {
             &#34;type&#34;: &#34;internal&#34;,
-            &#34;datasetId&#34;: self.__dataset_id
+            &#34;datasetId&#34;: str(self.__dataset_id)
         }
 
     def __str__(self) -&gt; str:
@@ -1114,7 +1113,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; ExternalDataId:
 def from_response(cls, response: Dict[str, str]) -&gt; InternalDataId:
     &#39;&#39;&#39;Parse an http response to a `InternalDataId` object&#39;&#39;&#39;
 
-    return InternalDataId(response[&#39;datasetId&#39;])</code></pre>
+    return InternalDataId(UUID(response[&#39;datasetId&#39;]))</code></pre>
 </details>
 </dd>
 </dl>
@@ -1132,7 +1131,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; InternalDataId:
 <pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
     return {
         &#34;type&#34;: &#34;internal&#34;,
-        &#34;datasetId&#34;: self.__dataset_id
+        &#34;datasetId&#34;: str(self.__dataset_id)
     }</code></pre>
 </details>
 </dd>
@@ -1153,7 +1152,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; InternalDataId:
     &#39;&#39;&#39;
 
     @staticmethod
-    def from_response(response: Dict[str, Any]) -&gt; None:
+    def from_response(response: Dict[str, Any]) -&gt; Measurement:
         &#39;&#39;&#39;
         Parse a result descriptor from an http response
         &#39;&#39;&#39;
@@ -1182,7 +1181,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; InternalDataId:
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.types.Measurement.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, Any]) ‑> None</span>
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, Any]) ‑> <a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse a result descriptor from an http response</p></div>
@@ -1191,7 +1190,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; InternalDataId:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def from_response(response: Dict[str, Any]) -&gt; None:
+def from_response(response: Dict[str, Any]) -&gt; Measurement:
     &#39;&#39;&#39;
     Parse a result descriptor from an http response
     &#39;&#39;&#39;
@@ -1476,24 +1475,24 @@ def from_response(cls, response: Dict[str, Dict[str, str]]) -&gt; ProvenanceOutp
         res = self.__resolution
 
         if self.__srs == &#34;EPSG:4326&#34;:
-            return [-res[1], res[0]]
+            return (-res[1], res[0])
 
         return res
 
     @property
-    def xmin(self) -&gt; number:
+    def xmin(self) -&gt; float:
         return self.__spatial_bounds[0]
 
     @property
-    def ymin(self) -&gt; number:
+    def ymin(self) -&gt; float:
         return self.__spatial_bounds[1]
 
     @property
-    def xmax(self) -&gt; number:
+    def xmax(self) -&gt; float:
         return self.__spatial_bounds[2]
 
     @property
-    def ymax(self) -&gt; number:
+    def ymax(self) -&gt; float:
         return self.__spatial_bounds[3]
 
     @property
@@ -1523,7 +1522,7 @@ def from_response(cls, response: Dict[str, Dict[str, str]]) -&gt; ProvenanceOutp
 
         return self.__srs
 
-    def __dict__(self) -&gt; Dict[str, Any]:
+    def __dict__(self):
         &#39;&#39;&#39;
         Return a dictionary representation of the object
         &#39;&#39;&#39;
@@ -1648,7 +1647,7 @@ def resolution_ogc(self) -&gt; Tuple[float, float]:
     res = self.__resolution
 
     if self.__srs == &#34;EPSG:4326&#34;:
-        return [-res[1], res[0]]
+        return (-res[1], res[0])
 
     return res</code></pre>
 </details>
@@ -1688,7 +1687,7 @@ def time_str(self) -&gt; str:
     return &#39;/&#39;.join(map(str, self.__time_interval))</code></pre>
 </details>
 </dd>
-<dt id="geoengine.types.QueryRectangle.xmax"><code class="name">var <span class="ident">xmax</span> : numpy.number</code></dt>
+<dt id="geoengine.types.QueryRectangle.xmax"><code class="name">var <span class="ident">xmax</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1696,11 +1695,11 @@ def time_str(self) -&gt; str:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def xmax(self) -&gt; number:
+def xmax(self) -&gt; float:
     return self.__spatial_bounds[2]</code></pre>
 </details>
 </dd>
-<dt id="geoengine.types.QueryRectangle.xmin"><code class="name">var <span class="ident">xmin</span> : numpy.number</code></dt>
+<dt id="geoengine.types.QueryRectangle.xmin"><code class="name">var <span class="ident">xmin</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1708,11 +1707,11 @@ def xmax(self) -&gt; number:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def xmin(self) -&gt; number:
+def xmin(self) -&gt; float:
     return self.__spatial_bounds[0]</code></pre>
 </details>
 </dd>
-<dt id="geoengine.types.QueryRectangle.ymax"><code class="name">var <span class="ident">ymax</span> : numpy.number</code></dt>
+<dt id="geoengine.types.QueryRectangle.ymax"><code class="name">var <span class="ident">ymax</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1720,11 +1719,11 @@ def xmin(self) -&gt; number:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def ymax(self) -&gt; number:
+def ymax(self) -&gt; float:
     return self.__spatial_bounds[3]</code></pre>
 </details>
 </dd>
-<dt id="geoengine.types.QueryRectangle.ymin"><code class="name">var <span class="ident">ymin</span> : numpy.number</code></dt>
+<dt id="geoengine.types.QueryRectangle.ymin"><code class="name">var <span class="ident">ymin</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -1732,7 +1731,7 @@ def ymax(self) -&gt; number:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def ymin(self) -&gt; number:
+def ymin(self) -&gt; float:
     return self.__spatial_bounds[1]</code></pre>
 </details>
 </dd>
@@ -1855,7 +1854,7 @@ def measurement(self) -&gt; Measurement:
         self.__spatial_reference = spatial_reference
 
     @staticmethod
-    def from_response(response: Dict[str, Any]) -&gt; None:
+    def from_response(response: Dict[str, Any]) -&gt; ResultDescriptor:
         &#39;&#39;&#39;
         Parse a result descriptor from an http response
         &#39;&#39;&#39;
@@ -1914,7 +1913,7 @@ def measurement(self) -&gt; Measurement:
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.types.ResultDescriptor.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, Any]) ‑> None</span>
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, Any]) ‑> <a title="geoengine.types.ResultDescriptor" href="#geoengine.types.ResultDescriptor">ResultDescriptor</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse a result descriptor from an http response</p></div>
@@ -1923,7 +1922,7 @@ def measurement(self) -&gt; Measurement:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def from_response(response: Dict[str, Any]) -&gt; None:
+def from_response(response: Dict[str, Any]) -&gt; ResultDescriptor:
     &#39;&#39;&#39;
     Parse a result descriptor from an http response
     &#39;&#39;&#39;
@@ -2338,7 +2337,7 @@ def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
         return super().spatial_reference
 
     @property
-    def columns(self) -&gt; Dict[str, Dict[str, Any]]:
+    def columns(self) -&gt; Dict[str, VectorColumnInfo]:
         &#39;&#39;&#39;Return the columns&#39;&#39;&#39;
 
         return self.__columns</code></pre>
@@ -2349,7 +2348,7 @@ def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="geoengine.types.VectorResultDescriptor.columns"><code class="name">var <span class="ident">columns</span> : Dict[str, Dict[str, Any]]</code></dt>
+<dt id="geoengine.types.VectorResultDescriptor.columns"><code class="name">var <span class="ident">columns</span> : Dict[str, <a title="geoengine.types.VectorColumnInfo" href="#geoengine.types.VectorColumnInfo">VectorColumnInfo</a>]</code></dt>
 <dd>
 <div class="desc"><p>Return the columns</p></div>
 <details class="source">
@@ -2357,7 +2356,7 @@ def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
-def columns(self) -&gt; Dict[str, Dict[str, Any]]:
+def columns(self) -&gt; Dict[str, VectorColumnInfo]:
     &#39;&#39;&#39;Return the columns&#39;&#39;&#39;
 
     return self.__columns</code></pre>
