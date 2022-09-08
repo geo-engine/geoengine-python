@@ -40,7 +40,7 @@ jobs:
           python -m pylint geoengine
       - name: Type-check code
         run: |
-          python -m mypy geoengine --install-types --non-interactive
+          python -m mypy geoengine
       - name: Build
         run: python -m build .
       - name: Install test dependencies
@@ -51,7 +51,7 @@ jobs:
           python -m pylint tests
       - name: Type-check tests
         run: |
-          python -m mypy tests --install-types --non-interactive
+          python -m mypy tests
       - name: Test
         run: pytest
       # - name: Publish
