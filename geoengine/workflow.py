@@ -4,7 +4,7 @@ A workflow representation and methods on workflows
 
 from __future__ import annotations
 from os import PathLike
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Type
 
 from uuid import UUID
 from logging import debug
@@ -12,6 +12,8 @@ from io import BytesIO
 import urllib.parse
 import json
 
+# TODO: can be imported directly from `typing` with python >= 3.8
+from typing_extensions import TypedDict
 import requests as req
 import geopandas as gpd
 from owslib.util import Authentication
@@ -29,6 +31,20 @@ from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, 
     MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
 from geoengine.datasets import DatasetId, StoredDataset, UploadId
 from geoengine.colorizer import Colorizer
+
+# TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
+JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
+
+Axis = TypedDict('Axis', {'title': str})
+Bin = TypedDict('Bin', {'binned': bool, 'step': float})
+Field = TypedDict('Field', {'field': str})
+DatasetIds = TypedDict('DatasetIds', {'upload': UUID, 'dataset': UUID})
+Values = TypedDict('Values', {'binStart': float, 'binEnd': float, 'Frequency': int})
+X = TypedDict('X', {'field': Field, 'bin': Bin, 'axis': Axis})
+X2 = TypedDict('X2', {'field': Field})
+Y = TypedDict('Y', {'field': Field, 'type': str})
+Encoding = TypedDict('Encoding', {'x': X, 'x2': X2, 'y': Y})
+VegaSpec = TypedDict('VegaSpec', {'$schema': str, 'data': List[Values], 'mark': str, 'encoding': Encoding})
 
 
 class WorkflowId:
@@ -49,10 +65,10 @@ class WorkflowId:
         if 'id' not in response:
             raise GeoEngineException(response)
 
-        return WorkflowId(response['id'])
+        return WorkflowId(UUID(response['id']))
 
     def __str__(self) -> str:
-        return self.__workflow_id
+        return str(self.__workflow_id)
 
     def __repr__(self) -> str:
         return str(self)
@@ -135,6 +151,8 @@ class Workflow:
 
         debug(f'WFS URL:\n{wfs_url}')
 
+        if not wfs_url:
+            raise Exception('Failed to build WFS URL for workflow {self.__workflow_id}.')
         return wfs_url
 
     def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -> str:
@@ -150,8 +168,8 @@ class Workflow:
         ).prepare()
 
         command = "curl -X {method} -H {headers} '{uri}'"
-        headers = [f'"{k}: {v}"' for k, v in wfs_request.headers.items()]
-        headers = " -H ".join(headers)
+        headers_list = [f'"{k}: {v}"' for k, v in wfs_request.headers.items()]
+        headers = " -H ".join(headers_list)
         return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
 
     def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -> gpd.GeoDataFrame:
@@ -244,8 +262,8 @@ class Workflow:
         wms_request = self.__wms_get_map_request(bbox, colorizer)
 
         command = "curl -X {method} -H {headers} '{uri}'"
-        headers = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
-        headers = " -H ".join(headers)
+        headers_list = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
+        headers = " -H ".join(headers_list)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
 
     def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
@@ -269,9 +287,10 @@ class Workflow:
 
         check_response_for_error(response)
 
-        response = response.json()
+        response_json: JsonType = response.json()
+        assert isinstance(response_json, Dict)
 
-        vega_spec = json.loads(response['data']['vegaString'])
+        vega_spec: VegaSpec = json.loads(response_json['data']['vegaString'])
 
         return VegaLite(vega_spec)
 
@@ -460,11 +479,11 @@ class Workflow:
 
         check_response_for_error(response)
 
-        response = response.json()
+        response_json: DatasetIds = response.json()
 
         return StoredDataset(
-            dataset_id=DatasetId(response['dataset']),
-            upload_id=UploadId(response['upload'])
+            dataset_id=DatasetId(response_json['dataset']),
+            upload_id=UploadId(response_json['upload'])
         )
 
 

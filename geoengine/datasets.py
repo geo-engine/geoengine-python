@@ -3,7 +3,9 @@ Module for working with datasets and source definitions
 '''
 
 from __future__ import annotations
-from typing import Dict, NamedTuple
+from abc import abstractmethod
+from typing import Dict, NamedTuple, Union, Generic, TypeVar
+
 
 from enum import Enum
 from uuid import UUID
@@ -18,9 +20,13 @@ from geoengine.auth import get_session
 from geoengine.types import TimeStep, TimeStepGranularity, VectorDataType
 
 
+_OrgSourceDurationDictT = TypeVar('_OrgSourceDurationDictT', str, Union[str, int, TimeStepGranularity])
+
+
 class OgrSourceTimeFormat:
     '''Base class for OGR time formats'''
 
+    @abstractmethod
     def to_dict(self) -> Dict[str, str]:
         pass
 
@@ -61,31 +67,36 @@ class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
 class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
     '''A custom OGR time format'''
 
-    custom: str
+    custom_format: str
 
     def to_dict(self) -> Dict[str, str]:
         return {
             "format": "custom",
-            "customFormat": self.custom
+            "customFormat": self.custom_format
         }
 
 
-class OgrSourceDuration:
+class OgrSourceDuration(Generic[_OrgSourceDurationDictT]):
     '''Base class for the duration part of a OGR time format'''
 
-    def to_dict(self) -> Dict[str, str]:
+    @abstractmethod
+    def to_dict(self) -> Dict[str, _OrgSourceDurationDictT]:
         pass
 
     @classmethod
-    def zero(cls) -> OgrSourceTimeFormat:
+    def zero(cls) -> ZeroOgrSourceDurationSpec:
         return ZeroOgrSourceDurationSpec()
 
     @classmethod
-    def infinite(cls) -> OgrSourceTimeFormat:
+    def infinite(cls) -> InfiniteOgrSourceDurationSpec:
         return InfiniteOgrSourceDurationSpec()
 
     @classmethod
-    def value(cls, value: int, granularity: TimeStepGranularity = TimeStepGranularity.SECONDS) -> OgrSourceTimeFormat:
+    def value(
+            cls,
+            value: int,
+            granularity: TimeStepGranularity = TimeStepGranularity.SECONDS) -> ValueOgrSourceDurationSpec:
+        '''Returns the value of the duration'''
         return ValueOgrSourceDurationSpec(TimeStep(value, granularity))
 
 
@@ -95,7 +106,7 @@ class ValueOgrSourceDurationSpec(OgrSourceDuration):
 
     step: TimeStep
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, Union[str, int, TimeStepGranularity]]:
         return {
             "type": "value",
             "step": self.step.step,
@@ -126,18 +137,19 @@ class InfiniteOgrSourceDurationSpec(OgrSourceDuration):
 class OgrSourceDatasetTimeType:
     '''A time type specification for OGR dataset definitions'''
 
-    def to_dict(self) -> Dict[str, str]:
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
         pass
 
     @classmethod
-    def none(cls) -> OgrSourceTimeFormat:
+    def none(cls) -> NoneOgrSourceDatasetTimeType:
         return NoneOgrSourceDatasetTimeType()
 
     @classmethod
     def start(cls,
               start_field: str,
               start_format: OgrSourceTimeFormat,
-              duration: OgrSourceDuration) -> OgrSourceTimeFormat:
+              duration: OgrSourceDuration) -> StartOgrSourceDatasetTimeType:
         '''Specify a start column and a fixed duration'''
         return StartOgrSourceDatasetTimeType(start_field, start_format, duration)
 
@@ -146,7 +158,7 @@ class OgrSourceDatasetTimeType:
                   start_field: str,
                   start_format: OgrSourceTimeFormat,
                   end_field: str,
-                  end_format: OgrSourceTimeFormat) -> OgrSourceTimeFormat:
+                  end_format: OgrSourceTimeFormat) -> StartEndOgrSourceDatasetTimeType:
         '''The dataset contains start and end column'''
         return StartEndOgrSourceDatasetTimeType(start_field, start_format, end_field, end_format)
 
@@ -154,16 +166,16 @@ class OgrSourceDatasetTimeType:
     def start_duration(cls,
                        start_field: str,
                        start_format: OgrSourceTimeFormat,
-                       duration_field: str) -> OgrSourceTimeFormat:
+                       duration_field: str) -> StartDurationOgrSourceDatasetTimeType:
         '''The dataset contains start and a duration column'''
-        return StartEndOgrSourceDatasetTimeType(start_field, start_format, duration_field)
+        return StartDurationOgrSourceDatasetTimeType(start_field, start_format, duration_field)
 
 
 @dataclass
 class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     '''Specify no time information'''
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
         return {
             "type": "none",
         }
@@ -177,7 +189,7 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     start_format: OgrSourceTimeFormat
     duration: OgrSourceDuration
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
         return {
             "type": "start",
             "startField": self.start_field,
@@ -195,7 +207,7 @@ class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     end_field: str
     end_format: OgrSourceTimeFormat
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
         return {
             "type": "start+end",
             "startField": self.start_field,
@@ -213,7 +225,7 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     start_format: OgrSourceTimeFormat
     duration_field: str
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
         return {
             "type": "start+duration",
             "startField": self.start_field,
@@ -241,10 +253,10 @@ class DatasetId:
         if 'id' not in response:
             raise GeoEngineException(response)
 
-        return DatasetId(response['id'])
+        return DatasetId(UUID(response['id']))
 
     def __str__(self) -> str:
-        return self.__dataset_id
+        return str(self.__dataset_id)
 
     def __repr__(self) -> str:
         return str(self)
@@ -271,10 +283,10 @@ class UploadId:
         if 'id' not in response:
             raise GeoEngineException(response)
 
-        return UploadId(response['id'])
+        return UploadId(UUID(response['id']))
 
     def __str__(self) -> str:
-        return self.__upload_id
+        return str(self.__upload_id)
 
     def __repr__(self) -> str:
         return str(self)

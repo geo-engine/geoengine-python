@@ -111,7 +111,7 @@ class SpatialReferenceMismatchException(Exception):
         return f"Spatial reference mismatch {self.__spatial_reference_a} != {self.__spatial_reference_b}"
 
 
-def check_response_for_error(response: Response):
+def check_response_for_error(response: Response) -> None:
     '''
     Checks a `Response` for an error and raises it if there is one.
     '''
@@ -126,11 +126,12 @@ def check_response_for_error(response: Response):
     # try to parse it as a Geo Engine error
     try:
         response_json = response.json()
-        if 'error' in response_json:
-            # override exception with `GeoEngineException`
-            exception = GeoEngineException(response_json)
     except Exception:  # pylint: disable=broad-except
         pass  # ignore errors, it seemed not to be JSON
+    else:
+        # if parsing was successful, raise the appropriate exception
+        if 'error' in response_json:
+            raise GeoEngineException(response_json)
 
-    # either raise the `GeoEngineException` or any other `HTTPError`
+    # raise `HTTPError` if `GeoEngineException` or any other was not thrown
     raise exception

@@ -2,6 +2,7 @@
 Module for encapsulating Geo Engine authentication
 '''
 
+from __future__ import annotations
 from typing import ClassVar, Dict, Optional, Tuple
 from uuid import UUID
 
@@ -36,7 +37,7 @@ class Session:
     __server_url: str
     __timeout: int = 60
 
-    session: ClassVar[req.Session] = None
+    session: ClassVar[Optional[Session]] = None
 
     def __init__(self, server_url: str, credentials: Tuple[str, str] = None, token: str = None) -> None:
         '''
@@ -52,7 +53,7 @@ class Session:
         session = None
 
         if credentials is not None and token is not None:
-            raise GeoEngineException('Cannot provide both credentials and token')
+            raise GeoEngineException({'message': 'Cannot provide both credentials and token'})
 
         if credentials is not None:
             session = req.post(f'{server_url}/login', json={"email": credentials[0],
@@ -99,7 +100,7 @@ class Session:
         Create an authentication header for the current session
         '''
 
-        return {'Authorization': 'Bearer ' + self.__id}
+        return {'Authorization': 'Bearer ' + str(self.__id)}
 
     @property
     def server_url(self) -> str:
@@ -114,7 +115,7 @@ class Session:
         Return a Bearer authentication object for the current session
         '''
 
-        return BearerAuth(self.__id)
+        return BearerAuth(str(self.__id))
 
     def logout(self):
         '''
