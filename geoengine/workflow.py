@@ -11,6 +11,8 @@ from logging import debug
 from io import BytesIO
 import urllib.parse
 import json
+
+# TODO: can be imported directly from `typing` with python >= 3.8
 from typing_extensions import TypedDict
 import requests as req
 import geopandas as gpd
@@ -30,6 +32,7 @@ from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, 
 from geoengine.datasets import DatasetId, StoredDataset, UploadId
 from geoengine.colorizer import Colorizer
 
+# TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
 JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
 
 Axis = TypedDict('Axis', {'title': str})
