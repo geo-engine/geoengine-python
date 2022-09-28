@@ -16,7 +16,7 @@ import json
 from typing_extensions import TypedDict
 import requests as req
 import geopandas as gpd
-from owslib.util import Authentication
+from owslib.util import Authentication, ResponseWrapper
 from owslib.wcs import WebCoverageService
 import rasterio.io
 from vega import VegaLite
@@ -294,19 +294,21 @@ class Workflow:
 
         return VegaLite(vega_spec)
 
-    def __get_wcs_tiff_as_memory_file(
+    def __request_wcs(
         self,
         bbox: QueryRectangle,
         timeout=3600,
+        file_format: str = 'image/tiff',
         force_no_data_value: Optional[float] = None
-    ) -> rasterio.io.MemoryFile:
+    ) -> ResponseWrapper:
         '''
-        Query a workflow and return the raster result as a memory mapped GeoTiff
+        Query a workflow and return the coverage
 
         Parameters
         ----------
         bbox : A bounding box for the query
         timeout : HTTP request timeout in seconds
+        file_format : The format of the returned raster
         force_no_data_value: If not None, use this value as no data value for the requested raster data. \
             Otherwise, use the Geo Engine will produce masked rasters.
         '''
@@ -332,17 +334,36 @@ class Workflow:
         if force_no_data_value is not None:
             no_data_value = str(float(force_no_data_value))
 
-        response = wcs.getCoverage(
+        return wcs.getCoverage(
             identifier=f'{self.__workflow_id}',
             bbox=bbox.bbox_ogc,
             time=[urllib.parse.quote_plus(bbox.time_str)],
-            format='image/tiff',
+            format=file_format,
             crs=crs,
             resx=resx,
             resy=resy,
             timeout=timeout,
             nodatavalue=no_data_value,
-        ).read()
+        )
+
+    def __get_wcs_tiff_as_memory_file(
+        self,
+        bbox: QueryRectangle,
+        timeout=3600,
+        force_no_data_value: Optional[float] = None
+    ) -> rasterio.io.MemoryFile:
+        '''
+        Query a workflow and return the raster result as a memory mapped GeoTiff
+
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
+        force_no_data_value: If not None, use this value as no data value for the requested raster data. \
+            Otherwise, use the Geo Engine will produce masked rasters.
+        '''
+
+        response = self.__request_wcs(bbox, timeout, 'image/tiff', force_no_data_value).read()
 
         # response is checked via `raise_on_error` in `getCoverage` / `openUrl`
 
@@ -412,6 +433,33 @@ class Workflow:
 
             # TODO: add time information to dataset
             return data_array.load()
+
+    # pylint: disable=too-many-arguments
+    def download_raster(
+        self,
+        bbox: QueryRectangle,
+        file_path: str,
+        timeout=3600,
+        file_format: str = 'image/tiff',
+        force_no_data_value: Optional[float] = None
+    ) -> None:
+        '''
+        Query a workflow and save the raster result as a file on disk
+
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        file_path : The path to the file to save the raster to
+        timeout : HTTP request timeout in seconds
+        file_format : The format of the returned raster
+        force_no_data_value: If not None, use this value as no data value for the requested raster data. \
+            Otherwise, use the Geo Engine will produce masked rasters.
+        '''
+
+        response = self.__request_wcs(bbox, timeout, file_format, force_no_data_value)
+
+        with open(file_path, 'wb') as file:
+            file.write(response.read())
 
     def get_provenance(self, timeout: int = 60) -> List[ProvenanceOutput]:
         '''
