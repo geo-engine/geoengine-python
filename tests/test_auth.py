@@ -6,6 +6,7 @@ import unittest
 import json
 import os
 import requests_mock
+from pkg_resources import get_distribution
 
 import geoengine as ge
 from geoengine.error import GeoEngineException
@@ -141,6 +142,24 @@ class AuthTests(unittest.TestCase):
                 ge.initialize("http://mock-instance")
             finally:
                 del os.environ["GEOENGINE_TOKEN"]
+
+            self.assertEqual(type(ge.get_session()),
+                             ge.Session)
+
+    def test_user_agent(self):
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous',
+                   request_headers={'User-Agent': f'geoengine-python/{get_distribution("geoengine").version}'},
+                   json={
+                       "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
+                       "user": None,
+                       "created": "2021-06-08T15:22:22.605891994Z",
+                       "validUntil": "2021-06-08T16:22:22.605892183Z",
+                       "project": None,
+                       "view": None
+                   })
+
+            ge.initialize("http://mock-instance")
 
             self.assertEqual(type(ge.get_session()),
                              ge.Session)
