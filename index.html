@@ -29,6 +29,9 @@
 </summary>
 <pre><code class="python">&#39;&#39;&#39;Entry point for Geo Engine Python Library&#39;&#39;&#39;
 
+from pkg_resources import get_distribution
+from requests import utils
+
 from .auth import Session, get_session, initialize, reset
 from .error import GeoEngineException, InputException, UninitializedException, TypeException, \
     MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, \
@@ -36,7 +39,16 @@ from .error import GeoEngineException, InputException, UninitializedException, T
 from .types import QueryRectangle
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow
 from .datasets import upload_dataframe, StoredDataset
-from .colorizer import Colorizer</code></pre>
+from .colorizer import Colorizer
+
+DEFAULT_USER_AGENT = f&#39;geoengine-python/{get_distribution(&#34;geoengine&#34;).version}&#39;
+
+
+def default_user_agent(_name=&#34;python-requests&#34;):
+    return DEFAULT_USER_AGENT
+
+
+utils.default_user_agent = default_user_agent</code></pre>
 </details>
 </section>
 <section>
@@ -71,6 +83,22 @@ from .colorizer import Colorizer</code></pre>
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="geoengine.default_user_agent"><code class="name flex">
+<span>def <span class="ident">default_user_agent</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def default_user_agent(_name=&#34;python-requests&#34;):
+    return DEFAULT_USER_AGENT</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -89,6 +117,11 @@ from .colorizer import Colorizer</code></pre>
 <li><code><a title="geoengine.error" href="error.html">geoengine.error</a></code></li>
 <li><code><a title="geoengine.types" href="types.html">geoengine.types</a></code></li>
 <li><code><a title="geoengine.workflow" href="workflow.html">geoengine.workflow</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="geoengine.default_user_agent" href="#geoengine.default_user_agent">default_user_agent</a></code></li>
 </ul>
 </li>
 </ul>
