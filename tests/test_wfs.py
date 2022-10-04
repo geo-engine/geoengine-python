@@ -9,6 +9,7 @@ import requests_mock
 import geopandas as gpd
 import geopandas.testing  # pylint: disable=unused-import
 from shapely.geometry import Point
+from pkg_resources import get_distribution
 
 from geoengine.types import QueryRectangle
 import geoengine as ge
@@ -881,6 +882,96 @@ class WfsTests(unittest.TestCase):
                 workflow.workflow_definition(),
                 workflow_definition
             )
+
+    def test_owslib_user_agent(self):
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
+                "user": {
+                    "id": "328ca8d1-15d7-4f59-a989-5d5d72c98744",
+                },
+                "created": "2021-06-08T15:22:22.605891994Z",
+                "validUntil": "2021-06-08T16:22:22.605892183Z",
+                "project": None,
+                "view": None
+            })
+
+            m.post('http://mock-instance/workflow',
+                   json={
+                       "id": "956d3656-2d14-5951-96a0-f962b92371cd"
+                   },
+                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
+
+            m.get('http://mock-instance/workflow/956d3656-2d14-5951-96a0-f962b92371cd/metadata',
+                  json={
+                      "type": "vector",
+                      "dataType": "MultiPoint",
+                      "spatialReference": "EPSG:4326",
+                      "columns": {}
+                  },
+                  request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
+
+            m.get('http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd',
+                  json={
+                      "type": "FeatureCollection",
+                      "features": [{
+                          "type": "Feature",
+                          "geometry": {
+                              "type": "Point",
+                              "coordinates": [
+                                  -4.021260306,
+                                  5.283333333
+                              ]
+                          },
+                          "properties": {
+                              "scalerank": 3,
+                              "website": "www.paa-ci.org",
+                              "NDVI": 126,
+                              "natlscale": 75.0,
+                              "featurecla": "Port",
+                              "name": "Abidjan"
+                          },
+                          "when": {
+                              "start": "2014-04-01T00:00:00+00:00",
+                              "end": "2014-05-01T00:00:00+00:00",
+                              "type": "Interval"
+                          }
+                      }]
+                  },
+                  request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064',
+                                   'User-Agent': f'geoengine-python/{get_distribution("geoengine").version}'}
+                  )
+
+            ge.initialize("http://mock-instance")
+
+            workflow_definition = {
+                "type": "Vector",
+                "operator": {
+                    "type": "OgrSource",
+                    "params": {
+                        "data": {
+                            "type": "internal",
+                            "datasetId": "a9623a5b-b6c5-404b-bc5a-313ff72e4e75"
+                        },
+                        "attributeProjection": None
+                    }
+                },
+
+            }
+
+            time = datetime.strptime(
+                '2004-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+
+            workflow = ge.register_workflow(workflow_definition)
+
+            df = workflow.get_dataframe(
+                QueryRectangle(
+                    [-60.0, 5.0, 61.0, 6.0],
+                    [time, time]
+                )
+            )
+
+            self.assertTrue(df is not None)
 
 
 if __name__ == '__main__':
