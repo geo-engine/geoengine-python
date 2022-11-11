@@ -25,6 +25,7 @@ from PIL import Image
 import rioxarray
 from xarray import DataArray
 
+from geoengine.tasks import TaskId
 from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
@@ -519,7 +520,7 @@ class Workflow:
         }
 
         response = req.post(
-            url=f'{session.server_url}/datasetFromWorkflow/{self.__workflow_id}',
+            url=f'{session.server_url}/datasetFromWorkflowTask/{self.__workflow_id}',
             json=request_body,
             headers=session.auth_header,
             timeout=timeout
@@ -533,6 +534,44 @@ class Workflow:
             dataset_id=DatasetId(response_json['dataset']),
             upload_id=UploadId(response_json['upload'])
         )
+
+    def create_save_as_dataset_task(
+            self,
+            bbox: QueryRectangle,
+            name: str,
+            description: str = '',
+            timeout: int = 3600) -> TaskId:
+        '''EXPERIMENTAL: Init task to store the workflow result as a layer'''
+
+        # Currently, it only works for raster results
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
+        # The dataset is created in the spatial reference system of the workflow result
+        if self.get_result_descriptor().spatial_reference != bbox.srs:
+            raise SpatialReferenceMismatchException(
+                self.get_result_descriptor().spatial_reference,
+                bbox.srs
+            )
+
+        session = get_session()
+
+        request_body = {
+            'name': name,
+            'description': description,
+            'query': bbox.__dict__(),
+        }
+
+        response = req.post(
+            url=f'{session.server_url}/datasetFromWorkflowTask/{self.__workflow_id}',
+            json=request_body,
+            headers=session.auth_header,
+            timeout=timeout
+        )
+
+        check_response_for_error(response)
+
+        return TaskId.from_response(response.json())
 
 
 def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -> Workflow:

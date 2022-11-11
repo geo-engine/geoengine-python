@@ -404,3 +404,13 @@ class StoredDataset(NamedTuple):
 
     dataset_id: DatasetId
     upload_id: UploadId
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -> StoredDataset:
+        if 'dataset' not in response and 'upload' not in response:
+            raise GeoEngineException(response)
+
+        return StoredDataset(
+            dataset_id=DatasetId(UUID(response['dataset'])),
+            upload_id=UploadId(UUID(response['upload']))
+        )
