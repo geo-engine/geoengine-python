@@ -1,3 +1,5 @@
+'''Tests regarding task functionality'''
+
 import unittest
 from uuid import UUID
 
@@ -10,6 +12,7 @@ from geoengine.tasks import TaskStatusWithId, CompletedTaskStatusInfo, TaskStatu
 
 
 class TaskTests(unittest.TestCase):
+    '''Test runner regarding task functionality'''
 
     def setUp(self) -> None:
         ge.reset(False)
