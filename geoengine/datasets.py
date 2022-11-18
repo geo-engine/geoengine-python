@@ -407,6 +407,7 @@ class StoredDataset(NamedTuple):
 
     @classmethod
     def from_response(cls, response: Dict[str, str]) -> StoredDataset:
+        '''Parse a http response to an `StoredDataset`'''
         if 'dataset' not in response and 'upload' not in response:
             raise GeoEngineException(response)
 

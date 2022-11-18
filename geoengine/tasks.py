@@ -11,7 +11,8 @@ from uuid import UUID
 
 import requests as req
 
-from geoengine import get_session, check_response_for_error, GeoEngineException
+from geoengine.auth import get_session
+from geoengine.error import check_response_for_error, GeoEngineException
 
 
 class TaskId:
