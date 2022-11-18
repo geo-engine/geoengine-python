@@ -3,6 +3,8 @@ Module for encapsulating Geo Engine tasks API
 '''
 
 from __future__ import annotations
+
+import time
 from enum import Enum
 from typing import Dict, List
 from uuid import UUID
@@ -75,6 +77,10 @@ class RunningTaskStatusInfo(TaskStatusInfo):
         return self.status == other.status and self.pct_complete == other.pct_complete \
                and self.time_estimate == other.time_estimate and self.info == other.info
 
+    def __str__(self):
+        return f"status={self.status.value}, pct_complete={self.pct_complete}, " \
+               f"time_estimate={self.time_estimate}, info={self.info}"
+
 
 class CompletedTaskStatusInfo(TaskStatusInfo):
     '''A wrapper for a completed task status with information about the completion'''
@@ -91,6 +97,9 @@ class CompletedTaskStatusInfo(TaskStatusInfo):
 
         return self.status == other.status and self.info == other.info and self.time_total == other.time_total
 
+    def __str__(self):
+        return f"status={self.status.value}, info={self.info}, time_total={self.time_total}"
+
 
 class AbortedTaskStatusInfo(TaskStatusInfo):
     '''A wrapper for an aborted task status with information about the termination'''
@@ -105,6 +114,9 @@ class AbortedTaskStatusInfo(TaskStatusInfo):
             return False
 
         return self.status == other.status and self.clean_up == other.clean_up
+
+    def __str__(self):
+        return f"status={self.status.value}, clean_up={self.clean_up}"
 
 
 class FailedTaskStatusInfo(TaskStatusInfo):
@@ -121,6 +133,9 @@ class FailedTaskStatusInfo(TaskStatusInfo):
             return False
 
         return self.status == other.status and self.error == other.error and self.clean_up == other.clean_up
+
+    def __str__(self):
+        return f"status={self.status.value}, error={self.error}, clean_up={self.clean_up}"
 
 
 def __task_status_from_response(response: Dict[str, str]) -> TaskStatusInfo:
@@ -169,6 +184,9 @@ class TaskStatusWithId:
 
         return self.task_id == other.task_id and self.task_status_with_info == other.task_status_with_info
 
+    def __str__(self):
+        return f"TaskId={self.task_id}, TaskInfo={{{self.task_status_with_info}}}"
+
 
 def get_task_list(timeout: int = 3600) -> List[TaskStatusWithId]:
     '''
@@ -214,7 +232,7 @@ def get_task_status(task_id: TaskId, timeout: int = 3600) -> TaskStatusInfo:
     return __task_status_from_response(response.json())
 
 
-def abort_task(task_id: TaskId, force: bool = False, timeout: int = 3600) -> None:  # TODO: Return type for abort?
+def abort_task(task_id: TaskId, force: bool = False, timeout: int = 3600) -> None:
     '''
     Abort a running task in a Geo Engine instance
     '''
@@ -231,3 +249,21 @@ def abort_task(task_id: TaskId, force: bool = False, timeout: int = 3600) -> Non
     )
 
     check_response_for_error(response)
+
+
+def wait_for_task_to_finish_and_print_status(task_id: TaskId,
+                                             check_interval_seconds: float = 5,
+                                             request_timeout: int = 3600) -> TaskStatusInfo:
+    '''
+    Wait for the given task in a Geo Engine instance to finish (status either complete, aborted or failed).
+    The status is printed after each check-in. Check-ins happen in intervals of check_interval_seconds seconds.
+    '''
+    current_status = get_task_status(task_id, request_timeout)
+
+    while current_status.status == TaskStatus.RUNNING:
+        current_status = get_task_status(task_id, request_timeout)
+        print(current_status)
+        if current_status.status == TaskStatus.RUNNING:
+            time.sleep(check_interval_seconds)
+
+    return current_status
