@@ -491,7 +491,7 @@ class Workflow:
             with open(path, 'wb') as file:
                 file.write(response)
 
-    def create_save_as_dataset(
+    def save_as_dataset(
             self,
             bbox: QueryRectangle,
             name: str,
