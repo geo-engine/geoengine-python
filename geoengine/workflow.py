@@ -3,35 +3,34 @@ A workflow representation and methods on workflows
 '''
 
 from __future__ import annotations
+
+import json
+import urllib.parse
+from io import BytesIO
+from logging import debug
 from os import PathLike
 from typing import Any, Dict, List, Optional, Union, Type
-
 from uuid import UUID
-from logging import debug
-from io import BytesIO
-import urllib.parse
-import json
 
-# TODO: can be imported directly from `typing` with python >= 3.8
-from typing_extensions import TypedDict
-import requests as req
 import geopandas as gpd
+import numpy as np
+import rasterio.io
+import requests as req
+import rioxarray
+from PIL import Image
 from owslib.util import Authentication, ResponseWrapper
 from owslib.wcs import WebCoverageService
-import rasterio.io
+# TODO: can be imported directly from `typing` with python >= 3.8
+from typing_extensions import TypedDict
 from vega import VegaLite
-import numpy as np
-from PIL import Image
-import rioxarray
 from xarray import DataArray
 
-from geoengine.tasks import TaskId
-from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
+from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
     MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
-from geoengine.datasets import DatasetId, StoredDataset, UploadId
-from geoengine.colorizer import Colorizer
+from geoengine.tasks import TaskId
+from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
 JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
@@ -492,56 +491,13 @@ class Workflow:
             with open(path, 'wb') as file:
                 file.write(response)
 
-    def save_as_dataset(
-            self,
-            bbox: QueryRectangle,
-            name: str,
-            description: str = '',
-            timeout: int = 3600) -> StoredDataset:
-        '''EXPERIMENTAL: Store the workflow result as a layer'''
-
-        # Currently, it only works for raster results
-        if not self.__result_descriptor.is_raster_result():
-            raise MethodNotCalledOnRasterException()
-
-        # The dataset is created in the spatial reference system of the workflow result
-        if self.get_result_descriptor().spatial_reference != bbox.srs:
-            raise SpatialReferenceMismatchException(
-                self.get_result_descriptor().spatial_reference,
-                bbox.srs
-            )
-
-        session = get_session()
-
-        request_body = {
-            'name': name,
-            'description': description,
-            'query': bbox.__dict__(),
-        }
-
-        response = req.post(
-            url=f'{session.server_url}/datasetFromWorkflowTask/{self.__workflow_id}',
-            json=request_body,
-            headers=session.auth_header,
-            timeout=timeout
-        )
-
-        check_response_for_error(response)
-
-        response_json: DatasetIds = response.json()
-
-        return StoredDataset(
-            dataset_id=DatasetId(response_json['dataset']),
-            upload_id=UploadId(response_json['upload'])
-        )
-
-    def create_save_as_dataset_task(
+    def create_save_as_dataset(
             self,
             bbox: QueryRectangle,
             name: str,
             description: str = '',
             timeout: int = 3600) -> TaskId:
-        '''EXPERIMENTAL: Init task to store the workflow result as a layer'''
+        '''Init task to store the workflow result as a layer'''
 
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
@@ -563,7 +519,7 @@ class Workflow:
         }
 
         response = req.post(
-            url=f'{session.server_url}/datasetFromWorkflowTask/{self.__workflow_id}',
+            url=f'{session.server_url}/datasetFromWorkflow/{self.__workflow_id}',
             json=request_body,
             headers=session.auth_header,
             timeout=timeout
