@@ -75,7 +75,7 @@ class RunningTaskStatusInfo(TaskStatusInfo):
             return False
 
         return self.status == other.status and self.pct_complete == other.pct_complete \
-               and self.time_estimate == other.time_estimate and self.info == other.info
+            and self.time_estimate == other.time_estimate and self.info == other.info
 
     def __str__(self):
         return f"status={self.status.value}, pct_complete={self.pct_complete}, " \
