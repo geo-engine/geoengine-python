@@ -52,8 +52,16 @@ class Session:
         If credentials or a token are provided, the session will be authenticated.
         Credentials and token must not be provided at the same time.
 
-        optional arguments: (email, password) as tuple or token as a string
-        optional environment variables: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_TOKEN
+        optional arguments:
+         - `(email, password)` as tuple
+         - `token` as a string
+         - `admin_token` as a string
+
+        optional environment variables:
+         - `GEOENGINE_EMAIL`
+         - `GEOENGINE_PASSWORD`
+         - `GEOENGINE_TOKEN`
+         - `GEOENGINE_ADMIN_TOKEN`
         '''
 
         session = None
@@ -91,6 +99,8 @@ class Session:
 
         if admin_token is not None:
             self.__admin_token = UUID(admin_token)
+        elif "GEOENGINE_ADMIN_TOKEN" in os.environ:
+            self.__admin_token = UUID(os.environ.get("GEOENGINE_ADMIN_TOKEN"))
 
     def __repr__(self) -> str:
         '''Display representation of a session'''
