@@ -386,7 +386,10 @@ class LayerTests(unittest.TestCase):
 
             ge.initialize("http://mock-instance", admin_token='8aca8875-425a-4ef1-8ee6-cdfc62dd7525')
 
-            layer_collection = ge.layer_collection('546073b6-d535-4205-b601-99675c9f6dd7', 'ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')
+            layer_collection = ge.layer_collection(
+                '546073b6-d535-4205-b601-99675c9f6dd7',
+                'ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b'
+            )
 
             self.assertEqual(
                 layer_collection.__dict__,
