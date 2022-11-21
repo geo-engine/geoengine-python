@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from enum import auto
 from io import StringIO
 import os
-from typing import Any, Dict, List, NewType, Optional, TypedDict, Union, cast
+from typing import Any, Dict, List, NewType, Optional, Union, cast
+from typing_extensions import TypedDict
 from uuid import UUID
 import json
 import requests as req
