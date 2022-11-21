@@ -71,6 +71,7 @@ class LayerCollectionListing:
 
         buf = StringIO()
 
+        buf.write(f'{self._type_str()}{os.linesep}')
         buf.write(f"name: {self.name}{os.linesep}")
         buf.write(f"description: {self.description}{os.linesep}")
         buf.write(f"id: {self.listing_id}{os.linesep}")
@@ -84,13 +85,26 @@ class LayerCollectionListing:
         buf = StringIO()
 
         buf.write('<table>')
+        buf.write(f'<thead><tr><th colspan="2">{self._type_str()}</th></tr></thead>')
+        buf.write("<tbody>")
         buf.write(f"<tr><th>name</th><td>{self.name}</td></tr>")
         buf.write(f"<tr><th>description</th><td>{self.description}</td></tr>")
         buf.write(f"<tr><th>id</th><td>{self.listing_id}</td></tr>")
         buf.write(f"<tr><th>provider id</th><td>{self.provider_id}</td></tr>")
+        buf.write("</tbody>")
         buf.write('</table>')
 
         return buf.getvalue()
+
+    def _type_str(self) -> str:
+        '''String representation of the listing type'''
+
+        if self.type == LayerCollectionListingType.COLLECTION:
+            return 'Layer Collection'
+        if self.type == LayerCollectionListingType.LAYER:
+            return 'Layer'
+
+        assert False, 'Invalid listing type'
 
     def _repr_html_(self) -> str:
         '''HTML representation for Jupyter notebooks'''
@@ -98,13 +112,11 @@ class LayerCollectionListing:
         return self.html_str()
 
     def load(self,
-             offset: int = 0,
-             limit: int = 20,
              timeout: int = 60) -> Union[LayerCollection, Layer]:
         '''Load the listing item'''
 
         if self.type == LayerCollectionListingType.COLLECTION:
-            return layer_collection(cast(LayerCollectionId, self.listing_id), self.provider_id, offset, limit, timeout)
+            return layer_collection(cast(LayerCollectionId, self.listing_id), self.provider_id, timeout)
 
         if self.type == LayerCollectionListingType.LAYER:
             return layer(cast(LayerId, self.listing_id), self.provider_id, timeout)
@@ -137,8 +149,10 @@ class LayerCollection:
         self.items = items
 
     @classmethod
-    def from_response(cls, response: LayerCollectionResponse) -> LayerCollection:
+    def from_response(cls, response_pages: List[LayerCollectionResponse]) -> LayerCollection:
         '''Parse an HTTP JSON response to an `LayerCollection`'''
+
+        assert len(response_pages) > 0, 'No response pages'
 
         def parse_listing_id(response: Union[LayerCollectionAndProviderIdResponse, LayerAndProviderIdResponse],
                              item_type: LayerCollectionListingType) -> Union[LayerId, LayerCollectionId]:
@@ -153,16 +167,19 @@ class LayerCollection:
             assert False, 'Invalid listing type'
 
         items = []
-        for item_response in response['items']:
-            item_type = LayerCollectionListingType(item_response['type'])
-            listing = LayerCollectionListing(
-                parse_listing_id(item_response['id'], item_type),
-                LayerProviderId(UUID(item_response['id']['providerId'])),
-                item_response['name'],
-                item_response['description'],
-                item_type,
-            )
-            items.append(listing)
+        for response in response_pages:
+            for item_response in response['items']:
+                item_type = LayerCollectionListingType(item_response['type'])
+                listing = LayerCollectionListing(
+                    parse_listing_id(item_response['id'], item_type),
+                    LayerProviderId(UUID(item_response['id']['providerId'])),
+                    item_response['name'],
+                    item_response['description'],
+                    item_type,
+                )
+                items.append(listing)
+
+        response = response_pages[0]
 
         return LayerCollection(
             name=response['name'],
@@ -413,7 +430,7 @@ class Layer:
 
     @classmethod
     def from_response(cls, response: LayerResponse) -> Layer:
-        '''Parse an HTTP JSON response to an `LayerCollection`'''
+        '''Parse an HTTP JSON response to an `Layer`'''
 
         return Layer(
             name=response['name'],
@@ -427,11 +444,11 @@ class Layer:
         )
 
     def __repr__(self) -> str:
-        '''String representation of a `LayerCollection`'''
+        '''String representation of a `Layer`'''
 
         buf = StringIO()
 
-        buf.write(f'Layer Collection{os.linesep}')
+        buf.write(f'Layer{os.linesep}')
         buf.write(f"name: {self.name}{os.linesep}")
         buf.write(f"description: {self.description}{os.linesep}")
         buf.write(f"id: {self.layer_id}{os.linesep}")
@@ -474,8 +491,6 @@ class Layer:
 # TODO: test
 def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
                      layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
-                     offset: int = 0,
-                     limit: int = 20,
                      timeout: int = 60) -> LayerCollection:
     '''
     Retrieve a layer collection that contains layers and layer collections.
@@ -486,16 +501,31 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
     request = '/layers/collections' if layer_collection_id is None \
         else f'/layers/collections/{layer_provider_id}/{layer_collection_id}'
 
-    response = req.get(
-        f'{session.server_url}{request}?offset={offset}&limit={limit}',
-        headers=session.admin_or_normal_auth_header,
-        timeout=timeout,
-    )
+    page_limit = 20
+    pages: List[LayerCollectionResponse] = []
 
-    if not response.ok:
-        raise GeoEngineException(response.json())
+    offset = 0
+    while True:
+        response = req.get(
+            f'{session.server_url}{request}?offset={offset}&limit={page_limit}',
+            headers=session.admin_or_normal_auth_header,
+            timeout=timeout,
+        )
 
-    return LayerCollection.from_response(response.json())
+        if not response.ok:
+            raise GeoEngineException(response.json())
+
+        page: LayerCollectionResponse = response.json()
+
+        if len(page['items']) == 0:
+            if len(pages) == 0:  # we need at least one page before breaking
+                pages.append(page)
+            break
+
+        pages.append(page)
+        offset += page_limit
+
+    return LayerCollection.from_response(pages)
 
 
 # TODO: test
@@ -623,16 +653,13 @@ def _add_layer_to_collection(name: str,
     session = get_session()
 
     response = req.post(
-        f'{session.server_url}/layerDb/layers',
+        f'{session.server_url}/layerDb/collections/{collection_id}/layers',
         headers=session.admin_auth_header,
         json={
-            "collectionId": str(collection_id),
-            "layer": {
-                "name": name,
-                "description": description,
-                "workflow": workflow,
-                "symbology": symbology,
-            },
+            "name": name,
+            "description": description,
+            "workflow": workflow,
+            "symbology": symbology,
         },
         timeout=timeout,
     )

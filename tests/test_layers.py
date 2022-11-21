@@ -333,38 +333,56 @@ class LayerTests(unittest.TestCase):
                 "view": None
             })
 
-            # pylint: disable=line-too-long
-            m.get('http://mock-instance/layers/collections/ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b/546073b6-d535-4205-b601-99675c9f6dd7?offset=0&limit=20',
-                  json={
-                      "description": "Basic Layers for all Datasets",
-                      "entryLabel": None,
-                      "id": {
-                          "collectionId": "546073b6-d535-4205-b601-99675c9f6dd7",
-                          "providerId": "ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b"
-                      },
-                      "items": [
-                          {
-                              "description": "Land Cover derived from MODIS/Terra+Aqua Land Cover",
-                              "id": {
-                                  "layerId": "9ee3619e-d0f9-4ced-9c44-3d407c3aed69",
-                                  "providerId": "ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b"
-                              },
-                              "name": "Land Cover",
-                              "type": "layer"
-                          },
-                          {
-                              "description": "NDVI data from MODIS",
-                              "id": {
-                                  "layerId": "36574dc3-560a-4b09-9d22-d5945f2b8093",
-                                  "providerId": "ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b"
-                              },
-                              "name": "NDVI",
-                              "type": "layer"
-                          }
-                      ],
-                      "name": "Datasets",
-                      "properties": []
-                  })
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/layers/collections/ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b/546073b6-d535-4205-b601-99675c9f6dd7?offset=0&limit=20',
+                json={
+                    "description": "Basic Layers for all Datasets",
+                    "entryLabel": None,
+                    "id": {
+                        "collectionId": "546073b6-d535-4205-b601-99675c9f6dd7",
+                        "providerId": "ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b"
+                    },
+                    "items": [
+                        {
+                            "description": "Land Cover derived from MODIS/Terra+Aqua Land Cover",
+                            "id": {
+                                "layerId": "9ee3619e-d0f9-4ced-9c44-3d407c3aed69",
+                                "providerId": "ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b"
+                            },
+                            "name": "Land Cover",
+                            "type": "layer"
+                        },
+                        {
+                            "description": "NDVI data from MODIS",
+                            "id": {
+                                "layerId": "36574dc3-560a-4b09-9d22-d5945f2b8093",
+                                "providerId": "ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b"
+                            },
+                            "name": "NDVI",
+                            "type": "layer"
+                        }
+                    ],
+                    "name": "Datasets",
+                    "properties": []
+                }
+            )
+
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/layers/collections/ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b/546073b6-d535-4205-b601-99675c9f6dd7?offset=20&limit=20',
+                json={
+                    "description": "Basic Layers for all Datasets",
+                    "entryLabel": None,
+                    "id": {
+                        "collectionId": "546073b6-d535-4205-b601-99675c9f6dd7",
+                        "providerId": "ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b"
+                    },
+                    "items": [],
+                    "name": "Datasets",
+                    "properties": []
+                }
+            )
 
             ge.initialize("http://mock-instance", admin_token='8aca8875-425a-4ef1-8ee6-cdfc62dd7525')
 
@@ -457,46 +475,43 @@ class LayerTests(unittest.TestCase):
             )
 
             m.post(
-                'http://mock-instance/layerDb/layers',
+                'http://mock-instance/layerDb/collections/490ef009-aa7a-44b0-bbef-73cfb5916b55/layers',
                 request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
                 additional_matcher=lambda request: request.json() == {
-                    'collectionId': '490ef009-aa7a-44b0-bbef-73cfb5916b55',
-                    'layer': {
-                        'name': 'ports clone',
-                        'description': 'test description',
-                        'workflow': {
-                            'type': 'Vector',
-                            'operator': {
-                                'type': 'PointInPolygonFilter',
-                                'params': {},
-                                'sources': {
-                                    'points': {
-                                        'type': 'OgrSource',
-                                        'params': {
-                                            'data': {
-                                                'type': 'internal',
-                                                'datasetId': 'a9623a5b-b6c5-404b-bc5a-313ff72e4e75'
-                                            },
-                                            'attributeProjection': None,
-                                            'attributeFilters': None
-                                        }
-                                    },
-                                    'polygons': {
-                                        'type': 'OgrSource',
-                                        'params': {
-                                            'data': {
-                                                'type': 'internal',
-                                                'datasetId': 'b6191257-6d61-4c6b-90a4-ebfb1b23899d'
-                                            },
-                                            'attributeProjection': None,
-                                            'attributeFilters': None
-                                        }
-                                    },
-                                }
+                    'name': 'ports clone',
+                    'description': 'test description',
+                    'workflow': {
+                        'type': 'Vector',
+                        'operator': {
+                            'type': 'PointInPolygonFilter',
+                            'params': {},
+                            'sources': {
+                                'points': {
+                                    'type': 'OgrSource',
+                                    'params': {
+                                        'data': {
+                                            'type': 'internal',
+                                            'datasetId': 'a9623a5b-b6c5-404b-bc5a-313ff72e4e75'
+                                        },
+                                        'attributeProjection': None,
+                                        'attributeFilters': None
+                                    }
+                                },
+                                'polygons': {
+                                    'type': 'OgrSource',
+                                    'params': {
+                                        'data': {
+                                            'type': 'internal',
+                                            'datasetId': 'b6191257-6d61-4c6b-90a4-ebfb1b23899d'
+                                        },
+                                        'attributeProjection': None,
+                                        'attributeFilters': None
+                                    }
+                                },
                             }
-                        },
-                        'symbology': None
-                    }
+                        }
+                    },
+                    'symbology': None
                 },
                 json={
                     "id": "fbffb07e-d8b7-4688-98a5-4665988e6ae3"
