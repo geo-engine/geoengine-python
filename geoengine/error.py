@@ -2,7 +2,8 @@
 Package errors and backend mapped error types
 '''
 
-from typing import Dict, TypedDict, Union
+from typing import Dict, Union
+from typing_extensions import TypedDict
 from requests import Response, HTTPError
 
 

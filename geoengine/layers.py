@@ -8,9 +8,9 @@ from enum import auto
 from io import StringIO
 import os
 from typing import Any, Dict, List, NewType, Optional, Union, cast
-from typing_extensions import TypedDict
 from uuid import UUID
 import json
+from typing_extensions import TypedDict
 import requests as req
 from strenum import LowercaseStrEnum
 from geoengine.auth import get_session
