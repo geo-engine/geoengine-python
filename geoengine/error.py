@@ -2,9 +2,17 @@
 Package errors and backend mapped error types
 '''
 
-from typing import Dict
-
+from typing import Dict, TypedDict, Union
 from requests import Response, HTTPError
+
+
+class GeoEngineExceptionResponse(TypedDict):
+    '''
+    The error response from the Geo Engine
+    '''
+
+    error: str
+    message: str
 
 
 class GeoEngineException(Exception):
@@ -15,7 +23,7 @@ class GeoEngineException(Exception):
     error: str
     message: str
 
-    def __init__(self, response: Dict[str, str]) -> None:
+    def __init__(self, response: Union[GeoEngineExceptionResponse, Dict[str, str]]) -> None:
         super().__init__()
 
         self.error = response['error'] if 'error' in response else '?'
@@ -50,6 +58,15 @@ class UninitializedException(Exception):
         return "You have to call `initialize` before using other functionality"
 
 
+class NoAdminSessionException(Exception):
+    '''
+    Exception that is thrown when there is no admin session token supplied
+    '''
+
+    def __str__(self) -> str:
+        return "You need to specify an admin token when initializing the session"
+
+
 class TypeException(Exception):
     '''
     Exception on wrong types of input
@@ -66,7 +83,24 @@ class TypeException(Exception):
         return f"{self.__message}"
 
 
+class ModificationNotOnLayerDbException(Exception):
+    '''
+    Exception that is when trying to modify layers that are not part of the layerdb
+    '''
+
+    __message: str
+
+    def __init__(self, message: str) -> None:
+        super().__init__()
+
+        self.__message = message
+
+    def __str__(self) -> str:
+        return f"{self.__message}"
+
 # TODO: remove methods and forbid calling methods in the first place
+
+
 class MethodNotCalledOnRasterException(Exception):
     '''
     Exception for calling a raster method on a, e.g., vector layer
