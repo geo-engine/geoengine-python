@@ -1,0 +1,2232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>geoengine.layers API documentation</title>
+<meta name="description" content="A wrapper around the layer and layerDb API" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>geoengine.layers</code></h1>
+</header>
+<section id="section-intro">
+<p>A wrapper around the layer and layerDb API</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;
+A wrapper around the layer and layerDb API
+&#39;&#39;&#39;
+
+from __future__ import annotations
+from dataclasses import dataclass
+from enum import auto
+from io import StringIO
+import os
+from typing import Any, Dict, Generic, List, NewType, Optional, TypeVar, Union, cast
+from uuid import UUID
+import json
+from typing_extensions import TypedDict
+import requests as req
+from strenum import LowercaseStrEnum
+from geoengine.auth import get_session
+from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException
+
+
+LayerId = NewType(&#39;LayerId&#39;, UUID)
+LayerCollectionId = NewType(&#39;LayerCollectionId&#39;, UUID)
+LayerProviderId = NewType(&#39;LayerProviderId&#39;, UUID)
+
+LAYER_DB_PROVIDER_ID = LayerProviderId(UUID(&#39;ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74&#39;))
+LAYER_DB_ROOT_COLLECTION_ID = LayerCollectionId(UUID(&#39;05102bb3-a855-4a37-8a8a-30026a91fef1&#39;))
+
+
+class LayerCollectionAndProviderIdResponse(TypedDict):
+    collectionId: str
+    providerId: str
+
+
+class LayerAndProviderIdResponse(TypedDict):
+    layerId: str
+    providerId: str
+
+
+class LayerCollectionResponse(TypedDict):
+    &#39;&#39;&#39;A layer collection response JSON from a HTTP request&#39;&#39;&#39;
+    id: LayerCollectionAndProviderIdResponse
+    name: str
+    description: str
+    items: List[LayerCollectionListingResponse]
+
+
+class LayerCollectionListingResponse(TypedDict):
+    &#39;&#39;&#39;A layer collection listing response JSON from a HTTP request&#39;&#39;&#39;
+    id: Union[LayerCollectionAndProviderIdResponse, LayerAndProviderIdResponse]
+    name: str
+    description: str
+    type: str
+
+
+class LayerCollectionListingType(LowercaseStrEnum):
+    LAYER = auto()
+    COLLECTION = auto()
+
+
+LISTINGID = TypeVar(&#39;LISTINGID&#39;)
+
+
+@dataclass(repr=False)
+class Listing(Generic[LISTINGID]):
+    &#39;&#39;&#39;A listing item of a collection&#39;&#39;&#39;
+
+    listing_id: LISTINGID
+    provider_id: LayerProviderId
+    name: str
+    description: str
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a `Listing`&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(f&#39;{self._type_str()}{os.linesep}&#39;)
+        buf.write(f&#34;name: {self.name}{os.linesep}&#34;)
+        buf.write(f&#34;description: {self.description}{os.linesep}&#34;)
+        buf.write(f&#34;id: {self.listing_id}{os.linesep}&#34;)
+        buf.write(f&#34;provider id: {self.provider_id}{os.linesep}&#34;)
+
+        return buf.getvalue()
+
+    def html_str(self) -&gt; str:
+        &#39;&#39;&#39;HTML representation for Jupyter notebooks&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(&#39;&lt;table&gt;&#39;)
+        buf.write(f&#39;&lt;thead&gt;&lt;tr&gt;&lt;th colspan=&#34;2&#34;&gt;{self._type_str()}&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&#39;)
+        buf.write(&#34;&lt;tbody&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;name&lt;/th&gt;&lt;td&gt;{self.name}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;description&lt;/th&gt;&lt;td&gt;{self.description}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;td&gt;{self.listing_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;provider id&lt;/th&gt;&lt;td&gt;{self.provider_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(&#34;&lt;/tbody&gt;&#34;)
+        buf.write(&#39;&lt;/table&gt;&#39;)
+
+        return buf.getvalue()
+
+    def _repr_html_(self) -&gt; str:
+        &#39;&#39;&#39;HTML representation for Jupyter notebooks&#39;&#39;&#39;
+
+        return self.html_str()
+
+    def _type_str(self) -&gt; str:
+        &#39;&#39;&#39;String representation of the listing type&#39;&#39;&#39;
+        raise NotImplementedError(&#34;Please Implement this method&#34;)
+
+    def load(self, timeout: int = 60) -&gt; Union[LayerCollection, Layer]:
+        &#39;&#39;&#39;Load the listing item&#39;&#39;&#39;
+        raise NotImplementedError(&#34;Please Implement this method&#34;)
+
+    def _remove(self,
+                collection_id: LayerCollectionId,
+                provider_id: LayerProviderId,
+                timeout: int = 60) -&gt; None:
+        &#39;&#39;&#39;Remove the item behind the listing from the parent collection&#39;&#39;&#39;
+        raise NotImplementedError(&#34;Please Implement this method&#34;)
+
+
+@dataclass(repr=False)
+class LayerListing(Listing[LayerId]):
+    &#39;&#39;&#39;A layer listing as item of a collection&#39;&#39;&#39;
+
+    def _type_str(self) -&gt; str:
+        &#39;&#39;&#39;String representation of the listing type&#39;&#39;&#39;
+
+        return &#39;Layer&#39;
+
+    def load(self, timeout: int = 60) -&gt; Union[LayerCollection, Layer]:
+        &#39;&#39;&#39;Load the listing item&#39;&#39;&#39;
+
+        return layer(self.listing_id, self.provider_id, timeout)
+
+    def _remove(self,
+                collection_id: LayerCollectionId,
+                provider_id: LayerProviderId,
+                timeout: int = 60) -&gt; None:
+        if provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        _delete_layer_from_collection(
+            collection_id,
+            self.listing_id,
+            timeout,
+        )
+
+
+@dataclass(repr=False)
+class LayerCollectionListing(Listing[LayerCollectionId]):
+    &#39;&#39;&#39;A layer listing as item of a collection&#39;&#39;&#39;
+
+    def _type_str(self) -&gt; str:
+        &#39;&#39;&#39;String representation of the listing type&#39;&#39;&#39;
+
+        return &#39;Layer Collection&#39;
+
+    def load(self, timeout: int = 60) -&gt; Union[LayerCollection, Layer]:
+        &#39;&#39;&#39;Load the listing item&#39;&#39;&#39;
+
+        return layer_collection(self.listing_id, self.provider_id, timeout)
+
+    def _remove(self,
+                collection_id: LayerCollectionId,
+                provider_id: LayerProviderId,
+                timeout: int = 60) -&gt; None:
+        if provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        _delete_layer_collection_from_collection(
+            collection_id,
+            self.listing_id,
+            timeout,
+        )
+
+
+class LayerCollection:
+    &#39;&#39;&#39;A layer collection&#39;&#39;&#39;
+
+    name: str
+    description: str
+    collection_id: LayerCollectionId
+    provider_id: LayerProviderId
+    items: List[Listing]
+
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 collection_id: LayerCollectionId,
+                 provider_id: LayerProviderId,
+                 items: List[Listing]) -&gt; None:
+        &#39;&#39;&#39;Create a new `LayerCollection`&#39;&#39;&#39;
+        # pylint: disable=too-many-arguments
+
+        self.name = name
+        self.description = description
+        self.collection_id = collection_id
+        self.provider_id = provider_id
+        self.items = items
+
+    @classmethod
+    def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; LayerCollection:
+        &#39;&#39;&#39;Parse an HTTP JSON response to an `LayerCollection`&#39;&#39;&#39;
+
+        assert len(response_pages) &gt; 0, &#39;No response pages&#39;
+
+        def parse_listing(response: LayerCollectionListingResponse) -&gt; Listing:
+            item_type = LayerCollectionListingType(item_response[&#39;type&#39;])
+
+            if item_type is LayerCollectionListingType.LAYER:
+                layer_id_response = cast(LayerAndProviderIdResponse, response[&#39;id&#39;])
+                return LayerListing(
+                    listing_id=LayerId(UUID(layer_id_response[&#39;layerId&#39;])),
+                    provider_id=LayerProviderId(UUID(layer_id_response[&#39;providerId&#39;])),
+                    name=item_response[&#39;name&#39;],
+                    description=item_response[&#39;description&#39;],
+                )
+
+            if item_type is LayerCollectionListingType.COLLECTION:
+                collection_id_response = cast(LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
+                return LayerCollectionListing(
+                    listing_id=LayerCollectionId(UUID(collection_id_response[&#39;collectionId&#39;])),
+                    provider_id=LayerProviderId(UUID(collection_id_response[&#39;providerId&#39;])),
+                    name=item_response[&#39;name&#39;],
+                    description=item_response[&#39;description&#39;],
+                )
+
+            assert False, &#39;Invalid listing type&#39;
+
+        items = []
+        for response in response_pages:
+            for item_response in response[&#39;items&#39;]:
+                items.append(parse_listing(item_response))
+
+        response = response_pages[0]
+
+        return LayerCollection(
+            name=response[&#39;name&#39;],
+            description=response[&#39;description&#39;],
+            collection_id=LayerCollectionId(UUID(response[&#39;id&#39;][&#39;collectionId&#39;])),
+            provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
+            items=items,
+        )
+
+    def reload(self) -&gt; LayerCollection:
+        &#39;&#39;&#39;Reload the layer collection&#39;&#39;&#39;
+
+        return layer_collection(self.collection_id, self.provider_id)
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a `LayerCollection`&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(f&#39;Layer Collection{os.linesep}&#39;)
+        buf.write(f&#34;name: {self.name}{os.linesep}&#34;)
+        buf.write(f&#34;description: {self.description}{os.linesep}&#34;)
+        buf.write(f&#34;id: {self.collection_id}{os.linesep}&#34;)
+        buf.write(f&#34;provider id: {self.provider_id}{os.linesep}&#34;)
+
+        for (i, item) in enumerate(self.items):
+            items_str = &#39;items: &#39;
+            buf.write(items_str if i == 0 else &#39; &#39; * len(items_str))
+            buf.write(f&#34;{item}{os.linesep}&#34;)
+
+        return buf.getvalue()
+
+    def _repr_html_(self) -&gt; str | None:
+        &#39;&#39;&#39;HTML representation for Jupyter notebooks&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(&#34;&lt;table&gt;&#34;)
+        buf.write(&#39;&lt;thead&gt;&lt;tr&gt;&lt;th colspan=&#34;2&#34;&gt;Layer Collection&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&#39;)
+        buf.write(&#34;&lt;tbody&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;name&lt;/th&gt;&lt;td&gt;{self.name}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;description&lt;/th&gt;&lt;td&gt;{self.description}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;td&gt;{self.collection_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;provider id&lt;/th&gt;&lt;td&gt;{self.provider_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+
+        num_items = len(self.items)
+        for (i, item) in enumerate(self.items):
+            buf.write(&#39;&lt;tr&gt;&#39;)
+            if i == 0:
+                buf.write(f&#39;&lt;th rowspan=&#34;{num_items}&#34;&gt;items&lt;/th&gt;&#39;)
+            buf.write(f&#34;&lt;td&gt;{item.html_str()}&lt;/td&gt;&#34;)
+            buf.write(&#39;&lt;/tr&gt;&#39;)
+
+        buf.write(&#34;&lt;/tbody&gt;&#34;)
+        buf.write(&#34;&lt;/table&gt;&#34;)
+
+        return buf.getvalue()
+
+    def remove(self, timeout: int = 60) -&gt; None:
+        &#39;&#39;&#39;Remove the layer collection itself&#39;&#39;&#39;
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        _delete_layer_collection(self.collection_id, timeout)
+
+    def remove_item(self, index: int, timeout: int = 60):
+        &#39;&#39;&#39;Remove a layer or collection from this collection&#39;&#39;&#39;
+
+        if index &lt; 0 or index &gt;= len(self.items):
+            raise IndexError(f&#39;index {index} out of range&#39;)
+
+        item = self.items[index]
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        # pylint: disable=protected-access
+        item._remove(self.collection_id, self.provider_id, timeout)
+
+        self.items.pop(index)
+
+    def add_layer(self,
+                  name: str,
+                  description: str,
+                  workflow: Dict[str, Any],  # TODO: improve type
+                  symbology: Optional[Dict[str, Any]],  # TODO: improve type
+                  timeout: int = 60) -&gt; LayerId:
+        &#39;&#39;&#39;Add a layer to this collection&#39;&#39;&#39;
+        # pylint: disable=too-many-arguments
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        layer_id = _add_layer_to_collection(name, description, workflow, symbology, self.collection_id, timeout)
+
+        self.items.append(LayerListing(
+            listing_id=layer_id,
+            provider_id=self.provider_id,
+            name=name,
+            description=description,
+        ))
+
+        return layer_id
+
+    def add_existing_layer(self,
+                           existing_layer: Union[LayerListing, Layer, LayerId],
+                           timeout: int = 60):
+        &#39;&#39;&#39;Add an existing layer to this collection&#39;&#39;&#39;
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        if isinstance(existing_layer, LayerListing):
+            layer_id = existing_layer.listing_id
+        elif isinstance(existing_layer, Layer):
+            layer_id = existing_layer.layer_id
+        elif isinstance(existing_layer, UUID):  # TODO: check for LayerId in Python 3.11+
+            layer_id = existing_layer
+
+        _add_existing_layer_to_collection(layer_id, self.collection_id, timeout)
+
+        child_layer = layer(layer_id, self.provider_id)
+
+        self.items.append(LayerListing(
+            listing_id=layer_id,
+            provider_id=self.provider_id,
+            name=child_layer.name,
+            description=child_layer.description,
+        ))
+
+        return layer_id
+
+    def add_collection(self,
+                       name: str,
+                       description: str,
+                       timeout: int = 60) -&gt; LayerCollectionId:
+        &#39;&#39;&#39;Add a collection to this collection&#39;&#39;&#39;
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        collection_id = _add_layer_collection_to_collection(name, description, self.collection_id, timeout)
+
+        self.items.append(LayerCollectionListing(
+            listing_id=collection_id,
+            provider_id=self.provider_id,
+            name=name,
+            description=description,
+        ))
+
+        return collection_id
+
+    def add_existing_collection(self,
+                                existing_collection: Union[LayerCollectionListing, LayerCollection, LayerCollectionId],
+                                timeout: int = 60) -&gt; LayerCollectionId:
+        &#39;&#39;&#39;Add an existing collection to this collection&#39;&#39;&#39;
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        if isinstance(existing_collection, LayerCollectionListing):
+            collection_id = existing_collection.listing_id
+        elif isinstance(existing_collection, LayerCollection):
+            collection_id = existing_collection.collection_id
+        elif isinstance(existing_collection, UUID):  # TODO: check for LayerId in Python 3.11+
+            collection_id = existing_collection
+
+        _add_existing_layer_collection_to_collection(collection_id=collection_id,
+                                                     parent_collection_id=self.collection_id,
+                                                     timeout=timeout)
+
+        child_collection = layer_collection(collection_id, self.provider_id)
+
+        self.items.append(LayerCollectionListing(
+            listing_id=collection_id,
+            provider_id=self.provider_id,
+            name=child_collection.name,
+            description=child_collection.description,
+        ))
+
+        return collection_id
+
+
+class LayerResponse(TypedDict):
+    &#39;&#39;&#39;A layer response JSON from a HTTP request&#39;&#39;&#39;
+    id: LayerAndProviderIdResponse
+    name: str
+    description: str
+    workflow: Dict[str, Any]  # TODO: specify in more detail
+    symbology: Optional[Dict[Any, Any]]  # TODO: specify in more detail
+    properties: List[Any]  # TODO: specify in more detail
+    metadata: Dict[Any, Any]  # TODO: specify in more detail
+
+
+@dataclass(repr=False)
+class Layer:
+    &#39;&#39;&#39;A layer&#39;&#39;&#39;
+    # pylint: disable=too-many-instance-attributes
+
+    name: str
+    description: str
+    layer_id: LayerId
+    provider_id: LayerProviderId
+    workflow: Dict[str, Any]  # TODO: specify in more detail
+    symbology: Optional[Dict[str, Any]]  # TODO: specify in more detail
+    properties: List[Any]  # TODO: specify in more detail
+    metadata: Dict[str, Any]  # TODO: specify in more detail
+
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 layer_id: LayerId,
+                 provider_id: LayerProviderId,
+                 workflow: Dict[str, Any],
+                 symbology: Optional[Dict[Any, Any]],
+                 properties: List[Any],
+                 metadata: Dict[Any, Any]) -&gt; None:
+        &#39;&#39;&#39;Create a new `Layer`&#39;&#39;&#39;
+        # pylint: disable=too-many-arguments
+
+        self.name = name
+        self.description = description
+        self.layer_id = layer_id
+        self.provider_id = provider_id
+        self.workflow = workflow
+        self.symbology = symbology
+        self.properties = properties
+        self.metadata = metadata
+
+    @classmethod
+    def from_response(cls, response: LayerResponse) -&gt; Layer:
+        &#39;&#39;&#39;Parse an HTTP JSON response to an `Layer`&#39;&#39;&#39;
+
+        return Layer(
+            name=response[&#39;name&#39;],
+            description=response[&#39;description&#39;],
+            layer_id=LayerId(UUID(response[&#39;id&#39;][&#39;layerId&#39;])),
+            provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
+            workflow=response[&#39;workflow&#39;],
+            symbology=response[&#39;symbology&#39;],
+            properties=response[&#39;properties&#39;],
+            metadata=response[&#39;metadata&#39;],
+        )
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a `Layer`&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(f&#39;Layer{os.linesep}&#39;)
+        buf.write(f&#34;name: {self.name}{os.linesep}&#34;)
+        buf.write(f&#34;description: {self.description}{os.linesep}&#34;)
+        buf.write(f&#34;id: {self.layer_id}{os.linesep}&#34;)
+        buf.write(f&#34;provider id: {self.provider_id}{os.linesep}&#34;)
+        # TODO: better representation of workflow, symbology, properties, metadata
+        buf.write(f&#34;workflow: {self.workflow}{os.linesep}&#34;)
+        buf.write(f&#34;symbology: {self.symbology}{os.linesep}&#34;)
+        buf.write(f&#34;properties: {self.properties}{os.linesep}&#34;)
+        buf.write(f&#34;metadata: {self.metadata}{os.linesep}&#34;)
+
+        return buf.getvalue()
+
+    def _repr_html_(self) -&gt; str | None:
+        &#39;&#39;&#39;HTML representation for Jupyter notebooks&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(&#34;&lt;table&gt;&#34;)
+        buf.write(&#39;&lt;thead&gt;&lt;tr&gt;&lt;th colspan=&#34;2&#34;&gt;Layer&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&#39;)
+        buf.write(&#34;&lt;tbody&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;name&lt;/th&gt;&lt;td&gt;{self.name}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;description&lt;/th&gt;&lt;td&gt;{self.description}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;td&gt;{self.layer_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;provider id&lt;/th&gt;&lt;td&gt;{self.provider_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+
+        # TODO: better representation of workflow, symbology, properties, metadata
+        buf.write(&#39;&lt;tr&gt;&lt;th&gt;workflow&lt;/th&gt;&lt;td align=&#34;left&#34;&gt;&#39;)
+        buf.write(f&#39;&lt;pre&gt;{json.dumps(self.workflow, indent=4)}{os.linesep}&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&#39;)
+        buf.write(&#39;&lt;tr&gt;&lt;th&gt;symbology&lt;/th&gt;&#39;)
+        buf.write(f&#39;&lt;td align=&#34;left&#34;&gt;{json.dumps(self.symbology, indent=4)}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#39;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;properties&lt;/th&gt;&lt;td&gt;{self.properties}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;metadata&lt;/th&gt;&lt;td&gt;{self.metadata}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#34;)
+
+        buf.write(&#34;&lt;/tbody&gt;&#34;)
+        buf.write(&#34;&lt;/table&gt;&#34;)
+
+        return buf.getvalue()
+
+
+def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
+                     layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
+                     timeout: int = 60) -&gt; LayerCollection:
+    &#39;&#39;&#39;
+    Retrieve a layer collection that contains layers and layer collections.
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    request = &#39;/layers/collections&#39; if layer_collection_id is None \
+        else f&#39;/layers/collections/{layer_provider_id}/{layer_collection_id}&#39;
+
+    page_limit = 20
+    pages: List[LayerCollectionResponse] = []
+
+    offset = 0
+    while True:
+        response = req.get(
+            f&#39;{session.server_url}{request}?offset={offset}&amp;limit={page_limit}&#39;,
+            headers=session.admin_or_normal_auth_header,
+            timeout=timeout,
+        )
+
+        if not response.ok:
+            raise GeoEngineException(response.json())
+
+        page: LayerCollectionResponse = response.json()
+
+        if len(page[&#39;items&#39;]) &lt; page_limit:
+            if len(pages) == 0 or len(page[&#39;items&#39;]) &gt; 0:  # we need at least one page before breaking
+                pages.append(page)
+            break
+
+        pages.append(page)
+        offset += page_limit
+
+    return LayerCollection.from_response(pages)
+
+
+def layer(layer_id: LayerId,
+          layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
+          timeout: int = 60) -&gt; Layer:
+    &#39;&#39;&#39;
+    Retrieve a layer from the server.
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.get(
+        f&#39;{session.server_url}/layers/{layer_provider_id}/{layer_id}&#39;,
+        headers=session.admin_or_normal_auth_header,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+    return Layer.from_response(response.json())
+
+
+def _delete_layer_from_collection(collection_id: LayerCollectionId,
+                                  layer_id: LayerId,
+                                  timeout: int = 60) -&gt; None:
+    &#39;&#39;&#39;Delete a layer from a collection&#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.delete(
+        f&#39;{session.server_url}/layerDb/collections/{collection_id}/layers/{layer_id}&#39;,
+        headers=session.admin_auth_header,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+
+def _delete_layer_collection_from_collection(parent_id: LayerCollectionId,
+                                             collection_id: LayerCollectionId,
+                                             timeout: int = 60) -&gt; None:
+    &#39;&#39;&#39;Delete a layer collection from a collection&#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.delete(
+        f&#39;{session.server_url}/layerDb/collections/{parent_id}/collections/{collection_id}&#39;,
+        headers=session.admin_auth_header,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+
+def _delete_layer_collection(collection_id: LayerCollectionId,
+                             timeout: int = 60) -&gt; None:
+    &#39;&#39;&#39;Delete a layer collection&#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.delete(
+        f&#39;{session.server_url}/layerDb/collections/{collection_id}&#39;,
+        headers=session.admin_auth_header,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+
+def _add_layer_collection_to_collection(name: str,
+                                        description: str,
+                                        parent_collection_id: LayerCollectionId,
+                                        timeout: int = 60) -&gt; LayerCollectionId:
+    &#39;&#39;&#39;Add a new layer collection&#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.post(
+        f&#39;{session.server_url}/layerDb/collections/{parent_collection_id}/collections&#39;,
+        headers=session.admin_auth_header,
+        json={
+            &#34;name&#34;: name,
+            &#34;description&#34;: description,
+        },
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+    return LayerCollectionId(UUID(response.json()[&#39;id&#39;]))
+
+
+def _add_existing_layer_collection_to_collection(collection_id: LayerCollectionId,
+                                                 parent_collection_id: LayerCollectionId,
+                                                 timeout: int = 60) -&gt; None:
+    &#39;&#39;&#39;Add an existing layer collection to a collection&#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.post(
+        f&#39;{session.server_url}/layerDb/collections/{parent_collection_id}/collections/{collection_id}&#39;,
+        headers=session.admin_auth_header,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+
+def _add_layer_to_collection(name: str,
+                             description: str,
+                             workflow: Dict[str, Any],  # TODO: improve type
+                             symbology: Optional[Dict[str, Any]],  # TODO: improve type
+                             collection_id: LayerCollectionId,
+                             timeout: int = 60) -&gt; LayerId:
+    &#39;&#39;&#39;Add a new layer&#39;&#39;&#39;
+    # pylint: disable=too-many-arguments
+
+    session = get_session()
+
+    response = req.post(
+        f&#39;{session.server_url}/layerDb/collections/{collection_id}/layers&#39;,
+        headers=session.admin_auth_header,
+        json={
+            &#34;name&#34;: name,
+            &#34;description&#34;: description,
+            &#34;workflow&#34;: workflow,
+            &#34;symbology&#34;: symbology,
+        },
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+    return LayerId(UUID(response.json()[&#39;id&#39;]))
+
+
+def _add_existing_layer_to_collection(layer_id: LayerId,
+                                      collection_id: LayerCollectionId,
+                                      timeout: int = 60) -&gt; None:
+    &#39;&#39;&#39;Add an existing layer to a collection&#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.post(
+        f&#39;{session.server_url}/layerDb/collections/{collection_id}/layers/{layer_id}&#39;,
+        headers=session.admin_auth_header,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="geoengine.layers.layer"><code class="name flex">
+<span>def <span class="ident">layer</span></span>(<span>layer_id: LayerId, layer_provider_id: LayerProviderId = UUID('ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74'), timeout: int = 60) ‑> <a title="geoengine.layers.Layer" href="#geoengine.layers.Layer">Layer</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieve a layer from the server.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def layer(layer_id: LayerId,
+          layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
+          timeout: int = 60) -&gt; Layer:
+    &#39;&#39;&#39;
+    Retrieve a layer from the server.
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.get(
+        f&#39;{session.server_url}/layers/{layer_provider_id}/{layer_id}&#39;,
+        headers=session.admin_or_normal_auth_header,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+    return Layer.from_response(response.json())</code></pre>
+</details>
+</dd>
+<dt id="geoengine.layers.layer_collection"><code class="name flex">
+<span>def <span class="ident">layer_collection</span></span>(<span>layer_collection_id: Optional[LayerCollectionId] = None, layer_provider_id: LayerProviderId = UUID('ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74'), timeout: int = 60) ‑> <a title="geoengine.layers.LayerCollection" href="#geoengine.layers.LayerCollection">LayerCollection</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retrieve a layer collection that contains layers and layer collections.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
+                     layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
+                     timeout: int = 60) -&gt; LayerCollection:
+    &#39;&#39;&#39;
+    Retrieve a layer collection that contains layers and layer collections.
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    request = &#39;/layers/collections&#39; if layer_collection_id is None \
+        else f&#39;/layers/collections/{layer_provider_id}/{layer_collection_id}&#39;
+
+    page_limit = 20
+    pages: List[LayerCollectionResponse] = []
+
+    offset = 0
+    while True:
+        response = req.get(
+            f&#39;{session.server_url}{request}?offset={offset}&amp;limit={page_limit}&#39;,
+            headers=session.admin_or_normal_auth_header,
+            timeout=timeout,
+        )
+
+        if not response.ok:
+            raise GeoEngineException(response.json())
+
+        page: LayerCollectionResponse = response.json()
+
+        if len(page[&#39;items&#39;]) &lt; page_limit:
+            if len(pages) == 0 or len(page[&#39;items&#39;]) &gt; 0:  # we need at least one page before breaking
+                pages.append(page)
+            break
+
+        pages.append(page)
+        offset += page_limit
+
+    return LayerCollection.from_response(pages)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="geoengine.layers.Layer"><code class="flex name class">
+<span>class <span class="ident">Layer</span></span>
+<span>(</span><span>name: str, description: str, layer_id: LayerId, provider_id: LayerProviderId, workflow: Dict[str, Any], symbology: Optional[Dict[Any, Any]], properties: List[Any], metadata: Dict[Any, Any])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A layer</p>
+<p>Create a new <code><a title="geoengine.layers.Layer" href="#geoengine.layers.Layer">Layer</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class Layer:
+    &#39;&#39;&#39;A layer&#39;&#39;&#39;
+    # pylint: disable=too-many-instance-attributes
+
+    name: str
+    description: str
+    layer_id: LayerId
+    provider_id: LayerProviderId
+    workflow: Dict[str, Any]  # TODO: specify in more detail
+    symbology: Optional[Dict[str, Any]]  # TODO: specify in more detail
+    properties: List[Any]  # TODO: specify in more detail
+    metadata: Dict[str, Any]  # TODO: specify in more detail
+
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 layer_id: LayerId,
+                 provider_id: LayerProviderId,
+                 workflow: Dict[str, Any],
+                 symbology: Optional[Dict[Any, Any]],
+                 properties: List[Any],
+                 metadata: Dict[Any, Any]) -&gt; None:
+        &#39;&#39;&#39;Create a new `Layer`&#39;&#39;&#39;
+        # pylint: disable=too-many-arguments
+
+        self.name = name
+        self.description = description
+        self.layer_id = layer_id
+        self.provider_id = provider_id
+        self.workflow = workflow
+        self.symbology = symbology
+        self.properties = properties
+        self.metadata = metadata
+
+    @classmethod
+    def from_response(cls, response: LayerResponse) -&gt; Layer:
+        &#39;&#39;&#39;Parse an HTTP JSON response to an `Layer`&#39;&#39;&#39;
+
+        return Layer(
+            name=response[&#39;name&#39;],
+            description=response[&#39;description&#39;],
+            layer_id=LayerId(UUID(response[&#39;id&#39;][&#39;layerId&#39;])),
+            provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
+            workflow=response[&#39;workflow&#39;],
+            symbology=response[&#39;symbology&#39;],
+            properties=response[&#39;properties&#39;],
+            metadata=response[&#39;metadata&#39;],
+        )
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a `Layer`&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(f&#39;Layer{os.linesep}&#39;)
+        buf.write(f&#34;name: {self.name}{os.linesep}&#34;)
+        buf.write(f&#34;description: {self.description}{os.linesep}&#34;)
+        buf.write(f&#34;id: {self.layer_id}{os.linesep}&#34;)
+        buf.write(f&#34;provider id: {self.provider_id}{os.linesep}&#34;)
+        # TODO: better representation of workflow, symbology, properties, metadata
+        buf.write(f&#34;workflow: {self.workflow}{os.linesep}&#34;)
+        buf.write(f&#34;symbology: {self.symbology}{os.linesep}&#34;)
+        buf.write(f&#34;properties: {self.properties}{os.linesep}&#34;)
+        buf.write(f&#34;metadata: {self.metadata}{os.linesep}&#34;)
+
+        return buf.getvalue()
+
+    def _repr_html_(self) -&gt; str | None:
+        &#39;&#39;&#39;HTML representation for Jupyter notebooks&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(&#34;&lt;table&gt;&#34;)
+        buf.write(&#39;&lt;thead&gt;&lt;tr&gt;&lt;th colspan=&#34;2&#34;&gt;Layer&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&#39;)
+        buf.write(&#34;&lt;tbody&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;name&lt;/th&gt;&lt;td&gt;{self.name}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;description&lt;/th&gt;&lt;td&gt;{self.description}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;td&gt;{self.layer_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;provider id&lt;/th&gt;&lt;td&gt;{self.provider_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+
+        # TODO: better representation of workflow, symbology, properties, metadata
+        buf.write(&#39;&lt;tr&gt;&lt;th&gt;workflow&lt;/th&gt;&lt;td align=&#34;left&#34;&gt;&#39;)
+        buf.write(f&#39;&lt;pre&gt;{json.dumps(self.workflow, indent=4)}{os.linesep}&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&#39;)
+        buf.write(&#39;&lt;tr&gt;&lt;th&gt;symbology&lt;/th&gt;&#39;)
+        buf.write(f&#39;&lt;td align=&#34;left&#34;&gt;{json.dumps(self.symbology, indent=4)}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#39;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;properties&lt;/th&gt;&lt;td&gt;{self.properties}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;metadata&lt;/th&gt;&lt;td&gt;{self.metadata}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#34;)
+
+        buf.write(&#34;&lt;/tbody&gt;&#34;)
+        buf.write(&#34;&lt;/table&gt;&#34;)
+
+        return buf.getvalue()</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.layers.Layer.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.Layer.layer_id"><code class="name">var <span class="ident">layer_id</span> : LayerId</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.Layer.metadata"><code class="name">var <span class="ident">metadata</span> : Dict[str, Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.Layer.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.Layer.properties"><code class="name">var <span class="ident">properties</span> : List[Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.Layer.provider_id"><code class="name">var <span class="ident">provider_id</span> : LayerProviderId</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.Layer.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[Dict[str, Any]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.Layer.workflow"><code class="name">var <span class="ident">workflow</span> : Dict[str, Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.layers.Layer.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: <a title="geoengine.layers.LayerResponse" href="#geoengine.layers.LayerResponse">LayerResponse</a>) ‑> <a title="geoengine.layers.Layer" href="#geoengine.layers.Layer">Layer</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse an HTTP JSON response to an <code><a title="geoengine.layers.Layer" href="#geoengine.layers.Layer">Layer</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: LayerResponse) -&gt; Layer:
+    &#39;&#39;&#39;Parse an HTTP JSON response to an `Layer`&#39;&#39;&#39;
+
+    return Layer(
+        name=response[&#39;name&#39;],
+        description=response[&#39;description&#39;],
+        layer_id=LayerId(UUID(response[&#39;id&#39;][&#39;layerId&#39;])),
+        provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
+        workflow=response[&#39;workflow&#39;],
+        symbology=response[&#39;symbology&#39;],
+        properties=response[&#39;properties&#39;],
+        metadata=response[&#39;metadata&#39;],
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.layers.LayerAndProviderIdResponse"><code class="flex name class">
+<span>class <span class="ident">LayerAndProviderIdResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerAndProviderIdResponse(TypedDict):
+    layerId: str
+    providerId: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.layers.LayerAndProviderIdResponse.layerId"><code class="name">var <span class="ident">layerId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerAndProviderIdResponse.providerId"><code class="name">var <span class="ident">providerId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.layers.LayerCollection"><code class="flex name class">
+<span>class <span class="ident">LayerCollection</span></span>
+<span>(</span><span>name: str, description: str, collection_id: LayerCollectionId, provider_id: LayerProviderId, items: List[<a title="geoengine.layers.Listing" href="#geoengine.layers.Listing">Listing</a>])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A layer collection</p>
+<p>Create a new <code><a title="geoengine.layers.LayerCollection" href="#geoengine.layers.LayerCollection">LayerCollection</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerCollection:
+    &#39;&#39;&#39;A layer collection&#39;&#39;&#39;
+
+    name: str
+    description: str
+    collection_id: LayerCollectionId
+    provider_id: LayerProviderId
+    items: List[Listing]
+
+    def __init__(self,
+                 name: str,
+                 description: str,
+                 collection_id: LayerCollectionId,
+                 provider_id: LayerProviderId,
+                 items: List[Listing]) -&gt; None:
+        &#39;&#39;&#39;Create a new `LayerCollection`&#39;&#39;&#39;
+        # pylint: disable=too-many-arguments
+
+        self.name = name
+        self.description = description
+        self.collection_id = collection_id
+        self.provider_id = provider_id
+        self.items = items
+
+    @classmethod
+    def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; LayerCollection:
+        &#39;&#39;&#39;Parse an HTTP JSON response to an `LayerCollection`&#39;&#39;&#39;
+
+        assert len(response_pages) &gt; 0, &#39;No response pages&#39;
+
+        def parse_listing(response: LayerCollectionListingResponse) -&gt; Listing:
+            item_type = LayerCollectionListingType(item_response[&#39;type&#39;])
+
+            if item_type is LayerCollectionListingType.LAYER:
+                layer_id_response = cast(LayerAndProviderIdResponse, response[&#39;id&#39;])
+                return LayerListing(
+                    listing_id=LayerId(UUID(layer_id_response[&#39;layerId&#39;])),
+                    provider_id=LayerProviderId(UUID(layer_id_response[&#39;providerId&#39;])),
+                    name=item_response[&#39;name&#39;],
+                    description=item_response[&#39;description&#39;],
+                )
+
+            if item_type is LayerCollectionListingType.COLLECTION:
+                collection_id_response = cast(LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
+                return LayerCollectionListing(
+                    listing_id=LayerCollectionId(UUID(collection_id_response[&#39;collectionId&#39;])),
+                    provider_id=LayerProviderId(UUID(collection_id_response[&#39;providerId&#39;])),
+                    name=item_response[&#39;name&#39;],
+                    description=item_response[&#39;description&#39;],
+                )
+
+            assert False, &#39;Invalid listing type&#39;
+
+        items = []
+        for response in response_pages:
+            for item_response in response[&#39;items&#39;]:
+                items.append(parse_listing(item_response))
+
+        response = response_pages[0]
+
+        return LayerCollection(
+            name=response[&#39;name&#39;],
+            description=response[&#39;description&#39;],
+            collection_id=LayerCollectionId(UUID(response[&#39;id&#39;][&#39;collectionId&#39;])),
+            provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
+            items=items,
+        )
+
+    def reload(self) -&gt; LayerCollection:
+        &#39;&#39;&#39;Reload the layer collection&#39;&#39;&#39;
+
+        return layer_collection(self.collection_id, self.provider_id)
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a `LayerCollection`&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(f&#39;Layer Collection{os.linesep}&#39;)
+        buf.write(f&#34;name: {self.name}{os.linesep}&#34;)
+        buf.write(f&#34;description: {self.description}{os.linesep}&#34;)
+        buf.write(f&#34;id: {self.collection_id}{os.linesep}&#34;)
+        buf.write(f&#34;provider id: {self.provider_id}{os.linesep}&#34;)
+
+        for (i, item) in enumerate(self.items):
+            items_str = &#39;items: &#39;
+            buf.write(items_str if i == 0 else &#39; &#39; * len(items_str))
+            buf.write(f&#34;{item}{os.linesep}&#34;)
+
+        return buf.getvalue()
+
+    def _repr_html_(self) -&gt; str | None:
+        &#39;&#39;&#39;HTML representation for Jupyter notebooks&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(&#34;&lt;table&gt;&#34;)
+        buf.write(&#39;&lt;thead&gt;&lt;tr&gt;&lt;th colspan=&#34;2&#34;&gt;Layer Collection&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&#39;)
+        buf.write(&#34;&lt;tbody&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;name&lt;/th&gt;&lt;td&gt;{self.name}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;description&lt;/th&gt;&lt;td&gt;{self.description}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;td&gt;{self.collection_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;provider id&lt;/th&gt;&lt;td&gt;{self.provider_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+
+        num_items = len(self.items)
+        for (i, item) in enumerate(self.items):
+            buf.write(&#39;&lt;tr&gt;&#39;)
+            if i == 0:
+                buf.write(f&#39;&lt;th rowspan=&#34;{num_items}&#34;&gt;items&lt;/th&gt;&#39;)
+            buf.write(f&#34;&lt;td&gt;{item.html_str()}&lt;/td&gt;&#34;)
+            buf.write(&#39;&lt;/tr&gt;&#39;)
+
+        buf.write(&#34;&lt;/tbody&gt;&#34;)
+        buf.write(&#34;&lt;/table&gt;&#34;)
+
+        return buf.getvalue()
+
+    def remove(self, timeout: int = 60) -&gt; None:
+        &#39;&#39;&#39;Remove the layer collection itself&#39;&#39;&#39;
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        _delete_layer_collection(self.collection_id, timeout)
+
+    def remove_item(self, index: int, timeout: int = 60):
+        &#39;&#39;&#39;Remove a layer or collection from this collection&#39;&#39;&#39;
+
+        if index &lt; 0 or index &gt;= len(self.items):
+            raise IndexError(f&#39;index {index} out of range&#39;)
+
+        item = self.items[index]
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        # pylint: disable=protected-access
+        item._remove(self.collection_id, self.provider_id, timeout)
+
+        self.items.pop(index)
+
+    def add_layer(self,
+                  name: str,
+                  description: str,
+                  workflow: Dict[str, Any],  # TODO: improve type
+                  symbology: Optional[Dict[str, Any]],  # TODO: improve type
+                  timeout: int = 60) -&gt; LayerId:
+        &#39;&#39;&#39;Add a layer to this collection&#39;&#39;&#39;
+        # pylint: disable=too-many-arguments
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        layer_id = _add_layer_to_collection(name, description, workflow, symbology, self.collection_id, timeout)
+
+        self.items.append(LayerListing(
+            listing_id=layer_id,
+            provider_id=self.provider_id,
+            name=name,
+            description=description,
+        ))
+
+        return layer_id
+
+    def add_existing_layer(self,
+                           existing_layer: Union[LayerListing, Layer, LayerId],
+                           timeout: int = 60):
+        &#39;&#39;&#39;Add an existing layer to this collection&#39;&#39;&#39;
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        if isinstance(existing_layer, LayerListing):
+            layer_id = existing_layer.listing_id
+        elif isinstance(existing_layer, Layer):
+            layer_id = existing_layer.layer_id
+        elif isinstance(existing_layer, UUID):  # TODO: check for LayerId in Python 3.11+
+            layer_id = existing_layer
+
+        _add_existing_layer_to_collection(layer_id, self.collection_id, timeout)
+
+        child_layer = layer(layer_id, self.provider_id)
+
+        self.items.append(LayerListing(
+            listing_id=layer_id,
+            provider_id=self.provider_id,
+            name=child_layer.name,
+            description=child_layer.description,
+        ))
+
+        return layer_id
+
+    def add_collection(self,
+                       name: str,
+                       description: str,
+                       timeout: int = 60) -&gt; LayerCollectionId:
+        &#39;&#39;&#39;Add a collection to this collection&#39;&#39;&#39;
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        collection_id = _add_layer_collection_to_collection(name, description, self.collection_id, timeout)
+
+        self.items.append(LayerCollectionListing(
+            listing_id=collection_id,
+            provider_id=self.provider_id,
+            name=name,
+            description=description,
+        ))
+
+        return collection_id
+
+    def add_existing_collection(self,
+                                existing_collection: Union[LayerCollectionListing, LayerCollection, LayerCollectionId],
+                                timeout: int = 60) -&gt; LayerCollectionId:
+        &#39;&#39;&#39;Add an existing collection to this collection&#39;&#39;&#39;
+
+        if self.provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        if isinstance(existing_collection, LayerCollectionListing):
+            collection_id = existing_collection.listing_id
+        elif isinstance(existing_collection, LayerCollection):
+            collection_id = existing_collection.collection_id
+        elif isinstance(existing_collection, UUID):  # TODO: check for LayerId in Python 3.11+
+            collection_id = existing_collection
+
+        _add_existing_layer_collection_to_collection(collection_id=collection_id,
+                                                     parent_collection_id=self.collection_id,
+                                                     timeout=timeout)
+
+        child_collection = layer_collection(collection_id, self.provider_id)
+
+        self.items.append(LayerCollectionListing(
+            listing_id=collection_id,
+            provider_id=self.provider_id,
+            name=child_collection.name,
+            description=child_collection.description,
+        ))
+
+        return collection_id</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.layers.LayerCollection.collection_id"><code class="name">var <span class="ident">collection_id</span> : LayerCollectionId</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollection.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollection.items"><code class="name">var <span class="ident">items</span> : List[<a title="geoengine.layers.Listing" href="#geoengine.layers.Listing">Listing</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollection.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollection.provider_id"><code class="name">var <span class="ident">provider_id</span> : LayerProviderId</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.layers.LayerCollection.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response_pages: List[<a title="geoengine.layers.LayerCollectionResponse" href="#geoengine.layers.LayerCollectionResponse">LayerCollectionResponse</a>]) ‑> <a title="geoengine.layers.LayerCollection" href="#geoengine.layers.LayerCollection">LayerCollection</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse an HTTP JSON response to an <code><a title="geoengine.layers.LayerCollection" href="#geoengine.layers.LayerCollection">LayerCollection</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; LayerCollection:
+    &#39;&#39;&#39;Parse an HTTP JSON response to an `LayerCollection`&#39;&#39;&#39;
+
+    assert len(response_pages) &gt; 0, &#39;No response pages&#39;
+
+    def parse_listing(response: LayerCollectionListingResponse) -&gt; Listing:
+        item_type = LayerCollectionListingType(item_response[&#39;type&#39;])
+
+        if item_type is LayerCollectionListingType.LAYER:
+            layer_id_response = cast(LayerAndProviderIdResponse, response[&#39;id&#39;])
+            return LayerListing(
+                listing_id=LayerId(UUID(layer_id_response[&#39;layerId&#39;])),
+                provider_id=LayerProviderId(UUID(layer_id_response[&#39;providerId&#39;])),
+                name=item_response[&#39;name&#39;],
+                description=item_response[&#39;description&#39;],
+            )
+
+        if item_type is LayerCollectionListingType.COLLECTION:
+            collection_id_response = cast(LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
+            return LayerCollectionListing(
+                listing_id=LayerCollectionId(UUID(collection_id_response[&#39;collectionId&#39;])),
+                provider_id=LayerProviderId(UUID(collection_id_response[&#39;providerId&#39;])),
+                name=item_response[&#39;name&#39;],
+                description=item_response[&#39;description&#39;],
+            )
+
+        assert False, &#39;Invalid listing type&#39;
+
+    items = []
+    for response in response_pages:
+        for item_response in response[&#39;items&#39;]:
+            items.append(parse_listing(item_response))
+
+    response = response_pages[0]
+
+    return LayerCollection(
+        name=response[&#39;name&#39;],
+        description=response[&#39;description&#39;],
+        collection_id=LayerCollectionId(UUID(response[&#39;id&#39;][&#39;collectionId&#39;])),
+        provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
+        items=items,
+    )</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.layers.LayerCollection.add_collection"><code class="name flex">
+<span>def <span class="ident">add_collection</span></span>(<span>self, name: str, description: str, timeout: int = 60) ‑> LayerCollectionId</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a collection to this collection</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_collection(self,
+                   name: str,
+                   description: str,
+                   timeout: int = 60) -&gt; LayerCollectionId:
+    &#39;&#39;&#39;Add a collection to this collection&#39;&#39;&#39;
+
+    if self.provider_id != LAYER_DB_PROVIDER_ID:
+        raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+    collection_id = _add_layer_collection_to_collection(name, description, self.collection_id, timeout)
+
+    self.items.append(LayerCollectionListing(
+        listing_id=collection_id,
+        provider_id=self.provider_id,
+        name=name,
+        description=description,
+    ))
+
+    return collection_id</code></pre>
+</details>
+</dd>
+<dt id="geoengine.layers.LayerCollection.add_existing_collection"><code class="name flex">
+<span>def <span class="ident">add_existing_collection</span></span>(<span>self, existing_collection: Union[<a title="geoengine.layers.LayerCollectionListing" href="#geoengine.layers.LayerCollectionListing">LayerCollectionListing</a>, <a title="geoengine.layers.LayerCollection" href="#geoengine.layers.LayerCollection">LayerCollection</a>, LayerCollectionId], timeout: int = 60) ‑> LayerCollectionId</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add an existing collection to this collection</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_existing_collection(self,
+                            existing_collection: Union[LayerCollectionListing, LayerCollection, LayerCollectionId],
+                            timeout: int = 60) -&gt; LayerCollectionId:
+    &#39;&#39;&#39;Add an existing collection to this collection&#39;&#39;&#39;
+
+    if self.provider_id != LAYER_DB_PROVIDER_ID:
+        raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+    if isinstance(existing_collection, LayerCollectionListing):
+        collection_id = existing_collection.listing_id
+    elif isinstance(existing_collection, LayerCollection):
+        collection_id = existing_collection.collection_id
+    elif isinstance(existing_collection, UUID):  # TODO: check for LayerId in Python 3.11+
+        collection_id = existing_collection
+
+    _add_existing_layer_collection_to_collection(collection_id=collection_id,
+                                                 parent_collection_id=self.collection_id,
+                                                 timeout=timeout)
+
+    child_collection = layer_collection(collection_id, self.provider_id)
+
+    self.items.append(LayerCollectionListing(
+        listing_id=collection_id,
+        provider_id=self.provider_id,
+        name=child_collection.name,
+        description=child_collection.description,
+    ))
+
+    return collection_id</code></pre>
+</details>
+</dd>
+<dt id="geoengine.layers.LayerCollection.add_existing_layer"><code class="name flex">
+<span>def <span class="ident">add_existing_layer</span></span>(<span>self, existing_layer: Union[<a title="geoengine.layers.LayerListing" href="#geoengine.layers.LayerListing">LayerListing</a>, <a title="geoengine.layers.Layer" href="#geoengine.layers.Layer">Layer</a>, LayerId], timeout: int = 60)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add an existing layer to this collection</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_existing_layer(self,
+                       existing_layer: Union[LayerListing, Layer, LayerId],
+                       timeout: int = 60):
+    &#39;&#39;&#39;Add an existing layer to this collection&#39;&#39;&#39;
+
+    if self.provider_id != LAYER_DB_PROVIDER_ID:
+        raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+    if isinstance(existing_layer, LayerListing):
+        layer_id = existing_layer.listing_id
+    elif isinstance(existing_layer, Layer):
+        layer_id = existing_layer.layer_id
+    elif isinstance(existing_layer, UUID):  # TODO: check for LayerId in Python 3.11+
+        layer_id = existing_layer
+
+    _add_existing_layer_to_collection(layer_id, self.collection_id, timeout)
+
+    child_layer = layer(layer_id, self.provider_id)
+
+    self.items.append(LayerListing(
+        listing_id=layer_id,
+        provider_id=self.provider_id,
+        name=child_layer.name,
+        description=child_layer.description,
+    ))
+
+    return layer_id</code></pre>
+</details>
+</dd>
+<dt id="geoengine.layers.LayerCollection.add_layer"><code class="name flex">
+<span>def <span class="ident">add_layer</span></span>(<span>self, name: str, description: str, workflow: Dict[str, Any], symbology: Optional[Dict[str, Any]], timeout: int = 60) ‑> LayerId</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a layer to this collection</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_layer(self,
+              name: str,
+              description: str,
+              workflow: Dict[str, Any],  # TODO: improve type
+              symbology: Optional[Dict[str, Any]],  # TODO: improve type
+              timeout: int = 60) -&gt; LayerId:
+    &#39;&#39;&#39;Add a layer to this collection&#39;&#39;&#39;
+    # pylint: disable=too-many-arguments
+
+    if self.provider_id != LAYER_DB_PROVIDER_ID:
+        raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+    layer_id = _add_layer_to_collection(name, description, workflow, symbology, self.collection_id, timeout)
+
+    self.items.append(LayerListing(
+        listing_id=layer_id,
+        provider_id=self.provider_id,
+        name=name,
+        description=description,
+    ))
+
+    return layer_id</code></pre>
+</details>
+</dd>
+<dt id="geoengine.layers.LayerCollection.reload"><code class="name flex">
+<span>def <span class="ident">reload</span></span>(<span>self) ‑> <a title="geoengine.layers.LayerCollection" href="#geoengine.layers.LayerCollection">LayerCollection</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Reload the layer collection</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reload(self) -&gt; LayerCollection:
+    &#39;&#39;&#39;Reload the layer collection&#39;&#39;&#39;
+
+    return layer_collection(self.collection_id, self.provider_id)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.layers.LayerCollection.remove"><code class="name flex">
+<span>def <span class="ident">remove</span></span>(<span>self, timeout: int = 60) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Remove the layer collection itself</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove(self, timeout: int = 60) -&gt; None:
+    &#39;&#39;&#39;Remove the layer collection itself&#39;&#39;&#39;
+
+    if self.provider_id != LAYER_DB_PROVIDER_ID:
+        raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+    _delete_layer_collection(self.collection_id, timeout)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.layers.LayerCollection.remove_item"><code class="name flex">
+<span>def <span class="ident">remove_item</span></span>(<span>self, index: int, timeout: int = 60)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Remove a layer or collection from this collection</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_item(self, index: int, timeout: int = 60):
+    &#39;&#39;&#39;Remove a layer or collection from this collection&#39;&#39;&#39;
+
+    if index &lt; 0 or index &gt;= len(self.items):
+        raise IndexError(f&#39;index {index} out of range&#39;)
+
+    item = self.items[index]
+
+    if self.provider_id != LAYER_DB_PROVIDER_ID:
+        raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+    # pylint: disable=protected-access
+    item._remove(self.collection_id, self.provider_id, timeout)
+
+    self.items.pop(index)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.layers.LayerCollectionAndProviderIdResponse"><code class="flex name class">
+<span>class <span class="ident">LayerCollectionAndProviderIdResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerCollectionAndProviderIdResponse(TypedDict):
+    collectionId: str
+    providerId: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.layers.LayerCollectionAndProviderIdResponse.collectionId"><code class="name">var <span class="ident">collectionId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollectionAndProviderIdResponse.providerId"><code class="name">var <span class="ident">providerId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.layers.LayerCollectionListing"><code class="flex name class">
+<span>class <span class="ident">LayerCollectionListing</span></span>
+<span>(</span><span>listing_id: LISTINGID, provider_id: LayerProviderId, name: str, description: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A layer listing as item of a collection</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class LayerCollectionListing(Listing[LayerCollectionId]):
+    &#39;&#39;&#39;A layer listing as item of a collection&#39;&#39;&#39;
+
+    def _type_str(self) -&gt; str:
+        &#39;&#39;&#39;String representation of the listing type&#39;&#39;&#39;
+
+        return &#39;Layer Collection&#39;
+
+    def load(self, timeout: int = 60) -&gt; Union[LayerCollection, Layer]:
+        &#39;&#39;&#39;Load the listing item&#39;&#39;&#39;
+
+        return layer_collection(self.listing_id, self.provider_id, timeout)
+
+    def _remove(self,
+                collection_id: LayerCollectionId,
+                provider_id: LayerProviderId,
+                timeout: int = 60) -&gt; None:
+        if provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        _delete_layer_collection_from_collection(
+            collection_id,
+            self.listing_id,
+            timeout,
+        )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.layers.Listing" href="#geoengine.layers.Listing">Listing</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.layers.LayerCollectionListing.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollectionListing.listing_id"><code class="name">var <span class="ident">listing_id</span> : ~LISTINGID</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollectionListing.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollectionListing.provider_id"><code class="name">var <span class="ident">provider_id</span> : LayerProviderId</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.layers.Listing" href="#geoengine.layers.Listing">Listing</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.layers.Listing.html_str" href="#geoengine.layers.Listing.html_str">html_str</a></code></li>
+<li><code><a title="geoengine.layers.Listing.load" href="#geoengine.layers.Listing.load">load</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.layers.LayerCollectionListingResponse"><code class="flex name class">
+<span>class <span class="ident">LayerCollectionListingResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A layer collection listing response JSON from a HTTP request</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerCollectionListingResponse(TypedDict):
+    &#39;&#39;&#39;A layer collection listing response JSON from a HTTP request&#39;&#39;&#39;
+    id: Union[LayerCollectionAndProviderIdResponse, LayerAndProviderIdResponse]
+    name: str
+    description: str
+    type: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.layers.LayerCollectionListingResponse.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollectionListingResponse.id"><code class="name">var <span class="ident">id</span> : Union[<a title="geoengine.layers.LayerCollectionAndProviderIdResponse" href="#geoengine.layers.LayerCollectionAndProviderIdResponse">LayerCollectionAndProviderIdResponse</a>, <a title="geoengine.layers.LayerAndProviderIdResponse" href="#geoengine.layers.LayerAndProviderIdResponse">LayerAndProviderIdResponse</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollectionListingResponse.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollectionListingResponse.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.layers.LayerCollectionListingType"><code class="flex name class">
+<span>class <span class="ident">LayerCollectionListingType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerCollectionListingType(LowercaseStrEnum):
+    LAYER = auto()
+    COLLECTION = auto()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>strenum.LowercaseStrEnum</li>
+<li>strenum.StrEnum</li>
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.layers.LayerCollectionListingType.COLLECTION"><code class="name">var <span class="ident">COLLECTION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollectionListingType.LAYER"><code class="name">var <span class="ident">LAYER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.layers.LayerCollectionResponse"><code class="flex name class">
+<span>class <span class="ident">LayerCollectionResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A layer collection response JSON from a HTTP request</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerCollectionResponse(TypedDict):
+    &#39;&#39;&#39;A layer collection response JSON from a HTTP request&#39;&#39;&#39;
+    id: LayerCollectionAndProviderIdResponse
+    name: str
+    description: str
+    items: List[LayerCollectionListingResponse]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.layers.LayerCollectionResponse.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollectionResponse.id"><code class="name">var <span class="ident">id</span> : <a title="geoengine.layers.LayerCollectionAndProviderIdResponse" href="#geoengine.layers.LayerCollectionAndProviderIdResponse">LayerCollectionAndProviderIdResponse</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerCollectionResponse.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.layers.LayerCollectionResponse.items"><code class="name flex">
+<span>def <span class="ident">items</span></span>(<span>...) ‑> List[<a title="geoengine.layers.LayerCollectionListingResponse" href="#geoengine.layers.LayerCollectionListingResponse">LayerCollectionListingResponse</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>D.items() -&gt; a set-like object providing a view on D's items</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.layers.LayerListing"><code class="flex name class">
+<span>class <span class="ident">LayerListing</span></span>
+<span>(</span><span>listing_id: LISTINGID, provider_id: LayerProviderId, name: str, description: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A layer listing as item of a collection</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class LayerListing(Listing[LayerId]):
+    &#39;&#39;&#39;A layer listing as item of a collection&#39;&#39;&#39;
+
+    def _type_str(self) -&gt; str:
+        &#39;&#39;&#39;String representation of the listing type&#39;&#39;&#39;
+
+        return &#39;Layer&#39;
+
+    def load(self, timeout: int = 60) -&gt; Union[LayerCollection, Layer]:
+        &#39;&#39;&#39;Load the listing item&#39;&#39;&#39;
+
+        return layer(self.listing_id, self.provider_id, timeout)
+
+    def _remove(self,
+                collection_id: LayerCollectionId,
+                provider_id: LayerProviderId,
+                timeout: int = 60) -&gt; None:
+        if provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException(&#39;Layer collection is not stored in the layer database&#39;)
+
+        _delete_layer_from_collection(
+            collection_id,
+            self.listing_id,
+            timeout,
+        )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.layers.Listing" href="#geoengine.layers.Listing">Listing</a></li>
+<li>typing.Generic</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.layers.LayerListing.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerListing.listing_id"><code class="name">var <span class="ident">listing_id</span> : ~LISTINGID</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerListing.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerListing.provider_id"><code class="name">var <span class="ident">provider_id</span> : LayerProviderId</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.layers.Listing" href="#geoengine.layers.Listing">Listing</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.layers.Listing.html_str" href="#geoengine.layers.Listing.html_str">html_str</a></code></li>
+<li><code><a title="geoengine.layers.Listing.load" href="#geoengine.layers.Listing.load">load</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.layers.LayerResponse"><code class="flex name class">
+<span>class <span class="ident">LayerResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A layer response JSON from a HTTP request</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerResponse(TypedDict):
+    &#39;&#39;&#39;A layer response JSON from a HTTP request&#39;&#39;&#39;
+    id: LayerAndProviderIdResponse
+    name: str
+    description: str
+    workflow: Dict[str, Any]  # TODO: specify in more detail
+    symbology: Optional[Dict[Any, Any]]  # TODO: specify in more detail
+    properties: List[Any]  # TODO: specify in more detail
+    metadata: Dict[Any, Any]  # TODO: specify in more detail</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.layers.LayerResponse.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerResponse.id"><code class="name">var <span class="ident">id</span> : <a title="geoengine.layers.LayerAndProviderIdResponse" href="#geoengine.layers.LayerAndProviderIdResponse">LayerAndProviderIdResponse</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerResponse.metadata"><code class="name">var <span class="ident">metadata</span> : Dict[Any, Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerResponse.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerResponse.properties"><code class="name">var <span class="ident">properties</span> : List[Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerResponse.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[Dict[Any, Any]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.LayerResponse.workflow"><code class="name">var <span class="ident">workflow</span> : Dict[str, Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.layers.Listing"><code class="flex name class">
+<span>class <span class="ident">Listing</span></span>
+<span>(</span><span>listing_id: LISTINGID, provider_id: LayerProviderId, name: str, description: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A listing item of a collection</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class Listing(Generic[LISTINGID]):
+    &#39;&#39;&#39;A listing item of a collection&#39;&#39;&#39;
+
+    listing_id: LISTINGID
+    provider_id: LayerProviderId
+    name: str
+    description: str
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;String representation of a `Listing`&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(f&#39;{self._type_str()}{os.linesep}&#39;)
+        buf.write(f&#34;name: {self.name}{os.linesep}&#34;)
+        buf.write(f&#34;description: {self.description}{os.linesep}&#34;)
+        buf.write(f&#34;id: {self.listing_id}{os.linesep}&#34;)
+        buf.write(f&#34;provider id: {self.provider_id}{os.linesep}&#34;)
+
+        return buf.getvalue()
+
+    def html_str(self) -&gt; str:
+        &#39;&#39;&#39;HTML representation for Jupyter notebooks&#39;&#39;&#39;
+
+        buf = StringIO()
+
+        buf.write(&#39;&lt;table&gt;&#39;)
+        buf.write(f&#39;&lt;thead&gt;&lt;tr&gt;&lt;th colspan=&#34;2&#34;&gt;{self._type_str()}&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&#39;)
+        buf.write(&#34;&lt;tbody&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;name&lt;/th&gt;&lt;td&gt;{self.name}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;description&lt;/th&gt;&lt;td&gt;{self.description}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;td&gt;{self.listing_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(f&#34;&lt;tr&gt;&lt;th&gt;provider id&lt;/th&gt;&lt;td&gt;{self.provider_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+        buf.write(&#34;&lt;/tbody&gt;&#34;)
+        buf.write(&#39;&lt;/table&gt;&#39;)
+
+        return buf.getvalue()
+
+    def _repr_html_(self) -&gt; str:
+        &#39;&#39;&#39;HTML representation for Jupyter notebooks&#39;&#39;&#39;
+
+        return self.html_str()
+
+    def _type_str(self) -&gt; str:
+        &#39;&#39;&#39;String representation of the listing type&#39;&#39;&#39;
+        raise NotImplementedError(&#34;Please Implement this method&#34;)
+
+    def load(self, timeout: int = 60) -&gt; Union[LayerCollection, Layer]:
+        &#39;&#39;&#39;Load the listing item&#39;&#39;&#39;
+        raise NotImplementedError(&#34;Please Implement this method&#34;)
+
+    def _remove(self,
+                collection_id: LayerCollectionId,
+                provider_id: LayerProviderId,
+                timeout: int = 60) -&gt; None:
+        &#39;&#39;&#39;Remove the item behind the listing from the parent collection&#39;&#39;&#39;
+        raise NotImplementedError(&#34;Please Implement this method&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>typing.Generic</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.layers.LayerCollectionListing" href="#geoengine.layers.LayerCollectionListing">LayerCollectionListing</a></li>
+<li><a title="geoengine.layers.LayerListing" href="#geoengine.layers.LayerListing">LayerListing</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.layers.Listing.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.Listing.listing_id"><code class="name">var <span class="ident">listing_id</span> : ~LISTINGID</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.Listing.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.layers.Listing.provider_id"><code class="name">var <span class="ident">provider_id</span> : LayerProviderId</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.layers.Listing.html_str"><code class="name flex">
+<span>def <span class="ident">html_str</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>HTML representation for Jupyter notebooks</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def html_str(self) -&gt; str:
+    &#39;&#39;&#39;HTML representation for Jupyter notebooks&#39;&#39;&#39;
+
+    buf = StringIO()
+
+    buf.write(&#39;&lt;table&gt;&#39;)
+    buf.write(f&#39;&lt;thead&gt;&lt;tr&gt;&lt;th colspan=&#34;2&#34;&gt;{self._type_str()}&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&#39;)
+    buf.write(&#34;&lt;tbody&gt;&#34;)
+    buf.write(f&#34;&lt;tr&gt;&lt;th&gt;name&lt;/th&gt;&lt;td&gt;{self.name}&lt;/td&gt;&lt;/tr&gt;&#34;)
+    buf.write(f&#34;&lt;tr&gt;&lt;th&gt;description&lt;/th&gt;&lt;td&gt;{self.description}&lt;/td&gt;&lt;/tr&gt;&#34;)
+    buf.write(f&#34;&lt;tr&gt;&lt;th&gt;id&lt;/th&gt;&lt;td&gt;{self.listing_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+    buf.write(f&#34;&lt;tr&gt;&lt;th&gt;provider id&lt;/th&gt;&lt;td&gt;{self.provider_id}&lt;/td&gt;&lt;/tr&gt;&#34;)
+    buf.write(&#34;&lt;/tbody&gt;&#34;)
+    buf.write(&#39;&lt;/table&gt;&#39;)
+
+    return buf.getvalue()</code></pre>
+</details>
+</dd>
+<dt id="geoengine.layers.Listing.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>self, timeout: int = 60) ‑> Union[<a title="geoengine.layers.LayerCollection" href="#geoengine.layers.LayerCollection">LayerCollection</a>, <a title="geoengine.layers.Layer" href="#geoengine.layers.Layer">Layer</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Load the listing item</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load(self, timeout: int = 60) -&gt; Union[LayerCollection, Layer]:
+    &#39;&#39;&#39;Load the listing item&#39;&#39;&#39;
+    raise NotImplementedError(&#34;Please Implement this method&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="geoengine" href="index.html">geoengine</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="geoengine.layers.layer" href="#geoengine.layers.layer">layer</a></code></li>
+<li><code><a title="geoengine.layers.layer_collection" href="#geoengine.layers.layer_collection">layer_collection</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="geoengine.layers.Layer" href="#geoengine.layers.Layer">Layer</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.layers.Layer.description" href="#geoengine.layers.Layer.description">description</a></code></li>
+<li><code><a title="geoengine.layers.Layer.from_response" href="#geoengine.layers.Layer.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.layers.Layer.layer_id" href="#geoengine.layers.Layer.layer_id">layer_id</a></code></li>
+<li><code><a title="geoengine.layers.Layer.metadata" href="#geoengine.layers.Layer.metadata">metadata</a></code></li>
+<li><code><a title="geoengine.layers.Layer.name" href="#geoengine.layers.Layer.name">name</a></code></li>
+<li><code><a title="geoengine.layers.Layer.properties" href="#geoengine.layers.Layer.properties">properties</a></code></li>
+<li><code><a title="geoengine.layers.Layer.provider_id" href="#geoengine.layers.Layer.provider_id">provider_id</a></code></li>
+<li><code><a title="geoengine.layers.Layer.symbology" href="#geoengine.layers.Layer.symbology">symbology</a></code></li>
+<li><code><a title="geoengine.layers.Layer.workflow" href="#geoengine.layers.Layer.workflow">workflow</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.layers.LayerAndProviderIdResponse" href="#geoengine.layers.LayerAndProviderIdResponse">LayerAndProviderIdResponse</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.layers.LayerAndProviderIdResponse.layerId" href="#geoengine.layers.LayerAndProviderIdResponse.layerId">layerId</a></code></li>
+<li><code><a title="geoengine.layers.LayerAndProviderIdResponse.providerId" href="#geoengine.layers.LayerAndProviderIdResponse.providerId">providerId</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.layers.LayerCollection" href="#geoengine.layers.LayerCollection">LayerCollection</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.layers.LayerCollection.add_collection" href="#geoengine.layers.LayerCollection.add_collection">add_collection</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.add_existing_collection" href="#geoengine.layers.LayerCollection.add_existing_collection">add_existing_collection</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.add_existing_layer" href="#geoengine.layers.LayerCollection.add_existing_layer">add_existing_layer</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.add_layer" href="#geoengine.layers.LayerCollection.add_layer">add_layer</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.collection_id" href="#geoengine.layers.LayerCollection.collection_id">collection_id</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.description" href="#geoengine.layers.LayerCollection.description">description</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.from_response" href="#geoengine.layers.LayerCollection.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.items" href="#geoengine.layers.LayerCollection.items">items</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.name" href="#geoengine.layers.LayerCollection.name">name</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.provider_id" href="#geoengine.layers.LayerCollection.provider_id">provider_id</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.reload" href="#geoengine.layers.LayerCollection.reload">reload</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.remove" href="#geoengine.layers.LayerCollection.remove">remove</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.remove_item" href="#geoengine.layers.LayerCollection.remove_item">remove_item</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.layers.LayerCollectionAndProviderIdResponse" href="#geoengine.layers.LayerCollectionAndProviderIdResponse">LayerCollectionAndProviderIdResponse</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.layers.LayerCollectionAndProviderIdResponse.collectionId" href="#geoengine.layers.LayerCollectionAndProviderIdResponse.collectionId">collectionId</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollectionAndProviderIdResponse.providerId" href="#geoengine.layers.LayerCollectionAndProviderIdResponse.providerId">providerId</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.layers.LayerCollectionListing" href="#geoengine.layers.LayerCollectionListing">LayerCollectionListing</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.layers.LayerCollectionListing.description" href="#geoengine.layers.LayerCollectionListing.description">description</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollectionListing.listing_id" href="#geoengine.layers.LayerCollectionListing.listing_id">listing_id</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollectionListing.name" href="#geoengine.layers.LayerCollectionListing.name">name</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollectionListing.provider_id" href="#geoengine.layers.LayerCollectionListing.provider_id">provider_id</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.layers.LayerCollectionListingResponse" href="#geoengine.layers.LayerCollectionListingResponse">LayerCollectionListingResponse</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.layers.LayerCollectionListingResponse.description" href="#geoengine.layers.LayerCollectionListingResponse.description">description</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollectionListingResponse.id" href="#geoengine.layers.LayerCollectionListingResponse.id">id</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollectionListingResponse.name" href="#geoengine.layers.LayerCollectionListingResponse.name">name</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollectionListingResponse.type" href="#geoengine.layers.LayerCollectionListingResponse.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.layers.LayerCollectionListingType" href="#geoengine.layers.LayerCollectionListingType">LayerCollectionListingType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.layers.LayerCollectionListingType.COLLECTION" href="#geoengine.layers.LayerCollectionListingType.COLLECTION">COLLECTION</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollectionListingType.LAYER" href="#geoengine.layers.LayerCollectionListingType.LAYER">LAYER</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.layers.LayerCollectionResponse" href="#geoengine.layers.LayerCollectionResponse">LayerCollectionResponse</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.layers.LayerCollectionResponse.description" href="#geoengine.layers.LayerCollectionResponse.description">description</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollectionResponse.id" href="#geoengine.layers.LayerCollectionResponse.id">id</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollectionResponse.items" href="#geoengine.layers.LayerCollectionResponse.items">items</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollectionResponse.name" href="#geoengine.layers.LayerCollectionResponse.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.layers.LayerListing" href="#geoengine.layers.LayerListing">LayerListing</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.layers.LayerListing.description" href="#geoengine.layers.LayerListing.description">description</a></code></li>
+<li><code><a title="geoengine.layers.LayerListing.listing_id" href="#geoengine.layers.LayerListing.listing_id">listing_id</a></code></li>
+<li><code><a title="geoengine.layers.LayerListing.name" href="#geoengine.layers.LayerListing.name">name</a></code></li>
+<li><code><a title="geoengine.layers.LayerListing.provider_id" href="#geoengine.layers.LayerListing.provider_id">provider_id</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.layers.LayerResponse" href="#geoengine.layers.LayerResponse">LayerResponse</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.layers.LayerResponse.description" href="#geoengine.layers.LayerResponse.description">description</a></code></li>
+<li><code><a title="geoengine.layers.LayerResponse.id" href="#geoengine.layers.LayerResponse.id">id</a></code></li>
+<li><code><a title="geoengine.layers.LayerResponse.metadata" href="#geoengine.layers.LayerResponse.metadata">metadata</a></code></li>
+<li><code><a title="geoengine.layers.LayerResponse.name" href="#geoengine.layers.LayerResponse.name">name</a></code></li>
+<li><code><a title="geoengine.layers.LayerResponse.properties" href="#geoengine.layers.LayerResponse.properties">properties</a></code></li>
+<li><code><a title="geoengine.layers.LayerResponse.symbology" href="#geoengine.layers.LayerResponse.symbology">symbology</a></code></li>
+<li><code><a title="geoengine.layers.LayerResponse.workflow" href="#geoengine.layers.LayerResponse.workflow">workflow</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.layers.Listing" href="#geoengine.layers.Listing">Listing</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.layers.Listing.description" href="#geoengine.layers.Listing.description">description</a></code></li>
+<li><code><a title="geoengine.layers.Listing.html_str" href="#geoengine.layers.Listing.html_str">html_str</a></code></li>
+<li><code><a title="geoengine.layers.Listing.listing_id" href="#geoengine.layers.Listing.listing_id">listing_id</a></code></li>
+<li><code><a title="geoengine.layers.Listing.load" href="#geoengine.layers.Listing.load">load</a></code></li>
+<li><code><a title="geoengine.layers.Listing.name" href="#geoengine.layers.Listing.name">name</a></code></li>
+<li><code><a title="geoengine.layers.Listing.provider_id" href="#geoengine.layers.Listing.provider_id">provider_id</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

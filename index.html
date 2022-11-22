@@ -33,13 +33,18 @@ from pkg_resources import get_distribution
 from requests import utils
 
 from .auth import Session, get_session, initialize, reset
+from .colorizer import Colorizer
+from .datasets import upload_dataframe, StoredDataset
 from .error import GeoEngineException, InputException, UninitializedException, TypeException, \
     MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, \
-    SpatialReferenceMismatchException, check_response_for_error
+    SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \
+    GeoEngineExceptionResponse, NoAdminSessionException
+from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
+    LayerId, LayerCollectionId, LayerProviderId, \
+    layer_collection, layer
 from .types import QueryRectangle
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow
-from .datasets import upload_dataframe, StoredDataset
-from .colorizer import Colorizer
+
 
 DEFAULT_USER_AGENT = f&#39;geoengine-python/{get_distribution(&#34;geoengine&#34;).version}&#39;
 
@@ -69,6 +74,10 @@ utils.default_user_agent = default_user_agent</code></pre>
 <dt><code class="name"><a title="geoengine.error" href="error.html">geoengine.error</a></code></dt>
 <dd>
 <div class="desc"><p>Package errors and backend mapped error types</p></div>
+</dd>
+<dt><code class="name"><a title="geoengine.layers" href="layers.html">geoengine.layers</a></code></dt>
+<dd>
+<div class="desc"><p>A wrapper around the layer and layerDb API</p></div>
 </dd>
 <dt><code class="name"><a title="geoengine.types" href="types.html">geoengine.types</a></code></dt>
 <dd>
@@ -115,6 +124,7 @@ utils.default_user_agent = default_user_agent</code></pre>
 <li><code><a title="geoengine.colorizer" href="colorizer.html">geoengine.colorizer</a></code></li>
 <li><code><a title="geoengine.datasets" href="datasets.html">geoengine.datasets</a></code></li>
 <li><code><a title="geoengine.error" href="error.html">geoengine.error</a></code></li>
+<li><code><a title="geoengine.layers" href="layers.html">geoengine.layers</a></code></li>
 <li><code><a title="geoengine.types" href="types.html">geoengine.types</a></code></li>
 <li><code><a title="geoengine.workflow" href="workflow.html">geoengine.workflow</a></code></li>
 </ul>

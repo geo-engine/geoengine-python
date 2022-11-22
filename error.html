@@ -31,9 +31,18 @@
 Package errors and backend mapped error types
 &#39;&#39;&#39;
 
-from typing import Dict
-
+from typing import Dict, Union
+from typing_extensions import TypedDict
 from requests import Response, HTTPError
+
+
+class GeoEngineExceptionResponse(TypedDict):
+    &#39;&#39;&#39;
+    The error response from the Geo Engine
+    &#39;&#39;&#39;
+
+    error: str
+    message: str
 
 
 class GeoEngineException(Exception):
@@ -44,7 +53,7 @@ class GeoEngineException(Exception):
     error: str
     message: str
 
-    def __init__(self, response: Dict[str, str]) -&gt; None:
+    def __init__(self, response: Union[GeoEngineExceptionResponse, Dict[str, str]]) -&gt; None:
         super().__init__()
 
         self.error = response[&#39;error&#39;] if &#39;error&#39; in response else &#39;?&#39;
@@ -79,6 +88,15 @@ class UninitializedException(Exception):
         return &#34;You have to call `initialize` before using other functionality&#34;
 
 
+class NoAdminSessionException(Exception):
+    &#39;&#39;&#39;
+    Exception that is thrown when there is no admin session token supplied
+    &#39;&#39;&#39;
+
+    def __str__(self) -&gt; str:
+        return &#34;You need to specify an admin token when initializing the session&#34;
+
+
 class TypeException(Exception):
     &#39;&#39;&#39;
     Exception on wrong types of input
@@ -95,7 +113,24 @@ class TypeException(Exception):
         return f&#34;{self.__message}&#34;
 
 
+class ModificationNotOnLayerDbException(Exception):
+    &#39;&#39;&#39;
+    Exception that is when trying to modify layers that are not part of the layerdb
+    &#39;&#39;&#39;
+
+    __message: str
+
+    def __init__(self, message: str) -&gt; None:
+        super().__init__()
+
+        self.__message = message
+
+    def __str__(self) -&gt; str:
+        return f&#34;{self.__message}&#34;
+
 # TODO: remove methods and forbid calling methods in the first place
+
+
 class MethodNotCalledOnRasterException(Exception):
     &#39;&#39;&#39;
     Exception for calling a raster method on a, e.g., vector layer
@@ -215,7 +250,7 @@ def check_response_for_error(response: Response) -&gt; None:
 <dl>
 <dt id="geoengine.error.GeoEngineException"><code class="flex name class">
 <span>class <span class="ident">GeoEngineException</span></span>
-<span>(</span><span>response: Dict[str, str])</span>
+<span>(</span><span>response: Union[<a title="geoengine.error.GeoEngineExceptionResponse" href="#geoengine.error.GeoEngineExceptionResponse">GeoEngineExceptionResponse</a>, Dict[str, str]])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Base class for exceptions from the backend</p></div>
@@ -231,7 +266,7 @@ def check_response_for_error(response: Response) -&gt; None:
     error: str
     message: str
 
-    def __init__(self, response: Dict[str, str]) -&gt; None:
+    def __init__(self, response: Union[GeoEngineExceptionResponse, Dict[str, str]]) -&gt; None:
         super().__init__()
 
         self.error = response[&#39;error&#39;] if &#39;error&#39; in response else &#39;?&#39;
@@ -252,6 +287,40 @@ def check_response_for_error(response: Response) -&gt; None:
 <div class="desc"></div>
 </dd>
 <dt id="geoengine.error.GeoEngineException.message"><code class="name">var <span class="ident">message</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.error.GeoEngineExceptionResponse"><code class="flex name class">
+<span>class <span class="ident">GeoEngineExceptionResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The error response from the Geo Engine</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GeoEngineExceptionResponse(TypedDict):
+    &#39;&#39;&#39;
+    The error response from the Geo Engine
+    &#39;&#39;&#39;
+
+    error: str
+    message: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.error.GeoEngineExceptionResponse.error"><code class="name">var <span class="ident">error</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.error.GeoEngineExceptionResponse.message"><code class="name">var <span class="ident">message</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -353,6 +422,61 @@ def check_response_for_error(response: Response) -&gt; None:
 
     def __str__(self) -&gt; str:
         return &#34;Only allowed to call method on vector result&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="geoengine.error.ModificationNotOnLayerDbException"><code class="flex name class">
+<span>class <span class="ident">ModificationNotOnLayerDbException</span></span>
+<span>(</span><span>message: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Exception that is when trying to modify layers that are not part of the layerdb</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ModificationNotOnLayerDbException(Exception):
+    &#39;&#39;&#39;
+    Exception that is when trying to modify layers that are not part of the layerdb
+    &#39;&#39;&#39;
+
+    __message: str
+
+    def __init__(self, message: str) -&gt; None:
+        super().__init__()
+
+        self.__message = message
+
+    def __str__(self) -&gt; str:
+        return f&#34;{self.__message}&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="geoengine.error.NoAdminSessionException"><code class="flex name class">
+<span>class <span class="ident">NoAdminSessionException</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Exception that is thrown when there is no admin session token supplied</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class NoAdminSessionException(Exception):
+    &#39;&#39;&#39;
+    Exception that is thrown when there is no admin session token supplied
+    &#39;&#39;&#39;
+
+    def __str__(self) -&gt; str:
+        return &#34;You need to specify an admin token when initializing the session&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -474,6 +598,13 @@ def check_response_for_error(response: Response) -&gt; None:
 </ul>
 </li>
 <li>
+<h4><code><a title="geoengine.error.GeoEngineExceptionResponse" href="#geoengine.error.GeoEngineExceptionResponse">GeoEngineExceptionResponse</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.error.GeoEngineExceptionResponse.error" href="#geoengine.error.GeoEngineExceptionResponse.error">error</a></code></li>
+<li><code><a title="geoengine.error.GeoEngineExceptionResponse.message" href="#geoengine.error.GeoEngineExceptionResponse.message">message</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.error.InputException" href="#geoengine.error.InputException">InputException</a></code></h4>
 </li>
 <li>
@@ -484,6 +615,12 @@ def check_response_for_error(response: Response) -&gt; None:
 </li>
 <li>
 <h4><code><a title="geoengine.error.MethodNotCalledOnVectorException" href="#geoengine.error.MethodNotCalledOnVectorException">MethodNotCalledOnVectorException</a></code></h4>
+</li>
+<li>
+<h4><code><a title="geoengine.error.ModificationNotOnLayerDbException" href="#geoengine.error.ModificationNotOnLayerDbException">ModificationNotOnLayerDbException</a></code></h4>
+</li>
+<li>
+<h4><code><a title="geoengine.error.NoAdminSessionException" href="#geoengine.error.NoAdminSessionException">NoAdminSessionException</a></code></h4>
 </li>
 <li>
 <h4><code><a title="geoengine.error.SpatialReferenceMismatchException" href="#geoengine.error.SpatialReferenceMismatchException">SpatialReferenceMismatchException</a></code></h4>
