@@ -488,7 +488,6 @@ class Layer:
         return buf.getvalue()
 
 
-# TODO: test
 def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
                      layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
                      timeout: int = 60) -> LayerCollection:
@@ -517,8 +516,8 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
 
         page: LayerCollectionResponse = response.json()
 
-        if len(page['items']) == 0:
-            if len(pages) == 0:  # we need at least one page before breaking
+        if len(page['items']) < page_limit:
+            if len(pages) == 0 or len(page['items']) > 0:  # we need at least one page before breaking
                 pages.append(page)
             break
 
@@ -528,7 +527,6 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
     return LayerCollection.from_response(pages)
 
 
-# TODO: test
 def layer(layer_id: LayerId,
           layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
           timeout: int = 60) -> Layer:
