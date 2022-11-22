@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import auto
 from io import StringIO
 import os
-from typing import Any, Dict, List, NewType, Optional, Union, cast
+from typing import Any, Dict, Generic, List, NewType, Optional, TypeVar, Union, cast
 from uuid import UUID
 import json
 from typing_extensions import TypedDict
@@ -56,18 +56,20 @@ class LayerCollectionListingType(LowercaseStrEnum):
     COLLECTION = auto()
 
 
-@dataclass(repr=False)
-class LayerCollectionListing:
-    '''A layer collection listing as item of a collection'''
+LISTINGID = TypeVar('LISTINGID')
 
-    listing_id: Union[LayerId, LayerCollectionId]
+
+@dataclass(repr=False)
+class Listing(Generic[LISTINGID]):
+    '''A listing item of a collection'''
+
+    listing_id: LISTINGID
     provider_id: LayerProviderId
     name: str
     description: str
-    type: LayerCollectionListingType
 
     def __repr__(self) -> str:
-        '''String representation of a `LayerCollectionListing`'''
+        '''String representation of a `Listing`'''
 
         buf = StringIO()
 
@@ -96,32 +98,81 @@ class LayerCollectionListing:
 
         return buf.getvalue()
 
-    def _type_str(self) -> str:
-        '''String representation of the listing type'''
-
-        if self.type == LayerCollectionListingType.COLLECTION:
-            return 'Layer Collection'
-        if self.type == LayerCollectionListingType.LAYER:
-            return 'Layer'
-
-        assert False, 'Invalid listing type'
-
     def _repr_html_(self) -> str:
         '''HTML representation for Jupyter notebooks'''
 
         return self.html_str()
 
-    def load(self,
-             timeout: int = 60) -> Union[LayerCollection, Layer]:
+    def _type_str(self) -> str:
+        '''String representation of the listing type'''
+        raise NotImplementedError("Please Implement this method")
+
+    def load(self, timeout: int = 60) -> Union[LayerCollection, Layer]:
+        '''Load the listing item'''
+        raise NotImplementedError("Please Implement this method")
+
+    def _remove(self,
+                collection_id: LayerCollectionId,
+                provider_id: LayerProviderId,
+                timeout: int = 60) -> None:
+        '''Remove the item behind the listing from the parent collection'''
+        raise NotImplementedError("Please Implement this method")
+
+
+@dataclass(repr=False)
+class LayerListing(Listing[LayerId]):
+    '''A layer listing as item of a collection'''
+
+    def _type_str(self) -> str:
+        '''String representation of the listing type'''
+
+        return 'Layer'
+
+    def load(self, timeout: int = 60) -> Union[LayerCollection, Layer]:
         '''Load the listing item'''
 
-        if self.type == LayerCollectionListingType.COLLECTION:
-            return layer_collection(cast(LayerCollectionId, self.listing_id), self.provider_id, timeout)
+        return layer(self.listing_id, self.provider_id, timeout)
 
-        if self.type == LayerCollectionListingType.LAYER:
-            return layer(cast(LayerId, self.listing_id), self.provider_id, timeout)
+    def _remove(self,
+                collection_id: LayerCollectionId,
+                provider_id: LayerProviderId,
+                timeout: int = 60) -> None:
+        if provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException('Layer collection is not stored in the layer database')
 
-        assert False, 'Invalid listing type'
+        _delete_layer_from_collection(
+            collection_id,
+            self.listing_id,
+            timeout,
+        )
+
+
+@dataclass(repr=False)
+class LayerCollectionListing(Listing[LayerCollectionId]):
+    '''A layer listing as item of a collection'''
+
+    def _type_str(self) -> str:
+        '''String representation of the listing type'''
+
+        return 'Layer Collection'
+
+    def load(self, timeout: int = 60) -> Union[LayerCollection, Layer]:
+        '''Load the listing item'''
+
+        return layer_collection(self.listing_id, self.provider_id, timeout)
+
+    def _remove(self,
+                collection_id: LayerCollectionId,
+                provider_id: LayerProviderId,
+                timeout: int = 60) -> None:
+        if provider_id != LAYER_DB_PROVIDER_ID:
+            raise ModificationNotOnLayerDbException('Layer collection is not stored in the layer database')
+
+        _delete_layer_collection_from_collection(
+            collection_id,
+            self.listing_id,
+            timeout,
+        )
 
 
 class LayerCollection:
@@ -131,14 +182,14 @@ class LayerCollection:
     description: str
     collection_id: LayerCollectionId
     provider_id: LayerProviderId
-    items: List[LayerCollectionListing]
+    items: List[Listing]
 
     def __init__(self,
                  name: str,
                  description: str,
                  collection_id: LayerCollectionId,
                  provider_id: LayerProviderId,
-                 items: List[LayerCollectionListing]) -> None:
+                 items: List[Listing]) -> None:
         '''Create a new `LayerCollection`'''
         # pylint: disable=too-many-arguments
 
@@ -154,30 +205,33 @@ class LayerCollection:
 
         assert len(response_pages) > 0, 'No response pages'
 
-        def parse_listing_id(response: Union[LayerCollectionAndProviderIdResponse, LayerAndProviderIdResponse],
-                             item_type: LayerCollectionListingType) -> Union[LayerId, LayerCollectionId]:
+        def parse_listing(response: LayerCollectionListingResponse) -> Listing:
+            item_type = LayerCollectionListingType(item_response['type'])
+
             if item_type is LayerCollectionListingType.LAYER:
-                response = cast(LayerAndProviderIdResponse, response)
-                return LayerId(UUID(response['layerId']))
+                layer_id_response = cast(LayerAndProviderIdResponse, response['id'])
+                return LayerListing(
+                    listing_id=LayerId(UUID(layer_id_response['layerId'])),
+                    provider_id=LayerProviderId(UUID(layer_id_response['providerId'])),
+                    name=item_response['name'],
+                    description=item_response['description'],
+                )
 
             if item_type is LayerCollectionListingType.COLLECTION:
-                response = cast(LayerCollectionAndProviderIdResponse, response)
-                return LayerCollectionId(UUID(response['collectionId']))
+                collection_id_response = cast(LayerCollectionAndProviderIdResponse, response['id'])
+                return LayerCollectionListing(
+                    listing_id=LayerCollectionId(UUID(collection_id_response['collectionId'])),
+                    provider_id=LayerProviderId(UUID(collection_id_response['providerId'])),
+                    name=item_response['name'],
+                    description=item_response['description'],
+                )
 
             assert False, 'Invalid listing type'
 
         items = []
         for response in response_pages:
             for item_response in response['items']:
-                item_type = LayerCollectionListingType(item_response['type'])
-                listing = LayerCollectionListing(
-                    parse_listing_id(item_response['id'], item_type),
-                    LayerProviderId(UUID(item_response['id']['providerId'])),
-                    item_response['name'],
-                    item_response['description'],
-                    item_type,
-                )
-                items.append(listing)
+                items.append(parse_listing(item_response))
 
         response = response_pages[0]
 
@@ -257,18 +311,8 @@ class LayerCollection:
         if self.provider_id != LAYER_DB_PROVIDER_ID:
             raise ModificationNotOnLayerDbException('Layer collection is not stored in the layer database')
 
-        if item.type == LayerCollectionListingType.LAYER:
-            _delete_layer_from_collection(
-                self.collection_id,
-                cast(LayerId, item.listing_id),
-                timeout,
-            )
-        elif item.type == LayerCollectionListingType.COLLECTION:
-            _delete_layer_collection_from_collection(
-                self.collection_id,
-                cast(LayerCollectionId, item.listing_id),
-                timeout,
-            )
+        # pylint: disable=protected-access
+        item._remove(self.collection_id, self.provider_id, timeout)
 
         self.items.pop(index)
 
@@ -286,28 +330,25 @@ class LayerCollection:
 
         layer_id = _add_layer_to_collection(name, description, workflow, symbology, self.collection_id, timeout)
 
-        self.items.append(LayerCollectionListing(
+        self.items.append(LayerListing(
             listing_id=layer_id,
             provider_id=self.provider_id,
             name=name,
             description=description,
-            type=LayerCollectionListingType(LayerCollectionListingType.LAYER),
         ))
 
         return layer_id
 
     def add_existing_layer(self,
-                           existing_layer: Union[LayerCollectionListing, Layer, LayerId],
+                           existing_layer: Union[LayerListing, Layer, LayerId],
                            timeout: int = 60):
         '''Add an existing layer to this collection'''
 
         if self.provider_id != LAYER_DB_PROVIDER_ID:
             raise ModificationNotOnLayerDbException('Layer collection is not stored in the layer database')
 
-        if isinstance(existing_layer, LayerCollectionListing):
-            if existing_layer.type != LayerCollectionListingType.LAYER:
-                raise TypeError('`existing_layer` must be a layer')
-            layer_id = cast(LayerId, existing_layer.listing_id)
+        if isinstance(existing_layer, LayerListing):
+            layer_id = existing_layer.listing_id
         elif isinstance(existing_layer, Layer):
             layer_id = existing_layer.layer_id
         elif isinstance(existing_layer, UUID):  # TODO: check for LayerId in Python 3.11+
@@ -317,12 +358,11 @@ class LayerCollection:
 
         child_layer = layer(layer_id, self.provider_id)
 
-        self.items.append(LayerCollectionListing(
+        self.items.append(LayerListing(
             listing_id=layer_id,
             provider_id=self.provider_id,
             name=child_layer.name,
             description=child_layer.description,
-            type=LayerCollectionListingType(LayerCollectionListingType.LAYER),
         ))
 
         return layer_id
@@ -343,7 +383,6 @@ class LayerCollection:
             provider_id=self.provider_id,
             name=name,
             description=description,
-            type=LayerCollectionListingType(LayerCollectionListingType.COLLECTION),
         ))
 
         return collection_id
@@ -357,9 +396,7 @@ class LayerCollection:
             raise ModificationNotOnLayerDbException('Layer collection is not stored in the layer database')
 
         if isinstance(existing_collection, LayerCollectionListing):
-            if existing_collection.type != LayerCollectionListingType.COLLECTION:
-                raise TypeError('`existing_collection` must be a collection')
-            collection_id = cast(LayerCollectionId, existing_collection.listing_id)
+            collection_id = existing_collection.listing_id
         elif isinstance(existing_collection, LayerCollection):
             collection_id = existing_collection.collection_id
         elif isinstance(existing_collection, UUID):  # TODO: check for LayerId in Python 3.11+
@@ -376,7 +413,6 @@ class LayerCollection:
             provider_id=self.provider_id,
             name=child_collection.name,
             description=child_collection.description,
-            type=LayerCollectionListingType(LayerCollectionListingType.COLLECTION),
         ))
 
         return collection_id

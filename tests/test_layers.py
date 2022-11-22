@@ -383,19 +383,17 @@ class LayerTests(unittest.TestCase):
                     collection_id=ge.LayerCollectionId(UUID('546073b6-d535-4205-b601-99675c9f6dd7')),
                     provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                     items=[
-                        ge.LayerCollectionListing(
+                        ge.LayerListing(
                             listing_id=ge.LayerId(UUID('9ee3619e-d0f9-4ced-9c44-3d407c3aed69')),
                             provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                             name='Land Cover',
                             description='Land Cover derived from MODIS/Terra+Aqua Land Cover',
-                            type='layer',
                         ),
-                        ge.LayerCollectionListing(
+                        ge.LayerListing(
                             listing_id=ge.LayerId(UUID('36574dc3-560a-4b09-9d22-d5945f2b8093')),
                             provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                             name='NDVI',
                             description='NDVI data from MODIS',
-                            type='layer',
                         ),
                     ],
                 ).__dict__
