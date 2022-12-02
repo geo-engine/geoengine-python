@@ -7,8 +7,8 @@ import requests_mock
 
 import geoengine as ge
 from geoengine import GeoEngineException
-from geoengine.tasks import TaskStatusWithId, CompletedTaskStatusInfo, TaskStatus, RunningTaskStatusInfo, \
-    AbortedTaskStatusInfo, FailedTaskStatusInfo, TaskId
+from geoengine.tasks import CompletedTaskStatusInfo, TaskStatus, RunningTaskStatusInfo, \
+    AbortedTaskStatusInfo, FailedTaskStatusInfo, TaskId, Task
 
 
 class TaskTests(unittest.TestCase):
@@ -74,15 +74,14 @@ class TaskTests(unittest.TestCase):
             ge.initialize('http://mock-instance')
 
             expected_result = [
-                TaskStatusWithId(TaskId(UUID('e07aec1e-387a-4d24-8041-fbfba37eae2b')),
-                                 CompletedTaskStatusInfo(TaskStatus.COMPLETED, 'generic info', '00:00:05')),
-                TaskStatusWithId(TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe')),
-                                 RunningTaskStatusInfo(TaskStatus.RUNNING, '0.00%', '? (± ?)', 'generic running info')),
-                TaskStatusWithId(TaskId(UUID('01d68e7b-c69f-4132-b758-538f2f05acf0')),
-                                 AbortedTaskStatusInfo(TaskStatus.ABORTED, {'status': 'noCleanUp'})),
-                TaskStatusWithId(TaskId(UUID('1ccba900-167d-4dcf-9001-5ce3c0b20844')),
-                                 FailedTaskStatusInfo(TaskStatus.FAILED, 'TileLimitExceeded',
-                                                      {'status': 'completed', 'info': None})),
+                (Task(TaskId(UUID('e07aec1e-387a-4d24-8041-fbfba37eae2b'))),
+                 CompletedTaskStatusInfo(TaskStatus.COMPLETED, 'generic info', '00:00:05')),
+                (Task(TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe'))),
+                 RunningTaskStatusInfo(TaskStatus.RUNNING, '0.00%', '? (± ?)', 'generic running info')),
+                (Task(TaskId(UUID('01d68e7b-c69f-4132-b758-538f2f05acf0'))),
+                 AbortedTaskStatusInfo(TaskStatus.ABORTED, {'status': 'noCleanUp'})),
+                (Task(TaskId(UUID('1ccba900-167d-4dcf-9001-5ce3c0b20844'))),
+                 FailedTaskStatusInfo(TaskStatus.FAILED, 'TileLimitExceeded', {'status': 'completed', 'info': None})),
             ]
 
             task_list = ge.tasks.get_task_list()
@@ -201,22 +200,25 @@ class TaskTests(unittest.TestCase):
                                      {'status': 'completed', 'info': None}),
             ]
 
-            self.assertEqual(ge.tasks.get_task_status(TaskId(UUID('e07aec1e-387a-4d24-8041-fbfba37eae2b'))),
-                             expected_results[0])
-            self.assertEqual(ge.tasks.get_task_status(TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe'))),
-                             expected_results[1])
-            self.assertEqual(ge.tasks.get_task_status(TaskId(UUID('01d68e7b-c69f-4132-b758-538f2f05acf0'))),
-                             expected_results[2])
-            self.assertEqual(ge.tasks.get_task_status(TaskId(UUID('1ccba900-167d-4dcf-9001-5ce3c0b20844'))),
-                             expected_results[3])
+            completed_task = Task(TaskId(UUID('e07aec1e-387a-4d24-8041-fbfba37eae2b')))
+            running_task = Task(TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe')))
+            aborted_task = Task(TaskId(UUID('01d68e7b-c69f-4132-b758-538f2f05acf0')))
+            failed_task = Task(TaskId(UUID('1ccba900-167d-4dcf-9001-5ce3c0b20844')))
+
+            self.assertEqual(completed_task.get_status(), expected_results[0])
+            self.assertEqual(running_task.get_status(), expected_results[1])
+            self.assertEqual(aborted_task.get_status(), expected_results[2])
+            self.assertEqual(failed_task.get_status(), expected_results[3])
 
             # Unknown status
+            unknown_status_task = Task(TaskId(UUID('ee4bc7ca-e637-4427-a617-2d2aa79d1406')))
             with self.assertRaises(ValueError):
-                ge.tasks.get_task_status(TaskId(UUID('ee4bc7ca-e637-4427-a617-2d2aa79d1406')))
+                unknown_status_task.get_status()
 
             # Malformed
+            malformed_status_task = Task(TaskId(UUID('ee4f1ed9-fd06-40be-90f5-d6289c154fcd')))
             with self.assertRaises(GeoEngineException):
-                ge.tasks.get_task_status(TaskId(UUID('ee4f1ed9-fd06-40be-90f5-d6289c154fcd')))
+                malformed_status_task.get_status()
 
     def test_get_abort_task(self):
         with requests_mock.Mocker() as m:
@@ -236,10 +238,12 @@ class TaskTests(unittest.TestCase):
 
             ge.initialize('http://mock-instance')
 
-            self.assertEqual(None, ge.tasks.abort_task(TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe'))))
+            abort_success_task = Task(TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe')))
+            self.assertEqual(None, abort_success_task.abort())
 
+            abort_failed_task = Task(TaskId(UUID('9f008e47-645b-48de-a513-748a1d0c2a3f')))
             with self.assertRaises(GeoEngineException):
-                ge.tasks.abort_task(TaskId(UUID('9f008e47-645b-48de-a513-748a1d0c2a3f')))
+                abort_failed_task.abort()
 
 
 if __name__ == '__main__':

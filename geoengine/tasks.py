@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import time
 from enum import Enum
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from uuid import UUID
 
 import requests as req
@@ -59,6 +59,38 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
 
     def __init__(self, status) -> None:
         self.status = status
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -> TaskStatusInfo:
+        '''
+        Parse a http response to a `TaskStatusInfo`
+
+        The task can be one of:
+        RunningTaskStatusInfo, CompletedTaskStatusInfo, AbortedTaskStatusInfo or FailedTaskStatusInfo
+        '''
+
+        if 'status' not in response:
+            raise GeoEngineException(response)
+
+        status = TaskStatus(response['status'])
+
+        if status == TaskStatus.RUNNING:
+            if 'pct_complete' not in response or 'time_estimate' not in response or 'info' not in response:
+                raise GeoEngineException(response)
+            return RunningTaskStatusInfo(status, response['pct_complete'], response['time_estimate'], response['info'])
+        if status == TaskStatus.COMPLETED:
+            if 'info' not in response or 'timeTotal' not in response:
+                raise GeoEngineException(response)
+            return CompletedTaskStatusInfo(status, response['info'], response['timeTotal'])
+        if status == TaskStatus.ABORTED:
+            if 'cleanUp' not in response:
+                raise GeoEngineException(response)
+            return AbortedTaskStatusInfo(status, response['cleanUp'])
+        if status == TaskStatus.FAILED:
+            if 'error' not in response or 'cleanUp' not in response:
+                raise GeoEngineException(response)
+            return FailedTaskStatusInfo(status, response['error'], response['cleanUp'])
+        raise GeoEngineException(response)
 
 
 class RunningTaskStatusInfo(TaskStatusInfo):
@@ -139,36 +171,73 @@ class FailedTaskStatusInfo(TaskStatusInfo):
         return f"status={self.status.value}, error={self.error}, clean_up={self.clean_up}"
 
 
-def __task_status_from_response(response: Dict[str, str]) -> TaskStatusInfo:
+class Task:
     '''
-    Parse a http response to a `TaskStatusInfo`
-
-    The task can be one of:
-    RunningTaskStatusInfo, CompletedTaskStatusInfo, AbortedTaskStatusInfo or FailedTaskStatusInfo
+    Holds a task id, allows querying and manipulating the task status
     '''
 
-    if 'status' not in response:
-        raise GeoEngineException(response)
+    def __init__(self, task_id: TaskId):
+        self.task_id = task_id
 
-    status = TaskStatus(response['status'])
+    def __eq__(self, other):
+        '''Check if two task representations are equal'''
+        if not isinstance(other, self.__class__):
+            return False
 
-    if status == TaskStatus.RUNNING:
-        if 'pct_complete' not in response or 'time_estimate' not in response or 'info' not in response:
-            raise GeoEngineException(response)
-        return RunningTaskStatusInfo(status, response['pct_complete'], response['time_estimate'], response['info'])
-    if status == TaskStatus.COMPLETED:
-        if 'info' not in response or 'timeTotal' not in response:
-            raise GeoEngineException(response)
-        return CompletedTaskStatusInfo(status, response['info'], response['timeTotal'])
-    if status == TaskStatus.ABORTED:
-        if 'cleanUp' not in response:
-            raise GeoEngineException(response)
-        return AbortedTaskStatusInfo(status, response['cleanUp'])
-    if status == TaskStatus.FAILED:
-        if 'error' not in response or 'cleanUp' not in response:
-            raise GeoEngineException(response)
-        return FailedTaskStatusInfo(status, response['error'], response['cleanUp'])
-    raise GeoEngineException(response)
+        return self.task_id == other.task_id
+
+    def get_status(self, timeout: int = 3600) -> TaskStatusInfo:
+        '''
+        Returns the status of a task in a Geo Engine instance
+        '''
+        session = get_session()
+
+        task_id_str = str(self.task_id)
+
+        response = req.get(
+            url=f'{session.server_url}/tasks/{task_id_str}/status',
+            headers=session.auth_header,
+            timeout=timeout
+        )
+
+        check_response_for_error(response)
+
+        return TaskStatusInfo.from_response(response.json())
+
+    def abort(self, force: bool = False, timeout: int = 3600) -> None:
+        '''
+        Abort a running task in a Geo Engine instance
+        '''
+        session = get_session()
+
+        task_id_str = str(self.task_id)
+
+        force_str = str(force).lower()
+
+        response = req.get(
+            url=f'{session.server_url}/tasks/{task_id_str}/abort?force={force_str}',
+            headers=session.auth_header,
+            timeout=timeout
+        )
+
+        check_response_for_error(response)
+
+    def wait_for_finish_and_print_status(self,
+                                         check_interval_seconds: float = 5,
+                                         request_timeout: int = 3600) -> TaskStatusInfo:
+        '''
+        Wait for the given task in a Geo Engine instance to finish (status either complete, aborted or failed).
+        The status is printed after each check-in. Check-ins happen in intervals of check_interval_seconds seconds.
+        '''
+        current_status = self.get_status(request_timeout)
+
+        while current_status.status == TaskStatus.RUNNING:
+            current_status = self.get_status(request_timeout)
+            print(current_status)
+            if current_status.status == TaskStatus.RUNNING:
+                time.sleep(check_interval_seconds)
+
+        return current_status
 
 
 class TaskStatusWithId:
@@ -189,7 +258,7 @@ class TaskStatusWithId:
         return f"TaskId={self.task_id}, TaskInfo={{{self.task_status_with_info}}}"
 
 
-def get_task_list(timeout: int = 3600) -> List[TaskStatusWithId]:
+def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
     '''
     Returns the status of all tasks in a Geo Engine instance
     '''
@@ -209,62 +278,6 @@ def get_task_list(timeout: int = 3600) -> List[TaskStatusWithId]:
     for item in response_json:
         if 'task_id' not in item:
             raise GeoEngineException(response_json)
-        result.append(TaskStatusWithId(TaskId(UUID(item['task_id'])), __task_status_from_response(item)))
+        result.append((Task(TaskId(UUID(item['task_id']))), TaskStatusInfo.from_response(item)))
 
     return result
-
-
-def get_task_status(task_id: TaskId, timeout: int = 3600) -> TaskStatusInfo:
-    '''
-    Returns the status of a task in a Geo Engine instance
-    '''
-    session = get_session()
-
-    task_id_str = str(task_id)
-
-    response = req.get(
-        url=f'{session.server_url}/tasks/{task_id_str}/status',
-        headers=session.auth_header,
-        timeout=timeout
-    )
-
-    check_response_for_error(response)
-
-    return __task_status_from_response(response.json())
-
-
-def abort_task(task_id: TaskId, force: bool = False, timeout: int = 3600) -> None:
-    '''
-    Abort a running task in a Geo Engine instance
-    '''
-    session = get_session()
-
-    task_id_str = str(task_id)
-
-    force_str = str(force).lower()
-
-    response = req.get(
-        url=f'{session.server_url}/tasks/{task_id_str}/abort?force={force_str}',
-        headers=session.auth_header,
-        timeout=timeout
-    )
-
-    check_response_for_error(response)
-
-
-def wait_for_task_to_finish_and_print_status(task_id: TaskId,
-                                             check_interval_seconds: float = 5,
-                                             request_timeout: int = 3600) -> TaskStatusInfo:
-    '''
-    Wait for the given task in a Geo Engine instance to finish (status either complete, aborted or failed).
-    The status is printed after each check-in. Check-ins happen in intervals of check_interval_seconds seconds.
-    '''
-    current_status = get_task_status(task_id, request_timeout)
-
-    while current_status.status == TaskStatus.RUNNING:
-        current_status = get_task_status(task_id, request_timeout)
-        print(current_status)
-        if current_status.status == TaskStatus.RUNNING:
-            time.sleep(check_interval_seconds)
-
-    return current_status

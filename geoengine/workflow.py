@@ -29,7 +29,7 @@ from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
     MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
-from geoengine.tasks import TaskId
+from geoengine.tasks import Task, TaskId
 from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
@@ -496,7 +496,7 @@ class Workflow:
             bbox: QueryRectangle,
             name: str,
             description: str = '',
-            timeout: int = 3600) -> TaskId:
+            timeout: int = 3600) -> Task:
         '''Init task to store the workflow result as a layer'''
 
         # Currently, it only works for raster results
@@ -527,7 +527,7 @@ class Workflow:
 
         check_response_for_error(response)
 
-        return TaskId.from_response(response.json())
+        return Task(TaskId.from_response(response.json()))
 
 
 def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -> Workflow:

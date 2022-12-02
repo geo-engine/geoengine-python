@@ -95,7 +95,7 @@ class WorkflowStorageTests(unittest.TestCase):
                 '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
 
             workflow = ge.register_workflow(workflow_definition)
-            task_id = workflow.save_as_dataset(
+            task = workflow.save_as_dataset(
                 QueryRectangle(
                     [-180.0, -90.0, 180.0, 90.0],
                     [time, time],
@@ -104,7 +104,7 @@ class WorkflowStorageTests(unittest.TestCase):
                 "Foo",
                 "Bar",
             )
-            task_status = ge.tasks.get_task_status(task_id)
+            task_status = task.get_status()
             stored_dataset = StoredDataset.from_response(task_status.info)
 
             self.assertEqual(stored_dataset.dataset_id, DatasetId(UUID("94230f0b-4e8a-4cba-9adc-3ace837fe5d4")))
