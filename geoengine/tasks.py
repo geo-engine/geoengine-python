@@ -18,8 +18,6 @@ from geoengine.error import check_response_for_error, GeoEngineException
 class TaskId:
     '''A wrapper for a task id'''
 
-    __task_id: UUID
-
     def __init__(self, task_id: UUID) -> None:
         self.__task_id = task_id
 
@@ -31,18 +29,18 @@ class TaskId:
 
         return TaskId(UUID(response['task_id']))
 
-    def __str__(self) -> str:
-        return str(self.__task_id)
-
-    def __repr__(self) -> str:
-        return str(self)
-
     def __eq__(self, other) -> bool:
         '''Checks if two dataset ids are equal'''
         if not isinstance(other, self.__class__):
             return False
 
         return self.__task_id == other.__task_id  # pylint: disable=protected-access
+
+    def __str__(self) -> str:
+        return str(self.__task_id)
+
+    def __repr__(self) -> str:
+        return repr(self.__task_id)
 
 
 class TaskStatus(Enum):
@@ -110,9 +108,13 @@ class RunningTaskStatusInfo(TaskStatusInfo):
         return self.status == other.status and self.pct_complete == other.pct_complete \
             and self.time_estimate == other.time_estimate and self.info == other.info
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"status={self.status.value}, pct_complete={self.pct_complete}, " \
                f"time_estimate={self.time_estimate}, info={self.info}"
+
+    def __repr__(self) -> str:
+        return f"TaskStatusInfo(status={self.status.value!r}, pct_complete={self.pct_complete!r}, " \
+               f"time_estimate={self.time_estimate!r}, info={self.info!r})"
 
 
 class CompletedTaskStatusInfo(TaskStatusInfo):
@@ -130,8 +132,11 @@ class CompletedTaskStatusInfo(TaskStatusInfo):
 
         return self.status == other.status and self.info == other.info and self.time_total == other.time_total
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"status={self.status.value}, info={self.info}, time_total={self.time_total}"
+
+    def __repr__(self) -> str:
+        return f"TaskStatusInfo(status={self.status.value!r}, info={self.info!r}, time_total={self.time_total!r})"
 
 
 class AbortedTaskStatusInfo(TaskStatusInfo):
@@ -148,8 +153,11 @@ class AbortedTaskStatusInfo(TaskStatusInfo):
 
         return self.status == other.status and self.clean_up == other.clean_up
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"status={self.status.value}, clean_up={self.clean_up}"
+
+    def __repr__(self) -> str:
+        return f"TaskStatusInfo(status={self.status.value!r}, clean_up={self.clean_up!r})"
 
 
 class FailedTaskStatusInfo(TaskStatusInfo):
@@ -167,8 +175,11 @@ class FailedTaskStatusInfo(TaskStatusInfo):
 
         return self.status == other.status and self.error == other.error and self.clean_up == other.clean_up
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"status={self.status.value}, error={self.error}, clean_up={self.clean_up}"
+
+    def __repr__(self) -> str:
+        return f"TaskStatusInfo(status={self.status.value!r}, error={self.error!r}, clean_up={self.clean_up!r})"
 
 
 class Task:
@@ -177,14 +188,14 @@ class Task:
     '''
 
     def __init__(self, task_id: TaskId):
-        self.task_id = task_id
+        self.__task_id = task_id
 
     def __eq__(self, other):
         '''Check if two task representations are equal'''
         if not isinstance(other, self.__class__):
             return False
 
-        return self.task_id == other.task_id
+        return self.__task_id == other.__task_id  # pylint: disable=protected-access
 
     def get_status(self, timeout: int = 3600) -> TaskStatusInfo:
         '''
@@ -192,7 +203,7 @@ class Task:
         '''
         session = get_session()
 
-        task_id_str = str(self.task_id)
+        task_id_str = str(self.__task_id)
 
         response = req.get(
             url=f'{session.server_url}/tasks/{task_id_str}/status',
@@ -210,7 +221,7 @@ class Task:
         '''
         session = get_session()
 
-        task_id_str = str(self.task_id)
+        task_id_str = str(self.__task_id)
 
         force_str = str(force).lower()
 
@@ -239,23 +250,11 @@ class Task:
 
         return current_status
 
+    def __str__(self) -> str:
+        return str(self.__task_id)
 
-class TaskStatusWithId:
-    '''A wrapper for a task id with a task status type'''
-
-    def __init__(self, task_id, task_status_with_info) -> None:
-        self.task_id = task_id
-        self.task_status_with_info = task_status_with_info
-
-    def __eq__(self, other):
-        '''Check if two task ids and task statuses are equal'''
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.task_id == other.task_id and self.task_status_with_info == other.task_status_with_info
-
-    def __str__(self):
-        return f"TaskId={self.task_id}, TaskInfo={{{self.task_status_with_info}}}"
+    def __repr__(self) -> str:
+        return repr(self.__task_id)
 
 
 def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
