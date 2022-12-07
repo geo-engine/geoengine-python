@@ -3,7 +3,8 @@ Different type mappings of geo engine types
 '''
 
 from __future__ import annotations
-from typing import Any, Dict, Optional, Tuple
+from abc import abstractmethod
+from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 from uuid import UUID
 
@@ -326,6 +327,17 @@ class RasterResultDescriptor(ResultDescriptor):
 
         return r
 
+    # TODO: add to super class as well
+    def to_dict(self) -> Dict[str, Any]:
+        '''Convert the raster result descriptor to a dictionary'''
+
+        return {
+            'type': 'raster',
+            'dataType': self.data_type,
+            'measurement': self.measurement.to_dict(),
+            'spatialReference': self.spatial_reference,
+        }
+
     @classmethod
     def is_raster_result(cls) -> bool:
         return True
@@ -415,6 +427,12 @@ class TimeStep:
     '''A time step that consists of a granularity and a step size'''
     step: int
     granularity: TimeStepGranularity
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'step': self.step,
+            'granularity': self.granularity.value,
+        }
 
 
 @dataclass
@@ -561,6 +579,10 @@ class Measurement:  # pylint: disable=too-few-public-methods
         raise TypeException(
             f'Unknown `Measurement` type: {measurement_type}')
 
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
+        pass
+
 
 class UnitlessMeasurement(Measurement):
     '''A measurement that is unitless'''
@@ -572,6 +594,11 @@ class UnitlessMeasurement(Measurement):
     def __repr__(self) -> str:
         '''Display representation of a unitless measurement'''
         return str(self)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'type': 'unitless'
+        }
 
 
 class ContiuousMeasurement(Measurement):
@@ -605,6 +632,13 @@ class ContiuousMeasurement(Measurement):
     def __repr__(self) -> str:
         '''Display representation of a continuous measurement'''
         return str(self)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'type': 'continuous',
+            'measurement': self.__measurement,
+            'unit': self.__unit
+        }
 
     @property
     def measurement(self) -> str:
@@ -640,6 +674,13 @@ class ClassificationMeasurement(Measurement):
 
         return ClassificationMeasurement(measurement, classes)
 
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'type': 'classification',
+            'measurement': self.__measurement,
+            'classes': self.__classes
+        }
+
     def __str__(self) -> str:
         '''String representation of a classification measurement'''
         classes_str = ', '.join(f'{k}: {v}' for k, v in self.__classes.items())
@@ -656,3 +697,93 @@ class ClassificationMeasurement(Measurement):
     @property
     def classes(self) -> Dict[int, str]:
         return self.__classes
+
+
+@dataclass
+class GdalDatasetGeoTransform:
+    '''Geo transform of a GDAL dataset'''
+    origin_coordinate: Tuple[float, float]
+    x_pixel_size: float
+    y_pixel_size: float
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "originCoordinate": {
+                "x": self.origin_coordinate[0],
+                "y": self.origin_coordinate[1],
+            },
+            "xPixelSize": self.x_pixel_size,
+            "yPixelSize": self.y_pixel_size,
+        }
+
+
+class FileNotFoundHandling(Enum):
+    NODATA = "NoData"
+    ERROR = "Abort"
+
+
+@dataclass
+class RasterPropertiesKey:
+    '''Key of a raster properties entry'''
+    domain: Optional[str]
+    key: str
+
+
+class RasterPropertiesEntryType(Enum):
+    NUMBER = "number"
+    STRING = "string"
+
+
+@dataclass
+class GdalMetadataMapping:
+    '''Mapping of GDAL metadata raster properties'''
+
+    source_key: RasterPropertiesKey
+    target_key: RasterPropertiesKey
+    target_type: RasterPropertiesEntryType
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "sourceKey": {
+                "domain": self.source_key.domain,
+                "key": self.source_key.key,
+            },
+            "targetKey": {
+                "domain": self.target_key.domain,
+                "key": self.target_key.key,
+            },
+            "targetType": self.target_type.value,
+        }
+
+
+@dataclass
+class GdalDatasetParameters:
+    '''Parameters for a GDAL dataset'''
+
+    file_path: str
+    rasterband_channel: int
+    geo_transform: GdalDatasetGeoTransform
+    width: int
+    height: int
+    file_not_found_handling: FileNotFoundHandling
+    no_data_value: Optional[float]
+    properties_mapping: Optional[List[GdalMetadataMapping]]
+    gdal_open_options: Optional[List[str]]
+    gdal_config_options: Optional[List[Tuple[str, str]]]
+    allow_alphaband_as_mask: bool
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "filePath": self.file_path,
+            "rasterbandChannel": self.rasterband_channel,
+            "geoTransform": self.geo_transform.to_dict(),
+            "width": self.width,
+            "height": self.height,
+            "fileNotFoundHandling": self.file_not_found_handling.value,
+            "noDataValue": self.no_data_value,
+            "propertiesMapping": None if self.properties_mapping is None else
+            [m.to_dict() for m in self.properties_mapping],
+            "gdalOpenOptions": self.gdal_open_options,
+            "gdalConfigOptions": self.gdal_config_options,
+            "allowAlphabandAsMask": self.allow_alphaband_as_mask,
+        }
