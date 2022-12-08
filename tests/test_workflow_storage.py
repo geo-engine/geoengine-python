@@ -3,11 +3,12 @@
 from datetime import datetime
 import unittest
 import json
+from uuid import UUID
 
 import requests_mock
 
 from geoengine.types import QueryRectangle
-from geoengine.datasets import DatasetId, UploadId
+from geoengine.datasets import DatasetId, UploadId, StoredDataset
 import geoengine as ge
 
 
@@ -37,7 +38,7 @@ class WorkflowStorageTests(unittest.TestCase):
                       "dataType": "U8",
                       "spatialReference": "EPSG:4326",
                       "measurement": {
-                              "type": "unitless"
+                          "type": "unitless"
                       }
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
@@ -66,11 +67,15 @@ class WorkflowStorageTests(unittest.TestCase):
                            }
                        }
                    }),
-                   json={
-                       "upload": "3086f494-d5a4-4b51-a14b-3b29f8bf7bb0",
-                       "dataset": "94230f0b-4e8a-4cba-9adc-3ace837fe5d4"
-                   },
+                   json={'task_id': '9ec828ef-c3da-4016-8cc7-79e5556267fc'},
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+
+            m.get('http://mock-instance/tasks/9ec828ef-c3da-4016-8cc7-79e5556267fc/status',
+                  json={'status': 'completed',
+                        'info': {'dataset': '94230f0b-4e8a-4cba-9adc-3ace837fe5d4',
+                                 'upload': '3086f494-d5a4-4b51-a14b-3b29f8bf7bb0'},
+                        'timeTotal': '00:00:00'}, )
+
             ge.initialize("http://mock-instance")
 
             workflow_definition = {
@@ -90,8 +95,7 @@ class WorkflowStorageTests(unittest.TestCase):
                 '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
 
             workflow = ge.register_workflow(workflow_definition)
-
-            stored_dataset = workflow.save_as_dataset(
+            task = workflow.save_as_dataset(
                 QueryRectangle(
                     [-180.0, -90.0, 180.0, 90.0],
                     [time, time],
@@ -100,6 +104,8 @@ class WorkflowStorageTests(unittest.TestCase):
                 "Foo",
                 "Bar",
             )
+            task_status = task.get_status()
+            stored_dataset = StoredDataset.from_response(task_status.info)
 
-            self.assertEqual(stored_dataset.dataset_id, DatasetId("94230f0b-4e8a-4cba-9adc-3ace837fe5d4"))
-            self.assertEqual(stored_dataset.upload_id, UploadId("3086f494-d5a4-4b51-a14b-3b29f8bf7bb0"))
+            self.assertEqual(stored_dataset.dataset_id, DatasetId(UUID("94230f0b-4e8a-4cba-9adc-3ace837fe5d4")))
+            self.assertEqual(stored_dataset.upload_id, UploadId(UUID("3086f494-d5a4-4b51-a14b-3b29f8bf7bb0")))

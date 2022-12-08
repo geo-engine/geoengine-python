@@ -32,6 +32,10 @@ docstring-min-length=3
 
 no-docstring-rgx=^test_.*
 
+[DESIGN]
+
+min-public-methods=1
+
 [SIMILARITIES]
 
 # Minimum lines number of a similarity.

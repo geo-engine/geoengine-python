@@ -3,34 +3,34 @@ A workflow representation and methods on workflows
 '''
 
 from __future__ import annotations
+
+import json
+import urllib.parse
+from io import BytesIO
+from logging import debug
 from os import PathLike
 from typing import Any, Dict, List, Optional, Union, Type
-
 from uuid import UUID
-from logging import debug
-from io import BytesIO
-import urllib.parse
-import json
 
-# TODO: can be imported directly from `typing` with python >= 3.8
-from typing_extensions import TypedDict
-import requests as req
 import geopandas as gpd
+import numpy as np
+import rasterio.io
+import requests as req
+import rioxarray
+from PIL import Image
 from owslib.util import Authentication, ResponseWrapper
 from owslib.wcs import WebCoverageService
-import rasterio.io
+# TODO: can be imported directly from `typing` with python >= 3.8
+from typing_extensions import TypedDict
 from vega import VegaLite
-import numpy as np
-from PIL import Image
-import rioxarray
 from xarray import DataArray
 
-from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
+from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
     MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
-from geoengine.datasets import DatasetId, StoredDataset, UploadId
-from geoengine.colorizer import Colorizer
+from geoengine.tasks import Task, TaskId
+from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
 JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
@@ -496,8 +496,8 @@ class Workflow:
             bbox: QueryRectangle,
             name: str,
             description: str = '',
-            timeout: int = 3600) -> StoredDataset:
-        '''EXPERIMENTAL: Store the workflow result as a layer'''
+            timeout: int = 3600) -> Task:
+        '''Init task to store the workflow result as a layer'''
 
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
@@ -527,12 +527,7 @@ class Workflow:
 
         check_response_for_error(response)
 
-        response_json: DatasetIds = response.json()
-
-        return StoredDataset(
-            dataset_id=DatasetId(response_json['dataset']),
-            upload_id=UploadId(response_json['upload'])
-        )
+        return Task(TaskId.from_response(response.json()))
 
 
 def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -> Workflow:
