@@ -32,34 +32,34 @@ A workflow representation and methods on workflows
 &#39;&#39;&#39;
 
 from __future__ import annotations
+
+import json
+import urllib.parse
+from io import BytesIO
+from logging import debug
 from os import PathLike
 from typing import Any, Dict, List, Optional, Union, Type
-
 from uuid import UUID
-from logging import debug
-from io import BytesIO
-import urllib.parse
-import json
 
-# TODO: can be imported directly from `typing` with python &gt;= 3.8
-from typing_extensions import TypedDict
-import requests as req
 import geopandas as gpd
+import numpy as np
+import rasterio.io
+import requests as req
+import rioxarray
+from PIL import Image
 from owslib.util import Authentication, ResponseWrapper
 from owslib.wcs import WebCoverageService
-import rasterio.io
+# TODO: can be imported directly from `typing` with python &gt;= 3.8
+from typing_extensions import TypedDict
 from vega import VegaLite
-import numpy as np
-from PIL import Image
-import rioxarray
 from xarray import DataArray
 
-from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 from geoengine.auth import get_session
+from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
     MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
-from geoengine.datasets import DatasetId, StoredDataset, UploadId
-from geoengine.colorizer import Colorizer
+from geoengine.tasks import Task, TaskId
+from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
 JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
@@ -525,8 +525,8 @@ class Workflow:
             bbox: QueryRectangle,
             name: str,
             description: str = &#39;&#39;,
-            timeout: int = 3600) -&gt; StoredDataset:
-        &#39;&#39;&#39;EXPERIMENTAL: Store the workflow result as a layer&#39;&#39;&#39;
+            timeout: int = 3600) -&gt; Task:
+        &#39;&#39;&#39;Init task to store the workflow result as a layer&#39;&#39;&#39;
 
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
@@ -556,12 +556,7 @@ class Workflow:
 
         check_response_for_error(response)
 
-        response_json: DatasetIds = response.json()
-
-        return StoredDataset(
-            dataset_id=DatasetId(response_json[&#39;dataset&#39;]),
-            upload_id=UploadId(response_json[&#39;upload&#39;])
-        )
+        return Task(TaskId.from_response(response.json()))
 
 
 def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -&gt; Workflow:
@@ -1312,8 +1307,8 @@ dict(one=1, two=2)</p></div>
             bbox: QueryRectangle,
             name: str,
             description: str = &#39;&#39;,
-            timeout: int = 3600) -&gt; StoredDataset:
-        &#39;&#39;&#39;EXPERIMENTAL: Store the workflow result as a layer&#39;&#39;&#39;
+            timeout: int = 3600) -&gt; Task:
+        &#39;&#39;&#39;Init task to store the workflow result as a layer&#39;&#39;&#39;
 
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
@@ -1343,12 +1338,7 @@ dict(one=1, two=2)</p></div>
 
         check_response_for_error(response)
 
-        response_json: DatasetIds = response.json()
-
-        return StoredDataset(
-            dataset_id=DatasetId(response_json[&#39;dataset&#39;]),
-            upload_id=UploadId(response_json[&#39;upload&#39;])
-        )</code></pre>
+        return Task(TaskId.from_response(response.json()))</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -1685,10 +1675,10 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.save_as_dataset"><code class="name flex">
-<span>def <span class="ident">save_as_dataset</span></span>(<span>self, bbox: QueryRectangle, name: str, description: str = '', timeout: int = 3600) ‑> <a title="geoengine.datasets.StoredDataset" href="datasets.html#geoengine.datasets.StoredDataset">StoredDataset</a></span>
+<span>def <span class="ident">save_as_dataset</span></span>(<span>self, bbox: QueryRectangle, name: str, description: str = '', timeout: int = 3600) ‑> <a title="geoengine.tasks.Task" href="tasks.html#geoengine.tasks.Task">Task</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>EXPERIMENTAL: Store the workflow result as a layer</p></div>
+<div class="desc"><p>Init task to store the workflow result as a layer</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1698,8 +1688,8 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
         bbox: QueryRectangle,
         name: str,
         description: str = &#39;&#39;,
-        timeout: int = 3600) -&gt; StoredDataset:
-    &#39;&#39;&#39;EXPERIMENTAL: Store the workflow result as a layer&#39;&#39;&#39;
+        timeout: int = 3600) -&gt; Task:
+    &#39;&#39;&#39;Init task to store the workflow result as a layer&#39;&#39;&#39;
 
     # Currently, it only works for raster results
     if not self.__result_descriptor.is_raster_result():
@@ -1729,12 +1719,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 
     check_response_for_error(response)
 
-    response_json: DatasetIds = response.json()
-
-    return StoredDataset(
-        dataset_id=DatasetId(response_json[&#39;dataset&#39;]),
-        upload_id=UploadId(response_json[&#39;upload&#39;])
-    )</code></pre>
+    return Task(TaskId.from_response(response.json()))</code></pre>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.wms_get_map_as_image"><code class="name flex">
