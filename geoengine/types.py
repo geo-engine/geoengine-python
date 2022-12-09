@@ -237,6 +237,10 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
 
         return self.__spatial_reference
 
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
+        pass
+
 
 class VectorResultDescriptor(ResultDescriptor):
     '''
@@ -289,6 +293,16 @@ class VectorResultDescriptor(ResultDescriptor):
 
         return self.__columns
 
+    def to_dict(self) -> Dict[str, Any]:
+        '''Convert the vector result descriptor to a dictionary'''
+
+        return {
+            'type': 'raster',
+            'dataType': self.data_type,
+            'spatialReference': self.spatial_reference,
+            'columns': dict(self.__columns.items())
+        }
+
 
 @dataclass
 class VectorColumnInfo:
@@ -302,6 +316,14 @@ class VectorColumnInfo:
         '''Create a new `VectorColumnInfo` from a JSON response'''
 
         return VectorColumnInfo(response['dataType'], Measurement.from_response(response['measurement']))
+
+    def to_dict(self) -> Dict[str, Any]:
+        '''Convert to a dictionary'''
+
+        return {
+            'dataType': self.data_type,
+            'measurement': self.measurement.to_dict(),
+        }
 
 
 class RasterResultDescriptor(ResultDescriptor):
@@ -327,7 +349,6 @@ class RasterResultDescriptor(ResultDescriptor):
 
         return r
 
-    # TODO: add to super class as well
     def to_dict(self) -> Dict[str, Any]:
         '''Convert the raster result descriptor to a dictionary'''
 
@@ -382,6 +403,14 @@ class PlotResultDescriptor(ResultDescriptor):
         '''Return the spatial reference'''
 
         return super().spatial_reference
+
+    def to_dict(self) -> Dict[str, Any]:
+        '''Convert the plot result descriptor to a dictionary'''
+
+        return {
+            'type': 'plot',
+            'spatialReference': self.spatial_reference,
+        }
 
 
 class VectorDataType(Enum):
