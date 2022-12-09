@@ -546,15 +546,13 @@ class StoredDataset(NamedTuple):
 class Volume:
     '''A volume'''
 
-    id: VolumeId
+    name: str
     path: str
 
     @classmethod
     def from_response(cls, response: Dict[str, str]) -> Volume:
         '''Parse a http response to an `Volume`'''
-        print(response)
-
-        return Volume(VolumeId(UUID(response['id'])), response['path'])
+        return Volume(response['name'], response['path'])
 
 
 def volumes(timeout: int = 60) -> List[Volume]:
