@@ -10,6 +10,7 @@ from uuid import UUID
 
 from enum import Enum
 from attr import dataclass
+from typing_extensions import TypedDict
 
 from geoengine.error import GeoEngineException, InputException, TypeException
 
@@ -241,6 +242,9 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
     def to_dict(self) -> Dict[str, Any]:
         pass
 
+    def __iter__(self):
+        return iter(self.to_dict().items())
+
 
 class VectorResultDescriptor(ResultDescriptor):
     '''
@@ -376,6 +380,9 @@ class RasterResultDescriptor(ResultDescriptor):
         '''Return the spatial reference'''
 
         return super().spatial_reference
+
+    def to_json(self) -> dict:
+        return self.to_dict()
 
 
 class PlotResultDescriptor(ResultDescriptor):
@@ -728,25 +735,14 @@ class ClassificationMeasurement(Measurement):
         return self.__classes
 
 
-@dataclass
-class GdalDatasetGeoTransform:
+class GdalDatasetGeoTransform(TypedDict):
     '''Geo transform of a GDAL dataset'''
-    origin_coordinate: Tuple[float, float]
-    x_pixel_size: float
-    y_pixel_size: float
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "originCoordinate": {
-                "x": self.origin_coordinate[0],
-                "y": self.origin_coordinate[1],
-            },
-            "xPixelSize": self.x_pixel_size,
-            "yPixelSize": self.y_pixel_size,
-        }
+    originCoordinate: Tuple[float, float]
+    xPixelSize: float
+    yPixelSize: float
 
 
-class FileNotFoundHandling(Enum):
+class FileNotFoundHandling(str, Enum):
     NODATA = "NoData"
     ERROR = "Abort"
 
@@ -763,56 +759,25 @@ class RasterPropertiesEntryType(Enum):
     STRING = "string"
 
 
-@dataclass
-class GdalMetadataMapping:
+class GdalMetadataMapping(TypedDict):
     '''Mapping of GDAL metadata raster properties'''
 
-    source_key: RasterPropertiesKey
-    target_key: RasterPropertiesKey
-    target_type: RasterPropertiesEntryType
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "sourceKey": {
-                "domain": self.source_key.domain,
-                "key": self.source_key.key,
-            },
-            "targetKey": {
-                "domain": self.target_key.domain,
-                "key": self.target_key.key,
-            },
-            "targetType": self.target_type.value,
-        }
+    sourceKey: RasterPropertiesKey
+    targetKey: RasterPropertiesKey
+    targetType: RasterPropertiesEntryType
 
 
-@dataclass
-class GdalDatasetParameters:
+class GdalDatasetParameters(TypedDict):
     '''Parameters for a GDAL dataset'''
 
-    file_path: str
-    rasterband_channel: int
-    geo_transform: GdalDatasetGeoTransform
+    filePath: str
+    rasterbandChannel: int
+    geoTransform: GdalDatasetGeoTransform
     width: int
     height: int
-    file_not_found_handling: FileNotFoundHandling
-    no_data_value: Optional[float]
-    properties_mapping: Optional[List[GdalMetadataMapping]]
-    gdal_open_options: Optional[List[str]]
-    gdal_config_options: Optional[List[Tuple[str, str]]]
-    allow_alphaband_as_mask: bool
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "filePath": self.file_path,
-            "rasterbandChannel": self.rasterband_channel,
-            "geoTransform": self.geo_transform.to_dict(),
-            "width": self.width,
-            "height": self.height,
-            "fileNotFoundHandling": self.file_not_found_handling.value,
-            "noDataValue": self.no_data_value,
-            "propertiesMapping": None if self.properties_mapping is None else
-            [m.to_dict() for m in self.properties_mapping],
-            "gdalOpenOptions": self.gdal_open_options,
-            "gdalConfigOptions": self.gdal_config_options,
-            "allowAlphabandAsMask": self.allow_alphaband_as_mask,
-        }
+    fileNotFoundHandling: FileNotFoundHandling
+    noDataValue: Optional[float]
+    propertiesMapping: Optional[List[GdalMetadataMapping]]
+    gdalOpenOptions: Optional[List[str]]
+    gdalConfigOptions: Optional[List[Tuple[str, str]]]
+    allowAlphabandAsMask: bool

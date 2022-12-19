@@ -5,12 +5,13 @@ Module for working with datasets and source definitions
 from __future__ import annotations
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union, Generic, TypeVar
-
+from typing import Dict, List, NamedTuple, Optional, Tuple, Union, Generic, TypeVar
 
 from enum import Enum
 from uuid import UUID
 
+import json
+from typing_extensions import Literal, TypedDict
 from attr import dataclass
 import numpy as np
 import geopandas as gpd
@@ -270,45 +271,25 @@ class DatasetId:
         return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
 
 
-class MetaDataDefinition:  # pylint: disable=too-few-public-methods
+class MetaDataDefinition(TypedDict):  # pylint: disable=too-few-public-methods
     '''Super class for all metadata definitions'''
 
-    @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
-        pass
 
-
-@dataclass
 class GdalMetaDataStatic(MetaDataDefinition):
     '''Static metadata for GDAL datasets'''
 
+    type: Literal["GdalStatic"]
     time: Optional[Tuple[datetime, datetime]]
     params: GdalDatasetParameters
-    result_descriptor: RasterResultDescriptor
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": "GdalStatic",
-            "time": self.time,
-            "params": self.params.to_dict(),
-            "resultDescriptor": self.result_descriptor.to_dict()
-        }
+    resultDescriptor: RasterResultDescriptor
 
 
-@dataclass
-class DateTimeParseFormat:
+class DateTimeParseFormat(TypedDict):
     '''A format for parsing date time strings'''
 
     fmt: str
-    has_tz: bool
-    has_time: bool
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "fmt": self.fmt,
-            "hasTz": self.has_tz,
-            "hasTime": self.has_time
-        }
+    hasTz: bool
+    hasTime: bool
 
 
 class TimeReference(Enum):
@@ -318,61 +299,33 @@ class TimeReference(Enum):
     END = "End"
 
 
-@dataclass
-class GdalSourceTimePlaceholder:
+class GdalSourceTimePlaceholder(TypedDict):
     '''A placeholder for a time value in a file name'''
     format: DateTimeParseFormat
     reference: TimeReference
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "format": self.format.to_dict(),
-            "reference": self.reference.value
-        }
 
-
-@dataclass
 class GdalMetaDataRegular(MetaDataDefinition):
     '''Metadata for regular GDAL datasets'''
 
-    result_descriptor: RasterResultDescriptor
+    type: Literal["GdalMetaDataRegular"]
+    resultDescriptor: RasterResultDescriptor
     params: GdalDatasetParameters
-    time_placeholders: Dict[str, GdalSourceTimePlaceholder]
-    data_time: Tuple[datetime, datetime]
+    timePlaceholders: Dict[str, GdalSourceTimePlaceholder]
+    dataTime: Tuple[datetime, datetime]
     step: TimeStep
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": "GdalMetaDataRegular",
-            "resultDescriptor": self.result_descriptor.to_dict(),
-            "params": self.params.to_dict(),
-            "timePlaceholders": {k: v.to_dict() for k, v in self.time_placeholders.items()},
-            "dataTime": self.data_time,
-            "step": self.step.to_dict()
-        }
 
-
-@dataclass
 class GdalMetadataNetCdfCf(MetaDataDefinition):
     '''Metadata for NetCDF CF datasets'''
 
-    result_descriptor: RasterResultDescriptor
+    type: Literal["GdalMetadataNetCdfCf"]
+    resultDescriptor: RasterResultDescriptor
     params: GdalDatasetParameters
     start: datetime
     end: datetime
     step: TimeStep
-    band_offset: int
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": "GdalMetadataNetCdfCf",
-            "resultDescriptor": self.result_descriptor.to_dict(),
-            "params": self.params.to_dict(),
-            "start": self.start,
-            "end": self.end,
-            "step": self.step.to_dict(),
-            "bandOffset": self.band_offset
-        }
+    bandOffset: int
 
 
 class UploadId:
@@ -595,14 +548,19 @@ def add_public_raster_dataset(volume_id: VolumeId, name: str, meta_data: MetaDat
                 "description": "",
                 "sourceOperator": "GdalSource"
             },
-            "metaData": meta_data.to_dict()
+            "metaData": meta_data
         }
     }
 
+    data = json.dumps(create, default=dict)
+
     session = get_session()
 
+    headers = session.admin_auth_header
+    headers['Content-Type'] = 'application/json'
+
     response = req.post(f'{session.server_url}/dataset',
-                        json=create, headers=session.admin_auth_header,
+                        data=data, headers=headers,
                         timeout=timeout
                         ).json()
 
