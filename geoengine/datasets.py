@@ -492,7 +492,9 @@ def upload_dataframe(
     texts = [key for (key, value) in columns.items() if value['dataType'] == 'text']
 
     create = {
-        "upload": str(upload_id),
+        "dataPath": {
+            "upload": str(upload_id)
+        },
         "definition": {
             "properties": {
                 "name": name,
@@ -584,7 +586,9 @@ def add_public_raster_dataset(volume_id: VolumeId, name: str, meta_data: MetaDat
     '''Adds a public raster dataset to the Geo Engine'''
 
     create = {
-        "volume": str(volume_id),
+        "dataPath": {
+            "volume": str(volume_id)
+        },
         "definition": {
             "properties": {
                 "name": name,
@@ -597,7 +601,7 @@ def add_public_raster_dataset(volume_id: VolumeId, name: str, meta_data: MetaDat
 
     session = get_session()
 
-    response = req.post(f'{session.server_url}/dataset/public',
+    response = req.post(f'{session.server_url}/dataset',
                         json=create, headers=session.admin_auth_header,
                         timeout=timeout
                         ).json()
