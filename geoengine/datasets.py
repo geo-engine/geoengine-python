@@ -4,12 +4,14 @@ Module for working with datasets and source definitions
 
 from __future__ import annotations
 from abc import abstractmethod
-from typing import Dict, NamedTuple, Union, Generic, TypeVar
-
+from datetime import datetime
+from typing import Dict, List, NamedTuple, Optional, Tuple, Union, Generic, TypeVar
 
 from enum import Enum
 from uuid import UUID
 
+import json
+from typing_extensions import Literal, TypedDict
 from attr import dataclass
 import numpy as np
 import geopandas as gpd
@@ -17,7 +19,7 @@ import requests as req
 
 from geoengine.error import GeoEngineException, InputException
 from geoengine.auth import get_session
-from geoengine.types import TimeStep, TimeStepGranularity, VectorDataType
+from geoengine.types import GdalDatasetParameters, RasterResultDescriptor, TimeStep, TimeStepGranularity, VectorDataType
 
 
 _OrgSourceDurationDictT = TypeVar('_OrgSourceDurationDictT', str, Union[str, int, TimeStepGranularity])
@@ -269,6 +271,63 @@ class DatasetId:
         return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
 
 
+class MetaDataDefinition(TypedDict):  # pylint: disable=too-few-public-methods
+    '''Super class for all metadata definitions'''
+
+
+class GdalMetaDataStatic(MetaDataDefinition):
+    '''Static metadata for GDAL datasets'''
+
+    type: Literal["GdalStatic"]
+    time: Optional[Tuple[datetime, datetime]]
+    params: GdalDatasetParameters
+    resultDescriptor: RasterResultDescriptor
+
+
+class DateTimeParseFormat(TypedDict):
+    '''A format for parsing date time strings'''
+
+    fmt: str
+    hasTz: bool
+    hasTime: bool
+
+
+class TimeReference(Enum):
+    '''The reference for a time placeholder'''
+
+    START = "Start"
+    END = "End"
+
+
+class GdalSourceTimePlaceholder(TypedDict):
+    '''A placeholder for a time value in a file name'''
+    format: DateTimeParseFormat
+    reference: TimeReference
+
+
+class GdalMetaDataRegular(MetaDataDefinition):
+    '''Metadata for regular GDAL datasets'''
+
+    type: Literal["GdalMetaDataRegular"]
+    resultDescriptor: RasterResultDescriptor
+    params: GdalDatasetParameters
+    timePlaceholders: Dict[str, GdalSourceTimePlaceholder]
+    dataTime: Tuple[datetime, datetime]
+    step: TimeStep
+
+
+class GdalMetadataNetCdfCf(MetaDataDefinition):
+    '''Metadata for NetCDF CF datasets'''
+
+    type: Literal["GdalMetadataNetCdfCf"]
+    resultDescriptor: RasterResultDescriptor
+    params: GdalDatasetParameters
+    start: datetime
+    end: datetime
+    step: TimeStep
+    bandOffset: int
+
+
 class UploadId:
     '''A wrapper for an upload id'''
 
@@ -277,7 +336,7 @@ class UploadId:
     def __init__(self, upload_id: UUID) -> None:
         self.__upload_id = upload_id
 
-    @classmethod
+    @ classmethod
     def from_response(cls, response: Dict[str, str]) -> UploadId:
         '''Parse a http response to an `UploadId`'''
         if 'id' not in response:
@@ -297,6 +356,36 @@ class UploadId:
             return False
 
         return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
+
+
+class VolumeId:
+    '''A wrapper for an volume id'''
+
+    __volume_id: UUID
+
+    def __init__(self, volume_id: UUID) -> None:
+        self.__volume_id = volume_id
+
+    @ classmethod
+    def from_response(cls, response: Dict[str, str]) -> UploadId:
+        '''Parse a http response to an `ColumeId`'''
+        if 'id' not in response:
+            raise GeoEngineException(response)
+
+        return UploadId(UUID(response['id']))
+
+    def __str__(self) -> str:
+        return str(self.__volume_id)
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __eq__(self, other) -> bool:
+        '''Checks if two volume ids are equal'''
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__volume_id == other.__volume_id  # pylint: disable=protected-access
 
 
 def pandas_dtype_to_column_type(dtype: np.dtype) -> str:
@@ -356,7 +445,9 @@ def upload_dataframe(
     texts = [key for (key, value) in columns.items() if value['dataType'] == 'text']
 
     create = {
-        "upload": str(upload_id),
+        "dataPath": {
+            "upload": str(upload_id)
+        },
         "definition": {
             "properties": {
                 "name": name,
@@ -415,3 +506,65 @@ class StoredDataset(NamedTuple):
             dataset_id=DatasetId(UUID(response['dataset'])),
             upload_id=UploadId(UUID(response['upload']))
         )
+
+
+@dataclass
+class Volume:
+    '''A volume'''
+
+    name: str
+    path: str
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -> Volume:
+        '''Parse a http response to an `Volume`'''
+        return Volume(response['name'], response['path'])
+
+
+def volumes(timeout: int = 60) -> List[Volume]:
+    '''Returns a list of all volumes'''
+
+    session = get_session()
+
+    response = req.get(f'{session.server_url}/dataset/volumes',
+                       headers=session.admin_auth_header,
+                       timeout=timeout
+                       ).json()
+
+    return [Volume.from_response(v) for v in response]
+
+
+def add_public_raster_dataset(volume_id: VolumeId, name: str, meta_data: MetaDataDefinition,
+                              timeout: int = 60) -> DatasetId:
+    '''Adds a public raster dataset to the Geo Engine'''
+
+    create = {
+        "dataPath": {
+            "volume": str(volume_id)
+        },
+        "definition": {
+            "properties": {
+                "name": name,
+                "description": "",
+                "sourceOperator": "GdalSource"
+            },
+            "metaData": meta_data
+        }
+    }
+
+    data = json.dumps(create, default=dict)
+
+    session = get_session()
+
+    headers = session.admin_auth_header
+    headers['Content-Type'] = 'application/json'
+
+    response = req.post(f'{session.server_url}/dataset',
+                        data=data, headers=headers,
+                        timeout=timeout
+                        ).json()
+
+    if 'error' in response:
+        raise GeoEngineException(response)
+
+    return DatasetId(response["id"])
