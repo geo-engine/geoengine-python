@@ -32,12 +32,14 @@ Different type mappings of geo engine types
 &#39;&#39;&#39;
 
 from __future__ import annotations
-from typing import Any, Dict, Optional, Tuple
+from abc import abstractmethod
+from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 from uuid import UUID
 
 from enum import Enum
 from attr import dataclass
+from typing_extensions import TypedDict
 
 from geoengine.error import GeoEngineException, InputException, TypeException
 
@@ -265,6 +267,13 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
 
         return self.__spatial_reference
 
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass
+
+    def __iter__(self):
+        return iter(self.to_dict().items())
+
 
 class VectorResultDescriptor(ResultDescriptor):
     &#39;&#39;&#39;
@@ -317,6 +326,16 @@ class VectorResultDescriptor(ResultDescriptor):
 
         return self.__columns
 
+    def to_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Convert the vector result descriptor to a dictionary&#39;&#39;&#39;
+
+        return {
+            &#39;type&#39;: &#39;raster&#39;,
+            &#39;dataType&#39;: self.data_type,
+            &#39;spatialReference&#39;: self.spatial_reference,
+            &#39;columns&#39;: dict(self.__columns.items())
+        }
+
 
 @dataclass
 class VectorColumnInfo:
@@ -330,6 +349,14 @@ class VectorColumnInfo:
         &#39;&#39;&#39;Create a new `VectorColumnInfo` from a JSON response&#39;&#39;&#39;
 
         return VectorColumnInfo(response[&#39;dataType&#39;], Measurement.from_response(response[&#39;measurement&#39;]))
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Convert to a dictionary&#39;&#39;&#39;
+
+        return {
+            &#39;dataType&#39;: self.data_type,
+            &#39;measurement&#39;: self.measurement.to_dict(),
+        }
 
 
 class RasterResultDescriptor(ResultDescriptor):
@@ -355,6 +382,16 @@ class RasterResultDescriptor(ResultDescriptor):
 
         return r
 
+    def to_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Convert the raster result descriptor to a dictionary&#39;&#39;&#39;
+
+        return {
+            &#39;type&#39;: &#39;raster&#39;,
+            &#39;dataType&#39;: self.data_type,
+            &#39;measurement&#39;: self.measurement.to_dict(),
+            &#39;spatialReference&#39;: self.spatial_reference,
+        }
+
     @classmethod
     def is_raster_result(cls) -&gt; bool:
         return True
@@ -372,6 +409,9 @@ class RasterResultDescriptor(ResultDescriptor):
         &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
 
         return super().spatial_reference
+
+    def to_json(self) -&gt; dict:
+        return self.to_dict()
 
 
 class PlotResultDescriptor(ResultDescriptor):
@@ -399,6 +439,14 @@ class PlotResultDescriptor(ResultDescriptor):
         &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
 
         return super().spatial_reference
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Convert the plot result descriptor to a dictionary&#39;&#39;&#39;
+
+        return {
+            &#39;type&#39;: &#39;plot&#39;,
+            &#39;spatialReference&#39;: self.spatial_reference,
+        }
 
 
 class VectorDataType(Enum):
@@ -444,6 +492,12 @@ class TimeStep:
     &#39;&#39;&#39;A time step that consists of a granularity and a step size&#39;&#39;&#39;
     step: int
     granularity: TimeStepGranularity
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;step&#39;: self.step,
+            &#39;granularity&#39;: self.granularity.value,
+        }
 
 
 @dataclass
@@ -590,6 +644,10 @@ class Measurement:  # pylint: disable=too-few-public-methods
         raise TypeException(
             f&#39;Unknown `Measurement` type: {measurement_type}&#39;)
 
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass
+
 
 class UnitlessMeasurement(Measurement):
     &#39;&#39;&#39;A measurement that is unitless&#39;&#39;&#39;
@@ -601,6 +659,11 @@ class UnitlessMeasurement(Measurement):
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of a unitless measurement&#39;&#39;&#39;
         return str(self)
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;type&#39;: &#39;unitless&#39;
+        }
 
 
 class ContiuousMeasurement(Measurement):
@@ -634,6 +697,13 @@ class ContiuousMeasurement(Measurement):
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of a continuous measurement&#39;&#39;&#39;
         return str(self)
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;type&#39;: &#39;continuous&#39;,
+            &#39;measurement&#39;: self.__measurement,
+            &#39;unit&#39;: self.__unit
+        }
 
     @property
     def measurement(self) -&gt; str:
@@ -669,6 +739,13 @@ class ClassificationMeasurement(Measurement):
 
         return ClassificationMeasurement(measurement, classes)
 
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;type&#39;: &#39;classification&#39;,
+            &#39;measurement&#39;: self.__measurement,
+            &#39;classes&#39;: self.__classes
+        }
+
     def __str__(self) -&gt; str:
         &#39;&#39;&#39;String representation of a classification measurement&#39;&#39;&#39;
         classes_str = &#39;, &#39;.join(f&#39;{k}: {v}&#39; for k, v in self.__classes.items())
@@ -684,7 +761,55 @@ class ClassificationMeasurement(Measurement):
 
     @property
     def classes(self) -&gt; Dict[int, str]:
-        return self.__classes</code></pre>
+        return self.__classes
+
+
+class GdalDatasetGeoTransform(TypedDict):
+    &#39;&#39;&#39;Geo transform of a GDAL dataset&#39;&#39;&#39;
+    originCoordinate: Tuple[float, float]
+    xPixelSize: float
+    yPixelSize: float
+
+
+class FileNotFoundHandling(str, Enum):
+    NODATA = &#34;NoData&#34;
+    ERROR = &#34;Abort&#34;
+
+
+@dataclass
+class RasterPropertiesKey:
+    &#39;&#39;&#39;Key of a raster properties entry&#39;&#39;&#39;
+    domain: Optional[str]
+    key: str
+
+
+class RasterPropertiesEntryType(Enum):
+    NUMBER = &#34;number&#34;
+    STRING = &#34;string&#34;
+
+
+class GdalMetadataMapping(TypedDict):
+    &#39;&#39;&#39;Mapping of GDAL metadata raster properties&#39;&#39;&#39;
+
+    sourceKey: RasterPropertiesKey
+    targetKey: RasterPropertiesKey
+    targetType: RasterPropertiesEntryType
+
+
+class GdalDatasetParameters(TypedDict):
+    &#39;&#39;&#39;Parameters for a GDAL dataset&#39;&#39;&#39;
+
+    filePath: str
+    rasterbandChannel: int
+    geoTransform: GdalDatasetGeoTransform
+    width: int
+    height: int
+    fileNotFoundHandling: FileNotFoundHandling
+    noDataValue: Optional[float]
+    propertiesMapping: Optional[List[GdalMetadataMapping]]
+    gdalOpenOptions: Optional[List[str]]
+    gdalConfigOptions: Optional[List[Tuple[str, str]]]
+    allowAlphabandAsMask: bool</code></pre>
 </details>
 </section>
 <section>
@@ -731,6 +856,13 @@ class ClassificationMeasurement(Measurement):
         classes = {int(k): v for k, v in str_classes.items()}
 
         return ClassificationMeasurement(measurement, classes)
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;type&#39;: &#39;classification&#39;,
+            &#39;measurement&#39;: self.__measurement,
+            &#39;classes&#39;: self.__classes
+        }
 
     def __str__(self) -&gt; str:
         &#39;&#39;&#39;String representation of a classification measurement&#39;&#39;&#39;
@@ -804,6 +936,26 @@ def measurement(self) -&gt; str:
 </details>
 </dd>
 </dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.ClassificationMeasurement.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    return {
+        &#39;type&#39;: &#39;classification&#39;,
+        &#39;measurement&#39;: self.__measurement,
+        &#39;classes&#39;: self.__classes
+    }</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="geoengine.types.ContiuousMeasurement"><code class="flex name class">
 <span>class <span class="ident">ContiuousMeasurement</span></span>
@@ -847,6 +999,13 @@ def measurement(self) -&gt; str:
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of a continuous measurement&#39;&#39;&#39;
         return str(self)
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;type&#39;: &#39;continuous&#39;,
+            &#39;measurement&#39;: self.__measurement,
+            &#39;unit&#39;: self.__unit
+        }
 
     @property
     def measurement(self) -&gt; str:
@@ -903,6 +1062,26 @@ def measurement(self) -&gt; str:
 <pre><code class="python">@property
 def unit(self) -&gt; Optional[str]:
     return self.__unit</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.ContiuousMeasurement.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    return {
+        &#39;type&#39;: &#39;continuous&#39;,
+        &#39;measurement&#39;: self.__measurement,
+        &#39;unit&#39;: self.__unit
+    }</code></pre>
 </details>
 </dd>
 </dl>
@@ -1050,6 +1229,187 @@ def from_response(cls, response: Dict[str, str]) -&gt; ExternalDataId:
 </dd>
 </dl>
 </dd>
+<dt id="geoengine.types.FileNotFoundHandling"><code class="flex name class">
+<span>class <span class="ident">FileNotFoundHandling</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FileNotFoundHandling(str, Enum):
+    NODATA = &#34;NoData&#34;
+    ERROR = &#34;Abort&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.FileNotFoundHandling.ERROR"><code class="name">var <span class="ident">ERROR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.FileNotFoundHandling.NODATA"><code class="name">var <span class="ident">NODATA</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.GdalDatasetGeoTransform"><code class="flex name class">
+<span>class <span class="ident">GdalDatasetGeoTransform</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Geo transform of a GDAL dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GdalDatasetGeoTransform(TypedDict):
+    &#39;&#39;&#39;Geo transform of a GDAL dataset&#39;&#39;&#39;
+    originCoordinate: Tuple[float, float]
+    xPixelSize: float
+    yPixelSize: float</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.GdalDatasetGeoTransform.originCoordinate"><code class="name">var <span class="ident">originCoordinate</span> : Tuple[float, float]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetGeoTransform.xPixelSize"><code class="name">var <span class="ident">xPixelSize</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetGeoTransform.yPixelSize"><code class="name">var <span class="ident">yPixelSize</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.GdalDatasetParameters"><code class="flex name class">
+<span>class <span class="ident">GdalDatasetParameters</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parameters for a GDAL dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GdalDatasetParameters(TypedDict):
+    &#39;&#39;&#39;Parameters for a GDAL dataset&#39;&#39;&#39;
+
+    filePath: str
+    rasterbandChannel: int
+    geoTransform: GdalDatasetGeoTransform
+    width: int
+    height: int
+    fileNotFoundHandling: FileNotFoundHandling
+    noDataValue: Optional[float]
+    propertiesMapping: Optional[List[GdalMetadataMapping]]
+    gdalOpenOptions: Optional[List[str]]
+    gdalConfigOptions: Optional[List[Tuple[str, str]]]
+    allowAlphabandAsMask: bool</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.GdalDatasetParameters.allowAlphabandAsMask"><code class="name">var <span class="ident">allowAlphabandAsMask</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetParameters.fileNotFoundHandling"><code class="name">var <span class="ident">fileNotFoundHandling</span> : <a title="geoengine.types.FileNotFoundHandling" href="#geoengine.types.FileNotFoundHandling">FileNotFoundHandling</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetParameters.filePath"><code class="name">var <span class="ident">filePath</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetParameters.gdalConfigOptions"><code class="name">var <span class="ident">gdalConfigOptions</span> : Optional[List[Tuple[str, str]]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetParameters.gdalOpenOptions"><code class="name">var <span class="ident">gdalOpenOptions</span> : Optional[List[str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetParameters.geoTransform"><code class="name">var <span class="ident">geoTransform</span> : <a title="geoengine.types.GdalDatasetGeoTransform" href="#geoengine.types.GdalDatasetGeoTransform">GdalDatasetGeoTransform</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetParameters.height"><code class="name">var <span class="ident">height</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetParameters.noDataValue"><code class="name">var <span class="ident">noDataValue</span> : Optional[float]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetParameters.propertiesMapping"><code class="name">var <span class="ident">propertiesMapping</span> : Optional[List[<a title="geoengine.types.GdalMetadataMapping" href="#geoengine.types.GdalMetadataMapping">GdalMetadataMapping</a>]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetParameters.rasterbandChannel"><code class="name">var <span class="ident">rasterbandChannel</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalDatasetParameters.width"><code class="name">var <span class="ident">width</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.GdalMetadataMapping"><code class="flex name class">
+<span>class <span class="ident">GdalMetadataMapping</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mapping of GDAL metadata raster properties</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GdalMetadataMapping(TypedDict):
+    &#39;&#39;&#39;Mapping of GDAL metadata raster properties&#39;&#39;&#39;
+
+    sourceKey: RasterPropertiesKey
+    targetKey: RasterPropertiesKey
+    targetType: RasterPropertiesEntryType</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.GdalMetadataMapping.sourceKey"><code class="name">var <span class="ident">sourceKey</span> : <a title="geoengine.types.RasterPropertiesKey" href="#geoengine.types.RasterPropertiesKey">RasterPropertiesKey</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalMetadataMapping.targetKey"><code class="name">var <span class="ident">targetKey</span> : <a title="geoengine.types.RasterPropertiesKey" href="#geoengine.types.RasterPropertiesKey">RasterPropertiesKey</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GdalMetadataMapping.targetType"><code class="name">var <span class="ident">targetType</span> : <a title="geoengine.types.RasterPropertiesEntryType" href="#geoengine.types.RasterPropertiesEntryType">RasterPropertiesEntryType</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.types.InternalDataId"><code class="flex name class">
 <span>class <span class="ident">InternalDataId</span></span>
 <span>(</span><span>dataset_id: UUID)</span>
@@ -1170,7 +1530,11 @@ def from_response(cls, response: Dict[str, str]) -&gt; InternalDataId:
             return ClassificationMeasurement.from_response(response)
 
         raise TypeException(
-            f&#39;Unknown `Measurement` type: {measurement_type}&#39;)</code></pre>
+            f&#39;Unknown `Measurement` type: {measurement_type}&#39;)
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -1212,6 +1576,23 @@ def from_response(response: Dict[str, Any]) -&gt; Measurement:
 </details>
 </dd>
 </dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.Measurement.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def to_dict(self) -&gt; Dict[str, Any]:
+    pass</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="geoengine.types.PlotResultDescriptor"><code class="flex name class">
 <span>class <span class="ident">PlotResultDescriptor</span></span>
@@ -1248,12 +1629,41 @@ def from_response(response: Dict[str, Any]) -&gt; Measurement:
     def spatial_reference(self) -&gt; str:
         &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
 
-        return super().spatial_reference</code></pre>
+        return super().spatial_reference
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Convert the plot result descriptor to a dictionary&#39;&#39;&#39;
+
+        return {
+            &#39;type&#39;: &#39;plot&#39;,
+            &#39;spatialReference&#39;: self.spatial_reference,
+        }</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="geoengine.types.ResultDescriptor" href="#geoengine.types.ResultDescriptor">ResultDescriptor</a></li>
 </ul>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.PlotResultDescriptor.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert the plot result descriptor to a dictionary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    &#39;&#39;&#39;Convert the plot result descriptor to a dictionary&#39;&#39;&#39;
+
+    return {
+        &#39;type&#39;: &#39;plot&#39;,
+        &#39;spatialReference&#39;: self.spatial_reference,
+    }</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="geoengine.types.ResultDescriptor" href="#geoengine.types.ResultDescriptor">ResultDescriptor</a></b></code>:
@@ -1737,6 +2147,65 @@ def ymin(self) -&gt; float:
 </dd>
 </dl>
 </dd>
+<dt id="geoengine.types.RasterPropertiesEntryType"><code class="flex name class">
+<span>class <span class="ident">RasterPropertiesEntryType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterPropertiesEntryType(Enum):
+    NUMBER = &#34;number&#34;
+    STRING = &#34;string&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.RasterPropertiesEntryType.NUMBER"><code class="name">var <span class="ident">NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.RasterPropertiesEntryType.STRING"><code class="name">var <span class="ident">STRING</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.types.RasterPropertiesKey"><code class="flex name class">
+<span>class <span class="ident">RasterPropertiesKey</span></span>
+<span>(</span><span>domain: Optional[str], key: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Key of a raster properties entry</p>
+<p>Method generated by attrs for class RasterPropertiesKey.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class RasterPropertiesKey:
+    &#39;&#39;&#39;Key of a raster properties entry&#39;&#39;&#39;
+    domain: Optional[str]
+    key: str</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.RasterPropertiesKey.domain"><code class="name">var <span class="ident">domain</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.RasterPropertiesKey.key"><code class="name">var <span class="ident">key</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.types.RasterResultDescriptor"><code class="flex name class">
 <span>class <span class="ident">RasterResultDescriptor</span></span>
 <span>(</span><span>response: Dict[str, Any])</span>
@@ -1771,6 +2240,16 @@ def ymin(self) -&gt; float:
 
         return r
 
+    def to_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Convert the raster result descriptor to a dictionary&#39;&#39;&#39;
+
+        return {
+            &#39;type&#39;: &#39;raster&#39;,
+            &#39;dataType&#39;: self.data_type,
+            &#39;measurement&#39;: self.measurement.to_dict(),
+            &#39;spatialReference&#39;: self.spatial_reference,
+        }
+
     @classmethod
     def is_raster_result(cls) -&gt; bool:
         return True
@@ -1787,7 +2266,10 @@ def ymin(self) -&gt; float:
     def spatial_reference(self) -&gt; str:
         &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
 
-        return super().spatial_reference</code></pre>
+        return super().spatial_reference
+
+    def to_json(self) -&gt; dict:
+        return self.to_dict()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1817,6 +2299,42 @@ def data_type(self) -&gt; str:
 <pre><code class="python">@property
 def measurement(self) -&gt; Measurement:
     return self.__measurement</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.RasterResultDescriptor.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert the raster result descriptor to a dictionary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    &#39;&#39;&#39;Convert the raster result descriptor to a dictionary&#39;&#39;&#39;
+
+    return {
+        &#39;type&#39;: &#39;raster&#39;,
+        &#39;dataType&#39;: self.data_type,
+        &#39;measurement&#39;: self.measurement.to_dict(),
+        &#39;spatialReference&#39;: self.spatial_reference,
+    }</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.RasterResultDescriptor.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self) -&gt; dict:
+    return self.to_dict()</code></pre>
 </details>
 </dd>
 </dl>
@@ -1902,7 +2420,14 @@ def measurement(self) -&gt; Measurement:
     def spatial_reference(self) -&gt; str:
         &#39;&#39;&#39;Return the spatial reference&#39;&#39;&#39;
 
-        return self.__spatial_reference</code></pre>
+        return self.__spatial_reference
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass
+
+    def __iter__(self):
+        return iter(self.to_dict().items())</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -2015,6 +2540,23 @@ def spatial_reference(self) -&gt; str:
 </details>
 </dd>
 </dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.ResultDescriptor.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def to_dict(self) -&gt; Dict[str, Any]:
+    pass</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="geoengine.types.TimeStep"><code class="flex name class">
 <span>class <span class="ident">TimeStep</span></span>
@@ -2031,7 +2573,13 @@ def spatial_reference(self) -&gt; str:
 class TimeStep:
     &#39;&#39;&#39;A time step that consists of a granularity and a step size&#39;&#39;&#39;
     step: int
-    granularity: TimeStepGranularity</code></pre>
+    granularity: TimeStepGranularity
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;step&#39;: self.step,
+            &#39;granularity&#39;: self.granularity.value,
+        }</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -2042,6 +2590,25 @@ class TimeStep:
 <dt id="geoengine.types.TimeStep.step"><code class="name">var <span class="ident">step</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.TimeStep.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    return {
+        &#39;step&#39;: self.step,
+        &#39;granularity&#39;: self.granularity.value,
+    }</code></pre>
+</details>
 </dd>
 </dl>
 </dd>
@@ -2119,12 +2686,35 @@ class TimeStep:
 
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of a unitless measurement&#39;&#39;&#39;
-        return str(self)</code></pre>
+        return str(self)
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;type&#39;: &#39;unitless&#39;
+        }</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></li>
 </ul>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.UnitlessMeasurement.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    return {
+        &#39;type&#39;: &#39;unitless&#39;
+    }</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></b></code>:
@@ -2156,7 +2746,15 @@ class VectorColumnInfo:
     def from_response(response: Dict[str, Any]) -&gt; VectorColumnInfo:
         &#39;&#39;&#39;Create a new `VectorColumnInfo` from a JSON response&#39;&#39;&#39;
 
-        return VectorColumnInfo(response[&#39;dataType&#39;], Measurement.from_response(response[&#39;measurement&#39;]))</code></pre>
+        return VectorColumnInfo(response[&#39;dataType&#39;], Measurement.from_response(response[&#39;measurement&#39;]))
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Convert to a dictionary&#39;&#39;&#39;
+
+        return {
+            &#39;dataType&#39;: self.data_type,
+            &#39;measurement&#39;: self.measurement.to_dict(),
+        }</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -2185,6 +2783,27 @@ def from_response(response: Dict[str, Any]) -&gt; VectorColumnInfo:
     &#39;&#39;&#39;Create a new `VectorColumnInfo` from a JSON response&#39;&#39;&#39;
 
     return VectorColumnInfo(response[&#39;dataType&#39;], Measurement.from_response(response[&#39;measurement&#39;]))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.VectorColumnInfo.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert to a dictionary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    &#39;&#39;&#39;Convert to a dictionary&#39;&#39;&#39;
+
+    return {
+        &#39;dataType&#39;: self.data_type,
+        &#39;measurement&#39;: self.measurement.to_dict(),
+    }</code></pre>
 </details>
 </dd>
 </dl>
@@ -2340,7 +2959,17 @@ def from_geopandas_type_name(cls, name: str) -&gt; VectorDataType:
     def columns(self) -&gt; Dict[str, VectorColumnInfo]:
         &#39;&#39;&#39;Return the columns&#39;&#39;&#39;
 
-        return self.__columns</code></pre>
+        return self.__columns
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Convert the vector result descriptor to a dictionary&#39;&#39;&#39;
+
+        return {
+            &#39;type&#39;: &#39;raster&#39;,
+            &#39;dataType&#39;: self.data_type,
+            &#39;spatialReference&#39;: self.spatial_reference,
+            &#39;columns&#39;: dict(self.__columns.items())
+        }</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2374,6 +3003,29 @@ def data_type(self) -&gt; str:
     &#39;&#39;&#39;Return the data type&#39;&#39;&#39;
 
     return self.__data_type</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.VectorResultDescriptor.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert the vector result descriptor to a dictionary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    &#39;&#39;&#39;Convert the vector result descriptor to a dictionary&#39;&#39;&#39;
+
+    return {
+        &#39;type&#39;: &#39;raster&#39;,
+        &#39;dataType&#39;: self.data_type,
+        &#39;spatialReference&#39;: self.spatial_reference,
+        &#39;columns&#39;: dict(self.__columns.items())
+    }</code></pre>
 </details>
 </dd>
 </dl>
@@ -2412,6 +3064,7 @@ def data_type(self) -&gt; str:
 <li><code><a title="geoengine.types.ClassificationMeasurement.classes" href="#geoengine.types.ClassificationMeasurement.classes">classes</a></code></li>
 <li><code><a title="geoengine.types.ClassificationMeasurement.from_response" href="#geoengine.types.ClassificationMeasurement.from_response">from_response</a></code></li>
 <li><code><a title="geoengine.types.ClassificationMeasurement.measurement" href="#geoengine.types.ClassificationMeasurement.measurement">measurement</a></code></li>
+<li><code><a title="geoengine.types.ClassificationMeasurement.to_dict" href="#geoengine.types.ClassificationMeasurement.to_dict">to_dict</a></code></li>
 </ul>
 </li>
 <li>
@@ -2419,6 +3072,7 @@ def data_type(self) -&gt; str:
 <ul class="">
 <li><code><a title="geoengine.types.ContiuousMeasurement.from_response" href="#geoengine.types.ContiuousMeasurement.from_response">from_response</a></code></li>
 <li><code><a title="geoengine.types.ContiuousMeasurement.measurement" href="#geoengine.types.ContiuousMeasurement.measurement">measurement</a></code></li>
+<li><code><a title="geoengine.types.ContiuousMeasurement.to_dict" href="#geoengine.types.ContiuousMeasurement.to_dict">to_dict</a></code></li>
 <li><code><a title="geoengine.types.ContiuousMeasurement.unit" href="#geoengine.types.ContiuousMeasurement.unit">unit</a></code></li>
 </ul>
 </li>
@@ -2436,6 +3090,45 @@ def data_type(self) -&gt; str:
 </ul>
 </li>
 <li>
+<h4><code><a title="geoengine.types.FileNotFoundHandling" href="#geoengine.types.FileNotFoundHandling">FileNotFoundHandling</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.FileNotFoundHandling.ERROR" href="#geoengine.types.FileNotFoundHandling.ERROR">ERROR</a></code></li>
+<li><code><a title="geoengine.types.FileNotFoundHandling.NODATA" href="#geoengine.types.FileNotFoundHandling.NODATA">NODATA</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.GdalDatasetGeoTransform" href="#geoengine.types.GdalDatasetGeoTransform">GdalDatasetGeoTransform</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.GdalDatasetGeoTransform.originCoordinate" href="#geoengine.types.GdalDatasetGeoTransform.originCoordinate">originCoordinate</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetGeoTransform.xPixelSize" href="#geoengine.types.GdalDatasetGeoTransform.xPixelSize">xPixelSize</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetGeoTransform.yPixelSize" href="#geoengine.types.GdalDatasetGeoTransform.yPixelSize">yPixelSize</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.GdalDatasetParameters" href="#geoengine.types.GdalDatasetParameters">GdalDatasetParameters</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.GdalDatasetParameters.allowAlphabandAsMask" href="#geoengine.types.GdalDatasetParameters.allowAlphabandAsMask">allowAlphabandAsMask</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetParameters.fileNotFoundHandling" href="#geoengine.types.GdalDatasetParameters.fileNotFoundHandling">fileNotFoundHandling</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetParameters.filePath" href="#geoengine.types.GdalDatasetParameters.filePath">filePath</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetParameters.gdalConfigOptions" href="#geoengine.types.GdalDatasetParameters.gdalConfigOptions">gdalConfigOptions</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetParameters.gdalOpenOptions" href="#geoengine.types.GdalDatasetParameters.gdalOpenOptions">gdalOpenOptions</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetParameters.geoTransform" href="#geoengine.types.GdalDatasetParameters.geoTransform">geoTransform</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetParameters.height" href="#geoengine.types.GdalDatasetParameters.height">height</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetParameters.noDataValue" href="#geoengine.types.GdalDatasetParameters.noDataValue">noDataValue</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetParameters.propertiesMapping" href="#geoengine.types.GdalDatasetParameters.propertiesMapping">propertiesMapping</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetParameters.rasterbandChannel" href="#geoengine.types.GdalDatasetParameters.rasterbandChannel">rasterbandChannel</a></code></li>
+<li><code><a title="geoengine.types.GdalDatasetParameters.width" href="#geoengine.types.GdalDatasetParameters.width">width</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.GdalMetadataMapping" href="#geoengine.types.GdalMetadataMapping">GdalMetadataMapping</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.GdalMetadataMapping.sourceKey" href="#geoengine.types.GdalMetadataMapping.sourceKey">sourceKey</a></code></li>
+<li><code><a title="geoengine.types.GdalMetadataMapping.targetKey" href="#geoengine.types.GdalMetadataMapping.targetKey">targetKey</a></code></li>
+<li><code><a title="geoengine.types.GdalMetadataMapping.targetType" href="#geoengine.types.GdalMetadataMapping.targetType">targetType</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.types.InternalDataId" href="#geoengine.types.InternalDataId">InternalDataId</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.types.InternalDataId.from_response" href="#geoengine.types.InternalDataId.from_response">from_response</a></code></li>
@@ -2446,10 +3139,14 @@ def data_type(self) -&gt; str:
 <h4><code><a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.types.Measurement.from_response" href="#geoengine.types.Measurement.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.Measurement.to_dict" href="#geoengine.types.Measurement.to_dict">to_dict</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="geoengine.types.PlotResultDescriptor" href="#geoengine.types.PlotResultDescriptor">PlotResultDescriptor</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.PlotResultDescriptor.to_dict" href="#geoengine.types.PlotResultDescriptor.to_dict">to_dict</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="geoengine.types.Provenance" href="#geoengine.types.Provenance">Provenance</a></code></h4>
@@ -2485,20 +3182,37 @@ def data_type(self) -&gt; str:
 </ul>
 </li>
 <li>
+<h4><code><a title="geoengine.types.RasterPropertiesEntryType" href="#geoengine.types.RasterPropertiesEntryType">RasterPropertiesEntryType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.RasterPropertiesEntryType.NUMBER" href="#geoengine.types.RasterPropertiesEntryType.NUMBER">NUMBER</a></code></li>
+<li><code><a title="geoengine.types.RasterPropertiesEntryType.STRING" href="#geoengine.types.RasterPropertiesEntryType.STRING">STRING</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.RasterPropertiesKey" href="#geoengine.types.RasterPropertiesKey">RasterPropertiesKey</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.RasterPropertiesKey.domain" href="#geoengine.types.RasterPropertiesKey.domain">domain</a></code></li>
+<li><code><a title="geoengine.types.RasterPropertiesKey.key" href="#geoengine.types.RasterPropertiesKey.key">key</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.types.RasterResultDescriptor" href="#geoengine.types.RasterResultDescriptor">RasterResultDescriptor</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.types.RasterResultDescriptor.data_type" href="#geoengine.types.RasterResultDescriptor.data_type">data_type</a></code></li>
 <li><code><a title="geoengine.types.RasterResultDescriptor.measurement" href="#geoengine.types.RasterResultDescriptor.measurement">measurement</a></code></li>
+<li><code><a title="geoengine.types.RasterResultDescriptor.to_dict" href="#geoengine.types.RasterResultDescriptor.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.types.RasterResultDescriptor.to_json" href="#geoengine.types.RasterResultDescriptor.to_json">to_json</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="geoengine.types.ResultDescriptor" href="#geoengine.types.ResultDescriptor">ResultDescriptor</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="geoengine.types.ResultDescriptor.from_response" href="#geoengine.types.ResultDescriptor.from_response">from_response</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.is_plot_result" href="#geoengine.types.ResultDescriptor.is_plot_result">is_plot_result</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.is_raster_result" href="#geoengine.types.ResultDescriptor.is_raster_result">is_raster_result</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.is_vector_result" href="#geoengine.types.ResultDescriptor.is_vector_result">is_vector_result</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.spatial_reference" href="#geoengine.types.ResultDescriptor.spatial_reference">spatial_reference</a></code></li>
+<li><code><a title="geoengine.types.ResultDescriptor.to_dict" href="#geoengine.types.ResultDescriptor.to_dict">to_dict</a></code></li>
 </ul>
 </li>
 <li>
@@ -2506,6 +3220,7 @@ def data_type(self) -&gt; str:
 <ul class="">
 <li><code><a title="geoengine.types.TimeStep.granularity" href="#geoengine.types.TimeStep.granularity">granularity</a></code></li>
 <li><code><a title="geoengine.types.TimeStep.step" href="#geoengine.types.TimeStep.step">step</a></code></li>
+<li><code><a title="geoengine.types.TimeStep.to_dict" href="#geoengine.types.TimeStep.to_dict">to_dict</a></code></li>
 </ul>
 </li>
 <li>
@@ -2522,6 +3237,9 @@ def data_type(self) -&gt; str:
 </li>
 <li>
 <h4><code><a title="geoengine.types.UnitlessMeasurement" href="#geoengine.types.UnitlessMeasurement">UnitlessMeasurement</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.UnitlessMeasurement.to_dict" href="#geoengine.types.UnitlessMeasurement.to_dict">to_dict</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="geoengine.types.VectorColumnInfo" href="#geoengine.types.VectorColumnInfo">VectorColumnInfo</a></code></h4>
@@ -2529,6 +3247,7 @@ def data_type(self) -&gt; str:
 <li><code><a title="geoengine.types.VectorColumnInfo.data_type" href="#geoengine.types.VectorColumnInfo.data_type">data_type</a></code></li>
 <li><code><a title="geoengine.types.VectorColumnInfo.from_response" href="#geoengine.types.VectorColumnInfo.from_response">from_response</a></code></li>
 <li><code><a title="geoengine.types.VectorColumnInfo.measurement" href="#geoengine.types.VectorColumnInfo.measurement">measurement</a></code></li>
+<li><code><a title="geoengine.types.VectorColumnInfo.to_dict" href="#geoengine.types.VectorColumnInfo.to_dict">to_dict</a></code></li>
 </ul>
 </li>
 <li>
@@ -2546,6 +3265,7 @@ def data_type(self) -&gt; str:
 <ul class="">
 <li><code><a title="geoengine.types.VectorResultDescriptor.columns" href="#geoengine.types.VectorResultDescriptor.columns">columns</a></code></li>
 <li><code><a title="geoengine.types.VectorResultDescriptor.data_type" href="#geoengine.types.VectorResultDescriptor.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.types.VectorResultDescriptor.to_dict" href="#geoengine.types.VectorResultDescriptor.to_dict">to_dict</a></code></li>
 </ul>
 </li>
 </ul>
