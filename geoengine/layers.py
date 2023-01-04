@@ -14,8 +14,8 @@ from typing_extensions import TypedDict
 import requests as req
 from strenum import LowercaseStrEnum
 from geoengine.auth import get_session
-from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException
-
+from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException, check_response_for_error
+from geoengine.tasks import Task, TaskId
 
 LayerId = NewType('LayerId', UUID)
 LayerCollectionId = NewType('LayerCollectionId', UUID)
@@ -522,6 +522,22 @@ class Layer:
         buf.write("</table>")
 
         return buf.getvalue()
+
+    def save_as_dataset(self, timeout: int = 60) -> Task:
+        '''
+        Save a layer as a new dataset.
+        '''
+        session = get_session()
+
+        response = req.post(
+            url=f'{session.server_url}/layers/{self.provider_id}/{self.layer_id}/dataset',
+            headers=session.admin_auth_header,
+            timeout=timeout
+        )
+
+        check_response_for_error(response)
+
+        return Task(TaskId.from_response(response.json()))
 
 
 def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
