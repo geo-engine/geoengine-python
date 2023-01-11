@@ -1,10 +1,11 @@
 """Tests for the layers module."""
 
-
 import unittest
 from uuid import UUID
 import requests_mock
 import geoengine as ge
+from geoengine import StoredDataset, GeoEngineException
+from geoengine.datasets import DatasetId, UploadId
 
 
 class LayerTests(unittest.TestCase):
@@ -25,152 +26,153 @@ class LayerTests(unittest.TestCase):
             })
 
             # pylint: disable=line-too-long
-            m.get('http://mock-instance/layers/ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b/9ee3619e-d0f9-4ced-9c44-3d407c3aed69',
-                  json={
-                      "description": "Land Cover derived from MODIS/Terra+Aqua Land Cover",
-                      "id": {
-                          "layerId": "9ee3619e-d0f9-4ced-9c44-3d407c3aed69",
-                          "providerId": "ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b"
-                      },
-                      "metadata": {},
-                      "name": "Land Cover",
-                      "properties": [],
-                      "symbology": {
-                          "colorizer": {
-                              "colors": {
-                                  "0": [
-                                      134,
-                                      201,
-                                      227,
-                                      255
-                                  ],
-                                  "1": [
-                                      30,
-                                      129,
-                                      62,
-                                      255
-                                  ],
-                                  "2": [
-                                      59,
-                                      194,
-                                      212,
-                                      255
-                                  ],
-                                  "3": [
-                                      157,
-                                      194,
-                                      63,
-                                      255
-                                  ],
-                                  "4": [
-                                      159,
-                                      225,
-                                      127,
-                                      255
-                                  ],
-                                  "5": [
-                                      125,
-                                      194,
-                                      127,
-                                      255
-                                  ],
-                                  "6": [
-                                      195,
-                                      127,
-                                      126,
-                                      255
-                                  ],
-                                  "7": [
-                                      188,
-                                      221,
-                                      190,
-                                      255
-                                  ],
-                                  "8": [
-                                      224,
-                                      223,
-                                      133,
-                                      255
-                                  ],
-                                  "9": [
-                                      226,
-                                      221,
-                                      7,
-                                      255
-                                  ],
-                                  "10": [
-                                      223,
-                                      192,
-                                      125,
-                                      255
-                                  ],
-                                  "11": [
-                                      66,
-                                      128,
-                                      189,
-                                      255
-                                  ],
-                                  "12": [
-                                      225,
-                                      222,
-                                      127,
-                                      255
-                                  ],
-                                  "13": [
-                                      253,
-                                      2,
-                                      0,
-                                      255
-                                  ],
-                                  "14": [
-                                      162,
-                                      159,
-                                      66,
-                                      255
-                                  ],
-                                  "15": [
-                                      255,
-                                      255,
-                                      255,
-                                      255
-                                  ],
-                                  "16": [
-                                      192,
-                                      192,
-                                      192,
-                                      255
-                                  ]
-                              },
-                              "defaultColor": [
-                                  0,
-                                  0,
-                                  0,
-                                  0
-                              ],
-                              "noDataColor": [
-                                  0,
-                                  0,
-                                  0,
-                                  0
-                              ],
-                              "type": "palette"
-                          },
-                          "opacity": 1,
-                          "type": "raster"
-                      },
-                      "workflow": {
-                          "operator": {
-                              "params": {
-                                  "data": {
-                                      "datasetId": "9ee3619e-d0f9-4ced-9c44-3d407c3aed69",
-                                      "type": "internal"
-                                  }
-                              },
-                              "type": "GdalSource"
-                          },
-                          "type": "Raster"
-                      }
-                  })
+            m.get(
+                'http://mock-instance/layers/ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b/9ee3619e-d0f9-4ced-9c44-3d407c3aed69',
+                json={
+                    "description": "Land Cover derived from MODIS/Terra+Aqua Land Cover",
+                    "id": {
+                        "layerId": "9ee3619e-d0f9-4ced-9c44-3d407c3aed69",
+                        "providerId": "ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b"
+                    },
+                    "metadata": {},
+                    "name": "Land Cover",
+                    "properties": [],
+                    "symbology": {
+                        "colorizer": {
+                            "colors": {
+                                "0": [
+                                    134,
+                                    201,
+                                    227,
+                                    255
+                                ],
+                                "1": [
+                                    30,
+                                    129,
+                                    62,
+                                    255
+                                ],
+                                "2": [
+                                    59,
+                                    194,
+                                    212,
+                                    255
+                                ],
+                                "3": [
+                                    157,
+                                    194,
+                                    63,
+                                    255
+                                ],
+                                "4": [
+                                    159,
+                                    225,
+                                    127,
+                                    255
+                                ],
+                                "5": [
+                                    125,
+                                    194,
+                                    127,
+                                    255
+                                ],
+                                "6": [
+                                    195,
+                                    127,
+                                    126,
+                                    255
+                                ],
+                                "7": [
+                                    188,
+                                    221,
+                                    190,
+                                    255
+                                ],
+                                "8": [
+                                    224,
+                                    223,
+                                    133,
+                                    255
+                                ],
+                                "9": [
+                                    226,
+                                    221,
+                                    7,
+                                    255
+                                ],
+                                "10": [
+                                    223,
+                                    192,
+                                    125,
+                                    255
+                                ],
+                                "11": [
+                                    66,
+                                    128,
+                                    189,
+                                    255
+                                ],
+                                "12": [
+                                    225,
+                                    222,
+                                    127,
+                                    255
+                                ],
+                                "13": [
+                                    253,
+                                    2,
+                                    0,
+                                    255
+                                ],
+                                "14": [
+                                    162,
+                                    159,
+                                    66,
+                                    255
+                                ],
+                                "15": [
+                                    255,
+                                    255,
+                                    255,
+                                    255
+                                ],
+                                "16": [
+                                    192,
+                                    192,
+                                    192,
+                                    255
+                                ]
+                            },
+                            "defaultColor": [
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            "noDataColor": [
+                                0,
+                                0,
+                                0,
+                                0
+                            ],
+                            "type": "palette"
+                        },
+                        "opacity": 1,
+                        "type": "raster"
+                    },
+                    "workflow": {
+                        "operator": {
+                            "params": {
+                                "data": {
+                                    "datasetId": "9ee3619e-d0f9-4ced-9c44-3d407c3aed69",
+                                    "type": "internal"
+                                }
+                            },
+                            "type": "GdalSource"
+                        },
+                        "type": "Raster"
+                    }
+                })
 
             ge.initialize("http://mock-instance", admin_token='8aca8875-425a-4ef1-8ee6-cdfc62dd7525')
 
@@ -556,10 +558,10 @@ class LayerTests(unittest.TestCase):
                                 'polygons': {
                                     'type': 'OgrSource',
                                     'params': {
-                                            'data': {
-                                                'type': 'internal',
-                                                'datasetId': 'b6191257-6d61-4c6b-90a4-ebfb1b23899d'
-                                            },
+                                        'data': {
+                                            'type': 'internal',
+                                            'datasetId': 'b6191257-6d61-4c6b-90a4-ebfb1b23899d'
+                                        },
                                         'attributeProjection': None,
                                         'attributeFilters': None
                                     }
@@ -693,6 +695,96 @@ class LayerTests(unittest.TestCase):
             test_collection.remove_item(0)
 
             test_collection.remove()
+
+    def test_save_as_dataset(self):
+        """Test `layer.save_as_dataset`."""
+
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                "project": None,
+                "view": None
+            })
+
+            # Success case
+            m.post(
+                # pylint: disable=line-too-long
+                'http://mock-instance/layers/ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b/9ee3619e-d0f9-4ced-9c44-3d407c3aed69/dataset',
+                json={'task_id': '7f210984-8f2d-44f6-b211-ededada17598'},
+                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'})
+
+            m.get('http://mock-instance/tasks/7f210984-8f2d-44f6-b211-ededada17598/status',
+                  json={'status': 'completed',
+                        'info': {'dataset': '94230f0b-4e8a-4cba-9adc-3ace837fe5d4',
+                                 'upload': '3086f494-d5a4-4b51-a14b-3b29f8bf7bb0'},
+                        'timeTotal': '00:00:00'}, )
+
+            # Some processing error occurred
+            m.post(
+                # pylint: disable=line-too-long
+                'http://mock-instance/layers/ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b/86c81654-e572-42ed-96ee-8b38ebcd84ab/dataset',
+                status_code=400,
+                json={'error': 'Some Processing Error',
+                      'message': 'Some Processing Message'},
+                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'})
+
+            ge.initialize("http://mock-instance", admin_token='8aca8875-425a-4ef1-8ee6-cdfc62dd7525')
+
+            # Success case
+            layer = ge.Layer(
+                name='Test Raster Layer',
+                description='Test Raster Layer Description',
+                layer_id=ge.LayerId(UUID('9ee3619e-d0f9-4ced-9c44-3d407c3aed69')),
+                provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
+                workflow={
+                    "operator": {
+                        "params": {
+                            "data": {
+                                "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093",
+                                "type": "internal"
+                            }
+                        },
+                        "type": "GdalSource"
+                    },
+                    "type": "Raster"
+                },
+                symbology=None,
+                properties=[],
+                metadata={},
+            )
+
+            task = layer.save_as_dataset()
+            task_status = task.get_status()
+            stored_dataset = StoredDataset.from_response(task_status.info)
+
+            self.assertEqual(stored_dataset.dataset_id, DatasetId(UUID("94230f0b-4e8a-4cba-9adc-3ace837fe5d4")))
+            self.assertEqual(stored_dataset.upload_id, UploadId(UUID("3086f494-d5a4-4b51-a14b-3b29f8bf7bb0")))
+
+            # Some processing error occurred (e.g., layer does not exist)
+            layer = ge.Layer(
+                name='Test Error Raster Layer',
+                description='Test Error Raster Layer Description',
+                layer_id=ge.LayerId(UUID('86c81654-e572-42ed-96ee-8b38ebcd84ab')),
+                provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
+                workflow={
+                    "operator": {
+                        "params": {
+                            "data": {
+                                "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093",
+                                "type": "internal"
+                            }
+                        },
+                        "type": "GdalSource"
+                    },
+                    "type": "Raster"
+                },
+                symbology=None,
+                properties=[],
+                metadata={},
+            )
+
+            with self.assertRaises(GeoEngineException):
+                layer.save_as_dataset()
 
 
 if __name__ == '__main__':
