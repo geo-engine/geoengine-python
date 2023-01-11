@@ -43,8 +43,8 @@ from typing_extensions import TypedDict
 import requests as req
 from strenum import LowercaseStrEnum
 from geoengine.auth import get_session
-from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException
-
+from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException, check_response_for_error
+from geoengine.tasks import Task, TaskId
 
 LayerId = NewType(&#39;LayerId&#39;, UUID)
 LayerCollectionId = NewType(&#39;LayerCollectionId&#39;, UUID)
@@ -552,6 +552,22 @@ class Layer:
 
         return buf.getvalue()
 
+    def save_as_dataset(self, timeout: int = 60) -&gt; Task:
+        &#39;&#39;&#39;
+        Save a layer as a new dataset.
+        &#39;&#39;&#39;
+        session = get_session()
+
+        response = req.post(
+            url=f&#39;{session.server_url}/layers/{self.provider_id}/{self.layer_id}/dataset&#39;,
+            headers=session.admin_auth_header,
+            timeout=timeout
+        )
+
+        check_response_for_error(response)
+
+        return Task(TaskId.from_response(response.json()))
+
 
 def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
                      layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
@@ -943,7 +959,23 @@ class Layer:
         buf.write(&#34;&lt;/tbody&gt;&#34;)
         buf.write(&#34;&lt;/table&gt;&#34;)
 
-        return buf.getvalue()</code></pre>
+        return buf.getvalue()
+
+    def save_as_dataset(self, timeout: int = 60) -&gt; Task:
+        &#39;&#39;&#39;
+        Save a layer as a new dataset.
+        &#39;&#39;&#39;
+        session = get_session()
+
+        response = req.post(
+            url=f&#39;{session.server_url}/layers/{self.provider_id}/{self.layer_id}/dataset&#39;,
+            headers=session.admin_auth_header,
+            timeout=timeout
+        )
+
+        check_response_for_error(response)
+
+        return Task(TaskId.from_response(response.json()))</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -1005,6 +1037,35 @@ def from_response(cls, response: LayerResponse) -&gt; Layer:
         properties=response[&#39;properties&#39;],
         metadata=response[&#39;metadata&#39;],
     )</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.layers.Layer.save_as_dataset"><code class="name flex">
+<span>def <span class="ident">save_as_dataset</span></span>(<span>self, timeout: int = 60) ‑> <a title="geoengine.tasks.Task" href="tasks.html#geoengine.tasks.Task">Task</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Save a layer as a new dataset.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_as_dataset(self, timeout: int = 60) -&gt; Task:
+    &#39;&#39;&#39;
+    Save a layer as a new dataset.
+    &#39;&#39;&#39;
+    session = get_session()
+
+    response = req.post(
+        url=f&#39;{session.server_url}/layers/{self.provider_id}/{self.layer_id}/dataset&#39;,
+        headers=session.admin_auth_header,
+        timeout=timeout
+    )
+
+    check_response_for_error(response)
+
+    return Task(TaskId.from_response(response.json()))</code></pre>
 </details>
 </dd>
 </dl>
@@ -2118,6 +2179,7 @@ class Listing(Generic[LISTINGID]):
 <li><code><a title="geoengine.layers.Layer.name" href="#geoengine.layers.Layer.name">name</a></code></li>
 <li><code><a title="geoengine.layers.Layer.properties" href="#geoengine.layers.Layer.properties">properties</a></code></li>
 <li><code><a title="geoengine.layers.Layer.provider_id" href="#geoengine.layers.Layer.provider_id">provider_id</a></code></li>
+<li><code><a title="geoengine.layers.Layer.save_as_dataset" href="#geoengine.layers.Layer.save_as_dataset">save_as_dataset</a></code></li>
 <li><code><a title="geoengine.layers.Layer.symbology" href="#geoengine.layers.Layer.symbology">symbology</a></code></li>
 <li><code><a title="geoengine.layers.Layer.workflow" href="#geoengine.layers.Layer.workflow">workflow</a></code></li>
 </ul>
