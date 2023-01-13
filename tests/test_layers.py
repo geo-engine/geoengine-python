@@ -183,7 +183,7 @@ class LayerTests(unittest.TestCase):
                 ge.Layer(
                     name='Land Cover',
                     description='Land Cover derived from MODIS/Terra+Aqua Land Cover',
-                    layer_id=ge.LayerId(UUID('9ee3619e-d0f9-4ced-9c44-3d407c3aed69')),
+                    layer_id=ge.LayerId('9ee3619e-d0f9-4ced-9c44-3d407c3aed69'),
                     provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                     workflow={
                         "operator": {
@@ -382,17 +382,17 @@ class LayerTests(unittest.TestCase):
                 ge.LayerCollection(
                     name='Datasets',
                     description='Basic Layers for all Datasets',
-                    collection_id=ge.LayerCollectionId(UUID('546073b6-d535-4205-b601-99675c9f6dd7')),
+                    collection_id=ge.LayerCollectionId('546073b6-d535-4205-b601-99675c9f6dd7'),
                     provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                     items=[
                         ge.LayerListing(
-                            listing_id=ge.LayerId(UUID('9ee3619e-d0f9-4ced-9c44-3d407c3aed69')),
+                            listing_id=ge.LayerId('9ee3619e-d0f9-4ced-9c44-3d407c3aed69'),
                             provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                             name='Land Cover',
                             description='Land Cover derived from MODIS/Terra+Aqua Land Cover',
                         ),
                         ge.LayerListing(
-                            listing_id=ge.LayerId(UUID('36574dc3-560a-4b09-9d22-d5945f2b8093')),
+                            listing_id=ge.LayerId('36574dc3-560a-4b09-9d22-d5945f2b8093'),
                             provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                             name='NDVI',
                             description='NDVI data from MODIS',
