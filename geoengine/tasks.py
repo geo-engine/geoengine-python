@@ -233,9 +233,11 @@ class Task:
 
         check_response_for_error(response)
 
-    def wait_for_finish_and_print_status(self,
-                                         check_interval_seconds: float = 5,
-                                         request_timeout: int = 3600) -> TaskStatusInfo:
+    def wait_for_finish(
+            self,
+            check_interval_seconds: float = 5,
+            request_timeout: int = 3600,
+            print_status: bool = True) -> TaskStatusInfo:
         '''
         Wait for the given task in a Geo Engine instance to finish (status either complete, aborted or failed).
         The status is printed after each check-in. Check-ins happen in intervals of check_interval_seconds seconds.
@@ -244,7 +246,9 @@ class Task:
 
         while current_status.status == TaskStatus.RUNNING:
             current_status = self.get_status(request_timeout)
-            print(current_status)
+
+            if print_status:
+                print(current_status)
             if current_status.status == TaskStatus.RUNNING:
                 time.sleep(check_interval_seconds)
 
