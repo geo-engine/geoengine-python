@@ -39,6 +39,7 @@ import os
 from typing import Any, Dict, Generic, List, NewType, Optional, TypeVar, Union, cast
 from uuid import UUID
 import json
+import urllib
 from typing_extensions import TypedDict
 import requests as req
 from strenum import LowercaseStrEnum
@@ -46,12 +47,12 @@ from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException, check_response_for_error
 from geoengine.tasks import Task, TaskId
 
-LayerId = NewType(&#39;LayerId&#39;, UUID)
-LayerCollectionId = NewType(&#39;LayerCollectionId&#39;, UUID)
+LayerId = NewType(&#39;LayerId&#39;, str)
+LayerCollectionId = NewType(&#39;LayerCollectionId&#39;, str)
 LayerProviderId = NewType(&#39;LayerProviderId&#39;, UUID)
 
 LAYER_DB_PROVIDER_ID = LayerProviderId(UUID(&#39;ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74&#39;))
-LAYER_DB_ROOT_COLLECTION_ID = LayerCollectionId(UUID(&#39;05102bb3-a855-4a37-8a8a-30026a91fef1&#39;))
+LAYER_DB_ROOT_COLLECTION_ID = LayerCollectionId(&#39;05102bb3-a855-4a37-8a8a-30026a91fef1&#39;)
 
 
 class LayerCollectionAndProviderIdResponse(TypedDict):
@@ -240,7 +241,7 @@ class LayerCollection:
             if item_type is LayerCollectionListingType.LAYER:
                 layer_id_response = cast(LayerAndProviderIdResponse, response[&#39;id&#39;])
                 return LayerListing(
-                    listing_id=LayerId(UUID(layer_id_response[&#39;layerId&#39;])),
+                    listing_id=LayerId(layer_id_response[&#39;layerId&#39;]),
                     provider_id=LayerProviderId(UUID(layer_id_response[&#39;providerId&#39;])),
                     name=item_response[&#39;name&#39;],
                     description=item_response[&#39;description&#39;],
@@ -249,7 +250,7 @@ class LayerCollection:
             if item_type is LayerCollectionListingType.COLLECTION:
                 collection_id_response = cast(LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
                 return LayerCollectionListing(
-                    listing_id=LayerCollectionId(UUID(collection_id_response[&#39;collectionId&#39;])),
+                    listing_id=LayerCollectionId(collection_id_response[&#39;collectionId&#39;]),
                     provider_id=LayerProviderId(UUID(collection_id_response[&#39;providerId&#39;])),
                     name=item_response[&#39;name&#39;],
                     description=item_response[&#39;description&#39;],
@@ -267,7 +268,7 @@ class LayerCollection:
         return LayerCollection(
             name=response[&#39;name&#39;],
             description=response[&#39;description&#39;],
-            collection_id=LayerCollectionId(UUID(response[&#39;id&#39;][&#39;collectionId&#39;])),
+            collection_id=LayerCollectionId(response[&#39;id&#39;][&#39;collectionId&#39;]),
             provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
             items=items,
         )
@@ -380,7 +381,7 @@ class LayerCollection:
             layer_id = existing_layer.listing_id
         elif isinstance(existing_layer, Layer):
             layer_id = existing_layer.layer_id
-        elif isinstance(existing_layer, UUID):  # TODO: check for LayerId in Python 3.11+
+        elif isinstance(existing_layer, str):  # TODO: check for LayerId in Python 3.11+
             layer_id = existing_layer
 
         _add_existing_layer_to_collection(layer_id, self.collection_id, timeout)
@@ -428,7 +429,7 @@ class LayerCollection:
             collection_id = existing_collection.listing_id
         elif isinstance(existing_collection, LayerCollection):
             collection_id = existing_collection.collection_id
-        elif isinstance(existing_collection, UUID):  # TODO: check for LayerId in Python 3.11+
+        elif isinstance(existing_collection, str):  # TODO: check for LayerId in Python 3.11+
             collection_id = existing_collection
 
         _add_existing_layer_collection_to_collection(collection_id=collection_id,
@@ -500,7 +501,7 @@ class Layer:
         return Layer(
             name=response[&#39;name&#39;],
             description=response[&#39;description&#39;],
-            layer_id=LayerId(UUID(response[&#39;id&#39;][&#39;layerId&#39;])),
+            layer_id=LayerId(response[&#39;id&#39;][&#39;layerId&#39;]),
             provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
             workflow=response[&#39;workflow&#39;],
             symbology=response[&#39;symbology&#39;],
@@ -579,7 +580,7 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
     session = get_session()
 
     request = &#39;/layers/collections&#39; if layer_collection_id is None \
-        else f&#39;/layers/collections/{layer_provider_id}/{layer_collection_id}&#39;
+        else f&#39;/layers/collections/{layer_provider_id}/{urllib.parse.quote_plus(layer_collection_id)}&#39;
 
     page_limit = 20
     pages: List[LayerCollectionResponse] = []
@@ -618,7 +619,7 @@ def layer(layer_id: LayerId,
     session = get_session()
 
     response = req.get(
-        f&#39;{session.server_url}/layers/{layer_provider_id}/{layer_id}&#39;,
+        f&#39;{session.server_url}/layers/{layer_provider_id}/{urllib.parse.quote_plus(layer_id)}&#39;,
         headers=session.admin_or_normal_auth_header,
         timeout=timeout,
     )
@@ -700,7 +701,7 @@ def _add_layer_collection_to_collection(name: str,
     if not response.ok:
         raise GeoEngineException(response.json())
 
-    return LayerCollectionId(UUID(response.json()[&#39;id&#39;]))
+    return LayerCollectionId(response.json()[&#39;id&#39;])
 
 
 def _add_existing_layer_collection_to_collection(collection_id: LayerCollectionId,
@@ -746,7 +747,7 @@ def _add_layer_to_collection(name: str,
     if not response.ok:
         raise GeoEngineException(response.json())
 
-    return LayerId(UUID(response.json()[&#39;id&#39;]))
+    return LayerId(response.json()[&#39;id&#39;])
 
 
 def _add_existing_layer_to_collection(layer_id: LayerId,
@@ -792,7 +793,7 @@ def _add_existing_layer_to_collection(layer_id: LayerId,
     session = get_session()
 
     response = req.get(
-        f&#39;{session.server_url}/layers/{layer_provider_id}/{layer_id}&#39;,
+        f&#39;{session.server_url}/layers/{layer_provider_id}/{urllib.parse.quote_plus(layer_id)}&#39;,
         headers=session.admin_or_normal_auth_header,
         timeout=timeout,
     )
@@ -822,7 +823,7 @@ def _add_existing_layer_to_collection(layer_id: LayerId,
     session = get_session()
 
     request = &#39;/layers/collections&#39; if layer_collection_id is None \
-        else f&#39;/layers/collections/{layer_provider_id}/{layer_collection_id}&#39;
+        else f&#39;/layers/collections/{layer_provider_id}/{urllib.parse.quote_plus(layer_collection_id)}&#39;
 
     page_limit = 20
     pages: List[LayerCollectionResponse] = []
@@ -909,7 +910,7 @@ class Layer:
         return Layer(
             name=response[&#39;name&#39;],
             description=response[&#39;description&#39;],
-            layer_id=LayerId(UUID(response[&#39;id&#39;][&#39;layerId&#39;])),
+            layer_id=LayerId(response[&#39;id&#39;][&#39;layerId&#39;]),
             provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
             workflow=response[&#39;workflow&#39;],
             symbology=response[&#39;symbology&#39;],
@@ -1030,7 +1031,7 @@ def from_response(cls, response: LayerResponse) -&gt; Layer:
     return Layer(
         name=response[&#39;name&#39;],
         description=response[&#39;description&#39;],
-        layer_id=LayerId(UUID(response[&#39;id&#39;][&#39;layerId&#39;])),
+        layer_id=LayerId(response[&#39;id&#39;][&#39;layerId&#39;]),
         provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
         workflow=response[&#39;workflow&#39;],
         symbology=response[&#39;symbology&#39;],
@@ -1157,7 +1158,7 @@ dict(one=1, two=2)</p></div>
             if item_type is LayerCollectionListingType.LAYER:
                 layer_id_response = cast(LayerAndProviderIdResponse, response[&#39;id&#39;])
                 return LayerListing(
-                    listing_id=LayerId(UUID(layer_id_response[&#39;layerId&#39;])),
+                    listing_id=LayerId(layer_id_response[&#39;layerId&#39;]),
                     provider_id=LayerProviderId(UUID(layer_id_response[&#39;providerId&#39;])),
                     name=item_response[&#39;name&#39;],
                     description=item_response[&#39;description&#39;],
@@ -1166,7 +1167,7 @@ dict(one=1, two=2)</p></div>
             if item_type is LayerCollectionListingType.COLLECTION:
                 collection_id_response = cast(LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
                 return LayerCollectionListing(
-                    listing_id=LayerCollectionId(UUID(collection_id_response[&#39;collectionId&#39;])),
+                    listing_id=LayerCollectionId(collection_id_response[&#39;collectionId&#39;]),
                     provider_id=LayerProviderId(UUID(collection_id_response[&#39;providerId&#39;])),
                     name=item_response[&#39;name&#39;],
                     description=item_response[&#39;description&#39;],
@@ -1184,7 +1185,7 @@ dict(one=1, two=2)</p></div>
         return LayerCollection(
             name=response[&#39;name&#39;],
             description=response[&#39;description&#39;],
-            collection_id=LayerCollectionId(UUID(response[&#39;id&#39;][&#39;collectionId&#39;])),
+            collection_id=LayerCollectionId(response[&#39;id&#39;][&#39;collectionId&#39;]),
             provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
             items=items,
         )
@@ -1297,7 +1298,7 @@ dict(one=1, two=2)</p></div>
             layer_id = existing_layer.listing_id
         elif isinstance(existing_layer, Layer):
             layer_id = existing_layer.layer_id
-        elif isinstance(existing_layer, UUID):  # TODO: check for LayerId in Python 3.11+
+        elif isinstance(existing_layer, str):  # TODO: check for LayerId in Python 3.11+
             layer_id = existing_layer
 
         _add_existing_layer_to_collection(layer_id, self.collection_id, timeout)
@@ -1345,7 +1346,7 @@ dict(one=1, two=2)</p></div>
             collection_id = existing_collection.listing_id
         elif isinstance(existing_collection, LayerCollection):
             collection_id = existing_collection.collection_id
-        elif isinstance(existing_collection, UUID):  # TODO: check for LayerId in Python 3.11+
+        elif isinstance(existing_collection, str):  # TODO: check for LayerId in Python 3.11+
             collection_id = existing_collection
 
         _add_existing_layer_collection_to_collection(collection_id=collection_id,
@@ -1409,7 +1410,7 @@ def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; Laye
         if item_type is LayerCollectionListingType.LAYER:
             layer_id_response = cast(LayerAndProviderIdResponse, response[&#39;id&#39;])
             return LayerListing(
-                listing_id=LayerId(UUID(layer_id_response[&#39;layerId&#39;])),
+                listing_id=LayerId(layer_id_response[&#39;layerId&#39;]),
                 provider_id=LayerProviderId(UUID(layer_id_response[&#39;providerId&#39;])),
                 name=item_response[&#39;name&#39;],
                 description=item_response[&#39;description&#39;],
@@ -1418,7 +1419,7 @@ def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; Laye
         if item_type is LayerCollectionListingType.COLLECTION:
             collection_id_response = cast(LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
             return LayerCollectionListing(
-                listing_id=LayerCollectionId(UUID(collection_id_response[&#39;collectionId&#39;])),
+                listing_id=LayerCollectionId(collection_id_response[&#39;collectionId&#39;]),
                 provider_id=LayerProviderId(UUID(collection_id_response[&#39;providerId&#39;])),
                 name=item_response[&#39;name&#39;],
                 description=item_response[&#39;description&#39;],
@@ -1436,7 +1437,7 @@ def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; Laye
     return LayerCollection(
         name=response[&#39;name&#39;],
         description=response[&#39;description&#39;],
-        collection_id=LayerCollectionId(UUID(response[&#39;id&#39;][&#39;collectionId&#39;])),
+        collection_id=LayerCollectionId(response[&#39;id&#39;][&#39;collectionId&#39;]),
         provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
         items=items,
     )</code></pre>
@@ -1496,7 +1497,7 @@ def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; Laye
         collection_id = existing_collection.listing_id
     elif isinstance(existing_collection, LayerCollection):
         collection_id = existing_collection.collection_id
-    elif isinstance(existing_collection, UUID):  # TODO: check for LayerId in Python 3.11+
+    elif isinstance(existing_collection, str):  # TODO: check for LayerId in Python 3.11+
         collection_id = existing_collection
 
     _add_existing_layer_collection_to_collection(collection_id=collection_id,
@@ -1536,7 +1537,7 @@ def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; Laye
         layer_id = existing_layer.listing_id
     elif isinstance(existing_layer, Layer):
         layer_id = existing_layer.layer_id
-    elif isinstance(existing_layer, UUID):  # TODO: check for LayerId in Python 3.11+
+    elif isinstance(existing_layer, str):  # TODO: check for LayerId in Python 3.11+
         layer_id = existing_layer
 
     _add_existing_layer_to_collection(layer_id, self.collection_id, timeout)
