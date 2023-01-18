@@ -6,7 +6,7 @@ from requests import utils
 from .auth import Session, get_session, initialize, reset
 from .colorizer import Colorizer
 from .datasets import upload_dataframe, StoredDataset, add_public_raster_dataset, volumes, GdalMetaDataStatic, \
-    GdalMetaDataRegular, GdalMetadataNetCdfCf
+    GdalMetaDataRegular, GdalMetadataNetCdfCf, AddDatasetProperties
 from .error import GeoEngineException, InputException, UninitializedException, TypeException, \
     MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, \
     SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \
@@ -15,7 +15,7 @@ from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing
     LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer
 from .types import QueryRectangle, GdalDatasetParameters, GdalDatasetGeoTransform, FileNotFoundHandling, \
-    RasterResultDescriptor
+    RasterResultDescriptor, RasterSymbology
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow
 
 

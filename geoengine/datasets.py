@@ -5,7 +5,7 @@ Module for working with datasets and source definitions
 from __future__ import annotations
 from abc import abstractmethod
 from datetime import datetime
-from typing import Dict, List, NamedTuple, Optional, Tuple, Union, Generic, TypeVar
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union, Generic, TypeVar
 
 from enum import Enum
 from uuid import UUID
@@ -19,7 +19,8 @@ import requests as req
 
 from geoengine.error import GeoEngineException, InputException
 from geoengine.auth import get_session
-from geoengine.types import GdalDatasetParameters, RasterResultDescriptor, TimeStep, TimeStepGranularity, VectorDataType
+from geoengine.types import GdalDatasetParameters, Provenance, RasterResultDescriptor, RasterSymbology, TimeStep, \
+    TimeStepGranularity, VectorDataType
 
 
 _OrgSourceDurationDictT = TypeVar('_OrgSourceDurationDictT', str, Union[str, int, TimeStepGranularity])
@@ -509,6 +510,17 @@ class StoredDataset(NamedTuple):
 
 
 @dataclass
+class AddDatasetProperties(TypedDict):
+    '''The properties of a dataset'''
+    id: Optional[DatasetId]
+    name: str
+    description: str
+    sourceOperator: Literal['GdalSource']  # TODO: add more operators
+    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
+    provenance: Optional[Provenance]
+
+
+@dataclass
 class Volume:
     '''A volume'''
 
@@ -534,7 +546,7 @@ def volumes(timeout: int = 60) -> List[Volume]:
     return [Volume.from_response(v) for v in response]
 
 
-def add_public_raster_dataset(volume_id: VolumeId, name: str, meta_data: MetaDataDefinition,
+def add_public_raster_dataset(volume_id: VolumeId, properties: AddDatasetProperties, meta_data: MetaDataDefinition,
                               timeout: int = 60) -> DatasetId:
     '''Adds a public raster dataset to the Geo Engine'''
 
@@ -543,11 +555,7 @@ def add_public_raster_dataset(volume_id: VolumeId, name: str, meta_data: MetaDat
             "volume": str(volume_id)
         },
         "definition": {
-            "properties": {
-                "name": name,
-                "description": "",
-                "sourceOperator": "GdalSource"
-            },
+            "properties": properties,
             "metaData": meta_data
         }
     }

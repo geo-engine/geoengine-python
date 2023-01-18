@@ -235,6 +235,8 @@ class Workflow:
         width = int((bbox.xmax - bbox.xmin) / bbox.resolution[0])
         height = int((bbox.ymax - bbox.ymin) / bbox.resolution[1])
 
+        colorizer_colorizer_str = 'custom:' + colorizer.to_json()
+
         params = dict(
             service='WMS',
             version='1.3.0',
@@ -246,7 +248,7 @@ class Workflow:
             width=width,
             height=height,
             format='image/png',
-            styles=colorizer.to_query_string(),
+            styles=colorizer_colorizer_str,
         )
 
         return req.Request(

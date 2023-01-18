@@ -11,6 +11,7 @@ from uuid import UUID
 from enum import Enum
 from attr import dataclass
 from typing_extensions import TypedDict
+from geoengine.colorizer import Colorizer
 
 from geoengine.error import GeoEngineException, InputException, TypeException
 
@@ -500,6 +501,35 @@ class ProvenanceOutput:
         provenance = Provenance.from_response(response['provenance'])
 
         return ProvenanceOutput(dataset, provenance)
+
+
+class Symbology:
+    '''Base class for symbology'''
+
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
+        pass
+
+
+class RasterSymbology(Symbology):
+    '''A raster symbology'''
+    __opacity: float
+    __colorizer: Colorizer
+
+    def __init__(self, colorizer: Colorizer, opacity: float = 0.0) -> None:
+        '''Initialize a new `RasterSymbology`'''
+
+        self.__colorizer = colorizer
+        self.__opacity = opacity
+
+    def to_dict(self) -> Dict[str, Any]:
+        '''Convert the raster symbology to a dictionary'''
+
+        return {
+            'type': 'raster',
+            'colorizer': self.__colorizer.to_dict(),
+            'opacity': self.__opacity,
+        }
 
 
 class DataId:  # pylint: disable=too-few-public-methods

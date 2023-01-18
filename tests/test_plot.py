@@ -10,7 +10,7 @@ from geoengine.types import QueryRectangle
 import geoengine as ge
 
 
-class WmsTests(unittest.TestCase):
+class PlotTests(unittest.TestCase):
     '''Test runner for the plotting functionality'''
 
     def setUp(self) -> None:

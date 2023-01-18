@@ -1,25 +1,46 @@
 """This module is used to generate geoengine compatible color map definitions as a json string."""
 
 import json
-from typing import Tuple
+from typing import Any, Dict, List, Literal, Tuple, TypedDict
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from matplotlib.cm import ScalarMappable
 
 
+class ColorBreakpoint(TypedDict):
+    color: tuple[int, int, int, int]
+    value: float
+
+
 class Colorizer():
     """This class is used to generate geoengine compatible color map definitions as a json string."""
 
-    # pylint: disable=too-few-public-methods
+    type: Literal["linearGradient"]
+    breakpoints: List[ColorBreakpoint]
+    no_data_color: tuple[int, int, int, int]
+    default_color: tuple[int, int, int, int]
 
     def __init__(
             self,
+            breakpoints: List[ColorBreakpoint],
+            no_data_color: tuple[int, int, int, int],
+            default_color: tuple[int, int, int, int]):
+        """Initialize the colorizer."""
+        self.type = "linearGradient"
+        self.breakpoints = breakpoints
+        self.no_data_color = no_data_color
+        self.default_color = default_color
+
+    # pylint: disable=too-few-public-methods
+
+    @ staticmethod
+    def with_mpl_cmap(
             map_name: ListedColormap,
             min_max: Tuple[int, int],
             n_steps: int = 10,
             default_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
-            no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)):
+            no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)) -> "Colorizer":
         """Initialize the colorizer."""
         # pylint: disable=too-many-arguments
 
@@ -64,44 +85,37 @@ class Colorizer():
         if not all(0 <= elem < 256 for elem in default_color):
             raise ValueError(f"defaultColor must be a RGBA color specification, got {default_color} instead.")
 
-        self.__map_name = map_name
-        self.__min_max = min_max
-        self.__n_steps = n_steps
-        self.__default_color = default_color
-        self.__no_data_color = no_data_color
-
-    def to_query_string(self) -> str:
-        """Generate a json dump that is compatible with the geoengine config protocol.
-
-        Args:
-            map_name (str): a name of a defined colormap.
-            n_steps (int): how many steps the colormap should have.
-
-        Returns:
-            str: Returns the geoengine compatible json configuration string.
-        """
         # get the map, and transform it to [0,255] values
-        colormap = ScalarMappable(cmap=self.__map_name).to_rgba(
-            np.linspace(self.__min_max[0], self.__min_max[1], self.__n_steps), bytes=True).tolist()
+        colormap = [
+            tuple((int(x[0]), int(x[1]), int(x[2]), int(x[3]))) for x in ScalarMappable(cmap=map_name).to_rgba(
+                np.linspace(min_max[0], min_max[1], n_steps), bytes=True)]
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
         value_bounds = [
-            int(x) for x in np.linspace(self.__min_max[0], self.__min_max[1], self.__n_steps).tolist()
+            int(x) for x in np.linspace(min_max[0], min_max[1], n_steps)
         ]
 
         # generate color map steps for geoengine
         breakpoints = [
-            {"value": value, "color": color} for (value, color) in zip(value_bounds, colormap)
+            ColorBreakpoint({"value": value, "color": color}) for (value, color) in zip(value_bounds, colormap)
         ]
 
-        # create the json string for geoengine
-        colorizer = "custom:" + json.dumps(
-            {
-                "type": "linearGradient",
-                "breakpoints": breakpoints,
-                "noDataColor": self.__no_data_color,
-                "defaultColor": self.__default_color,
-            }
-        )
+        no_data_t = tuple(no_data_color)
+        default_color_t = tuple(default_color)
+
+        colorizer = Colorizer(breakpoints=breakpoints, no_data_color=no_data_t, default_color=default_color_t)
 
         return colorizer
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Return the colorizer as a dictionary."""
+        return {
+            "type": self.type,
+            "breakpoints": self.breakpoints,
+            "noDataColor": self.no_data_color,
+            "defaultColor": self.default_color,
+        }
+
+    def to_json(self) -> str:
+        """Return the colorizer as a JSON string."""
+        return json.dumps(self.to_dict())
