@@ -25,10 +25,11 @@ class Colorizer():
     default_color: Tuple[int, int, int, int]
 
     def __init__(
-            self,
-            breakpoints: List[ColorBreakpoint],
-            no_data_color: Tuple[int, int, int, int],
-            default_color: Tuple[int, int, int, int]):
+        self,
+        breakpoints: List[ColorBreakpoint],
+        no_data_color: Tuple[int, int, int, int],
+        default_color: Tuple[int, int, int, int]
+    ):
         """Initialize the colorizer."""
         self.type = "linearGradient"
         self.breakpoints = breakpoints
@@ -39,11 +40,12 @@ class Colorizer():
 
     @ staticmethod
     def with_mpl_cmap(
-            map_name: ListedColormap,
-            min_max: Tuple[int, int],
-            n_steps: int = 10,
-            default_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
-            no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)) -> "Colorizer":
+        map_name: ListedColormap,
+        min_max: Tuple[int, int],
+        n_steps: int = 10,
+        default_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
+        no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)
+    ) -> "Colorizer":
         """Initialize the colorizer."""
         # pylint: disable=too-many-arguments
 
@@ -90,7 +92,7 @@ class Colorizer():
 
         # get the map, and transform it to [0,255] values
         colormap = [
-            tuple((int(x[0]), int(x[1]), int(x[2]), int(x[3]))) for x in ScalarMappable(cmap=map_name).to_rgba(
+            (int(x[0]), int(x[1]), int(x[2]), int(x[3])) for x in ScalarMappable(cmap=map_name).to_rgba(
                 np.linspace(min_max[0], min_max[1], n_steps), bytes=True)]
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
@@ -103,10 +105,7 @@ class Colorizer():
             ColorBreakpoint({"value": value, "color": color}) for (value, color) in zip(value_bounds, colormap)
         ]
 
-        no_data_t = tuple(no_data_color)
-        default_color_t = tuple(default_color)
-
-        colorizer = Colorizer(breakpoints=breakpoints, no_data_color=no_data_t, default_color=default_color_t)
+        colorizer = Colorizer(breakpoints=breakpoints, no_data_color=no_data_color, default_color=default_color)
 
         return colorizer
 
