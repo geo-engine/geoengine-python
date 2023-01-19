@@ -19,7 +19,7 @@ class ColorBreakpoint(TypedDict):
 class Colorizer():
     """This class is used to generate geoengine compatible color map definitions as a json string."""
 
-    type: Literal["linearGradient"]
+    type: Literal["linearGradient", "palette", "logarithmicGradient"]
     breakpoints: List[ColorBreakpoint]
     no_data_color: Tuple[int, int, int, int]
     default_color: Tuple[int, int, int, int]
@@ -39,7 +39,7 @@ class Colorizer():
     # pylint: disable=too-few-public-methods
 
     @ staticmethod
-    def with_mpl_cmap(
+    def linear_with_mpl_cmap(
         map_name: ListedColormap,
         min_max: Tuple[int, int],
         n_steps: int = 10,

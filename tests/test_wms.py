@@ -86,7 +86,7 @@ class WmsTests(unittest.TestCase):
                     [time, time],
                     resolution=(1.8, 1.8)
                 ),
-                colorizer=Colorizer.with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2),
+                colorizer=Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2),
             )
 
             self.assertEqual(img, Image.open("tests/responses/wms-ndvi.png"))
@@ -158,7 +158,7 @@ class WmsTests(unittest.TestCase):
                         [time, time],
                         resolution=(1.8, 1.8)
                     ),
-                    colorizer=Colorizer.with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2),
+                    colorizer=Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2),
                 )
 
             self.assertEqual(str(ctx.exception),
@@ -216,7 +216,7 @@ class WmsTests(unittest.TestCase):
                 [-180.0, -90.0, 180.0, 90.0],
                 [time, time],
                 resolution=(1, 1),
-            ), Colorizer.with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2))
+            ), Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2))
 
             self.assertEqual(
                 # pylint: disable=line-too-long
