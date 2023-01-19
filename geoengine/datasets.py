@@ -568,3 +568,17 @@ def add_public_raster_dataset(volume_id: VolumeId, name: str, meta_data: MetaDat
         raise GeoEngineException(response)
 
     return DatasetId(response["id"])
+
+
+def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -> None:
+    '''Delete a dataset. The dataset must be owned by the caller.'''
+
+    session = get_session()
+
+    response = req.delete(f'{session.server_url}/dataset/{dataset_id}',
+                          headers=session.admin_or_normal_auth_header,
+                          timeout=timeout)
+
+    if response.status_code != 200:
+        error_json = response.json()
+        raise GeoEngineException(error_json)
