@@ -5,7 +5,7 @@ Module for working with datasets and source definitions
 from __future__ import annotations
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union, Generic, TypeVar
+from typing import Dict, List, NamedTuple, Optional, Tuple, Union, Generic, TypeVar
 
 from enum import Enum
 from uuid import UUID

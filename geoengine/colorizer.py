@@ -1,7 +1,8 @@
 """This module is used to generate geoengine compatible color map definitions as a json string."""
 
 import json
-from typing import Any, Dict, List, Literal, Tuple, TypedDict
+from typing import Any, Dict, List, Tuple
+from typing_extensions import Literal, TypedDict
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
@@ -9,8 +10,10 @@ from matplotlib.cm import ScalarMappable
 
 
 class ColorBreakpoint(TypedDict):
-    color: tuple[int, int, int, int]
+    color: Tuple[int, int, int, int]
     value: float
+
+    # pylint: disable=too-few-public-methods
 
 
 class Colorizer():
@@ -18,14 +21,14 @@ class Colorizer():
 
     type: Literal["linearGradient"]
     breakpoints: List[ColorBreakpoint]
-    no_data_color: tuple[int, int, int, int]
-    default_color: tuple[int, int, int, int]
+    no_data_color: Tuple[int, int, int, int]
+    default_color: Tuple[int, int, int, int]
 
     def __init__(
             self,
             breakpoints: List[ColorBreakpoint],
-            no_data_color: tuple[int, int, int, int],
-            default_color: tuple[int, int, int, int]):
+            no_data_color: Tuple[int, int, int, int],
+            default_color: Tuple[int, int, int, int]):
         """Initialize the colorizer."""
         self.type = "linearGradient"
         self.breakpoints = breakpoints
