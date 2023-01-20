@@ -12,8 +12,6 @@ from enum import Enum
 from attr import dataclass
 from geoengine.colorizer import Colorizer
 from geoengine import api
-
-
 from geoengine.error import GeoEngineException, InputException, TypeException
 
 

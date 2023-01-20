@@ -1,15 +1,16 @@
 '''The geoengine API'''
 from enum import Enum
-from typing import Dict, Literal, Optional, Tuple, TypedDict, List
+from typing import Dict, Optional, Tuple, List
+from typing_extensions import Literal, TypedDict
 
 
-class ColorizerBreakpoint(TypedDict):
+class ColorizerBreakpoint(TypedDict):  # pylint: disable=too-few-public-methods
     """This class is used to generate geoengine compatible color breakpoint definitions as a dictionary."""
     value: float
     color: Tuple[int, int, int, int]
 
 
-class Colorizer(TypedDict):
+class Colorizer(TypedDict):  # pylint: disable=too-few-public-methods
     """This class is used to generate geoengine compatible color map definitions as a dictionary."""
     type: Literal["linearGradient", "palette", "logarithmicGradient"]
     breakpoints: List[ColorizerBreakpoint]
@@ -17,25 +18,25 @@ class Colorizer(TypedDict):
     defaultColor: Tuple[int, int, int, int]
 
 
-class Provenance(TypedDict):
+class Provenance(TypedDict):  # pylint: disable=too-few-public-methods
     '''A provenance dictionary'''
     citation: str
     license: str
     uri: str
 
 
-class Symbology(TypedDict):
+class Symbology(TypedDict):  # pylint: disable=too-few-public-methods
     '''A dictionary representation of a symbology'''
     type: Literal['vector', 'raster']
 
 
-class RasterSymbology(Symbology):
+class RasterSymbology(Symbology):  # pylint: disable=too-few-public-methods
     '''A dictionary representation of a raster symbology'''
     colorizer: Colorizer
     opacity: float
 
 
-class AddDataset(TypedDict):
+class AddDataset(TypedDict):  # pylint: disable=too-few-public-methods
     '''The properties of a dataset'''
     id: Optional[str]
     name: str
@@ -45,76 +46,77 @@ class AddDataset(TypedDict):
     provenance: Optional[Provenance]
 
 
-class Measurement(TypedDict):
+class Measurement(TypedDict):  # pylint: disable=too-few-public-methods
     '''A measurement'''
     type: Literal['continuous', 'classification', 'unitless']
 
 
-class UnitlessMeasurement(Measurement):
+class UnitlessMeasurement(Measurement):  # pylint: disable=too-few-public-methods
     '''A unitless measurement'''
     type: Literal['unitless']
 
 
-class ContinuousMeasurement(Measurement):
+class ContinuousMeasurement(Measurement):  # pylint: disable=too-few-public-methods
     '''A continuous measurement'''
     type: Literal['continuous']
     measurement: str
     unit: Optional[str]
 
 
-class ClassificationMeasurement(Measurement):
+class ClassificationMeasurement(Measurement):  # pylint: disable=too-few-public-methods
     '''A classification measurement'''
     type: Literal['classification']
     measurement: str
     classes: Dict[int, str]
 
 
-class ResultDescriptor(TypedDict):  # TODO: add time, bbox, resolution
+class ResultDescriptor(TypedDict):  # pylint: disable=too-few-public-methods
+    # TODO: add time, bbox, resolution
     '''The result descriptor of an operator'''
     type: Literal['raster', 'vector', 'plot']
     spatialReference: str
 
 
-class RasterResultDescriptor(ResultDescriptor):
+class RasterResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
     '''The result descriptor of a raster operator'''
     dataType: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']
     measurement: Measurement
 
 
-class VectorResultDescriptor(ResultDescriptor):
+class VectorResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
     '''The result descriptor of a vector operator'''
     dataType: Literal['MultiPoint', 'MultiLineString', 'MultiPolygon']
 
 
-class PlotResultDescriptor(ResultDescriptor):
+class PlotResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
     '''The result descriptor of a plot operator'''
     dataType: Literal['Plot']
 
 
-class GdalDatasetGeoTransform(TypedDict):
+class GdalDatasetGeoTransform(TypedDict):  # pylint: disable=too-few-public-methods
     '''Geo transform of a GDAL dataset'''
     originCoordinate: Tuple[float, float]
     xPixelSize: float
     yPixelSize: float
 
 
-class FileNotFoundHandling(str, Enum):
+class FileNotFoundHandling(str, Enum):  # pylint: disable=too-few-public-methods
     NODATA = "NoData"
     ERROR = "Abort"
 
 
-class RasterPropertiesKey(TypedDict):
+class RasterPropertiesKey(TypedDict):  # pylint: disable=too-few-public-methods
     '''Key of a raster properties entry'''
     domain: Optional[str]
     key: str
 
 
-class RasterPropertiesEntryType(Enum):
+class RasterPropertiesEntryType(Enum):  # pylint: disable=too-few-public-methods
     NUMBER = "number"
     STRING = "string"
 
 
-class GdalMetadataMapping(TypedDict):
+class GdalMetadataMapping(TypedDict):  # pylint: disable=too-few-public-methods
     '''Mapping of GDAL metadata raster properties'''
 
     sourceKey: RasterPropertiesKey
@@ -122,9 +124,8 @@ class GdalMetadataMapping(TypedDict):
     targetType: RasterPropertiesEntryType
 
 
-class GdalDatasetParameters(TypedDict):
+class GdalDatasetParameters(TypedDict):  # pylint: disable=too-few-public-methods
     '''Parameters for a GDAL dataset'''
-
     filePath: str
     rasterbandChannel: int
     geoTransform: GdalDatasetGeoTransform
@@ -142,30 +143,28 @@ class MetaDataDefinition(TypedDict):  # pylint: disable=too-few-public-methods
     '''Super class for all metadata definitions'''
 
 
-class GdalMetaDataStatic(MetaDataDefinition):
+class GdalMetaDataStatic(MetaDataDefinition):  # pylint: disable=too-few-public-methods
     '''Static metadata for GDAL datasets'''
-
     type: Literal["GdalStatic"]
     time: Optional[Tuple[str, str]]
     params: GdalDatasetParameters
     resultDescriptor: RasterResultDescriptor
 
 
-class DateTimeParseFormat(TypedDict):
+class DateTimeParseFormat(TypedDict):  # pylint: disable=too-few-public-methods
     '''A format for parsing date time strings'''
     fmt: str
     hasTz: bool
     hasTime: bool
 
 
-class TimeReference(Enum):
+class TimeReference(Enum):  # pylint: disable=too-few-public-methods
     '''The reference for a time placeholder'''
-
     START = "Start"
     END = "End"
 
 
-class TimeStepGranularity(Enum):
+class TimeStepGranularity(Enum):  # pylint: disable=too-few-public-methods
     '''An enum of time step granularities'''
     MILLIS = 'Millis'
     SECONDS = 'Seconds'
@@ -176,21 +175,20 @@ class TimeStepGranularity(Enum):
     YEARS = 'Years'
 
 
-class TimeStep(TypedDict):
+class TimeStep(TypedDict):  # pylint: disable=too-few-public-methods
     '''A time step that consists of a granularity and a step size'''
     step: int
     granularity: TimeStepGranularity
 
 
-class GdalSourceTimePlaceholder(TypedDict):
+class GdalSourceTimePlaceholder(TypedDict):  # pylint: disable=too-few-public-methods
     '''A placeholder for a time value in a file name'''
     format: DateTimeParseFormat
     reference: TimeReference
 
 
-class GdalMetaDataRegular(MetaDataDefinition):
+class GdalMetaDataRegular(MetaDataDefinition):  # pylint: disable=too-few-public-methods
     '''Metadata for regular GDAL datasets'''
-
     type: Literal["GdalMetaDataRegular"]
     resultDescriptor: RasterResultDescriptor
     params: GdalDatasetParameters
@@ -199,9 +197,8 @@ class GdalMetaDataRegular(MetaDataDefinition):
     step: TimeStep
 
 
-class GdalMetadataNetCdfCf(MetaDataDefinition):
+class GdalMetadataNetCdfCf(MetaDataDefinition):  # pylint: disable=too-few-public-methods
     '''Metadata for NetCDF CF datasets'''
-
     type: Literal["GdalMetadataNetCdfCf"]
     resultDescriptor: RasterResultDescriptor
     params: GdalDatasetParameters
@@ -211,46 +208,46 @@ class GdalMetadataNetCdfCf(MetaDataDefinition):
     bandOffset: int
 
 
-class DatasetId(TypedDict):
+class DatasetId(TypedDict):  # pylint: disable=too-few-public-methods
     '''A dataset id'''
     id: str
 
 
-class UploadId(TypedDict):
+class UploadId(TypedDict):  # pylint: disable=too-few-public-methods
     '''A upload id'''
     id: str
 
 
-class VolumeId(TypedDict):
+class VolumeId(TypedDict):  # pylint: disable=too-few-public-methods
     '''A volume id'''
     id: str
 
 
-class StoredDataset(TypedDict):
+class StoredDataset(TypedDict):  # pylint: disable=too-few-public-methods
     '''A stored dataset'''
     dataset: str
     upload: str
 
 
-class Volume(TypedDict):
+class Volume(TypedDict):  # pylint: disable=too-few-public-methods
     '''A volume'''
     name: str
     path: str
 
 
-class OgrSourceDurationSpec(TypedDict):
+class OgrSourceDurationSpec(TypedDict):  # pylint: disable=too-few-public-methods
     '''A duration for an OGR source'''
     type: Literal['zero', 'value', 'infinite']
 
 
-class ValueOgrSourceDurationSpec(OgrSourceDurationSpec):
+class ValueOgrSourceDurationSpec(OgrSourceDurationSpec):  # pylint: disable=too-few-public-methods
     '''A fixed value for a source duration'''
 
     step: TimeStep
     granularity: TimeStepGranularity
 
 
-class ZeroOgrSourceDurationSpec(OgrSourceDurationSpec):
+class ZeroOgrSourceDurationSpec(OgrSourceDurationSpec):  # pylint: disable=too-few-public-methods
     '''A zero duration for a source duration'''
     type: Literal['zero']
 
@@ -260,63 +257,63 @@ class InfiniteOgrSourceDurationSpec(OgrSourceDurationSpec):
     type: Literal['infinite']
 
 
-class VectorColumnInfo(TypedDict):
+class VectorColumnInfo(TypedDict):  # pylint: disable=too-few-public-methods
     '''A vector column info'''
     data_type: str
     measurement: Measurement
 
 
-class DataId(TypedDict):
+class DataId(TypedDict):  # pylint: disable=too-few-public-methods
     '''A data id'''
     type: Literal['internal', 'external']
 
 
-class InternalDataId(DataId):
+class InternalDataId(DataId):  # pylint: disable=too-few-public-methods
     '''An internal data id'''
     type: Literal['internal']
     datasetId: str
 
 
-class ExternalDataId(DataId):
+class ExternalDataId(DataId):  # pylint: disable=too-few-public-methods
     '''An external data id'''
     type: Literal['external']
     providerId: str
     layerId: str
 
 
-class ProvenanceOutput(TypedDict):
+class ProvenanceOutput(TypedDict):  # pylint: disable=too-few-public-methods
     '''A provenance output'''
     dataId: DataId
     provenance: Provenance
 
 
-class OgrSourceTimeFormat(TypedDict):
+class OgrSourceTimeFormat(TypedDict):  # pylint: disable=too-few-public-methods
     '''A time format for an OGR source'''
     type: Literal['seconds', 'custom', 'auto']
 
 
-class SecondsOgrSourceTimeFormat(OgrSourceTimeFormat):
+class SecondsOgrSourceTimeFormat(OgrSourceTimeFormat):  # pylint: disable=too-few-public-methods
     '''A seconds time format for an OGR source'''
     type: Literal['seconds']
 
 
-class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
+class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):  # pylint: disable=too-few-public-methods
     '''A custom time format for an OGR source'''
     type: Literal['custom']
     customFormat: str
 
 
-class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
+class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):  # pylint: disable=too-few-public-methods
     '''An auto time format for an OGR source'''
     type: Literal['auto']
 
 
-class OgrSourceDatasetTimeType(TypedDict):
+class OgrSourceDatasetTimeType(TypedDict):  # pylint: disable=too-few-public-methods
     '''A time type for an OGR source'''
     type: Literal['start', 'start+end', 'start+duration', 'none']
 
 
-class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):  # pylint: disable=too-few-public-methods
     '''A start time type for an OGR source'''
     type: Literal['start']
     startFormat: OgrSourceTimeFormat
@@ -324,7 +321,7 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     duration: OgrSourceDurationSpec
 
 
-class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):  # pylint: disable=too-few-public-methods
     '''A start+end time type for an OGR source'''
     type: Literal['start+end']
     startField: str
@@ -333,16 +330,16 @@ class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     endFormat: OgrSourceTimeFormat
 
 
-class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):  # pylint: disable=too-few-public-methods
     '''A start+duration time type for an OGR source'''
     type: Literal['start+duration']
 
 
-class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
+class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):  # pylint: disable=too-few-public-methods
     '''A none time type for an OGR source'''
     type: Literal['none']
 
 
-class OgrOnError(Enum):
+class OgrOnError(Enum):  # pylint: disable=too-few-public-methods
     IGNORE = "ignore"
     ABORT = "abort"
