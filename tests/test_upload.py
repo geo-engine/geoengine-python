@@ -62,7 +62,7 @@ class UploadTests(unittest.TestCase):
         time = OgrSourceDatasetTimeType.start(
             'start', OgrSourceTimeFormat.auto(), OgrSourceDuration.value(10, TimeStepGranularity.MINUTES))
 
-        self.assertEqual(time.to_dict(), {
+        self.assertEqual(time.to_api_dict(), {
             'type': 'start',
             'startField': 'start',
             'startFormat': {

@@ -1,19 +1,28 @@
 """This module is used to generate geoengine compatible color map definitions as a json string."""
 
 import json
-from typing import Any, Dict, List, Tuple
-from typing_extensions import Literal, TypedDict
+from typing import List, Tuple
+from typing_extensions import Literal
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from matplotlib.cm import ScalarMappable
+from geoengine import api
 
 
-class ColorBreakpoint(TypedDict):
+class ColorBreakpoint():
+    """This class is used to generate geoengine compatible color breakpoint definitions."""
     color: Tuple[int, int, int, int]
     value: float
 
-    # pylint: disable=too-few-public-methods
+    def __init__(self, value: float, color: Tuple[int, int, int, int]):
+        """Initialize the color breakpoint."""
+        self.color = color
+        self.value = value
+
+    def to_api_dict(self) -> api.ColorizerBreakpoint:
+        """Return the color breakpoint as a dictionary."""
+        return api.ColorizerBreakpoint({"value": self.value, "color": self.color})
 
 
 class Colorizer():
@@ -28,17 +37,16 @@ class Colorizer():
         self,
         breakpoints: List[ColorBreakpoint],
         no_data_color: Tuple[int, int, int, int],
-        default_color: Tuple[int, int, int, int]
+        default_color: Tuple[int, int, int, int],
+        colorizer_type: Literal["linearGradient", "palette", "logarithmicGradient"] = "linearGradient"
     ):
         """Initialize the colorizer."""
-        self.type = "linearGradient"
+        self.type = colorizer_type
         self.breakpoints = breakpoints
         self.no_data_color = no_data_color
         self.default_color = default_color
 
-    # pylint: disable=too-few-public-methods
-
-    @ staticmethod
+    @staticmethod
     def linear_with_mpl_cmap(
         map_name: ListedColormap,
         min_max: Tuple[int, int],
@@ -102,22 +110,22 @@ class Colorizer():
 
         # generate color map steps for geoengine
         breakpoints = [
-            ColorBreakpoint({"value": value, "color": color}) for (value, color) in zip(value_bounds, colormap)
+            ColorBreakpoint(color=color, value=value) for (value, color) in zip(value_bounds, colormap)
         ]
 
         colorizer = Colorizer(breakpoints=breakpoints, no_data_color=no_data_color, default_color=default_color)
 
         return colorizer
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_api_dict(self) -> api.Colorizer:
         """Return the colorizer as a dictionary."""
-        return {
-            "type": self.type,
-            "breakpoints": self.breakpoints,
+        return api.Colorizer({
+            "type": str(self.type),
+            "breakpoints": [breakpoint.to_api_dict() for breakpoint in self.breakpoints],
             "noDataColor": self.no_data_color,
             "defaultColor": self.default_color,
-        }
+        })
 
     def to_json(self) -> str:
         """Return the colorizer as a JSON string."""
-        return json.dumps(self.to_dict())
+        return json.dumps(self.to_api_dict())

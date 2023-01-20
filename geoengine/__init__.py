@@ -4,9 +4,8 @@ from pkg_resources import get_distribution
 from requests import utils
 
 from .auth import Session, get_session, initialize, reset
-from .colorizer import Colorizer
-from .datasets import upload_dataframe, StoredDataset, add_public_raster_dataset, volumes, GdalMetaDataStatic, \
-    GdalMetaDataRegular, GdalMetadataNetCdfCf, AddDatasetProperties
+from .colorizer import Colorizer, ColorBreakpoint
+from .datasets import upload_dataframe, StoredDataset, add_public_raster_dataset, volumes, AddDataset
 from .error import GeoEngineException, InputException, UninitializedException, TypeException, \
     MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, \
     SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \
@@ -14,8 +13,9 @@ from .error import GeoEngineException, InputException, UninitializedException, T
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
     LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer
-from .types import QueryRectangle, GdalDatasetParameters, GdalDatasetGeoTransform, FileNotFoundHandling, \
-    RasterResultDescriptor, RasterSymbology
+from .types import QueryRectangle,  \
+    RasterResultDescriptor, RasterSymbology, Provenance, UnitlessMeasurement, ContiuousMeasurement, \
+    ClassificationMeasurement
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow
 
 

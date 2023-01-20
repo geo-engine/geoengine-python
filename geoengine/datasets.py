@@ -4,33 +4,27 @@ Module for working with datasets and source definitions
 
 from __future__ import annotations
 from abc import abstractmethod
-from datetime import datetime
-from typing import Dict, List, NamedTuple, Optional, Tuple, Union, Generic, TypeVar
-
+from typing import Dict, List, NamedTuple, Optional, Union
 from enum import Enum
 from uuid import UUID
-
 import json
-from typing_extensions import Literal, TypedDict
+from typing_extensions import Literal
 from attr import dataclass
 import numpy as np
 import geopandas as gpd
 import requests as req
-
+from geoengine import api
 from geoengine.error import GeoEngineException, InputException
 from geoengine.auth import get_session
-from geoengine.types import GdalDatasetParameters, Provenance, RasterResultDescriptor, RasterSymbology, TimeStep, \
+from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType
-
-
-_OrgSourceDurationDictT = TypeVar('_OrgSourceDurationDictT', str, Union[str, int, TimeStepGranularity])
 
 
 class OgrSourceTimeFormat:
     '''Base class for OGR time formats'''
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, str]:
+    def to_api_dict(self) -> api.OgrSourceTimeFormat:
         pass
 
     @classmethod
@@ -50,20 +44,20 @@ class OgrSourceTimeFormat:
 class SecondsOgrSourceTimeFormat(OgrSourceTimeFormat):
     '''An OGR time format specified in seconds (UNIX time)'''
 
-    def to_dict(self) -> Dict[str, str]:
-        return {
+    def to_api_dict(self) -> api.SecondsOgrSourceTimeFormat:
+        return api.SecondsOgrSourceTimeFormat({
             "format": "seconds"
-        }
+        })
 
 
 @dataclass
 class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
     '''An auto detection OGR time format'''
 
-    def to_dict(self) -> Dict[str, str]:
-        return {
+    def to_api_dict(self) -> api.AutoOgrSourceTimeFormat:
+        return api.AutoOgrSourceTimeFormat({
             "format": "auto"
-        }
+        })
 
 
 @dataclass
@@ -72,18 +66,18 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 
     custom_format: str
 
-    def to_dict(self) -> Dict[str, str]:
-        return {
+    def to_api_dict(self) -> api.CustomOgrSourceTimeFormat:
+        return api.CustomOgrSourceTimeFormat({
             "format": "custom",
             "customFormat": self.custom_format
-        }
+        })
 
 
-class OgrSourceDuration(Generic[_OrgSourceDurationDictT]):
+class OgrSourceDuration():
     '''Base class for the duration part of a OGR time format'''
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, _OrgSourceDurationDictT]:
+    def to_api_dict(self) -> api.OgrSourceDurationSpec:
         pass
 
     @classmethod
@@ -103,45 +97,45 @@ class OgrSourceDuration(Generic[_OrgSourceDurationDictT]):
         return ValueOgrSourceDurationSpec(TimeStep(value, granularity))
 
 
-@dataclass
 class ValueOgrSourceDurationSpec(OgrSourceDuration):
     '''A fixed value for a source duration'''
 
     step: TimeStep
 
-    def to_dict(self) -> Dict[str, Union[str, int, TimeStepGranularity]]:
-        return {
+    def __init__(self, step: TimeStep):
+        self.step = step
+
+    def to_api_dict(self) -> api.ValueOgrSourceDurationSpec:
+        return api.ValueOgrSourceDurationSpec({
             "type": "value",
             "step": self.step.step,
             "granularity": self.step.granularity.value
-        }
+        })
 
 
-@dataclass
 class ZeroOgrSourceDurationSpec(OgrSourceDuration):
     '''An instant, i.e. no duration'''
 
-    def to_dict(self) -> Dict[str, str]:
-        return {
+    def to_api_dict(self) -> api.ZeroOgrSourceDurationSpec:
+        return api.ZeroOgrSourceDurationSpec({
             "type": "zero",
-        }
+        })
 
 
-@dataclass
 class InfiniteOgrSourceDurationSpec(OgrSourceDuration):
     '''An open-ended time duration'''
 
-    def to_dict(self) -> Dict[str, str]:
-        return {
+    def to_api_dict(self) -> api.InfiniteOgrSourceDurationSpec:
+        return api.InfiniteOgrSourceDurationSpec({
             "type": "infinite",
-        }
+        })
 
 
 class OgrSourceDatasetTimeType:
     '''A time type specification for OGR dataset definitions'''
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
+    def to_api_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
         pass
 
     @classmethod
@@ -178,10 +172,10 @@ class OgrSourceDatasetTimeType:
 class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     '''Specify no time information'''
 
-    def to_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
-        return {
+    def to_api_dict(self) -> api.NoneOgrSourceDatasetTimeType:
+        return api.NoneOgrSourceDatasetTimeType({
             "type": "none",
-        }
+        })
 
 
 @dataclass
@@ -192,13 +186,13 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     start_format: OgrSourceTimeFormat
     duration: OgrSourceDuration
 
-    def to_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
-        return {
+    def to_api_dict(self) -> api.StartOgrSourceDatasetTimeType:
+        return api.StartOgrSourceDatasetTimeType({
             "type": "start",
             "startField": self.start_field,
-            "startFormat": self.start_format.to_dict(),
-            "duration": self.duration.to_dict()
-        }
+            "startFormat": self.start_format.to_api_dict(),
+            "duration": self.duration.to_api_dict()
+        })
 
 
 @dataclass
@@ -210,14 +204,14 @@ class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     end_field: str
     end_format: OgrSourceTimeFormat
 
-    def to_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
-        return {
+    def to_api_dict(self) -> api.StartEndOgrSourceDatasetTimeType:
+        return api.StartEndOgrSourceDatasetTimeType({
             "type": "start+end",
             "startField": self.start_field,
-            "startFormat": self.start_format.to_dict(),
+            "startFormat": self.start_format.to_api_dict(),
             "endField": self.end_field,
-            "endFormat": self.end_format.to_dict(),
-        }
+            "endFormat": self.end_format.to_api_dict(),
+        })
 
 
 @dataclass
@@ -228,13 +222,13 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     start_format: OgrSourceTimeFormat
     duration_field: str
 
-    def to_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
-        return {
+    def to_api_dict(self) -> api.StartDurationOgrSourceDatasetTimeType:
+        return api.StartDurationOgrSourceDatasetTimeType({
             "type": "start+duration",
             "startField": self.start_field,
-            "startFormat": self.start_format.to_dict(),
+            "startFormat": self.start_format.to_api_dict(),
             "durationField": self.duration_field
-        }
+        })
 
 
 class OgrOnError(Enum):
@@ -251,7 +245,7 @@ class DatasetId:
         self.__dataset_id = dataset_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> DatasetId:
+    def from_response(cls, response: api.DatasetId) -> DatasetId:
         '''Parse a http response to an `DatasetId`'''
         if 'id' not in response:
             raise GeoEngineException(response)
@@ -271,62 +265,10 @@ class DatasetId:
 
         return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
 
-
-class MetaDataDefinition(TypedDict):  # pylint: disable=too-few-public-methods
-    '''Super class for all metadata definitions'''
-
-
-class GdalMetaDataStatic(MetaDataDefinition):
-    '''Static metadata for GDAL datasets'''
-
-    type: Literal["GdalStatic"]
-    time: Optional[Tuple[datetime, datetime]]
-    params: GdalDatasetParameters
-    resultDescriptor: RasterResultDescriptor
-
-
-class DateTimeParseFormat(TypedDict):
-    '''A format for parsing date time strings'''
-
-    fmt: str
-    hasTz: bool
-    hasTime: bool
-
-
-class TimeReference(Enum):
-    '''The reference for a time placeholder'''
-
-    START = "Start"
-    END = "End"
-
-
-class GdalSourceTimePlaceholder(TypedDict):
-    '''A placeholder for a time value in a file name'''
-    format: DateTimeParseFormat
-    reference: TimeReference
-
-
-class GdalMetaDataRegular(MetaDataDefinition):
-    '''Metadata for regular GDAL datasets'''
-
-    type: Literal["GdalMetaDataRegular"]
-    resultDescriptor: RasterResultDescriptor
-    params: GdalDatasetParameters
-    timePlaceholders: Dict[str, GdalSourceTimePlaceholder]
-    dataTime: Tuple[datetime, datetime]
-    step: TimeStep
-
-
-class GdalMetadataNetCdfCf(MetaDataDefinition):
-    '''Metadata for NetCDF CF datasets'''
-
-    type: Literal["GdalMetadataNetCdfCf"]
-    resultDescriptor: RasterResultDescriptor
-    params: GdalDatasetParameters
-    start: datetime
-    end: datetime
-    step: TimeStep
-    bandOffset: int
+    def to_api_dict(self) -> api.DatasetId:
+        return {
+            'id': str(self.__dataset_id)
+        }
 
 
 class UploadId:
@@ -338,7 +280,7 @@ class UploadId:
         self.__upload_id = upload_id
 
     @ classmethod
-    def from_response(cls, response: Dict[str, str]) -> UploadId:
+    def from_response(cls, response: api.UploadId) -> UploadId:
         '''Parse a http response to an `UploadId`'''
         if 'id' not in response:
             raise GeoEngineException(response)
@@ -358,6 +300,11 @@ class UploadId:
 
         return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
 
+    def to_api_dict(self) -> api.UploadId:
+        return {
+            'id': str(self.__upload_id)
+        }
+
 
 class VolumeId:
     '''A wrapper for an volume id'''
@@ -368,12 +315,12 @@ class VolumeId:
         self.__volume_id = volume_id
 
     @ classmethod
-    def from_response(cls, response: Dict[str, str]) -> UploadId:
+    def from_response(cls, response: api.VolumeId) -> VolumeId:
         '''Parse a http response to an `ColumeId`'''
         if 'id' not in response:
             raise GeoEngineException(response)
 
-        return UploadId(UUID(response['id']))
+        return VolumeId(UUID(response['id']))
 
     def __str__(self) -> str:
         return str(self.__volume_id)
@@ -445,6 +392,7 @@ def upload_dataframe(
     ints = [key for (key, value) in columns.items() if value['dataType'] == 'int']
     texts = [key for (key, value) in columns.items() if value['dataType'] == 'text']
 
+    # TODO: use API dict to model the request
     create = {
         "dataPath": {
             "upload": str(upload_id)
@@ -461,7 +409,7 @@ def upload_dataframe(
                     "fileName": "geo.json",
                     "layerName": "geo",
                     "dataType": vector_type.value,
-                    "time": time.to_dict(),
+                    "time": time.to_api_dict(),
                     "columns": {
                         "x": "",
                         "float": floats,
@@ -498,7 +446,7 @@ class StoredDataset(NamedTuple):
     upload_id: UploadId
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> StoredDataset:
+    def from_response(cls, response: api.StoredDataset) -> StoredDataset:
         '''Parse a http response to an `StoredDataset`'''
         if 'dataset' not in response and 'upload' not in response:
             raise GeoEngineException(response)
@@ -508,16 +456,47 @@ class StoredDataset(NamedTuple):
             upload_id=UploadId(UUID(response['upload']))
         )
 
+    def to_api_dict(self) -> api.StoredDataset:
+        return api.StoredDataset(dataset=str(self.dataset_id), upload=str(self.upload_id))
 
-@dataclass
-class AddDatasetProperties(TypedDict):
+
+class AddDataset():
     '''The properties of a dataset'''
     id: Optional[DatasetId]
     name: str
     description: str
-    sourceOperator: Literal['GdalSource']  # TODO: add more operators
+    source_operator: Literal['GdalSource']  # TODO: add more operators
     symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
     provenance: Optional[Provenance]
+
+    def __init__(
+        # pylint: disable=too-many-arguments
+        self,
+        name: str,
+        description: str,
+        source_operator: Literal['GdalSource'] = "GdalSource",
+        symbology: Optional[RasterSymbology] = None,
+        provenance: Optional[Provenance] = None,
+        dataset_id: Optional[DatasetId] = None
+    ):
+        '''Creates a new `AddDatasetProperties` object'''
+        self.dataset_id = dataset_id
+        self.name = name
+        self.description = description
+        self.source_operator = source_operator
+        self.symbology = symbology
+        self.provenance = provenance
+
+    def to_api_dict(self) -> api.AddDataset:
+        '''Converts the properties to a dictionary'''
+        return {
+            'id': str(self.dataset_id) if self.dataset_id is not None else None,
+            'name': self.name,
+            'description': self.description,
+            'sourceOperator': self.source_operator,
+            'symbology': self.symbology.to_api_dict() if self.symbology is not None else None,
+            'provenance': self.provenance.to_api_dict() if self.provenance is not None else None
+        }
 
 
 @dataclass
@@ -528,7 +507,7 @@ class Volume:
     path: str
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> Volume:
+    def from_response(cls, response: api.Volume) -> Volume:
         '''Parse a http response to an `Volume`'''
         return Volume(response['name'], response['path'])
 
@@ -546,7 +525,7 @@ def volumes(timeout: int = 60) -> List[Volume]:
     return [Volume.from_response(v) for v in response]
 
 
-def add_public_raster_dataset(volume_id: VolumeId, properties: AddDatasetProperties, meta_data: MetaDataDefinition,
+def add_public_raster_dataset(volume_id: VolumeId, properties: AddDataset, meta_data: api.MetaDataDefinition,
                               timeout: int = 60) -> DatasetId:
     '''Adds a public raster dataset to the Geo Engine'''
 
@@ -555,7 +534,7 @@ def add_public_raster_dataset(volume_id: VolumeId, properties: AddDatasetPropert
             "volume": str(volume_id)
         },
         "definition": {
-            "properties": properties,
+            "properties": properties.to_api_dict(),
             "metaData": meta_data
         }
     }

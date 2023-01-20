@@ -27,7 +27,7 @@ class ColorizerTests(unittest.TestCase):
         }
 
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="viridis", min_max=(0, 255), n_steps=2)
-        viridis = geo_colorizer.to_dict()
+        viridis = geo_colorizer.to_api_dict()
 
         assert viridis == expected
 
@@ -81,14 +81,14 @@ class ColorizerTests(unittest.TestCase):
             no_data_color=(100, 100, 100, 100),
             default_color=(100, 100, 100, 100)
         )
-        viridis = geo_colorizer.to_dict()
+        viridis = geo_colorizer.to_api_dict()
 
         assert viridis == expected
 
     def test_set_steps(self):
         """Tests the setting of the number of steps."""
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="viridis", min_max=(0, 255), n_steps=2)
-        viridis = geo_colorizer.to_dict()
+        viridis = geo_colorizer.to_api_dict()
         expected = {
             "type": "linearGradient",
             "breakpoints": [
@@ -99,7 +99,7 @@ class ColorizerTests(unittest.TestCase):
         assert viridis == expected
 
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="viridis", min_max=(0, 255), n_steps=3)
-        viridis = geo_colorizer.to_dict()
+        viridis = geo_colorizer.to_api_dict()
         expected = {
             "type": "linearGradient", "breakpoints": [
                 {"value": 0, "color": (68, 1, 84, 255)},
@@ -125,7 +125,7 @@ class ColorizerTests(unittest.TestCase):
             "noDataColor": (0, 0, 0, 0),
             "defaultColor": (0, 0, 0, 0)
         }
-        viridis = geo_colorizer.to_dict()
+        viridis = geo_colorizer.to_api_dict()
 
         assert viridis == expected
 
@@ -183,7 +183,7 @@ class ColorizerTests(unittest.TestCase):
         }
         custom_map = ListedColormap(["darkorange", "gold", "lawngreen", "lightseagreen"])
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name=custom_map, min_max=(0, 255), n_steps=3)
-        custom = geo_colorizer.to_dict()
+        custom = geo_colorizer.to_api_dict()
 
         assert custom == expected
 
@@ -206,7 +206,7 @@ class ColorizerTests(unittest.TestCase):
             n_steps=3,
             default_color=(100, 100, 100, 100),
             no_data_color=(100, 100, 100, 100))
-        custom = geo_colorizer.to_dict()
+        custom = geo_colorizer.to_api_dict()
 
         assert custom == expected
 
@@ -218,6 +218,7 @@ class ColorizerTests(unittest.TestCase):
 
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="viridis", min_max=(0, 255), n_steps=2)
         jsonstr = geo_colorizer.to_json()
+        print(jsonstr)
 
         assert jsonstr == expected
 
