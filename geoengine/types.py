@@ -4,11 +4,12 @@ Different type mappings of geo engine types
 
 from __future__ import annotations
 from abc import abstractmethod
-from typing import Any, Dict, Optional, Tuple
 from datetime import datetime
 from uuid import UUID
-
 from enum import Enum
+from typing import Dict, Optional, Tuple, cast
+from typing_extensions import Literal
+
 from attr import dataclass
 from geoengine.colorizer import Colorizer
 from geoengine import api
@@ -194,16 +195,16 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         '''
 
         if 'error' in response:
-            raise GeoEngineException(response)
+            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         result_descriptor_type = response['type']
 
         if result_descriptor_type == 'raster':
-            return RasterResultDescriptor.from_response(response)
+            return RasterResultDescriptor.from_response_raster(cast(api.RasterResultDescriptor, response))
         if result_descriptor_type == 'vector':
-            return VectorResultDescriptor.from_response(response)
+            return VectorResultDescriptor.from_response_vector(cast(api.VectorResultDescriptor, response))
         if result_descriptor_type == 'plot':
-            return PlotResultDescriptor.from_response(response)
+            return PlotResultDescriptor.from_response_plot(cast(api.PlotResultDescriptor, response))
 
         raise TypeException(
             f'Unknown `ResultDescriptor` type: {result_descriptor_type}')
@@ -250,11 +251,15 @@ class VectorResultDescriptor(ResultDescriptor):
     '''
     A vector result descriptor
     '''
-
-    __data_type: str
+    __data_type: Literal['MultiPoint', 'MultiLineString', 'MultiPolygon']
     __columns: Dict[str, VectorColumnInfo]
 
-    def __init__(self, spatial_reference: str, data_type: str, columns: Dict[str, VectorColumnInfo]) -> None:
+    def __init__(
+        self,
+        spatial_reference: str,
+        data_type: Literal['MultiPoint', 'MultiLineString', 'MultiPolygon'],
+        columns: Dict[str, VectorColumnInfo]
+    ) -> None:
         ''' Initialize a vector result descriptor '''
         super().__init__(spatial_reference)
         self.__data_type = data_type
@@ -276,8 +281,10 @@ class VectorResultDescriptor(ResultDescriptor):
         return r
 
     @staticmethod
-    def from_response(response: api.VectorResultDescriptor) -> VectorResultDescriptor:
+    def from_response_vector(response: api.VectorResultDescriptor) -> VectorResultDescriptor:
         '''Parse a vector result descriptor from an http response'''
+        assert response['type'] == 'vector'  # TODO: throw exception
+
         sref = response['spatialReference']
         data_type = response['dataType']
         columns = {name: VectorColumnInfo.from_response(info) for name, info in response['columns'].items()}
@@ -288,7 +295,7 @@ class VectorResultDescriptor(ResultDescriptor):
         return True
 
     @ property
-    def data_type(self) -> str:
+    def data_type(self) -> Literal['MultiPoint', 'MultiLineString', 'MultiPolygon']:
         '''Return the data type'''
 
         return self.__data_type
@@ -312,9 +319,8 @@ class VectorResultDescriptor(ResultDescriptor):
             'type': 'raster',
             'dataType': self.data_type,
             'spatialReference': self.spatial_reference,
-            'columns': api.VectorColumnInfo(
-                {name: column_info.to_api_dict() for name, column_info in self.columns.items()}
-            ),
+            'columns':
+                {name: column_info.to_api_dict() for name, column_info in self.columns.items()},
         })
 
 
@@ -345,10 +351,15 @@ class RasterResultDescriptor(ResultDescriptor):
     A raster result descriptor
     '''
 
-    __data_type: str
+    __data_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']
     __measurement: Measurement
 
-    def __init__(self, data_type: str, measurement: Measurement, spatial_reference: str) -> None:
+    def __init__(
+        self,
+        data_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64'],
+        measurement: Measurement,
+        spatial_reference: str
+    ) -> None:
         '''Initialize a new `RasterResultDescriptor`'''
         super().__init__(spatial_reference)
         self.__data_type = data_type
@@ -374,7 +385,9 @@ class RasterResultDescriptor(ResultDescriptor):
         }
 
     @ staticmethod
-    def from_response(response: api.RasterResultDescriptor) -> RasterResultDescriptor:
+    def from_response_raster(response: api.RasterResultDescriptor) -> RasterResultDescriptor:
+        '''Parse a raster result descriptor from an http response'''
+        assert response['type'] == 'raster'  # TODO: throw exception
         spatial_ref = response['spatialReference']
         data_type = response['dataType']
         measurement = Measurement.from_response(response['measurement'])
@@ -385,7 +398,7 @@ class RasterResultDescriptor(ResultDescriptor):
         return True
 
     @ property
-    def data_type(self) -> str:
+    def data_type(self) -> Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']:
         return self.__data_type
 
     @ property
@@ -398,7 +411,7 @@ class RasterResultDescriptor(ResultDescriptor):
 
         return super().spatial_reference
 
-    def to_json(self) -> dict:
+    def to_json(self) -> api.RasterResultDescriptor:
         return self.to_api_dict()
 
 
@@ -414,8 +427,9 @@ class PlotResultDescriptor(ResultDescriptor):
         return r
 
     @ staticmethod
-    def from_response(response: api.PlotResultDescriptor) -> PlotResultDescriptor:
+    def from_response_plot(response: api.PlotResultDescriptor) -> PlotResultDescriptor:
         '''Create a new `PlotResultDescriptor` from a JSON response'''
+        assert response['type'] == 'plot'  # TODO: throw exception
         spatial_ref = response['spatialReference']
         return PlotResultDescriptor(spatial_reference=spatial_ref)
 
@@ -435,6 +449,7 @@ class PlotResultDescriptor(ResultDescriptor):
         return api.PlotResultDescriptor({
             'type': 'plot',
             'spatialReference': self.spatial_reference,
+            'dataType': 'Plot'
         })
 
 
@@ -475,6 +490,9 @@ class TimeStepGranularity(Enum):
     MONTHS = 'Months'
     YEARS = 'Years'
 
+    def to_api_enum(self) -> api.TimeStepGranularity:
+        return api.TimeStepGranularity(self.value)
+
 
 @ dataclass
 class TimeStep:
@@ -485,7 +503,7 @@ class TimeStep:
     def to_api_dict(self) -> api.TimeStep:
         return api.TimeStep({
             'step': self.step,
-            'granularity': self.granularity.value,
+            'granularity': self.granularity.to_api_enum(),
         })
 
 
@@ -563,9 +581,9 @@ class DataId:  # pylint: disable=too-few-public-methods
         '''Parse an http response to a `DataId` object'''
 
         if response["type"] == "internal":
-            return InternalDataId.from_response(response)
+            return InternalDataId.from_response_internal(cast(api.InternalDataId, response))
         if response["type"] == "external":
-            return ExternalDataId.from_response(response)
+            return ExternalDataId.from_response_external(cast(api.ExternalDataId, response))
 
         raise GeoEngineException({"message": f"Unknown DataId type: {response['type']}"})
 
@@ -583,9 +601,8 @@ class InternalDataId(DataId):
         self.__dataset_id = dataset_id
 
     @ classmethod
-    def from_response(cls, response: api.InternalDataId) -> InternalDataId:
+    def from_response_internal(cls, response: api.InternalDataId) -> InternalDataId:
         '''Parse an http response to a `InternalDataId` object'''
-
         return InternalDataId(UUID(response['datasetId']))
 
     def to_api_dict(self) -> api.InternalDataId:
@@ -620,7 +637,7 @@ class ExternalDataId(DataId):
         self.__layer_id = layer_id
 
     @ classmethod
-    def from_response(cls, response: api.ExternalDataId) -> ExternalDataId:
+    def from_response_external(cls, response: api.ExternalDataId) -> ExternalDataId:
         '''Parse an http response to a `ExternalDataId` object'''
 
         return ExternalDataId(UUID(response['providerId']), response['layerId'])
@@ -659,16 +676,16 @@ class Measurement:  # pylint: disable=too-few-public-methods
         '''
 
         if 'error' in response:
-            raise GeoEngineException(response)
+            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         measurement_type = response['type']
 
         if measurement_type == 'unitless':
             return UnitlessMeasurement()
         if measurement_type == 'continuous':
-            return ContiuousMeasurement.from_response(response)
+            return ContinuousMeasurement.from_response_continuous(cast(api.ContinuousMeasurement, response))
         if measurement_type == 'classification':
-            return ClassificationMeasurement.from_response(response)
+            return ClassificationMeasurement.from_response_classification(cast(api.ClassificationMeasurement, response))
 
         raise TypeException(
             f'Unknown `Measurement` type: {measurement_type}')
@@ -689,13 +706,13 @@ class UnitlessMeasurement(Measurement):
         '''Display representation of a unitless measurement'''
         return str(self)
 
-    def to_api_dict(self) -> api.UnitlessMeasurement:
-        return api.UnitlessMeasurement({
+    def to_api_dict(self) -> api.Measurement:
+        return api.Measurement({
             'type': 'unitless'
         })
 
 
-class ContiuousMeasurement(Measurement):
+class ContinuousMeasurement(Measurement):
     '''A measurement that is continuous'''
 
     __measurement: str
@@ -710,10 +727,10 @@ class ContiuousMeasurement(Measurement):
         self.__unit = unit
 
     @ staticmethod
-    def from_response(response: api.ContiuousMeasurement) -> ContiuousMeasurement:
+    def from_response_continuous(response: api.ContinuousMeasurement) -> ContinuousMeasurement:
         '''Initialize a new `ContiuousMeasurement from a JSON response'''
 
-        return ContiuousMeasurement(response['measurement'], response.get('unit', None))
+        return ContinuousMeasurement(response['measurement'], response.get('unit', None))
 
     def __str__(self) -> str:
         '''String representation of a continuous measurement'''
@@ -758,7 +775,7 @@ class ClassificationMeasurement(Measurement):
         self.__classes = classes
 
     @ staticmethod
-    def from_response(response: api.ContinuousMeasurement) -> ClassificationMeasurement:
+    def from_response_classification(response: api.ClassificationMeasurement) -> ClassificationMeasurement:
         '''Initialize a new `ClassificationMeasurement from a JSON response'''
 
         measurement = response['measurement']
@@ -768,11 +785,13 @@ class ClassificationMeasurement(Measurement):
 
         return ClassificationMeasurement(measurement, classes)
 
-    def to_api_dict(self) -> Dict[str, Any]:
-        return api.ContinuousMeasurement({
+    def to_api_dict(self) -> api.ClassificationMeasurement:
+        str_classes: Dict[str, str] = {str(k): v for k, v in self.__classes.items()}
+
+        return api.ClassificationMeasurement({
             'type': 'classification',
             'measurement': self.__measurement,
-            'classes': self.__classes
+            'classes': str_classes
         })
 
     def __str__(self) -> str:

@@ -4,7 +4,7 @@ Module for working with datasets and source definitions
 
 from __future__ import annotations
 from abc import abstractmethod
-from typing import Dict, List, NamedTuple, Optional, Union
+from typing import List, NamedTuple, Optional, cast
 from enum import Enum
 from uuid import UUID
 import json
@@ -20,6 +20,15 @@ from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType
 
 
+class UnixTimeStampType(Enum):
+    '''A unix time stamp type'''
+    EPOCHSECONDS = 'epochSeconds'
+    EPOCHMILLISECONDS = 'epochMilliseconds'
+
+    def to_api_enum(self) -> api.UnixTimeStampType:
+        return api.UnixTimeStampType(self.value)
+
+
 class OgrSourceTimeFormat:
     '''Base class for OGR time formats'''
 
@@ -28,8 +37,8 @@ class OgrSourceTimeFormat:
         pass
 
     @classmethod
-    def seconds(cls) -> SecondsOgrSourceTimeFormat:
-        return SecondsOgrSourceTimeFormat()
+    def seconds(cls, timestamp_type: UnixTimeStampType) -> UnixTimeStampOgrSourceTimeFormat:
+        return UnixTimeStampOgrSourceTimeFormat(timestamp_type)
 
     @classmethod
     def auto(cls) -> AutoOgrSourceTimeFormat:
@@ -41,12 +50,14 @@ class OgrSourceTimeFormat:
 
 
 @dataclass
-class SecondsOgrSourceTimeFormat(OgrSourceTimeFormat):
+class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
     '''An OGR time format specified in seconds (UNIX time)'''
+    timestampType: UnixTimeStampType
 
-    def to_api_dict(self) -> api.SecondsOgrSourceTimeFormat:
-        return api.SecondsOgrSourceTimeFormat({
-            "format": "seconds"
+    def to_api_dict(self) -> api.UnixTimeStampOgrSourceTimeFormat:
+        return api.UnixTimeStampOgrSourceTimeFormat({
+            "format": "unixTimeStamp",
+            "timestampType": self.timestampType.to_api_enum(),
         })
 
 
@@ -54,8 +65,8 @@ class SecondsOgrSourceTimeFormat(OgrSourceTimeFormat):
 class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
     '''An auto detection OGR time format'''
 
-    def to_api_dict(self) -> api.AutoOgrSourceTimeFormat:
-        return api.AutoOgrSourceTimeFormat({
+    def to_api_dict(self) -> api.OgrSourceTimeFormat:
+        return api.OgrSourceTimeFormat({
             "format": "auto"
         })
 
@@ -109,15 +120,15 @@ class ValueOgrSourceDurationSpec(OgrSourceDuration):
         return api.ValueOgrSourceDurationSpec({
             "type": "value",
             "step": self.step.step,
-            "granularity": self.step.granularity.value
+            "granularity": self.step.granularity.to_api_enum(),
         })
 
 
 class ZeroOgrSourceDurationSpec(OgrSourceDuration):
     '''An instant, i.e. no duration'''
 
-    def to_api_dict(self) -> api.ZeroOgrSourceDurationSpec:
-        return api.ZeroOgrSourceDurationSpec({
+    def to_api_dict(self) -> api.OgrSourceDurationSpec:
+        return api.OgrSourceDurationSpec({
             "type": "zero",
         })
 
@@ -125,8 +136,8 @@ class ZeroOgrSourceDurationSpec(OgrSourceDuration):
 class InfiniteOgrSourceDurationSpec(OgrSourceDuration):
     '''An open-ended time duration'''
 
-    def to_api_dict(self) -> api.InfiniteOgrSourceDurationSpec:
-        return api.InfiniteOgrSourceDurationSpec({
+    def to_api_dict(self) -> api.OgrSourceDurationSpec:
+        return api.OgrSourceDurationSpec({
             "type": "infinite",
         })
 
@@ -135,7 +146,7 @@ class OgrSourceDatasetTimeType:
     '''A time type specification for OGR dataset definitions'''
 
     @abstractmethod
-    def to_api_dict(self) -> Dict[str, Union[str, Dict[str, str]]]:
+    def to_api_dict(self) -> api.OgrSourceDatasetTimeType:
         pass
 
     @classmethod
@@ -172,8 +183,8 @@ class OgrSourceDatasetTimeType:
 class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     '''Specify no time information'''
 
-    def to_api_dict(self) -> api.NoneOgrSourceDatasetTimeType:
-        return api.NoneOgrSourceDatasetTimeType({
+    def to_api_dict(self) -> api.OgrSourceDatasetTimeType:
+        return api.OgrSourceDatasetTimeType({
             "type": "none",
         })
 
@@ -247,8 +258,11 @@ class DatasetId:
     @classmethod
     def from_response(cls, response: api.DatasetId) -> DatasetId:
         '''Parse a http response to an `DatasetId`'''
-        if 'id' not in response:
-            raise GeoEngineException(response)
+        if 'error' in response:
+            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
+
+        if 'id' not in response:  # TODO: improve error handling
+            raise Exception('No id in response')
 
         return DatasetId(UUID(response['id']))
 
@@ -282,8 +296,11 @@ class UploadId:
     @ classmethod
     def from_response(cls, response: api.UploadId) -> UploadId:
         '''Parse a http response to an `UploadId`'''
-        if 'id' not in response:
-            raise GeoEngineException(response)
+        if 'error' in response:
+            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
+
+        if 'id' not in response:  # TODO: improve error handling
+            raise Exception('No id in response')
 
         return UploadId(UUID(response['id']))
 
@@ -317,8 +334,11 @@ class VolumeId:
     @ classmethod
     def from_response(cls, response: api.VolumeId) -> VolumeId:
         '''Parse a http response to an `ColumeId`'''
-        if 'id' not in response:
-            raise GeoEngineException(response)
+        if 'error' in response:
+            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
+
+        if 'id' not in response:  # TODO: improve error handling
+            raise Exception('No id in response')
 
         return VolumeId(UUID(response['id']))
 
@@ -448,8 +468,11 @@ class StoredDataset(NamedTuple):
     @classmethod
     def from_response(cls, response: api.StoredDataset) -> StoredDataset:
         '''Parse a http response to an `StoredDataset`'''
-        if 'dataset' not in response and 'upload' not in response:
-            raise GeoEngineException(response)
+        if 'error' in response:
+            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
+
+        if 'dataset' not in response and 'upload' not in response:  # TODO: improve error handling
+            raise Exception('No dataset and upload in response')
 
         return StoredDataset(
             dataset_id=DatasetId(UUID(response['dataset'])),

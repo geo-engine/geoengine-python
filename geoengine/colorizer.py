@@ -120,7 +120,7 @@ class Colorizer():
     def to_api_dict(self) -> api.Colorizer:
         """Return the colorizer as a dictionary."""
         return api.Colorizer({
-            "type": str(self.type),
+            "type": self.type,
             "breakpoints": [breakpoint.to_api_dict() for breakpoint in self.breakpoints],
             "noDataColor": self.no_data_color,
             "defaultColor": self.default_color,
