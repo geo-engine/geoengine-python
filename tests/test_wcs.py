@@ -7,8 +7,8 @@ import owslib.util
 import requests_mock
 import numpy as np
 import xarray as xr
-
 import geoengine as ge
+
 
 class WcsTests(unittest.TestCase):
     '''WCS test runner'''
