@@ -3,15 +3,12 @@
 from datetime import datetime
 import unittest
 import textwrap
-
 from numpy import nan
 import requests_mock
 import geopandas as gpd
 import geopandas.testing  # pylint: disable=unused-import
 from shapely.geometry import Point
 from pkg_resources import get_distribution
-
-from geoengine.types import QueryRectangle
 import geoengine as ge
 
 
@@ -296,9 +293,10 @@ class WfsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             df = workflow.get_dataframe(
-                QueryRectangle(
-                    [-60.0, 5.0, 61.0, 6.0],
-                    [time, time]
+                ge.QueryRectangle(
+                    ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
+                    ge.TimeInterval(time, time),
+                    ge.SpatialResolution(0.1, 0.1)
                 )
             )
 
@@ -456,9 +454,10 @@ class WfsTests(unittest.TestCase):
 
             workflow = ge.register_workflow(workflow_definition)
 
-            wfs_curl = workflow.get_wfs_get_feature_curl(QueryRectangle(
-                [-60.0, 5.0, 61.0, 6.0],
-                [time, time]
+            wfs_curl = workflow.get_wfs_get_feature_curl(ge.QueryRectangle(
+                ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
+                ge.TimeInterval(time),
+                ge.SpatialResolution(0.1, 0.1)
             ))
 
             self.assertEqual(
@@ -585,9 +584,10 @@ class WfsTests(unittest.TestCase):
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.get_dataframe(
-                    QueryRectangle(
-                        [-60.0, 5.0, 61.0, 6.0],
-                        [time, time]
+                    ge.QueryRectangle(
+                        ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
+                        ge.TimeInterval(time),
+                        ge.SpatialResolution(0.1, 0.1)
                     )
                 )
 
@@ -965,9 +965,10 @@ class WfsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             df = workflow.get_dataframe(
-                QueryRectangle(
-                    [-60.0, 5.0, 61.0, 6.0],
-                    [time, time]
+                ge.QueryRectangle(
+                    ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
+                    ge.TimeInterval(time),
+                    ge.SpatialResolution(0.1, 0.1)
                 )
             )
 

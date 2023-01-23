@@ -1,13 +1,8 @@
 '''Tests for WMS calls'''
 
-from datetime import datetime
 import unittest
-import json
 from uuid import UUID
-
 import requests_mock
-
-from geoengine.types import QueryRectangle
 from geoengine.datasets import DatasetId, UploadId, StoredDataset
 import geoengine as ge
 
@@ -19,6 +14,32 @@ class WorkflowStorageTests(unittest.TestCase):
         ge.reset(False)
 
     def test_storing_workflow(self):
+
+        expected_request_text = ({
+                       "name": "Foo",
+                       "description": "Bar",
+                       "query": {
+                           "spatialBounds": {
+                               "upperLeftCoordinate": {
+                                   "x": -180.0,
+                                   "y": 90.0},
+                               "lowerRightCoordinate": {
+                                   "x": 180.0,
+                                   "y": -90.0
+                               }
+                           },
+                           "timeInterval": {
+                               "start": 1396353600000,
+                           },
+                           "spatialResolution": {
+                               "x": 1.8,
+                               "y": 1.8
+                           }
+                       }
+                   })
+
+        print(expected_request_text)
+
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
@@ -44,29 +65,7 @@ class WorkflowStorageTests(unittest.TestCase):
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             m.post('http://mock-instance/datasetFromWorkflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38',
-                   additional_matcher=lambda request: request.text == json.dumps({
-                       "name": "Foo",
-                       "description": "Bar",
-                       "query": {
-                           "spatialBounds": {
-                               "upperLeftCoordinate": {
-                                   "x": -180.0,
-                                   "y": 90.0},
-                               "lowerRightCoordinate": {
-                                   "x": 180.0,
-                                   "y": -90.0
-                               }
-                           },
-                           "timeInterval": {
-                               "start": 1396353600000,
-                               "end": 1396353600000
-                           },
-                           "spatialResolution": {
-                               "x": 1.8,
-                               "y": 1.8
-                           }
-                       }
-                   }),
+                   additional_matcher=lambda request: request.text == expected_request_text,
                    json={'task_id': '9ec828ef-c3da-4016-8cc7-79e5556267fc'},
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -91,16 +90,29 @@ class WorkflowStorageTests(unittest.TestCase):
                 }
             }
 
-            time = datetime.strptime(
-                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+
+            query = ge.api.RasterQueryRectangle({
+                           "spatialBounds": ge.api.SpatialPartition2D({
+                               "upperLeftCoordinate": {
+                                   "x": -180.0,
+                                   "y": 90.0},
+                               "lowerRightCoordinate": {
+                                   "x": 180.0,
+                                   "y": -90.0
+                               }
+                           }),
+                           "timeInterval": ge.api.TimeInterval ({
+                               "start": 1396353600000,
+                           }),
+                           "spatialResolution": ge.api.SpatialResolution ({
+                               "x": 1.8,
+                               "y": 1.8
+                           })
+                       })
 
             workflow = ge.register_workflow(workflow_definition)
             task = workflow.save_as_dataset(
-                QueryRectangle(
-                    [-180.0, -90.0, 180.0, 90.0],
-                    [time, time],
-                    resolution=(1.8, 1.8)
-                ),
+                query,
                 "Foo",
                 "Bar",
             )

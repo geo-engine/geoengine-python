@@ -574,7 +574,5 @@ def add_public_raster_dataset(volume_id: VolumeId, properties: AddDataset, meta_
                         timeout=timeout
                         ).json()
 
-    if 'error' in response:
-        raise GeoEngineException(response)
 
-    return DatasetId(response["id"])
+    return DatasetId.from_response(response)

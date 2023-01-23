@@ -25,12 +25,14 @@ from typing_extensions import TypedDict
 from vega import VegaLite
 from xarray import DataArray
 
+from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
-from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
-    MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
+from geoengine.error import  MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
+    MethodNotCalledOnVectorException,  check_response_for_error
 from geoengine.tasks import Task, TaskId
 from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
+
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
 JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
@@ -58,12 +60,13 @@ class WorkflowId:
         self.__workflow_id = workflow_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> WorkflowId:
+    def from_response(cls, response: api.WorkflowId) -> WorkflowId:
         '''
         Create a `WorkflowId` from an http response
         '''
         if 'id' not in response:
-            raise GeoEngineException(response)
+            raise TypeError('Response does not contain a workflow id.')
+
 
         return WorkflowId(UUID(response['id']))
 
@@ -143,7 +146,7 @@ class Workflow:
             bbox=bbox.bbox_str,
             time=bbox.time_str,
             srsName=bbox.srs,
-            queryResolution=f'{bbox.resolution[0]},{bbox.resolution[1]}'
+            queryResolution=str(bbox.spatial_resolution)
         )
 
         wfs_url = req.Request(
@@ -232,8 +235,8 @@ class Workflow:
 
         session = get_session()
 
-        width = int((bbox.xmax - bbox.xmin) / bbox.resolution[0])
-        height = int((bbox.ymax - bbox.ymin) / bbox.resolution[1])
+        width = int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) / bbox.spatial_resolution.x_resolution)
+        height = int((bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) / bbox.spatial_resolution.y_resolution)
 
         colorizer_colorizer_str = 'custom:' + colorizer.to_json()
 
@@ -280,7 +283,7 @@ class Workflow:
 
         time = urllib.parse.quote(bbox.time_str)
         spatial_bounds = urllib.parse.quote(bbox.bbox_str)
-        resolution = str(f'{bbox.resolution[0]},{bbox.resolution[1]}')
+        resolution = str(bbox.spatial_resolution)
 
         plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&crs={bbox.srs}&time={time}'\
             f'&spatialResolution={resolution}'
@@ -495,7 +498,7 @@ class Workflow:
 
     def save_as_dataset(
             self,
-            bbox: QueryRectangle,
+            query_rectangle: api.RasterQueryRectangle,
             name: str,
             description: str = '',
             timeout: int = 3600) -> Task:
@@ -505,19 +508,12 @@ class Workflow:
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
 
-        # The dataset is created in the spatial reference system of the workflow result
-        if self.get_result_descriptor().spatial_reference != bbox.srs:
-            raise SpatialReferenceMismatchException(
-                self.get_result_descriptor().spatial_reference,
-                bbox.srs
-            )
-
         session = get_session()
 
         request_body = {
             'name': name,
             'description': description,
-            'query': bbox.__dict__(),
+            'query': query_rectangle,
         }
 
         response = req.post(

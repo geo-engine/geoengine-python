@@ -1,8 +1,53 @@
 '''The geoengine API'''
 from enum import Enum
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, Optional, Tuple, List, Union
 from typing_extensions import Literal, TypedDict
 
+
+class Coordinate2D(TypedDict):  # pylint: disable=too-few-public-methods
+    '''A coordinate with x, y coordinates'''
+    x: float
+    y: float
+
+
+class SpatialResolution(TypedDict):  # pylint: disable=too-few-public-methods
+    '''A spatial resolution'''
+    x: float
+    y: float
+
+class TimeInterval(TypedDict):  # pylint: disable=too-few-public-methods
+    '''A time interval with iso 8601 strings as start and end or unix timestamps'''
+    start: Union[str, int]
+    end: Optional[Union[str, int]]
+
+
+class BoundingBox2D(TypedDict):  # pylint: disable=too-few-public-methods
+    '''A bounding box with x, y coordinates'''
+    lowerLeftCoordinate: Coordinate2D
+    upperRightCoordinate: Coordinate2D
+
+
+class SpatialPartition2D(TypedDict):  # pylint: disable=too-few-public-methods
+    '''A spatial partition with x, y coordinates'''
+    upperLeftCoordinate: Coordinate2D
+    lowerRightCoordinate: Coordinate2D
+
+class QueryRectangle(TypedDict):  # pylint: disable=too-few-public-methods
+    '''A query rectangle with x, y coordinates'''
+    spatialResolution: SpatialResolution
+    timeInterval: TimeInterval
+
+class RasterQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
+    '''A query rectangle for raster data'''
+    spatialBounds: SpatialPartition2D
+
+class VectorQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
+    '''A query rectangle for vector data'''
+    spatialBounds: BoundingBox2D
+
+class PlotQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
+    '''A query rectangle for plot data'''
+    spatialBounds: BoundingBox2D
 
 class ColorizerBreakpoint(TypedDict):  # pylint: disable=too-few-public-methods
     """This class is used to generate geoengine compatible color breakpoint definitions as a dictionary."""
@@ -193,6 +238,8 @@ class ResultDescriptor(TypedDict):  # pylint: disable=too-few-public-methods
     # TODO: add time, bbox, resolution
     '''The result descriptor of an operator'''
     type: Literal['raster', 'vector', 'plot']
+    time: Optional[TimeInterval]
+    resolution: Optional[SpatialResolution]
 
 
 class RasterResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
@@ -200,19 +247,22 @@ class RasterResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-publi
     spatialReference: str
     dataType: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']
     measurement: Measurement
-
+    bbox: Optional[SpatialPartition2D]
 
 class VectorResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
     '''The result descriptor of a vector operator'''
     spatialReference: str
     dataType: Literal['MultiPoint', 'MultiLineString', 'MultiPolygon']
     columns: Dict[str, VectorColumnInfo]
+    bbox: Optional[BoundingBox2D]
+
 
 
 class PlotResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
     '''The result descriptor of a plot operator'''
     spatialReference: str
     dataType: Literal['Plot']
+    bbox: Optional[BoundingBox2D]
 
 
 class MetaDataDefinition(TypedDict):  # pylint: disable=too-few-public-methods
@@ -247,6 +297,9 @@ class GdalMetadataNetCdfCf(MetaDataDefinition):  # pylint: disable=too-few-publi
     step: TimeStep
     bandOffset: int
 
+class WorkflowId(TypedDict):  # pylint: disable=too-few-public-methods
+    '''A data id'''
+    id: str
 
 class DataId(TypedDict):  # pylint: disable=too-few-public-methods
     '''A data id'''
@@ -327,6 +380,5 @@ class GeoEngineExceptionResponse(TypedDict):
     '''
     The error response from the Geo Engine
     '''
-
     error: str
     message: str

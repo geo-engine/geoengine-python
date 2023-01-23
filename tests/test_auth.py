@@ -26,8 +26,9 @@ class AuthTests(unittest.TestCase):
         with self.assertRaises(ge.UninitializedException) as exception:
             ge.workflow_by_id("foobar").get_dataframe(
                 QueryRectangle(
-                    [-180, -90, 180, 90],
-                    [datetime.now(), datetime.now()]
+                    ge.BoundingBox2D(- 180, -90, 180, 90),
+                    ge.TimeInterval(datetime.now()),
+                    ge.SpatialResolution(0.1, 0.1)
                 )
             )
 
