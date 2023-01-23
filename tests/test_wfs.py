@@ -2,7 +2,6 @@
 
 from datetime import datetime
 import unittest
-# import textwrap
 from numpy import nan
 import requests_mock
 import geopandas as gpd
