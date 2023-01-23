@@ -34,7 +34,6 @@ class SpatialBounds:
         self.xmax = xmax
         self.ymax = ymax
 
-
     def as_bbox_str(self, y_axis_first=False) -> str:
         '''
         A comma-separated string representation of the spatial bounds with OGC axis ordering
@@ -214,13 +213,14 @@ class SpatialResolution:
     @staticmethod
     def from_response(response: api.SpatialResolution) -> SpatialResolution:
         '''create a `SpatialResolution` from an API response'''
-        return SpatialResolution(x_resolution = response['x'], y_resolution = response['y'])
+        return SpatialResolution(x_resolution=response['x'], y_resolution=response['y'])
 
     def as_tuple(self) -> Tuple[float, float]:
         return (self.x_resolution, self.y_resolution)
 
     def __str__(self) -> str:
         return str(f'{self.x_resolution},{self.y_resolution}')
+
 
 class QueryRectangle:
     '''
@@ -317,6 +317,7 @@ class QueryRectangle:
         '''
         return self.__srs
 
+
 class ResultDescriptor:  # pylint: disable=too-few-public-methods
     '''
     Base class for result descriptors
@@ -333,9 +334,15 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         spatial_resolution: Optional[SpatialResolution] = None
     ) -> None:
         '''Initialize a new `ResultDescriptor` object'''
+        print(spatial_resolution, type(spatial_resolution))
+
         self.__spatial_reference = spatial_reference
         self.__time_bounds = time_bounds
-        self.__spatial_resolution = spatial_resolution
+
+        if spatial_resolution is None or isinstance(spatial_resolution, SpatialResolution):
+            self.__spatial_resolution = spatial_resolution
+        else:
+            raise TypeException('Spatial resolution must be of type `SpatialResolution` or `None`')
 
     @staticmethod
     def from_response(response: api.ResultDescriptor) -> ResultDescriptor:
@@ -432,21 +439,6 @@ class VectorResultDescriptor(ResultDescriptor):
         self.__columns = columns
         self.__spatial_bounds = spatial_bounds
 
-    def __repr__(self) -> str:
-        '''Display representation of the vector result descriptor'''
-        r = ''
-        r += f'Data type:         {self.data_type}\n'
-        r += f'Spatial Reference: {self.spatial_reference}\n'
-
-        r += 'Columns:\n'
-        for column_name in self.columns:
-            column_info = self.columns[column_name]
-            r += f'  {column_name}:\n'
-            r += f'    Column Type: {column_info.data_type}\n'
-            r += f'    Measurement: {column_info.measurement}\n'
-
-        return r
-
     @staticmethod
     def from_response_vector(response: api.VectorResultDescriptor) -> VectorResultDescriptor:
         '''Parse a vector result descriptor from an http response'''
@@ -458,7 +450,7 @@ class VectorResultDescriptor(ResultDescriptor):
 
         time_bounds = None
         # FIXME: datetime can not represent our min max range
-        #if 'time' in response and response['time'] is not None:
+        # if 'time' in response and response['time'] is not None:
         #    time_bounds = TimeInterval.from_response(response['time'])
         spatial_bounds = None
         if 'bbox' in response and response['bbox'] is not None:
@@ -554,14 +546,6 @@ class RasterResultDescriptor(ResultDescriptor):
         self.__measurement = measurement
         self.__spatial_bounds = spatial_bounds
 
-    def __repr__(self) -> str:
-        '''Display representation of the raster result descriptor'''
-        r = ''
-        r += f'Data type:         {self.data_type}\n'
-        r += f'Spatial Reference: {self.spatial_reference}\n'
-        r += f'Measurement:       {self.measurement}\n'
-        return r
-
     def to_api_dict(self) -> api.RasterResultDescriptor:
         '''Convert the raster result descriptor to a dictionary'''
 
@@ -572,8 +556,7 @@ class RasterResultDescriptor(ResultDescriptor):
             'spatialReference': self.spatial_reference,
             'time': self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             'bbox': self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
-            'resolution': self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
-
+            'resolution': self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
         }
 
     @ staticmethod
@@ -587,7 +570,7 @@ class RasterResultDescriptor(ResultDescriptor):
 
         time_bounds = None
         # FIXME: datetime can not represent our min max range
-        #if 'time' in response and response['time'] is not None:
+        # if 'time' in response and response['time'] is not None:
         #    time_bounds = TimeInterval.from_response(response['time'])
         spatial_bounds = None
         if 'bbox' in response and response['bbox'] is not None:
@@ -649,7 +632,6 @@ class PlotResultDescriptor(ResultDescriptor):
         super().__init__(spatial_reference, time_bounds, spatial_resolution)
         self.__spatial_bounds = spatial_bounds
 
-
     def __repr__(self) -> str:
         '''Display representation of the plot result descriptor'''
         r = 'Plot Result'
@@ -665,7 +647,7 @@ class PlotResultDescriptor(ResultDescriptor):
 
         time_bounds = None
         # FIXME: datetime can not represent our min max range
-        #if 'time' in response and response['time'] is not None:
+        # if 'time' in response and response['time'] is not None:
         #    time_bounds = TimeInterval.from_response(response['time'])
         spatial_bounds = None
         if 'bbox' in response and response['bbox'] is not None:
@@ -806,6 +788,29 @@ class Symbology:
     def to_api_dict(self) -> api.Symbology:
         pass
 
+    @staticmethod
+    def from_response(response: api.Symbology) -> Symbology:
+        '''Parse an http response to a `Symbology` object'''
+
+        if response['type'] == 'vector':
+            # return VectorSymbology.from_response_vector(response)
+            return VectorSymbology()  # TODO: implement
+        if response['type'] == 'raster':
+            return RasterSymbology.from_response_raster(cast(api.RasterSymbology, response))
+
+        raise InputException("Invalid symbology type")
+
+
+class VectorSymbology(Symbology):
+    '''A vector symbology'''
+
+    # TODO: implement
+
+    def to_api_dict(self) -> api.Symbology:
+        return api.Symbology({
+            'type': 'vector',
+        })
+
 
 class RasterSymbology(Symbology):
     '''A raster symbology'''
@@ -826,6 +831,17 @@ class RasterSymbology(Symbology):
             'colorizer': self.__colorizer.to_api_dict(),
             'opacity': self.__opacity,
         })
+
+    @staticmethod
+    def from_response_raster(response: api.RasterSymbology) -> RasterSymbology:
+        '''Parse an http response to a `RasterSymbology` object'''
+
+        colorizer = Colorizer.from_response(response['colorizer'])
+
+        return RasterSymbology(colorizer, response['opacity'])
+
+    def __repr__(self) -> str:
+        return super().__repr__() + f"({self.__colorizer}, {self.__opacity})"
 
 
 class DataId:  # pylint: disable=too-few-public-methods

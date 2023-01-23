@@ -11,12 +11,13 @@ from typing import Any, Dict, Generic, List, NewType, Optional, TypeVar, Union, 
 from uuid import UUID
 import json
 import urllib
-from typing_extensions import TypedDict
 import requests as req
 from strenum import LowercaseStrEnum
+from geoengine import api
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException, check_response_for_error
 from geoengine.tasks import Task, TaskId
+from geoengine.types import Symbology
 
 LayerId = NewType('LayerId', str)
 LayerCollectionId = NewType('LayerCollectionId', str)
@@ -24,32 +25,6 @@ LayerProviderId = NewType('LayerProviderId', UUID)
 
 LAYER_DB_PROVIDER_ID = LayerProviderId(UUID('ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74'))
 LAYER_DB_ROOT_COLLECTION_ID = LayerCollectionId('05102bb3-a855-4a37-8a8a-30026a91fef1')
-
-
-class LayerCollectionAndProviderIdResponse(TypedDict):
-    collectionId: str
-    providerId: str
-
-
-class LayerAndProviderIdResponse(TypedDict):
-    layerId: str
-    providerId: str
-
-
-class LayerCollectionResponse(TypedDict):
-    '''A layer collection response JSON from a HTTP request'''
-    id: LayerCollectionAndProviderIdResponse
-    name: str
-    description: str
-    items: List[LayerCollectionListingResponse]
-
-
-class LayerCollectionListingResponse(TypedDict):
-    '''A layer collection listing response JSON from a HTTP request'''
-    id: Union[LayerCollectionAndProviderIdResponse, LayerAndProviderIdResponse]
-    name: str
-    description: str
-    type: str
 
 
 class LayerCollectionListingType(LowercaseStrEnum):
@@ -201,16 +176,16 @@ class LayerCollection:
         self.items = items
 
     @classmethod
-    def from_response(cls, response_pages: List[LayerCollectionResponse]) -> LayerCollection:
+    def from_response(cls, response_pages: List[api.LayerCollectionResponse]) -> LayerCollection:
         '''Parse an HTTP JSON response to an `LayerCollection`'''
 
         assert len(response_pages) > 0, 'No response pages'
 
-        def parse_listing(response: LayerCollectionListingResponse) -> Listing:
+        def parse_listing(response: api.LayerCollectionListingResponse) -> Listing:
             item_type = LayerCollectionListingType(item_response['type'])
 
             if item_type is LayerCollectionListingType.LAYER:
-                layer_id_response = cast(LayerAndProviderIdResponse, response['id'])
+                layer_id_response = cast(api.LayerAndProviderIdResponse, response['id'])
                 return LayerListing(
                     listing_id=LayerId(layer_id_response['layerId']),
                     provider_id=LayerProviderId(UUID(layer_id_response['providerId'])),
@@ -219,7 +194,7 @@ class LayerCollection:
                 )
 
             if item_type is LayerCollectionListingType.COLLECTION:
-                collection_id_response = cast(LayerCollectionAndProviderIdResponse, response['id'])
+                collection_id_response = cast(api.LayerCollectionAndProviderIdResponse, response['id'])
                 return LayerCollectionListing(
                     listing_id=LayerCollectionId(collection_id_response['collectionId']),
                     provider_id=LayerProviderId(UUID(collection_id_response['providerId'])),
@@ -419,17 +394,6 @@ class LayerCollection:
         return collection_id
 
 
-class LayerResponse(TypedDict):
-    '''A layer response JSON from a HTTP request'''
-    id: LayerAndProviderIdResponse
-    name: str
-    description: str
-    workflow: Dict[str, Any]  # TODO: specify in more detail
-    symbology: Optional[Dict[Any, Any]]  # TODO: specify in more detail
-    properties: List[Any]  # TODO: specify in more detail
-    metadata: Dict[Any, Any]  # TODO: specify in more detail
-
-
 @dataclass(repr=False)
 class Layer:
     '''A layer'''
@@ -440,7 +404,7 @@ class Layer:
     layer_id: LayerId
     provider_id: LayerProviderId
     workflow: Dict[str, Any]  # TODO: specify in more detail
-    symbology: Optional[Dict[str, Any]]  # TODO: specify in more detail
+    symbology: Optional[Symbology]
     properties: List[Any]  # TODO: specify in more detail
     metadata: Dict[str, Any]  # TODO: specify in more detail
 
@@ -450,7 +414,7 @@ class Layer:
                  layer_id: LayerId,
                  provider_id: LayerProviderId,
                  workflow: Dict[str, Any],
-                 symbology: Optional[Dict[Any, Any]],
+                 symbology: Optional[Symbology],
                  properties: List[Any],
                  metadata: Dict[Any, Any]) -> None:
         '''Create a new `Layer`'''
@@ -466,8 +430,11 @@ class Layer:
         self.metadata = metadata
 
     @classmethod
-    def from_response(cls, response: LayerResponse) -> Layer:
+    def from_response(cls, response: api.LayerResponse) -> Layer:
         '''Parse an HTTP JSON response to an `Layer`'''
+        symbology = None
+        if 'symbology' in response and response['symbology'] is not None:
+            symbology = Symbology.from_response(cast(api.Symbology, response['symbology']))
 
         return Layer(
             name=response['name'],
@@ -475,7 +442,7 @@ class Layer:
             layer_id=LayerId(response['id']['layerId']),
             provider_id=LayerProviderId(UUID(response['id']['providerId'])),
             workflow=response['workflow'],
-            symbology=response['symbology'],
+            symbology=symbology,
             properties=response['properties'],
             metadata=response['metadata'],
         )
@@ -530,8 +497,9 @@ class Layer:
         '''
         session = get_session()
 
+        layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
         response = req.post(
-            url=f'{session.server_url}/layers/{self.provider_id}/{self.layer_id}/dataset',
+            url=f'{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/dataset',
             headers=session.admin_auth_header,
             timeout=timeout
         )
@@ -539,6 +507,21 @@ class Layer:
         check_response_for_error(response)
 
         return Task(TaskId.from_response(response.json()))
+
+    def to_api_dict(self) -> api.LayerResponse:
+        '''Convert to a dictionary that can be serialized to JSON'''
+        return api.LayerResponse({
+            'name': self.name,
+            'description': self.description,
+            'id': {
+                'layerId': str(self.layer_id),
+                'providerId': str(self.provider_id),
+            },
+            'workflow': self.workflow,
+            'symbology': self.symbology.to_api_dict() if self.symbology is not None else None,
+            'properties': self.properties,
+            'metadata': self.metadata,
+        })
 
 
 def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
@@ -551,10 +534,10 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
     session = get_session()
 
     request = '/layers/collections' if layer_collection_id is None \
-        else f'/layers/collections/{layer_provider_id}/{urllib.parse.quote_plus(layer_collection_id)}'
+        else f'/layers/collections/{layer_provider_id}/{urllib.parse.quote_plus(str(layer_collection_id))}'
 
     page_limit = 20
-    pages: List[LayerCollectionResponse] = []
+    pages: List[api.LayerCollectionResponse] = []
 
     offset = 0
     while True:
@@ -567,7 +550,7 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
         if not response.ok:
             raise GeoEngineException(response.json())
 
-        page: LayerCollectionResponse = response.json()
+        page: api.LayerCollectionResponse = response.json()
 
         if len(page['items']) < page_limit:
             if len(pages) == 0 or len(page['items']) > 0:  # we need at least one page before breaking

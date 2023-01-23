@@ -1,6 +1,6 @@
 '''The geoengine API'''
 from enum import Enum
-from typing import Dict, Optional, Tuple, List, Union
+from typing import Any, Dict, Optional, Tuple, List, Union
 from typing_extensions import Literal, TypedDict
 
 
@@ -14,6 +14,7 @@ class SpatialResolution(TypedDict):  # pylint: disable=too-few-public-methods
     '''A spatial resolution'''
     x: float
     y: float
+
 
 class TimeInterval(TypedDict):  # pylint: disable=too-few-public-methods
     '''A time interval with iso 8601 strings as start and end or unix timestamps'''
@@ -32,22 +33,27 @@ class SpatialPartition2D(TypedDict):  # pylint: disable=too-few-public-methods
     upperLeftCoordinate: Coordinate2D
     lowerRightCoordinate: Coordinate2D
 
+
 class QueryRectangle(TypedDict):  # pylint: disable=too-few-public-methods
     '''A query rectangle with x, y coordinates'''
     spatialResolution: SpatialResolution
     timeInterval: TimeInterval
 
+
 class RasterQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
     '''A query rectangle for raster data'''
     spatialBounds: SpatialPartition2D
+
 
 class VectorQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
     '''A query rectangle for vector data'''
     spatialBounds: BoundingBox2D
 
+
 class PlotQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
     '''A query rectangle for plot data'''
     spatialBounds: BoundingBox2D
+
 
 class ColorizerBreakpoint(TypedDict):  # pylint: disable=too-few-public-methods
     """This class is used to generate geoengine compatible color breakpoint definitions as a dictionary."""
@@ -56,11 +62,25 @@ class ColorizerBreakpoint(TypedDict):  # pylint: disable=too-few-public-methods
 
 
 class Colorizer(TypedDict):  # pylint: disable=too-few-public-methods
-    """This class is used to generate geoengine compatible color map definitions as a dictionary."""
+    """This is a color map definitions as a dictionary."""
     type: Literal["linearGradient", "palette", "logarithmicGradient"]
-    breakpoints: List[ColorizerBreakpoint]
     noDataColor: Tuple[int, int, int, int]
     defaultColor: Tuple[int, int, int, int]
+
+
+class PaletteColorizer(Colorizer):  # pylint: disable=too-few-public-methods
+    """This is a palette color map definitions as a dictionary."""
+    colors: Dict[float, Tuple[int, int, int, int]]
+
+
+class LinearGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
+    """This is a linear gradient color map definitions as a dictionary."""
+    breakpoints: List[ColorizerBreakpoint]
+
+
+class LogarithmicGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
+    """This is a logarithmic gradient color map definitions as a dictionary."""
+    breakpoints: List[ColorizerBreakpoint]
 
 
 class Provenance(TypedDict):  # pylint: disable=too-few-public-methods
@@ -249,13 +269,13 @@ class RasterResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-publi
     measurement: Measurement
     bbox: Optional[SpatialPartition2D]
 
+
 class VectorResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
     '''The result descriptor of a vector operator'''
     spatialReference: str
     dataType: Literal['MultiPoint', 'MultiLineString', 'MultiPolygon']
     columns: Dict[str, VectorColumnInfo]
     bbox: Optional[BoundingBox2D]
-
 
 
 class PlotResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
@@ -297,9 +317,11 @@ class GdalMetadataNetCdfCf(MetaDataDefinition):  # pylint: disable=too-few-publi
     step: TimeStep
     bandOffset: int
 
+
 class WorkflowId(TypedDict):  # pylint: disable=too-few-public-methods
     '''A data id'''
     id: str
+
 
 class DataId(TypedDict):  # pylint: disable=too-few-public-methods
     '''A data id'''
@@ -382,3 +404,40 @@ class GeoEngineExceptionResponse(TypedDict):
     '''
     error: str
     message: str
+
+
+class LayerCollectionAndProviderIdResponse(TypedDict):
+    collectionId: str
+    providerId: str
+
+
+class LayerAndProviderIdResponse(TypedDict):
+    layerId: str
+    providerId: str
+
+
+class LayerCollectionListingResponse(TypedDict):
+    '''A layer collection listing response JSON from a HTTP request'''
+    id: Union[LayerCollectionAndProviderIdResponse, LayerAndProviderIdResponse]
+    name: str
+    description: str
+    type: str
+
+
+class LayerCollectionResponse(TypedDict):
+    '''A layer collection response JSON from a HTTP request'''
+    id: LayerCollectionAndProviderIdResponse
+    name: str
+    description: str
+    items: List[LayerCollectionListingResponse]
+
+
+class LayerResponse(TypedDict):
+    '''A layer response JSON from a HTTP request'''
+    id: LayerAndProviderIdResponse
+    name: str
+    description: str
+    workflow: Dict[str, Any]  # TODO: specify in more detail
+    symbology: Optional[Symbology]
+    properties: List[Any]  # TODO: specify in more detail
+    metadata: Dict[Any, Any]  # TODO: specify in more detail

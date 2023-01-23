@@ -24,6 +24,7 @@ class TaskId:
     @classmethod
     def from_response(cls, response: Dict[str, str]) -> TaskId:
         '''Parse a http response to an `TaskId`'''
+
         if 'task_id' not in response:
             raise GeoEngineException(response)
 

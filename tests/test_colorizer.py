@@ -218,7 +218,6 @@ class ColorizerTests(unittest.TestCase):
 
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="viridis", min_max=(0, 255), n_steps=2)
         jsonstr = geo_colorizer.to_json()
-        print(jsonstr)
 
         assert jsonstr == expected
 

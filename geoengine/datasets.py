@@ -574,5 +574,4 @@ def add_public_raster_dataset(volume_id: VolumeId, properties: AddDataset, meta_
                         timeout=timeout
                         ).json()
 
-
     return DatasetId.from_response(response)
