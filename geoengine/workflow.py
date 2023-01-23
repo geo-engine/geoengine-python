@@ -28,8 +28,8 @@ from xarray import DataArray
 from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
-from geoengine.error import  MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
-    MethodNotCalledOnVectorException,  check_response_for_error
+from geoengine.error import MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
+    MethodNotCalledOnVectorException, check_response_for_error
 from geoengine.tasks import Task, TaskId
 from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
 
@@ -66,8 +66,6 @@ class WorkflowId:
         '''
         if 'id' not in response:
             raise TypeError('Response does not contain a workflow id.')
-
-
         return WorkflowId(UUID(response['id']))
 
     def __str__(self) -> str:

@@ -78,7 +78,7 @@ class BoundingBox2D(SpatialBounds):
     @staticmethod
     def from_response(response: api.BoundingBox2D) -> BoundingBox2D:
         '''create a `BoundingBox2D` from an API response'''
-        if not 'lowerLeftCoordinate' in response or not 'upperRightCoordinate' in response:
+        if 'lowerLeftCoordinate' not in response or 'upperRightCoordinate' not in response:
             raise TypeException('BoundingBox2D must have lowerLeftCoordinate and upperRightCoordinate')
 
         lower_left = response['lowerLeftCoordinate']
@@ -98,7 +98,7 @@ class SpatialPartition2D(SpatialBounds):
     @staticmethod
     def from_response(response: api.SpatialPartition2D) -> SpatialPartition2D:
         '''create a `SpatialPartition2D` from an API response'''
-        if not 'upperLeftCoordinate' in response or not 'lowerRightCoordinate' in response:
+        if 'upperLeftCoordinate' not in response or 'lowerRightCoordinate' not in response:
             raise TypeException('SpatialPartition2D must have upperLeftCoordinate and lowerRightCoordinate')
 
         upper_left = response['upperLeftCoordinate']
@@ -170,7 +170,7 @@ class TimeInterval:
     def from_response(response: api.TimeInterval) -> TimeInterval:
         '''create a `TimeInterval` from an API response'''
 
-        if not 'start' in response:
+        if 'start' not in response:
             raise TypeException('TimeInterval must have a start')
 
         if isinstance(response['start'], int):

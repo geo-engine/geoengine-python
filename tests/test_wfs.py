@@ -732,47 +732,47 @@ class WfsTests(unittest.TestCase):
 # FIXME: use api dict for comparison then enable test
 #            ge.initialize("http://mock-instance")
 #
- #           workflow = ge.workflow_by_id(
-  #              '4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd')
+#           workflow = ge.workflow_by_id(
+#              '4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd')
 #
- #           result_descriptor = workflow.get_result_descriptor()
+#           result_descriptor = workflow.get_result_descriptor()
 #
- #           expected_repr = '''\
-  #              Data type:         MultiPoint
-   #             Spatial Reference: EPSG:4326
-    #            Columns:
-     #             scalerank:
-      #              Column Type: int
-       #             Measurement: unitless
-        #          NDVI:
-         #           Column Type: int
-          #          Measurement: vegetation
-           #       featurecla:
-            #        Column Type: text
-            #       Measurement: unitless
-            #     natlscale:
-            #      Column Type: float
-            #     Measurement: unitless
-            #    website:
-            #      Column Type: text
-            #      Measurement: unitless
-            #    name:
-            #      Column Type: text
-            #      Measurement: unitless
-            #  '''
+#           expected_repr = '''\
+#              Data type:         MultiPoint
+#             Spatial Reference: EPSG:4326
+#            Columns:
+#             scalerank:
+#              Column Type: int
+#             Measurement: unitless
+#          NDVI:
+#           Column Type: int
+#          Measurement: vegetation
+#       featurecla:
+#        Column Type: text
+#       Measurement: unitless
+#     natlscale:
+#      Column Type: float
+#     Measurement: unitless
+#    website:
+#      Column Type: text
+#      Measurement: unitless
+#    name:
+#      Column Type: text
+#      Measurement: unitless
+#  '''
 #
- #           self.assertEqual(
-  #              repr(result_descriptor),
-   #             textwrap.dedent(expected_repr)
-    #        )
+#           self.assertEqual(
+#              repr(result_descriptor),
+#             textwrap.dedent(expected_repr)
+#        )
 #
- #           with self.assertRaises(ge.GeoEngineException) as exception:
-  #              workflow = ge.workflow_by_id('foo')
+#           with self.assertRaises(ge.GeoEngineException) as exception:
+#              workflow = ge.workflow_by_id('foo')
 #
- #               result_descriptor = workflow.get_result_descriptor()
+#               result_descriptor = workflow.get_result_descriptor()
 #
- #           self.assertEqual(str(exception.exception),
-  #                           'NotFound: Not Found')
+#           self.assertEqual(str(exception.exception),
+#                           'NotFound: Not Found')
 
     def test_workflow_retrieval(self):
         workflow_definition = {
