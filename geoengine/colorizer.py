@@ -124,7 +124,7 @@ class Colorizer():
 
         return colorizer
 
-    @ abstractmethod
+    @abstractmethod
     def to_api_dict(self) -> api.Colorizer:
         pass
 
