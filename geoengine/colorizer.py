@@ -226,7 +226,7 @@ class PaletteColorizer(Colorizer):
         super().__init__(no_data_color, default_color, "palette")
         self.colors = colors
 
-    @ staticmethod
+    @staticmethod
     def from_response_palette(response: api.PaletteColorizer) -> "PaletteColorizer":
         """Create a colorizer from a response."""
 
