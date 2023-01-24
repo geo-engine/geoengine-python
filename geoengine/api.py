@@ -1,4 +1,5 @@
-'''The geoengine API'''
+'''These types represent Geo Engine's backend API types before/after JSON (de)serialization.'''
+
 from enum import Enum
 from typing import Any, Dict, Optional, Tuple, List, Union
 from typing_extensions import Literal, TypedDict
