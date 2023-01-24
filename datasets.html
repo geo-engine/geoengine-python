@@ -596,7 +596,21 @@ def add_public_raster_dataset(volume_id: VolumeId, name: str, meta_data: MetaDat
     if &#39;error&#39; in response:
         raise GeoEngineException(response)
 
-    return DatasetId(response[&#34;id&#34;])</code></pre>
+    return DatasetId(response[&#34;id&#34;])
+
+
+def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
+    &#39;&#39;&#39;Delete a dataset. The dataset must be owned by the caller.&#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.delete(f&#39;{session.server_url}/dataset/{dataset_id}&#39;,
+                          headers=session.admin_or_normal_auth_header,
+                          timeout=timeout)
+
+    if response.status_code != 200:
+        error_json = response.json()
+        raise GeoEngineException(error_json)</code></pre>
 </details>
 </section>
 <section>
@@ -649,6 +663,29 @@ def add_public_raster_dataset(volume_id: VolumeId, name: str, meta_data: MetaDat
         raise GeoEngineException(response)
 
     return DatasetId(response[&#34;id&#34;])</code></pre>
+</details>
+</dd>
+<dt id="geoengine.datasets.delete_dataset"><code class="name flex">
+<span>def <span class="ident">delete_dataset</span></span>(<span>dataset_id: <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a>, timeout: int = 60) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Delete a dataset. The dataset must be owned by the caller.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
+    &#39;&#39;&#39;Delete a dataset. The dataset must be owned by the caller.&#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.delete(f&#39;{session.server_url}/dataset/{dataset_id}&#39;,
+                          headers=session.admin_or_normal_auth_header,
+                          timeout=timeout)
+
+    if response.status_code != 200:
+        error_json = response.json()
+        raise GeoEngineException(error_json)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.datasets.pandas_dtype_to_column_type"><code class="name flex">
@@ -2363,6 +2400,7 @@ class ZeroOgrSourceDurationSpec(OgrSourceDuration):
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="geoengine.datasets.add_public_raster_dataset" href="#geoengine.datasets.add_public_raster_dataset">add_public_raster_dataset</a></code></li>
+<li><code><a title="geoengine.datasets.delete_dataset" href="#geoengine.datasets.delete_dataset">delete_dataset</a></code></li>
 <li><code><a title="geoengine.datasets.pandas_dtype_to_column_type" href="#geoengine.datasets.pandas_dtype_to_column_type">pandas_dtype_to_column_type</a></code></li>
 <li><code><a title="geoengine.datasets.upload_dataframe" href="#geoengine.datasets.upload_dataframe">upload_dataframe</a></code></li>
 <li><code><a title="geoengine.datasets.volumes" href="#geoengine.datasets.volumes">volumes</a></code></li>
