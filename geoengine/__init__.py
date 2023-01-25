@@ -6,7 +6,8 @@ from requests import utils
 from .auth import Session, get_session, initialize, reset
 from .colorizer import Colorizer, ColorBreakpoint, LinearGradientColorizer, PaletteColorizer, \
     LogarithmicGradientColorizer
-from .datasets import upload_dataframe, StoredDataset, add_public_raster_dataset, volumes, DatasetProperties
+from .datasets import upload_dataframe, StoredDataset, add_public_raster_dataset, volumes, DatasetProperties, \
+    delete_dataset
 from .error import GeoEngineException, InputException, UninitializedException, TypeException, \
     MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, \
     SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \
