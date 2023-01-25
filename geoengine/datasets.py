@@ -293,7 +293,7 @@ class UploadId:
     def __init__(self, upload_id: UUID) -> None:
         self.__upload_id = upload_id
 
-    @ classmethod
+    @classmethod
     def from_response(cls, response: api.UploadId) -> UploadId:
         '''Parse a http response to an `UploadId`'''
         if 'error' in response:
@@ -331,7 +331,7 @@ class VolumeId:
     def __init__(self, volume_id: UUID) -> None:
         self.__volume_id = volume_id
 
-    @ classmethod
+    @classmethod
     def from_response(cls, response: api.VolumeId) -> VolumeId:
         '''Parse a http response to an `ColumeId`'''
         if 'error' in response:

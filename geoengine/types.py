@@ -461,27 +461,27 @@ class VectorResultDescriptor(ResultDescriptor):
 
         return VectorResultDescriptor(sref, data_type, columns, time_bounds, spatial_bounds, spatial_resolution)
 
-    @ classmethod
+    @classmethod
     def is_vector_result(cls) -> bool:
         return True
 
-    @ property
+    @property
     def data_type(self) -> Literal['MultiPoint', 'MultiLineString', 'MultiPolygon']:
         '''Return the data type'''
         return self.__data_type
 
-    @ property
+    @property
     def spatial_reference(self) -> str:
         '''Return the spatial reference'''
         return super().spatial_reference
 
-    @ property
+    @property
     def columns(self) -> Dict[str, VectorColumnInfo]:
         '''Return the columns'''
 
         return self.__columns
 
-    @ property
+    @property
     def spatial_bounds(self) -> Optional[BoundingBox2D]:
         '''Return the spatial bounds'''
         return self.__spatial_bounds
@@ -501,14 +501,14 @@ class VectorResultDescriptor(ResultDescriptor):
         })
 
 
-@ dataclass
+@dataclass
 class VectorColumnInfo:
     '''Vector column information'''
 
     data_type: str
     measurement: Measurement
 
-    @ staticmethod
+    @staticmethod
     def from_response(response: api.VectorColumnInfo) -> VectorColumnInfo:
         '''Create a new `VectorColumnInfo` from a JSON response'''
 
@@ -559,7 +559,7 @@ class RasterResultDescriptor(ResultDescriptor):
             'resolution': self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
         }
 
-    @ staticmethod
+    @staticmethod
     def from_response_raster(response: api.RasterResultDescriptor) -> RasterResultDescriptor:
         '''Parse a raster result descriptor from an http response'''
         assert response['type'] == 'raster'  # TODO: throw exception
@@ -588,23 +588,23 @@ class RasterResultDescriptor(ResultDescriptor):
             spatial_resolution=spatial_resolution
         )
 
-    @ classmethod
+    @classmethod
     def is_raster_result(cls) -> bool:
         return True
 
-    @ property
+    @property
     def data_type(self) -> Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']:
         return self.__data_type
 
-    @ property
+    @property
     def measurement(self) -> Measurement:
         return self.__measurement
 
-    @ property
+    @property
     def spatial_bounds(self) -> Optional[SpatialPartition2D]:
         return self.__spatial_bounds
 
-    @ property
+    @property
     def spatial_reference(self) -> str:
         '''Return the spatial reference'''
 
@@ -638,7 +638,7 @@ class PlotResultDescriptor(ResultDescriptor):
 
         return r
 
-    @ staticmethod
+    @staticmethod
     def from_response_plot(response: api.PlotResultDescriptor) -> PlotResultDescriptor:
         '''Create a new `PlotResultDescriptor` from a JSON response'''
         assert response['type'] == 'plot'  # TODO: throw exception
@@ -663,16 +663,16 @@ class PlotResultDescriptor(ResultDescriptor):
             spatial_resolution=spatial_resolution
         )
 
-    @ classmethod
+    @classmethod
     def is_plot_result(cls) -> bool:
         return True
 
-    @ property
+    @property
     def spatial_reference(self) -> str:
         '''Return the spatial reference'''
         return super().spatial_reference
 
-    @ property
+    @property
     def spatial_bounds(self) -> Optional[BoundingBox2D]:
         return self.__spatial_bounds
 
@@ -697,7 +697,7 @@ class VectorDataType(Enum):
     MULTI_LINE_STRING = 'MultiLineString'
     MULTI_POLYGON = 'MultiPolygon'
 
-    @ classmethod
+    @classmethod
     def from_geopandas_type_name(cls, name: str) -> VectorDataType:
         '''Resolve vector data type from geopandas geometry type'''
 
@@ -730,7 +730,7 @@ class TimeStepGranularity(Enum):
         return api.TimeStepGranularity(self.value)
 
 
-@ dataclass
+@dataclass
 class TimeStep:
     '''A time step that consists of a granularity and a step size'''
     step: int
@@ -743,7 +743,7 @@ class TimeStep:
         })
 
 
-@ dataclass
+@dataclass
 class Provenance:
     '''Provenance information as triplet of citation, license and uri'''
 
@@ -751,7 +751,7 @@ class Provenance:
     license: str
     uri: str
 
-    @ classmethod
+    @classmethod
     def from_response(cls, response: api.Provenance) -> Provenance:
         '''Parse an http response to a `Provenance` object'''
         return Provenance(response['citation'], response['license'], response['uri'])
@@ -764,14 +764,14 @@ class Provenance:
         })
 
 
-@ dataclass
+@dataclass
 class ProvenanceOutput:
     '''Provenance of a dataset'''
 
     data: DataId
     provenance: Provenance
 
-    @ classmethod
+    @classmethod
     def from_response(cls, response: api.ProvenanceOutput) -> ProvenanceOutput:
         '''Parse an http response to a `ProvenanceOutput` object'''
 
@@ -784,7 +784,7 @@ class ProvenanceOutput:
 class Symbology:
     '''Base class for symbology'''
 
-    @ abstractmethod
+    @abstractmethod
     def to_api_dict(self) -> api.Symbology:
         pass
 
@@ -846,7 +846,7 @@ class RasterSymbology(Symbology):
 
 class DataId:  # pylint: disable=too-few-public-methods
     '''Base class for data ids'''
-    @ classmethod
+    @classmethod
     def from_response(cls, response: api.DataId) -> DataId:
         '''Parse an http response to a `DataId` object'''
 
@@ -857,7 +857,7 @@ class DataId:  # pylint: disable=too-few-public-methods
 
         raise GeoEngineException({"message": f"Unknown DataId type: {response['type']}"})
 
-    @ abstractmethod
+    @abstractmethod
     def to_api_dict(self) -> api.DataId:
         pass
 
@@ -870,7 +870,7 @@ class InternalDataId(DataId):
     def __init__(self, dataset_id: UUID):
         self.__dataset_id = dataset_id
 
-    @ classmethod
+    @classmethod
     def from_response_internal(cls, response: api.InternalDataId) -> InternalDataId:
         '''Parse an http response to a `InternalDataId` object'''
         return InternalDataId(UUID(response['datasetId']))
@@ -906,7 +906,7 @@ class ExternalDataId(DataId):
         self.__provider_id = provider_id
         self.__layer_id = layer_id
 
-    @ classmethod
+    @classmethod
     def from_response_external(cls, response: api.ExternalDataId) -> ExternalDataId:
         '''Parse an http response to a `ExternalDataId` object'''
 
@@ -939,7 +939,7 @@ class Measurement:  # pylint: disable=too-few-public-methods
     Base class for measurements
     '''
 
-    @ staticmethod
+    @staticmethod
     def from_response(response: api.Measurement) -> Measurement:
         '''
         Parse a result descriptor from an http response
@@ -960,7 +960,7 @@ class Measurement:  # pylint: disable=too-few-public-methods
         raise TypeException(
             f'Unknown `Measurement` type: {measurement_type}')
 
-    @ abstractmethod
+    @abstractmethod
     def to_api_dict(self) -> api.Measurement:
         pass
 
@@ -996,7 +996,7 @@ class ContinuousMeasurement(Measurement):
         self.__measurement = measurement
         self.__unit = unit
 
-    @ staticmethod
+    @staticmethod
     def from_response_continuous(response: api.ContinuousMeasurement) -> ContinuousMeasurement:
         '''Initialize a new `ContiuousMeasurement from a JSON response'''
 
@@ -1021,11 +1021,11 @@ class ContinuousMeasurement(Measurement):
             'unit': self.__unit
         })
 
-    @ property
+    @property
     def measurement(self) -> str:
         return self.__measurement
 
-    @ property
+    @property
     def unit(self) -> Optional[str]:
         return self.__unit
 
@@ -1044,7 +1044,7 @@ class ClassificationMeasurement(Measurement):
         self.__measurement = measurement
         self.__classes = classes
 
-    @ staticmethod
+    @staticmethod
     def from_response_classification(response: api.ClassificationMeasurement) -> ClassificationMeasurement:
         '''Initialize a new `ClassificationMeasurement from a JSON response'''
 
@@ -1073,10 +1073,10 @@ class ClassificationMeasurement(Measurement):
         '''Display representation of a classification measurement'''
         return str(self)
 
-    @ property
+    @property
     def measurement(self) -> str:
         return self.__measurement
 
-    @ property
+    @property
     def classes(self) -> Dict[int, str]:
         return self.__classes
