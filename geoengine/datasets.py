@@ -17,7 +17,8 @@ from geoengine import api
 from geoengine.error import GeoEngineException, InputException
 from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
-    TimeStepGranularity, VectorDataType
+    TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
+    UnitlessMeasurement
 
 
 class UnixTimeStampType(Enum):
@@ -243,8 +244,12 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 
 
 class OgrOnError(Enum):
+    '''How to handle errors when loading an OGR dataset'''
     IGNORE = "ignore"
     ABORT = "abort"
+
+    def to_api_enum(self) -> api.OgrOnError:
+        return api.OgrOnError(self.value)
 
 
 class DatasetId:
@@ -320,6 +325,45 @@ class UploadId:
     def to_api_dict(self) -> api.UploadId:
         return {
             'id': str(self.__upload_id)
+        }
+
+
+class DatasetProperties():
+    '''The properties of a dataset'''
+    id: Optional[DatasetId]
+    name: str
+    description: str
+    source_operator: Literal['GdalSource', 'OgrSource']  # TODO: add more operators
+    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
+    provenance: Optional[Provenance]
+
+    def __init__(
+        # pylint: disable=too-many-arguments
+        self,
+        name: str,
+        description: str,
+        source_operator: Literal['GdalSource', 'OgrSource'] = "GdalSource",
+        symbology: Optional[RasterSymbology] = None,
+        provenance: Optional[Provenance] = None,
+        dataset_id: Optional[DatasetId] = None
+    ):
+        '''Creates a new `AddDatasetProperties` object'''
+        self.dataset_id = dataset_id
+        self.name = name
+        self.description = description
+        self.source_operator = source_operator
+        self.symbology = symbology
+        self.provenance = provenance
+
+    def to_api_dict(self) -> api.DatasetProperties:
+        '''Converts the properties to a dictionary'''
+        return {
+            'id': str(self.dataset_id) if self.dataset_id is not None else None,
+            'name': self.name,
+            'description': self.description,
+            'sourceOperator': self.source_operator,
+            'symbology': self.symbology.to_api_dict() if self.symbology is not None else None,
+            'provenance': self.provenance.to_api_dict() if self.provenance is not None else None
         }
 
 
@@ -404,49 +448,49 @@ def upload_dataframe(
 
     vector_type = VectorDataType.from_geopandas_type_name(df.geom_type[0])
 
-    columns = {key: {'dataType': pandas_dtype_to_column_type(value), 'measurement': {'type': 'unitless'}}
+    columns = {key: VectorColumnInfo(data_type=pandas_dtype_to_column_type(value), measurement=UnitlessMeasurement())
                for (key, value) in df.dtypes.items()
                if str(value) != 'geometry'}
 
-    floats = [key for (key, value) in columns.items() if value['dataType'] == 'float']
-    ints = [key for (key, value) in columns.items() if value['dataType'] == 'int']
-    texts = [key for (key, value) in columns.items() if value['dataType'] == 'text']
+    floats = [key for (key, value) in columns.items() if value.data_type == 'float']
+    ints = [key for (key, value) in columns.items() if value.data_type == 'int']
+    texts = [key for (key, value) in columns.items() if value.data_type == 'text']
 
-    # TODO: use API dict to model the request
-    create = {
-        "dataPath": {
-            "upload": str(upload_id)
-        },
-        "definition": {
-            "properties": {
-                "name": name,
-                "description": "",
-                "sourceOperator": "OgrSource"
-            },
-            "metaData": {
-                "type": "OgrMetaData",
-                "loadingInfo": {
-                    "fileName": "geo.json",
-                    "layerName": "geo",
-                    "dataType": vector_type.value,
+    create = api.CreateDataset({
+        'dataPath': api.DatasetPath({
+            'upload': str(upload_id)
+        }),
+        'definition': api.DatasetDefinition({
+            'properties': DatasetProperties(
+                name=name,
+                description='Upload from Python',
+                source_operator='OgrSource',
+            ).to_api_dict(),
+            'metaData': api.OgrMetadata({
+                'type': 'OgrMetaData',
+                'loadingInfo': api.OgrLoadingInfo({
+                    'fileName': 'geo.json',
+                    "layerName": 'geo',
+                    "dataType": vector_type.to_api_enum(),
                     "time": time.to_api_dict(),
-                    "columns": {
-                        "x": "",
+                    "columns": api.OgrLoadingInfoColumns({
+                        'y': '',
+                        "x": '',
                         "float": floats,
                         "int": ints,
-                        "text": texts
-                    },
-                    "onError": on_error.value
-                },
-                "resultDescriptor": {
-                    "type": "vector",
-                    "dataType": vector_type.value,
-                    "columns": columns,
-                    "spatialReference": df.crs.to_string()
-                }
-            }
-        }
-    }
+                        "text": texts,
+                    }),
+                    "onError": on_error.to_api_enum(),
+
+                }),
+                'resultDescriptor': VectorResultDescriptor(
+                    data_type=vector_type,
+                    spatial_reference=df.crs.to_string(),
+                    columns=columns,
+                ).to_api_dict()
+            }),
+        })
+    })
 
     response = req.post(f'{session.server_url}/dataset',
                         json=create, headers=session.auth_header,
@@ -483,45 +527,6 @@ class StoredDataset(NamedTuple):
         return api.StoredDataset(dataset=str(self.dataset_id), upload=str(self.upload_id))
 
 
-class AddDataset():
-    '''The properties of a dataset'''
-    id: Optional[DatasetId]
-    name: str
-    description: str
-    source_operator: Literal['GdalSource']  # TODO: add more operators
-    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
-    provenance: Optional[Provenance]
-
-    def __init__(
-        # pylint: disable=too-many-arguments
-        self,
-        name: str,
-        description: str,
-        source_operator: Literal['GdalSource'] = "GdalSource",
-        symbology: Optional[RasterSymbology] = None,
-        provenance: Optional[Provenance] = None,
-        dataset_id: Optional[DatasetId] = None
-    ):
-        '''Creates a new `AddDatasetProperties` object'''
-        self.dataset_id = dataset_id
-        self.name = name
-        self.description = description
-        self.source_operator = source_operator
-        self.symbology = symbology
-        self.provenance = provenance
-
-    def to_api_dict(self) -> api.AddDataset:
-        '''Converts the properties to a dictionary'''
-        return {
-            'id': str(self.dataset_id) if self.dataset_id is not None else None,
-            'name': self.name,
-            'description': self.description,
-            'sourceOperator': self.source_operator,
-            'symbology': self.symbology.to_api_dict() if self.symbology is not None else None,
-            'provenance': self.provenance.to_api_dict() if self.provenance is not None else None
-        }
-
-
 @dataclass
 class Volume:
     '''A volume'''
@@ -548,19 +553,21 @@ def volumes(timeout: int = 60) -> List[Volume]:
     return [Volume.from_response(v) for v in response]
 
 
-def add_public_raster_dataset(volume_id: VolumeId, properties: AddDataset, meta_data: api.MetaDataDefinition,
+def add_public_raster_dataset(volume_id: VolumeId, properties: DatasetProperties, meta_data: api.MetaDataDefinition,
                               timeout: int = 60) -> DatasetId:
     '''Adds a public raster dataset to the Geo Engine'''
 
-    create = {
-        "dataPath": {
-            "volume": str(volume_id)
-        },
-        "definition": {
-            "properties": properties.to_api_dict(),
-            "metaData": meta_data
-        }
-    }
+    create = api.CreateDataset(
+
+        {
+            "dataPath": api.DatasetVolume({
+                "volume": str(volume_id)
+            }),
+            "definition": {
+                "properties": properties.to_api_dict(),
+                "metaData": meta_data
+            }
+        })
 
     data = json.dumps(create, default=dict)
 

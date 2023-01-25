@@ -334,7 +334,6 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         spatial_resolution: Optional[SpatialResolution] = None
     ) -> None:
         '''Initialize a new `ResultDescriptor` object'''
-        print(spatial_resolution, type(spatial_resolution))
 
         self.__spatial_reference = spatial_reference
         self.__time_bounds = time_bounds
@@ -421,13 +420,13 @@ class VectorResultDescriptor(ResultDescriptor):
     A vector result descriptor
     '''
     __spatial_bounds: Optional[BoundingBox2D]
-    __data_type: Literal['MultiPoint', 'MultiLineString', 'MultiPolygon']
+    __data_type: VectorDataType
     __columns: Dict[str, VectorColumnInfo]
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
         spatial_reference: str,
-        data_type: Literal['MultiPoint', 'MultiLineString', 'MultiPolygon'],
+        data_type: VectorDataType,
         columns: Dict[str, VectorColumnInfo],
         time_bounds: Optional[TimeInterval] = None,
         spatial_bounds: Optional[BoundingBox2D] = None,
@@ -445,7 +444,7 @@ class VectorResultDescriptor(ResultDescriptor):
         assert response['type'] == 'vector'  # TODO: throw exception
 
         sref = response['spatialReference']
-        data_type = response['dataType']
+        data_type = VectorDataType.from_string(response['dataType'])
         columns = {name: VectorColumnInfo.from_response(info) for name, info in response['columns'].items()}
 
         time_bounds = None
@@ -466,7 +465,7 @@ class VectorResultDescriptor(ResultDescriptor):
         return True
 
     @property
-    def data_type(self) -> Literal['MultiPoint', 'MultiLineString', 'MultiPolygon']:
+    def data_type(self) -> VectorDataType:
         '''Return the data type'''
         return self.__data_type
 
@@ -491,7 +490,7 @@ class VectorResultDescriptor(ResultDescriptor):
 
         return api.VectorResultDescriptor({
             'type': 'raster',
-            'dataType': self.data_type,
+            'dataType': self.data_type.to_api_enum(),
             'spatialReference': self.spatial_reference,
             'columns':
                 {name: column_info.to_api_dict() for name, column_info in self.columns.items()},
@@ -689,7 +688,7 @@ class PlotResultDescriptor(ResultDescriptor):
         })
 
 
-class VectorDataType(Enum):
+class VectorDataType(str, Enum):
     '''An enum of vector data types'''
 
     DATA = 'Data'
@@ -714,6 +713,26 @@ class VectorDataType(Enum):
             return name_map[name]
 
         raise InputException("Invalid vector data type")
+
+    def to_api_enum(self) -> api.VectorDataType:
+        return api.VectorDataType(self.value)
+
+    @staticmethod
+    def from_literal(literal: Literal['Data', 'MultiPoint', 'MultiLineString', 'MultiPolygon']) -> VectorDataType:
+        '''Resolve vector data type from literal'''
+        return VectorDataType(literal)
+
+    @staticmethod
+    def from_api_enum(data_type: api.VectorDataType) -> VectorDataType:
+        '''Resolve vector data type from API enum'''
+        return VectorDataType(data_type.value)
+
+    @staticmethod
+    def from_string(string: str) -> VectorDataType:
+        '''Resolve vector data type from string'''
+        if string not in VectorDataType.__members__.values():
+            raise InputException("Invalid vector data type: " + string)
+        return VectorDataType(string)
 
 
 class TimeStepGranularity(Enum):

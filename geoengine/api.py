@@ -102,16 +102,6 @@ class RasterSymbology(Symbology):  # pylint: disable=too-few-public-methods
     opacity: float
 
 
-class AddDataset(TypedDict):  # pylint: disable=too-few-public-methods
-    '''The properties of a dataset'''
-    id: Optional[str]
-    name: str
-    description: str
-    sourceOperator: Literal['GdalSource']  # TODO: add more operators
-    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
-    provenance: Optional[Provenance]
-
-
 class Measurement(TypedDict):  # pylint: disable=too-few-public-methods
     '''A measurement'''
     type: Literal['continuous', 'classification', 'unitless']
@@ -147,9 +137,18 @@ class RasterPropertiesKey(TypedDict):  # pylint: disable=too-few-public-methods
     key: str
 
 
-class RasterPropertiesEntryType(Enum):  # pylint: disable=too-few-public-methods
+class RasterPropertiesEntryType(str, Enum):  # pylint: disable=too-few-public-methods
     NUMBER = "number"
     STRING = "string"
+
+
+class VectorDataType(str, Enum):
+    '''An enum of vector data types'''
+
+    DATA = 'Data'
+    MULTI_POINT = 'MultiPoint'
+    MULTI_LINE_STRING = 'MultiLineString'
+    MULTI_POLYGON = 'MultiPolygon'
 
 
 class GdalMetadataMapping(TypedDict):  # pylint: disable=too-few-public-methods
@@ -274,7 +273,7 @@ class RasterResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-publi
 class VectorResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
     '''The result descriptor of a vector operator'''
     spatialReference: str
-    dataType: Literal['MultiPoint', 'MultiLineString', 'MultiPolygon']
+    dataType: VectorDataType
     columns: Dict[str, VectorColumnInfo]
     bbox: Optional[BoundingBox2D]
 
@@ -394,7 +393,7 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):  # pylint
     durationField: str
 
 
-class OgrOnError(Enum):  # pylint: disable=too-few-public-methods
+class OgrOnError(str, Enum):  # pylint: disable=too-few-public-methods
     IGNORE = "ignore"
     ABORT = "abort"
 
@@ -442,3 +441,65 @@ class LayerResponse(TypedDict):
     symbology: Optional[Symbology]
     properties: List[Any]  # TODO: specify in more detail
     metadata: Dict[Any, Any]  # TODO: specify in more detail
+
+
+class OgrLoadingInfoColumns(TypedDict):  # pylint: disable=too-few-public-methods
+    '''The columns of an OGR dataset'''
+    x: Optional[str]
+    y: Optional[str]
+    float: Optional[List[str]]
+    int: Optional[List[str]]
+    text: Optional[List[str]]
+
+
+class OgrLoadingInfo(TypedDict):  # pylint: disable=too-few-public-methods
+    '''The loading info for an OGR dataset'''
+    fileName: str
+    layerName: str
+    dataType: VectorDataType
+    time: OgrSourceDatasetTimeType
+    columns: OgrLoadingInfoColumns
+    onError: OgrOnError
+
+
+class OgrMetadata(MetaDataDefinition):  # pylint: disable=too-few-public-methods
+    '''Metadata for OGR datasets'''
+    type: Literal["OgrMetaData"]
+    loadingInfo: OgrLoadingInfo
+    resultDescriptor: VectorResultDescriptor
+
+
+class DatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
+    '''The properties of a dataset'''
+    id: Optional[str]
+    name: str
+    description: str
+    sourceOperator: Literal['GdalSource', 'OgrSource']  # TODO: add more operators
+    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
+    provenance: Optional[Provenance]
+
+
+class DatasetStorage(TypedDict):
+    '''were the dataset is stored'''
+
+
+class DatasetPath(DatasetStorage):
+    '''were the dataset is stored'''
+    upload: str
+
+
+class DatasetVolume(DatasetStorage):
+    '''were the dataset is stored'''
+    volume: str
+
+
+class DatasetDefinition(TypedDict):
+    '''The definition of a dataset'''
+    properties: DatasetProperties
+    metaData: MetaDataDefinition
+
+
+class CreateDataset(TypedDict):
+    '''A dataset to create'''
+    dataPath: DatasetStorage
+    definition: DatasetDefinition
