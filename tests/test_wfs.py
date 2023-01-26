@@ -1,6 +1,7 @@
 '''Test for WFS calls'''
 
 from datetime import datetime
+import textwrap
 import unittest
 from numpy import nan
 import requests_mock
@@ -594,72 +595,71 @@ class WfsTests(unittest.TestCase):
                              'Operator: Operator: Could not open gdal dataset for file path '
                              '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"')
 
-    # FIXME: adapt repr and then enable this test
-    # def test_repr(self):
-    #    with requests_mock.Mocker() as m:
-    #        m.post('http://mock-instance/anonymous', json={
-    #            "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
-    #            "user": {
-    #                "id": "328ca8d1-15d7-4f59-a989-5d5d72c98744",
-    #            },
-    #            "created": "2021-06-08T15:22:22.605891994Z",
-    #            "validUntil": "2021-06-08T16:22:22.605892183Z",
-    #            "project": None,
-    #            "view": None
-    #        })
-    #
-    #        m.get('http://mock-instance/workflow/foobar/metadata',
-    #              json={
-    #                  "type": "vector",
-    #                  'dataType': 'MultiPoint',
-    #                  'spatialReference': 'EPSG:4326',
-    #                  'columns': {
-    #                      'scalerank': {
-    #                          'dataType': 'int',
-    #                          'measurement': {
-    #                              'type': 'unitless'
-    #                          },
-    #                      },
-    #                      'NDVI': {
-    #                          'dataType': 'int',
-    #                          'measurement': {
-    #                              'type': 'continuous',
-    #                              'measurement': 'vegetation',
-    #                          },
-    #                      },
-    #                      'featurecla': {
-    #                          'dataType': 'text',
-    #                          'measurement': {
-    #                              'type': 'unitless'
-    #                          },
-    #                      },
-    #                      'natlscale': {
-    #                          'dataType': 'float',
-    #                          'measurement': {
-    #                              'type': 'unitless'
-    #                          },
-    #                      },
-    #                      'website': {
-    #                          'dataType': 'text',
-    #                          'measurement': {
-    #                              'type': 'unitless'
-    #                          },
-    #                      },
-    #                      'name': {
-    #                          'dataType': 'text',
-    #                          'measurement': {
-    #                              'type': 'unitless'
-    #                          },
-    #                     }
-    #                  }
-    #              },
-    #            request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
-    #
-    #        ge.initialize("http://mock-instance")
-    #
-    #        workflow = ge.workflow_by_id("foobar")
-    #
-    #        self.assertEqual(repr(workflow), "foobar")
+    def test_repr(self):
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
+                "user": {
+                    "id": "328ca8d1-15d7-4f59-a989-5d5d72c98744",
+                },
+                "created": "2021-06-08T15:22:22.605891994Z",
+                "validUntil": "2021-06-08T16:22:22.605892183Z",
+                "project": None,
+                "view": None
+            })
+
+            m.get('http://mock-instance/workflow/foobar/metadata',
+                  json={
+                      "type": "vector",
+                      'dataType': 'MultiPoint',
+                      'spatialReference': 'EPSG:4326',
+                      'columns': {
+                          'scalerank': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'NDVI': {
+                              'dataType': 'int',
+                              'measurement': {
+                                  'type': 'continuous',
+                                  'measurement': 'vegetation',
+                              },
+                          },
+                          'featurecla': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'natlscale': {
+                              'dataType': 'float',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'website': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          },
+                          'name': {
+                              'dataType': 'text',
+                              'measurement': {
+                                  'type': 'unitless'
+                              },
+                          }
+                      }
+                  },
+                  request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
+
+            ge.initialize("http://mock-instance")
+
+            workflow = ge.workflow_by_id("foobar")
+
+            self.assertEqual(repr(workflow), "foobar")
 
     def test_result_descriptor(self):
         with requests_mock.Mocker() as m:
@@ -728,50 +728,49 @@ class WfsTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
-# FIXME: use api dict for comparison then enable test
-#            ge.initialize("http://mock-instance")
-#
-#           workflow = ge.workflow_by_id(
-#              '4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd')
-#
-#           result_descriptor = workflow.get_result_descriptor()
-#
-#           expected_repr = '''\
-#              Data type:         MultiPoint
-#             Spatial Reference: EPSG:4326
-#            Columns:
-#             scalerank:
-#              Column Type: int
-#             Measurement: unitless
-#          NDVI:
-#           Column Type: int
-#          Measurement: vegetation
-#       featurecla:
-#        Column Type: text
-#       Measurement: unitless
-#     natlscale:
-#      Column Type: float
-#     Measurement: unitless
-#    website:
-#      Column Type: text
-#      Measurement: unitless
-#    name:
-#      Column Type: text
-#      Measurement: unitless
-#  '''
-#
-#           self.assertEqual(
-#              repr(result_descriptor),
-#             textwrap.dedent(expected_repr)
-#        )
-#
-#           with self.assertRaises(ge.GeoEngineException) as exception:
-#              workflow = ge.workflow_by_id('foo')
-#
-#               result_descriptor = workflow.get_result_descriptor()
-#
-#           self.assertEqual(str(exception.exception),
-#                           'NotFound: Not Found')
+            ge.initialize("http://mock-instance")
+
+            workflow = ge.workflow_by_id(
+                '4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd')
+
+            result_descriptor = workflow.get_result_descriptor()
+
+            expected_repr = '''\
+                Data type:         MultiPoint
+                Spatial Reference: EPSG:4326
+                Columns:
+                  scalerank:
+                    Column Type: int
+                    Measurement: unitless
+                  NDVI:
+                    Column Type: int
+                    Measurement: vegetation
+                  featurecla:
+                    Column Type: text
+                    Measurement: unitless
+                  natlscale:
+                    Column Type: float
+                    Measurement: unitless
+                  website:
+                    Column Type: text
+                    Measurement: unitless
+                  name:
+                    Column Type: text
+                    Measurement: unitless
+            '''
+
+            self.assertEqual(
+                repr(result_descriptor),
+                textwrap.dedent(expected_repr)
+            )
+
+            with self.assertRaises(ge.GeoEngineException) as exception:
+                workflow = ge.workflow_by_id('foo')
+
+                result_descriptor = workflow.get_result_descriptor()
+
+            self.assertEqual(str(exception.exception),
+                             'NotFound: Not Found')
 
     def test_workflow_retrieval(self):
         workflow_definition = {

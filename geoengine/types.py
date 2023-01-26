@@ -485,6 +485,21 @@ class VectorResultDescriptor(ResultDescriptor):
         '''Return the spatial bounds'''
         return self.__spatial_bounds
 
+    def __repr__(self) -> str:
+        '''Display representation of the vector result descriptor'''
+        r = ''
+        r += f'Data type:         {self.data_type}\n'
+        r += f'Spatial Reference: {self.spatial_reference}\n'
+
+        r += 'Columns:\n'
+        for column_name in self.columns:
+            column_info = self.columns[column_name]
+            r += f'  {column_name}:\n'
+            r += f'    Column Type: {column_info.data_type}\n'
+            r += f'    Measurement: {column_info.measurement}\n'
+
+        return r
+
     def to_api_dict(self) -> api.VectorResultDescriptor:
         '''Convert the vector result descriptor to a dictionary'''
 
@@ -608,6 +623,15 @@ class RasterResultDescriptor(ResultDescriptor):
         '''Return the spatial reference'''
 
         return super().spatial_reference
+
+    def __repr__(self) -> str:
+        '''Display representation of the raster result descriptor'''
+        r = ''
+        r += f'Data type:         {self.data_type}\n'
+        r += f'Spatial Reference: {self.spatial_reference}\n'
+        r += f'Measurement:       {self.measurement}\n'
+
+        return r
 
     def to_json(self) -> api.RasterResultDescriptor:
         return self.to_api_dict()
