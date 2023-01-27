@@ -7,9 +7,7 @@ import owslib.util
 import requests_mock
 import numpy as np
 import xarray as xr
-
 import geoengine as ge
-from geoengine.types import QueryRectangle
 
 
 class WcsTests(unittest.TestCase):
@@ -128,10 +126,10 @@ class WcsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
 
-            query = QueryRectangle(
-                [-180.0, -90.0, 180.0, 90.0],
-                [time, time],
-                resolution=[360. / 8, 180. / 8],
+            query = ge.QueryRectangle(
+                ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
+                ge.TimeInterval(time),
+                resolution=ge.SpatialResolution(360. / 8, 180. / 8),
             )
 
             array = workflow.get_array(query)
@@ -265,10 +263,10 @@ class WcsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
 
-            query = QueryRectangle(
-                [-180.0, -90.0, 180.0, 90.0],
-                [time, time],
-                resolution=[360. / 8, 180. / 8],
+            query = ge.QueryRectangle(
+                ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
+                ge.TimeInterval(time, time),
+                resolution=ge.SpatialResolution(360. / 8, 180. / 8),
             )
 
             with self.assertRaises(owslib.util.ServiceException) as ctx:
@@ -388,10 +386,10 @@ class WcsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
 
-            query = QueryRectangle(
-                [-180.0, -90.0, 180.0, 90.0],
-                [time, time],
-                resolution=[360. / 8, 180. / 8],
+            query = ge.QueryRectangle(
+                ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
+                ge.TimeInterval(time),
+                resolution=ge.SpatialResolution(360. / 8, 180. / 8),
             )
 
             array = workflow.get_xarray(query)

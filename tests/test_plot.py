@@ -6,11 +6,10 @@ import unittest
 import requests_mock
 from vega import VegaLite
 
-from geoengine.types import QueryRectangle
 import geoengine as ge
 
 
-class WmsTests(unittest.TestCase):
+class PlotTests(unittest.TestCase):
     '''Test runner for the plotting functionality'''
 
     def setUp(self) -> None:
@@ -82,9 +81,10 @@ class WmsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             vega_chart = workflow.plot_chart(
-                QueryRectangle(
-                    [-180.0, -90.0, 180.0, 90.0],
-                    [time, time]
+                ge.QueryRectangle(
+                    ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
+                    ge.TimeInterval(time),
+                    ge.SpatialResolution(0.1, 0.1)
                 )
             )
 
@@ -178,10 +178,12 @@ class WmsTests(unittest.TestCase):
                 '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
 
             with self.assertRaises(ge.MethodNotCalledOnVectorException):
-                workflow.get_dataframe(QueryRectangle(
-                    [-180.0, -90.0, 180.0, 90.0],
-                    [time, time]
-                ))
+                workflow.get_dataframe(
+                    ge.QueryRectangle(
+                        ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
+                        ge.TimeInterval(time),
+                        ge.SpatialResolution(0.1, 0.1)
+                    ))
 
     def test_plot_error(self):
         with requests_mock.Mocker() as m:
@@ -248,9 +250,10 @@ class WmsTests(unittest.TestCase):
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.plot_chart(
-                    QueryRectangle(
-                        [-180.0, -90.0, 180.0, 90.0],
-                        [time, time]
+                    ge.QueryRectangle(
+                        ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
+                        ge.TimeInterval(time),
+                        ge.SpatialResolution(0.1, 0.1)
                     )
                 )
 

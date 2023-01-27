@@ -1,18 +1,225 @@
+# pylint: disable=too-many-lines
+
 '''
 Different type mappings of geo engine types
 '''
 
 from __future__ import annotations
 from abc import abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
 from uuid import UUID
-
 from enum import Enum
+from typing import Dict, Optional, Tuple, cast
+from typing_extensions import Literal
 from attr import dataclass
-from typing_extensions import TypedDict
-
+from geoengine.colorizer import Colorizer
+from geoengine import api
 from geoengine.error import GeoEngineException, InputException, TypeException
+
+
+class SpatialBounds:
+    '''A spatial bounds object'''
+    xmin: float
+    ymin: float
+    xmax: float
+    ymax: float
+
+    def __init__(self, xmin: float, ymin: float, xmax: float, ymax: float) -> None:
+        '''Initialize a new `SpatialBounds` object'''
+        if (xmin > xmax) or (ymin > ymax):
+            raise InputException("Bbox: Malformed since min must be <= max")
+
+        self.xmin = xmin
+        self.ymin = ymin
+        self.xmax = xmax
+        self.ymax = ymax
+
+    def as_bbox_str(self, y_axis_first=False) -> str:
+        '''
+        A comma-separated string representation of the spatial bounds with OGC axis ordering
+        '''
+        bbox_tuple = self.as_bbox_tuple(y_axis_first=y_axis_first)
+        return f'{bbox_tuple[0]},{bbox_tuple[1]},{bbox_tuple[2]},{bbox_tuple[3]}'
+
+    def as_bbox_tuple(self, y_axis_first=False) -> Tuple[float, float, float, float]:
+        '''
+        Return the bbox with OGC axis ordering of the srs
+        '''
+
+        if y_axis_first:
+            return (self.ymin, self.xmin, self.ymax, self.xmax)
+
+        return (self.xmin, self.ymin, self.xmax, self.ymax)
+
+    def x_axis_size(self) -> float:
+        '''The size of the x axis'''
+        return self.xmax - self.xmin
+
+    def y_axis_size(self) -> float:
+        '''The size of the y axis'''
+        return self.ymax - self.ymin
+
+
+class BoundingBox2D(SpatialBounds):
+    ''''A 2D bounding box.'''
+
+    def to_api_dict(self) -> api.BoundingBox2D:
+        return api.BoundingBox2D({
+            'lowerLeftCoordinate': api.Coordinate2D({
+                "x": self.xmin,
+                "y": self.ymin,
+            }),
+            'upperRightCoordinate': api.Coordinate2D({
+                "x": self.xmax,
+                "y": self.ymax,
+            }),
+        })
+
+    @staticmethod
+    def from_response(response: api.BoundingBox2D) -> BoundingBox2D:
+        '''create a `BoundingBox2D` from an API response'''
+        if 'lowerLeftCoordinate' not in response or 'upperRightCoordinate' not in response:
+            raise TypeException('BoundingBox2D must have lowerLeftCoordinate and upperRightCoordinate')
+
+        lower_left = response['lowerLeftCoordinate']
+        upper_right = response['upperRightCoordinate']
+
+        return BoundingBox2D(
+            lower_left['x'],
+            lower_left['y'],
+            upper_right['x'],
+            upper_right['y'],
+        )
+
+
+class SpatialPartition2D(SpatialBounds):
+    '''A 2D spatial partition.'''
+
+    @staticmethod
+    def from_response(response: api.SpatialPartition2D) -> SpatialPartition2D:
+        '''create a `SpatialPartition2D` from an API response'''
+        if 'upperLeftCoordinate' not in response or 'lowerRightCoordinate' not in response:
+            raise TypeException('SpatialPartition2D must have upperLeftCoordinate and lowerRightCoordinate')
+
+        upper_left = response['upperLeftCoordinate']
+        lower_right = response['lowerRightCoordinate']
+
+        return SpatialPartition2D(
+            upper_left['x'],
+            lower_right['y'],
+            lower_right['x'],
+            upper_left['y'],
+
+        )
+
+    def to_api_dict(self) -> api.SpatialPartition2D:
+        return api.SpatialPartition2D({
+            'upperLeftCoordinate': api.Coordinate2D({
+                "x": self.xmin,
+                "y": self.ymax,
+            }),
+            'lowerRightCoordinate': api.Coordinate2D({
+                "x": self.xmax,
+                "y": self.ymin,
+            }),
+        })
+
+    def to_bounding_box(self) -> BoundingBox2D:
+        '''convert to a `BoundingBox2D`'''
+        return BoundingBox2D(self.xmin, self.ymin, self.xmax, self.ymax)
+
+
+class TimeInterval:
+    ''''A time interval.'''
+    start: datetime
+    end: Optional[datetime]
+
+    def __init__(self, start: datetime, end: Optional[datetime] = None) -> None:
+        '''Initialize a new `TimeInterval` object'''
+        if end is not None and start > end:
+            raise InputException("Time inverval: Start must be <= End")
+        self.start = start
+        self.end = end
+
+    def is_instant(self) -> bool:
+        return self.end is None
+
+    def to_api_dict(self, as_millis=False) -> api.TimeInterval:
+        '''convert to a dict that can be used in the API'''
+        if as_millis:
+            return api.TimeInterval({
+                'start': int(self.start.timestamp() * 1000),
+                'end': int(self.end.timestamp() * 1000) if self.end is not None else None,
+            })
+
+        return api.TimeInterval({
+            'start': self.start.isoformat(timespec='milliseconds'),
+            'end': self.end.isoformat(timespec='milliseconds') if self.end is not None else None,
+        })
+
+    @property
+    def time_str(self) -> str:
+        '''
+        Return the time instance or interval as a string representation
+        '''
+        if self.end is None or self.start == self.end:
+            return self.start.isoformat(timespec='milliseconds')
+        return self.start.isoformat(timespec='milliseconds') + '/' + self.end.isoformat(timespec='milliseconds')
+
+    @staticmethod
+    def from_response(response: api.TimeInterval) -> TimeInterval:
+        '''create a `TimeInterval` from an API response'''
+
+        if 'start' not in response:
+            raise TypeException('TimeInterval must have a start')
+
+        if isinstance(response['start'], int):
+            start = cast(int, response['start'])
+            end = cast(int, response['end']) if 'end' in response and response['end'] is not None else None
+
+            return TimeInterval(
+                datetime.fromtimestamp(start / 1000),
+                datetime.fromtimestamp(end / 1000) if end is not None else None,
+            )
+
+        start_str = cast(str, response['start'])
+        end_str = cast(str, response['end']) if 'end' in response and response['end'] is not None else None
+
+        return TimeInterval(
+            datetime.fromisoformat(start_str),
+            datetime.fromisoformat(end_str) if end_str is not None else None,
+        )
+
+
+class SpatialResolution:
+    ''''A spatial resolution.'''
+    x_resolution: float
+    y_resolution: float
+
+    def __init__(self, x_resolution: float, y_resolution: float) -> None:
+        '''Initialize a new `SpatialResolution` object'''
+        if x_resolution <= 0 or y_resolution <= 0:
+            raise InputException("Resolution: Must be positive")
+
+        self.x_resolution = x_resolution
+        self.y_resolution = y_resolution
+
+    def to_api_dict(self) -> api.SpatialResolution:
+        return api.SpatialResolution({
+            'x': self.x_resolution,
+            'y': self.y_resolution,
+        })
+
+    @staticmethod
+    def from_response(response: api.SpatialResolution) -> SpatialResolution:
+        '''create a `SpatialResolution` from an API response'''
+        return SpatialResolution(x_resolution=response['x'], y_resolution=response['y'])
+
+    def as_tuple(self) -> Tuple[float, float]:
+        return (self.x_resolution, self.y_resolution)
+
+    def __str__(self) -> str:
+        return str(f'{self.x_resolution},{self.y_resolution}')
 
 
 class QueryRectangle:
@@ -20,37 +227,20 @@ class QueryRectangle:
     A multi-dimensional query rectangle, consisting of spatial and temporal information.
     '''
 
-    __spatial_bounds: Tuple[float, float, float, float]
-    __time_interval: Tuple[datetime, datetime]
-    __resolution: Tuple[float, float]
+    __spatial_bounds: BoundingBox2D
+    __time_interval: TimeInterval
+    __resolution: SpatialResolution
     __srs: str
 
     def __init__(self,
-                 spatial_bounds: Tuple[float, float, float, float],
-                 time_interval: Tuple[datetime, datetime],
-                 resolution: Tuple[float, float] = (0.1, 0.1),
+                 spatial_bounds: BoundingBox2D,
+                 time_interval: TimeInterval,
+                 resolution: SpatialResolution,
                  srs='EPSG:4326') -> None:
         '''Initialize a new `QueryRectangle` object'''
-        xmin = spatial_bounds[0]
-        ymin = spatial_bounds[1]
-        xmax = spatial_bounds[2]
-        ymax = spatial_bounds[3]
-
-        if (xmin > xmax) or (ymin > ymax):
-            raise InputException("Bbox: Malformed since min must be <= max")
-
         self.__spatial_bounds = spatial_bounds
-
-        if time_interval[0] > time_interval[1]:
-            raise InputException("Time inverval: Start must be <= End")
-
         self.__time_interval = time_interval
-
-        if resolution[0] <= 0 or resolution[1] <= 0:
-            raise InputException("Resolution: Must be positive")
-
         self.__resolution = resolution
-
         self.__srs = srs
 
     @property
@@ -58,16 +248,15 @@ class QueryRectangle:
         '''
         A comma-separated string representation of the spatial bounds
         '''
-
-        return ','.join(map(str, self.__spatial_bounds))
+        return self.__spatial_bounds.as_bbox_str()
 
     @property
     def bbox_ogc_str(self) -> str:
         '''
         A comma-separated string representation of the spatial bounds with OGC axis ordering
         '''
-
-        return ','.join(map(str, self.bbox_ogc))
+        y_axis_first = self.__srs == "EPSG:4326"
+        return self.__spatial_bounds.as_bbox_str(y_axis_first=y_axis_first)
 
     @property
     def bbox_ogc(self) -> Tuple[float, float, float, float]:
@@ -76,105 +265,57 @@ class QueryRectangle:
         '''
 
         # TODO: properly handle axis order
-        bbox = self.__spatial_bounds
-
-        if self.__srs == "EPSG:4326":
-            return (bbox[1], bbox[0], bbox[3], bbox[2])
-
-        return bbox
+        y_axis_first = self.__srs == "EPSG:4326"
+        return self.__spatial_bounds.as_bbox_tuple(y_axis_first=y_axis_first)
 
     @property
     def resolution_ogc(self) -> Tuple[float, float]:
         '''
         Return the resolution in OGC style
         '''
-
         # TODO: properly handle axis order
         res = self.__resolution
 
+        # TODO: why is the y resolution in this case negative but not in all other cases?
         if self.__srs == "EPSG:4326":
-            return (-res[1], res[0])
+            return (-res.y_resolution, res.x_resolution)
 
-        return res
-
-    @property
-    def xmin(self) -> float:
-        return self.__spatial_bounds[0]
+        return res.as_tuple()
 
     @property
-    def ymin(self) -> float:
-        return self.__spatial_bounds[1]
+    def time(self) -> TimeInterval:
+        '''
+        Return the time instance or interval
+        '''
+        return self.__time_interval
 
     @property
-    def xmax(self) -> float:
-        return self.__spatial_bounds[2]
+    def spatial_bounds(self) -> BoundingBox2D:
+        '''
+        Return the spatial bounds
+        '''
+        return self.__spatial_bounds
 
     @property
-    def ymax(self) -> float:
-        return self.__spatial_bounds[3]
+    def spatial_resolution(self) -> SpatialResolution:
+        '''
+        Return the spatial resolution
+        '''
+        return self.__resolution
 
     @property
     def time_str(self) -> str:
         '''
         Return the time instance or interval as a string representation
         '''
-
-        if self.__time_interval[0] == self.__time_interval[1]:
-            return self.__time_interval[0].isoformat(timespec='milliseconds')
-
-        return '/'.join(map(str, self.__time_interval))
-
-    @property
-    def resolution(self) -> Tuple[float, float]:
-        '''
-        Return the resolution as is
-        '''
-
-        return self.__resolution
+        return self.time.time_str
 
     @property
     def srs(self) -> str:
         '''
         Return the SRS string
         '''
-
         return self.__srs
-
-    def __dict__(self):
-        '''
-        Return a dictionary representation of the object
-        '''
-
-        time_start_unix = int(self.__time_interval[0].timestamp() * 1000)
-        time_end_unix = int(self.__time_interval[1].timestamp() * 1000)
-
-        left_x = min(self.__spatial_bounds[0], self.__spatial_bounds[2])
-        right_x = max(self.__spatial_bounds[0], self.__spatial_bounds[2])
-        lower_y = min(self.__spatial_bounds[1], self.__spatial_bounds[3])
-        upper_y = max(self.__spatial_bounds[1], self.__spatial_bounds[3])
-
-        # TODO: distinguish between raster, vector and plot query rectangle
-
-        return {
-            'spatialBounds': {
-                'upperLeftCoordinate': {
-                    "x": left_x,
-                    "y": upper_y,
-                },
-                'lowerRightCoordinate': {
-                    "x": right_x,
-                    "y": lower_y,
-                }
-            },
-            'timeInterval': {
-                'start': time_start_unix,
-                'end': time_end_unix,
-            },
-            'spatialResolution': {
-                'x': self.__resolution[0],
-                'y': self.__resolution[1],
-            },
-        }
 
 
 class ResultDescriptor:  # pylint: disable=too-few-public-methods
@@ -183,27 +324,45 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
     '''
 
     __spatial_reference: str
+    __time_bounds: Optional[TimeInterval]
+    __spatial_resolution: Optional[SpatialResolution]
 
-    def __init__(self, spatial_reference: str) -> None:
+    def __init__(
+        self,
+        spatial_reference: str,
+        time_bounds: Optional[TimeInterval] = None,
+        spatial_resolution: Optional[SpatialResolution] = None
+    ) -> None:
+        '''Initialize a new `ResultDescriptor` object'''
+
         self.__spatial_reference = spatial_reference
+        self.__time_bounds = time_bounds
+
+        if spatial_resolution is None or isinstance(spatial_resolution, SpatialResolution):
+            self.__spatial_resolution = spatial_resolution
+        else:
+            raise TypeException('Spatial resolution must be of type `SpatialResolution` or `None`')
 
     @staticmethod
-    def from_response(response: Dict[str, Any]) -> ResultDescriptor:
+    def from_response(response: api.ResultDescriptor) -> ResultDescriptor:
         '''
         Parse a result descriptor from an http response
         '''
 
         if 'error' in response:
-            raise GeoEngineException(response)
+            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
+
+        if 'type' not in response:
+            raise TypeException('Response does not contain a `type` field')
 
         result_descriptor_type = response['type']
 
         if result_descriptor_type == 'raster':
-            return RasterResultDescriptor(response)
+            return RasterResultDescriptor.from_response_raster(cast(api.RasterResultDescriptor, response))
         if result_descriptor_type == 'vector':
-            return VectorResultDescriptor(response)
+            return VectorResultDescriptor.from_response_vector(cast(api.VectorResultDescriptor, response))
         if result_descriptor_type == 'plot':
-            return PlotResultDescriptor(response)
+            return PlotResultDescriptor.from_response_plot(cast(api.PlotResultDescriptor, response))
 
         raise TypeException(
             f'Unknown `ResultDescriptor` type: {result_descriptor_type}')
@@ -213,7 +372,6 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         '''
         Return true if the result is of type raster
         '''
-
         return False
 
     @classmethod
@@ -221,7 +379,6 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         '''
         Return true if the result is of type vector
         '''
-
         return False
 
     @classmethod
@@ -238,27 +395,95 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
 
         return self.__spatial_reference
 
+    @property
+    def time_bounds(self) -> Optional[TimeInterval]:
+        '''Return the time bounds'''
+
+        return self.__time_bounds
+
+    @property
+    def spatial_resolution(self) -> Optional[SpatialResolution]:
+        '''Return the spatial resolution'''
+
+        return self.__spatial_resolution
+
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
+    def to_api_dict(self) -> api.ResultDescriptor:
         pass
 
     def __iter__(self):
-        return iter(self.to_dict().items())
+        return iter(self.to_api_dict().items())
 
 
 class VectorResultDescriptor(ResultDescriptor):
     '''
     A vector result descriptor
     '''
-
-    __data_type: str
+    __spatial_bounds: Optional[BoundingBox2D]
+    __data_type: VectorDataType
     __columns: Dict[str, VectorColumnInfo]
 
-    def __init__(self, response: Dict[str, Any]) -> None:
-        '''Initialize a new `VectorResultDescriptor`'''
-        super().__init__(response['spatialReference'])
-        self.__data_type = response['dataType']
-        self.__columns = {name: VectorColumnInfo.from_response(info) for name, info in response['columns'].items()}
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        spatial_reference: str,
+        data_type: VectorDataType,
+        columns: Dict[str, VectorColumnInfo],
+        time_bounds: Optional[TimeInterval] = None,
+        spatial_bounds: Optional[BoundingBox2D] = None,
+        spatial_resolution: Optional[SpatialResolution] = None
+    ) -> None:
+        ''' Initialize a vector result descriptor '''
+        super().__init__(spatial_reference, time_bounds, spatial_resolution)
+        self.__data_type = data_type
+        self.__columns = columns
+        self.__spatial_bounds = spatial_bounds
+
+    @staticmethod
+    def from_response_vector(response: api.VectorResultDescriptor) -> VectorResultDescriptor:
+        '''Parse a vector result descriptor from an http response'''
+        assert response['type'] == 'vector'  # TODO: throw exception
+
+        sref = response['spatialReference']
+        data_type = VectorDataType.from_string(response['dataType'])
+        columns = {name: VectorColumnInfo.from_response(info) for name, info in response['columns'].items()}
+
+        time_bounds = None
+        # FIXME: datetime can not represent our min max range
+        # if 'time' in response and response['time'] is not None:
+        #    time_bounds = TimeInterval.from_response(response['time'])
+        spatial_bounds = None
+        if 'bbox' in response and response['bbox'] is not None:
+            spatial_bounds = BoundingBox2D.from_response(response['bbox'])
+        spatial_resolution = None
+        if 'resolution' in response and response['resolution'] is not None:
+            spatial_resolution = SpatialResolution.from_response(response['resolution'])
+
+        return VectorResultDescriptor(sref, data_type, columns, time_bounds, spatial_bounds, spatial_resolution)
+
+    @classmethod
+    def is_vector_result(cls) -> bool:
+        return True
+
+    @property
+    def data_type(self) -> VectorDataType:
+        '''Return the data type'''
+        return self.__data_type
+
+    @property
+    def spatial_reference(self) -> str:
+        '''Return the spatial reference'''
+        return super().spatial_reference
+
+    @property
+    def columns(self) -> Dict[str, VectorColumnInfo]:
+        '''Return the columns'''
+
+        return self.__columns
+
+    @property
+    def spatial_bounds(self) -> Optional[BoundingBox2D]:
+        '''Return the spatial bounds'''
+        return self.__spatial_bounds
 
     def __repr__(self) -> str:
         '''Display representation of the vector result descriptor'''
@@ -275,37 +500,19 @@ class VectorResultDescriptor(ResultDescriptor):
 
         return r
 
-    @classmethod
-    def is_vector_result(cls) -> bool:
-        return True
-
-    @property
-    def data_type(self) -> str:
-        '''Return the data type'''
-
-        return self.__data_type
-
-    @property
-    def spatial_reference(self) -> str:
-        '''Return the spatial reference'''
-
-        return super().spatial_reference
-
-    @property
-    def columns(self) -> Dict[str, VectorColumnInfo]:
-        '''Return the columns'''
-
-        return self.__columns
-
-    def to_dict(self) -> Dict[str, Any]:
+    def to_api_dict(self) -> api.VectorResultDescriptor:
         '''Convert the vector result descriptor to a dictionary'''
 
-        return {
+        return api.VectorResultDescriptor({
             'type': 'raster',
-            'dataType': self.data_type,
+            'dataType': self.data_type.to_api_enum(),
             'spatialReference': self.spatial_reference,
-            'columns': dict(self.__columns.items())
-        }
+            'columns':
+                {name: column_info.to_api_dict() for name, column_info in self.columns.items()},
+            'time': self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
+            'bbox': self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
+            'resolution': self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
+        })
 
 
 @dataclass
@@ -316,33 +523,106 @@ class VectorColumnInfo:
     measurement: Measurement
 
     @staticmethod
-    def from_response(response: Dict[str, Any]) -> VectorColumnInfo:
+    def from_response(response: api.VectorColumnInfo) -> VectorColumnInfo:
         '''Create a new `VectorColumnInfo` from a JSON response'''
 
         return VectorColumnInfo(response['dataType'], Measurement.from_response(response['measurement']))
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_api_dict(self) -> api.VectorColumnInfo:
         '''Convert to a dictionary'''
 
-        return {
+        return api.VectorColumnInfo({
             'dataType': self.data_type,
-            'measurement': self.measurement.to_dict(),
-        }
+            'measurement': self.measurement.to_api_dict(),
+        })
 
 
 class RasterResultDescriptor(ResultDescriptor):
     '''
     A raster result descriptor
     '''
-
-    __data_type: str
+    __data_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']
     __measurement: Measurement
+    __spatial_bounds: Optional[SpatialPartition2D]
 
-    def __init__(self, response: Dict[str, Any]) -> None:
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        data_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64'],
+        measurement: Measurement,
+        spatial_reference: str,
+        time_bounds: Optional[TimeInterval] = None,
+        spatial_bounds: Optional[SpatialPartition2D] = None,
+        spatial_resolution: Optional[SpatialResolution] = None
+    ) -> None:
         '''Initialize a new `RasterResultDescriptor`'''
-        super().__init__(response['spatialReference'])
-        self.__data_type = response['dataType']
-        self.__measurement = Measurement.from_response(response['measurement'])
+        super().__init__(spatial_reference, time_bounds, spatial_resolution)
+        self.__data_type = data_type
+        self.__measurement = measurement
+        self.__spatial_bounds = spatial_bounds
+
+    def to_api_dict(self) -> api.RasterResultDescriptor:
+        '''Convert the raster result descriptor to a dictionary'''
+
+        return {
+            'type': 'raster',
+            'dataType': self.data_type,
+            'measurement': self.measurement.to_api_dict(),
+            'spatialReference': self.spatial_reference,
+            'time': self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
+            'bbox': self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
+            'resolution': self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
+        }
+
+    @staticmethod
+    def from_response_raster(response: api.RasterResultDescriptor) -> RasterResultDescriptor:
+        '''Parse a raster result descriptor from an http response'''
+        assert response['type'] == 'raster'  # TODO: throw exception
+
+        spatial_ref = response['spatialReference']
+        data_type = response['dataType']
+        measurement = Measurement.from_response(response['measurement'])
+
+        time_bounds = None
+        # FIXME: datetime can not represent our min max range
+        # if 'time' in response and response['time'] is not None:
+        #    time_bounds = TimeInterval.from_response(response['time'])
+        spatial_bounds = None
+        if 'bbox' in response and response['bbox'] is not None:
+            spatial_bounds = SpatialPartition2D.from_response(response['bbox'])
+        spatial_resolution = None
+        if 'resolution' in response and response['resolution'] is not None:
+            spatial_resolution = SpatialResolution.from_response(response['resolution'])
+
+        return RasterResultDescriptor(
+            data_type=data_type,
+            measurement=measurement,
+            spatial_reference=spatial_ref,
+            time_bounds=time_bounds,
+            spatial_bounds=spatial_bounds,
+            spatial_resolution=spatial_resolution
+        )
+
+    @classmethod
+    def is_raster_result(cls) -> bool:
+        return True
+
+    @property
+    def data_type(self) -> Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']:
+        return self.__data_type
+
+    @property
+    def measurement(self) -> Measurement:
+        return self.__measurement
+
+    @property
+    def spatial_bounds(self) -> Optional[SpatialPartition2D]:
+        return self.__spatial_bounds
+
+    @property
+    def spatial_reference(self) -> str:
+        '''Return the spatial reference'''
+
+        return super().spatial_reference
 
     def __repr__(self) -> str:
         '''Display representation of the raster result descriptor'''
@@ -353,36 +633,8 @@ class RasterResultDescriptor(ResultDescriptor):
 
         return r
 
-    def to_dict(self) -> Dict[str, Any]:
-        '''Convert the raster result descriptor to a dictionary'''
-
-        return {
-            'type': 'raster',
-            'dataType': self.data_type,
-            'measurement': self.measurement.to_dict(),
-            'spatialReference': self.spatial_reference,
-        }
-
-    @classmethod
-    def is_raster_result(cls) -> bool:
-        return True
-
-    @property
-    def data_type(self) -> str:
-        return self.__data_type
-
-    @property
-    def measurement(self) -> Measurement:
-        return self.__measurement
-
-    @property
-    def spatial_reference(self) -> str:
-        '''Return the spatial reference'''
-
-        return super().spatial_reference
-
-    def to_json(self) -> dict:
-        return self.to_dict()
+    def to_json(self) -> api.RasterResultDescriptor:
+        return self.to_api_dict()
 
 
 class PlotResultDescriptor(ResultDescriptor):
@@ -390,16 +642,49 @@ class PlotResultDescriptor(ResultDescriptor):
     A plot result descriptor
     '''
 
-    def __init__(self, response: Dict[str, Any]) -> None:
-        '''Initialize a new `PlotResultDescriptor`'''
+    __spatial_bounds: Optional[BoundingBox2D]
 
-        super().__init__(response['spatialReference'])
+    def __init__(  # pylint: disable=too-many-arguments]
+        self,
+        spatial_reference: str,
+        time_bounds: Optional[TimeInterval] = None,
+        spatial_bounds: Optional[BoundingBox2D] = None,
+        spatial_resolution: Optional[SpatialResolution] = None
+    ) -> None:
+        '''Initialize a new `PlotResultDescriptor`'''
+        super().__init__(spatial_reference, time_bounds, spatial_resolution)
+        self.__spatial_bounds = spatial_bounds
 
     def __repr__(self) -> str:
         '''Display representation of the plot result descriptor'''
         r = 'Plot Result'
 
         return r
+
+    @staticmethod
+    def from_response_plot(response: api.PlotResultDescriptor) -> PlotResultDescriptor:
+        '''Create a new `PlotResultDescriptor` from a JSON response'''
+        assert response['type'] == 'plot'  # TODO: throw exception
+
+        spatial_ref = response['spatialReference']
+
+        time_bounds = None
+        # FIXME: datetime can not represent our min max range
+        # if 'time' in response and response['time'] is not None:
+        #    time_bounds = TimeInterval.from_response(response['time'])
+        spatial_bounds = None
+        if 'bbox' in response and response['bbox'] is not None:
+            spatial_bounds = BoundingBox2D.from_response(response['bbox'])
+        spatial_resolution = None
+        if 'resolution' in response and response['resolution'] is not None:
+            spatial_resolution = SpatialResolution.from_response(response['resolution'])
+
+        return PlotResultDescriptor(
+            spatial_reference=spatial_ref,
+            time_bounds=time_bounds,
+            spatial_bounds=spatial_bounds,
+            spatial_resolution=spatial_resolution
+        )
 
     @classmethod
     def is_plot_result(cls) -> bool:
@@ -408,19 +693,26 @@ class PlotResultDescriptor(ResultDescriptor):
     @property
     def spatial_reference(self) -> str:
         '''Return the spatial reference'''
-
         return super().spatial_reference
 
-    def to_dict(self) -> Dict[str, Any]:
+    @property
+    def spatial_bounds(self) -> Optional[BoundingBox2D]:
+        return self.__spatial_bounds
+
+    def to_api_dict(self) -> api.PlotResultDescriptor:
         '''Convert the plot result descriptor to a dictionary'''
 
-        return {
+        return api.PlotResultDescriptor({
             'type': 'plot',
             'spatialReference': self.spatial_reference,
-        }
+            'dataType': 'Plot',
+            'time': self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
+            'bbox': self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
+            'resolution': self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
+        })
 
 
-class VectorDataType(Enum):
+class VectorDataType(str, Enum):
     '''An enum of vector data types'''
 
     DATA = 'Data'
@@ -446,6 +738,26 @@ class VectorDataType(Enum):
 
         raise InputException("Invalid vector data type")
 
+    def to_api_enum(self) -> api.VectorDataType:
+        return api.VectorDataType(self.value)
+
+    @staticmethod
+    def from_literal(literal: Literal['Data', 'MultiPoint', 'MultiLineString', 'MultiPolygon']) -> VectorDataType:
+        '''Resolve vector data type from literal'''
+        return VectorDataType(literal)
+
+    @staticmethod
+    def from_api_enum(data_type: api.VectorDataType) -> VectorDataType:
+        '''Resolve vector data type from API enum'''
+        return VectorDataType(data_type.value)
+
+    @staticmethod
+    def from_string(string: str) -> VectorDataType:
+        '''Resolve vector data type from string'''
+        if string not in VectorDataType.__members__.values():
+            raise InputException("Invalid vector data type: " + string)
+        return VectorDataType(string)
+
 
 class TimeStepGranularity(Enum):
     '''An enum of time step granularities'''
@@ -457,6 +769,9 @@ class TimeStepGranularity(Enum):
     MONTHS = 'Months'
     YEARS = 'Years'
 
+    def to_api_enum(self) -> api.TimeStepGranularity:
+        return api.TimeStepGranularity(self.value)
+
 
 @dataclass
 class TimeStep:
@@ -464,11 +779,11 @@ class TimeStep:
     step: int
     granularity: TimeStepGranularity
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
+    def to_api_dict(self) -> api.TimeStep:
+        return api.TimeStep({
             'step': self.step,
-            'granularity': self.granularity.value,
-        }
+            'granularity': self.granularity.to_api_enum(),
+        })
 
 
 @dataclass
@@ -480,9 +795,16 @@ class Provenance:
     uri: str
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> Provenance:
+    def from_response(cls, response: api.Provenance) -> Provenance:
         '''Parse an http response to a `Provenance` object'''
         return Provenance(response['citation'], response['license'], response['uri'])
+
+    def to_api_dict(self) -> api.Provenance:
+        return api.Provenance({
+            'citation': self.citation,
+            'license': self.license,
+            'uri': self.uri,
+        })
 
 
 @dataclass
@@ -493,7 +815,7 @@ class ProvenanceOutput:
     provenance: Provenance
 
     @classmethod
-    def from_response(cls, response: Dict[str, Dict[str, str]]) -> ProvenanceOutput:
+    def from_response(cls, response: api.ProvenanceOutput) -> ProvenanceOutput:
         '''Parse an http response to a `ProvenanceOutput` object'''
 
         dataset = DataId.from_response(response['data'])
@@ -502,18 +824,85 @@ class ProvenanceOutput:
         return ProvenanceOutput(dataset, provenance)
 
 
+class Symbology:
+    '''Base class for symbology'''
+
+    @abstractmethod
+    def to_api_dict(self) -> api.Symbology:
+        pass
+
+    @staticmethod
+    def from_response(response: api.Symbology) -> Symbology:
+        '''Parse an http response to a `Symbology` object'''
+
+        if response['type'] == 'vector':
+            # return VectorSymbology.from_response_vector(response)
+            return VectorSymbology()  # TODO: implement
+        if response['type'] == 'raster':
+            return RasterSymbology.from_response_raster(cast(api.RasterSymbology, response))
+
+        raise InputException("Invalid symbology type")
+
+
+class VectorSymbology(Symbology):
+    '''A vector symbology'''
+
+    # TODO: implement
+
+    def to_api_dict(self) -> api.Symbology:
+        return api.Symbology({
+            'type': 'vector',
+        })
+
+
+class RasterSymbology(Symbology):
+    '''A raster symbology'''
+    __opacity: float
+    __colorizer: Colorizer
+
+    def __init__(self, colorizer: Colorizer, opacity: float = 0.0) -> None:
+        '''Initialize a new `RasterSymbology`'''
+
+        self.__colorizer = colorizer
+        self.__opacity = opacity
+
+    def to_api_dict(self) -> api.RasterSymbology:
+        '''Convert the raster symbology to a dictionary'''
+
+        return api.RasterSymbology({
+            'type': 'raster',
+            'colorizer': self.__colorizer.to_api_dict(),
+            'opacity': self.__opacity,
+        })
+
+    @staticmethod
+    def from_response_raster(response: api.RasterSymbology) -> RasterSymbology:
+        '''Parse an http response to a `RasterSymbology` object'''
+
+        colorizer = Colorizer.from_response(response['colorizer'])
+
+        return RasterSymbology(colorizer, response['opacity'])
+
+    def __repr__(self) -> str:
+        return super().__repr__() + f"({self.__colorizer}, {self.__opacity})"
+
+
 class DataId:  # pylint: disable=too-few-public-methods
     '''Base class for data ids'''
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> DataId:
+    def from_response(cls, response: api.DataId) -> DataId:
         '''Parse an http response to a `DataId` object'''
 
         if response["type"] == "internal":
-            return InternalDataId.from_response(response)
+            return InternalDataId.from_response_internal(cast(api.InternalDataId, response))
         if response["type"] == "external":
-            return ExternalDataId.from_response(response)
+            return ExternalDataId.from_response_external(cast(api.ExternalDataId, response))
 
         raise GeoEngineException({"message": f"Unknown DataId type: {response['type']}"})
+
+    @abstractmethod
+    def to_api_dict(self) -> api.DataId:
+        pass
 
 
 class InternalDataId(DataId):
@@ -525,16 +914,15 @@ class InternalDataId(DataId):
         self.__dataset_id = dataset_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> InternalDataId:
+    def from_response_internal(cls, response: api.InternalDataId) -> InternalDataId:
         '''Parse an http response to a `InternalDataId` object'''
-
         return InternalDataId(UUID(response['datasetId']))
 
-    def to_dict(self) -> Dict[str, str]:
-        return {
+    def to_api_dict(self) -> api.InternalDataId:
+        return api.InternalDataId({
             "type": "internal",
             "datasetId": str(self.__dataset_id)
-        }
+        })
 
     def __str__(self) -> str:
         return str(self.__dataset_id)
@@ -562,17 +950,17 @@ class ExternalDataId(DataId):
         self.__layer_id = layer_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> ExternalDataId:
+    def from_response_external(cls, response: api.ExternalDataId) -> ExternalDataId:
         '''Parse an http response to a `ExternalDataId` object'''
 
         return ExternalDataId(UUID(response['providerId']), response['layerId'])
 
-    def to_dict(self) -> Dict[str, str]:
-        return {
+    def to_api_dict(self) -> api.ExternalDataId:
+        return api.ExternalDataId({
             "type": "external",
             "providerId": str(self.__provider_id),
             "layerId": self.__layer_id,
-        }
+        })
 
     def __str__(self) -> str:
         return f'{self.__provider_id}:{self.__layer_id}'
@@ -595,28 +983,28 @@ class Measurement:  # pylint: disable=too-few-public-methods
     '''
 
     @staticmethod
-    def from_response(response: Dict[str, Any]) -> Measurement:
+    def from_response(response: api.Measurement) -> Measurement:
         '''
         Parse a result descriptor from an http response
         '''
 
         if 'error' in response:
-            raise GeoEngineException(response)
+            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         measurement_type = response['type']
 
         if measurement_type == 'unitless':
             return UnitlessMeasurement()
         if measurement_type == 'continuous':
-            return ContiuousMeasurement.from_response(response)
+            return ContinuousMeasurement.from_response_continuous(cast(api.ContinuousMeasurement, response))
         if measurement_type == 'classification':
-            return ClassificationMeasurement.from_response(response)
+            return ClassificationMeasurement.from_response_classification(cast(api.ClassificationMeasurement, response))
 
         raise TypeException(
             f'Unknown `Measurement` type: {measurement_type}')
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
+    def to_api_dict(self) -> api.Measurement:
         pass
 
 
@@ -631,13 +1019,13 @@ class UnitlessMeasurement(Measurement):
         '''Display representation of a unitless measurement'''
         return str(self)
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
+    def to_api_dict(self) -> api.Measurement:
+        return api.Measurement({
             'type': 'unitless'
-        }
+        })
 
 
-class ContiuousMeasurement(Measurement):
+class ContinuousMeasurement(Measurement):
     '''A measurement that is continuous'''
 
     __measurement: str
@@ -652,10 +1040,10 @@ class ContiuousMeasurement(Measurement):
         self.__unit = unit
 
     @staticmethod
-    def from_response(response: Dict[str, Any]) -> ContiuousMeasurement:
+    def from_response_continuous(response: api.ContinuousMeasurement) -> ContinuousMeasurement:
         '''Initialize a new `ContiuousMeasurement from a JSON response'''
 
-        return ContiuousMeasurement(response['measurement'], response.get('unit', None))
+        return ContinuousMeasurement(response['measurement'], response.get('unit', None))
 
     def __str__(self) -> str:
         '''String representation of a continuous measurement'''
@@ -669,12 +1057,12 @@ class ContiuousMeasurement(Measurement):
         '''Display representation of a continuous measurement'''
         return str(self)
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
+    def to_api_dict(self) -> api.ContinuousMeasurement:
+        return api.ContinuousMeasurement({
             'type': 'continuous',
             'measurement': self.__measurement,
             'unit': self.__unit
-        }
+        })
 
     @property
     def measurement(self) -> str:
@@ -700,7 +1088,7 @@ class ClassificationMeasurement(Measurement):
         self.__classes = classes
 
     @staticmethod
-    def from_response(response: Dict[str, Any]) -> ClassificationMeasurement:
+    def from_response_classification(response: api.ClassificationMeasurement) -> ClassificationMeasurement:
         '''Initialize a new `ClassificationMeasurement from a JSON response'''
 
         measurement = response['measurement']
@@ -710,12 +1098,14 @@ class ClassificationMeasurement(Measurement):
 
         return ClassificationMeasurement(measurement, classes)
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
+    def to_api_dict(self) -> api.ClassificationMeasurement:
+        str_classes: Dict[str, str] = {str(k): v for k, v in self.__classes.items()}
+
+        return api.ClassificationMeasurement({
             'type': 'classification',
             'measurement': self.__measurement,
-            'classes': self.__classes
-        }
+            'classes': str_classes
+        })
 
     def __str__(self) -> str:
         '''String representation of a classification measurement'''
@@ -733,51 +1123,3 @@ class ClassificationMeasurement(Measurement):
     @property
     def classes(self) -> Dict[int, str]:
         return self.__classes
-
-
-class GdalDatasetGeoTransform(TypedDict):
-    '''Geo transform of a GDAL dataset'''
-    originCoordinate: Tuple[float, float]
-    xPixelSize: float
-    yPixelSize: float
-
-
-class FileNotFoundHandling(str, Enum):
-    NODATA = "NoData"
-    ERROR = "Abort"
-
-
-@dataclass
-class RasterPropertiesKey:
-    '''Key of a raster properties entry'''
-    domain: Optional[str]
-    key: str
-
-
-class RasterPropertiesEntryType(Enum):
-    NUMBER = "number"
-    STRING = "string"
-
-
-class GdalMetadataMapping(TypedDict):
-    '''Mapping of GDAL metadata raster properties'''
-
-    sourceKey: RasterPropertiesKey
-    targetKey: RasterPropertiesKey
-    targetType: RasterPropertiesEntryType
-
-
-class GdalDatasetParameters(TypedDict):
-    '''Parameters for a GDAL dataset'''
-
-    filePath: str
-    rasterbandChannel: int
-    geoTransform: GdalDatasetGeoTransform
-    width: int
-    height: int
-    fileNotFoundHandling: FileNotFoundHandling
-    noDataValue: Optional[float]
-    propertiesMapping: Optional[List[GdalMetadataMapping]]
-    gdalOpenOptions: Optional[List[str]]
-    gdalConfigOptions: Optional[List[Tuple[str, str]]]
-    allowAlphabandAsMask: bool

@@ -1,13 +1,13 @@
 '''Tests for WMS calls'''
 
 from datetime import datetime
-import unittest
 import textwrap
+import unittest
+# import textwrap
 from PIL import Image
 
 import requests_mock
 
-from geoengine.types import QueryRectangle
 import geoengine as ge
 from geoengine.colorizer import Colorizer
 
@@ -81,12 +81,12 @@ class WmsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             img = workflow.wms_get_map_as_image(
-                QueryRectangle(
-                    [-180.0, -90.0, 180.0, 90.0],
-                    [time, time],
-                    resolution=(1.8, 1.8)
+                ge.QueryRectangle(
+                    ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
+                    ge.TimeInterval(time),
+                    resolution=ge.SpatialResolution(1.8, 1.8)
                 ),
-                colorizer=Colorizer(map_name="gray", min_max=(0, 255), n_steps=2),
+                colorizer=Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2),
             )
 
             self.assertEqual(img, Image.open("tests/responses/wms-ndvi.png"))
@@ -153,12 +153,12 @@ class WmsTests(unittest.TestCase):
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.wms_get_map_as_image(
-                    QueryRectangle(
-                        [-180.0, -90.0, 180.0, 90.0],
-                        [time, time],
-                        resolution=(1.8, 1.8)
+                    ge.QueryRectangle(
+                        spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
+                        time_interval=ge.TimeInterval(time),
+                        resolution=ge.SpatialResolution(1.8, 1.8)
                     ),
-                    colorizer=Colorizer(map_name="gray", min_max=(0, 255), n_steps=2),
+                    colorizer=Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2),
                 )
 
             self.assertEqual(str(ctx.exception),
@@ -212,11 +212,12 @@ class WmsTests(unittest.TestCase):
 
             workflow = ge.register_workflow(workflow_definition)
 
-            wms_curl = workflow.wms_get_map_curl(QueryRectangle(
-                [-180.0, -90.0, 180.0, 90.0],
-                [time, time],
-                resolution=(1, 1),
-            ), Colorizer(map_name="gray", min_max=(0, 255), n_steps=2))
+            wms_curl = workflow.wms_get_map_curl(
+                ge.QueryRectangle(
+                    ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
+                    ge.TimeInterval(time),
+                    resolution=ge.SpatialResolution(1, 1)
+                ), Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2))
 
             self.assertEqual(
                 # pylint: disable=line-too-long
@@ -258,10 +259,10 @@ class WmsTests(unittest.TestCase):
             result_descriptor = workflow.get_result_descriptor()
 
             expected_repr = '''\
-                Data type:         U8
-                Spatial Reference: EPSG:4326
-                Measurement:       unitless
-                '''
+               Data type:         U8
+               Spatial Reference: EPSG:4326
+               Measurement:       unitless
+               '''
 
             self.assertEqual(
                 repr(result_descriptor),

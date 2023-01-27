@@ -3,17 +3,8 @@ Package errors and backend mapped error types
 '''
 
 from typing import Dict, Union
-from typing_extensions import TypedDict
 from requests import Response, HTTPError
-
-
-class GeoEngineExceptionResponse(TypedDict):
-    '''
-    The error response from the Geo Engine
-    '''
-
-    error: str
-    message: str
+from geoengine import api
 
 
 class GeoEngineException(Exception):
@@ -24,7 +15,7 @@ class GeoEngineException(Exception):
     error: str
     message: str
 
-    def __init__(self, response: Union[GeoEngineExceptionResponse, Dict[str, str]]) -> None:
+    def __init__(self, response: Union[api.GeoEngineExceptionResponse, Dict[str, str]]) -> None:
         super().__init__()
 
         self.error = response['error'] if 'error' in response else '?'

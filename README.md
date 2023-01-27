@@ -93,7 +93,6 @@ python3 -m pylint tests
 
 Our tip is to activate linting with `pylint` in your IDE.
 
-
 ## Type Checking
 
 Our CI automatically checks for typing errors.
@@ -117,7 +116,6 @@ ignore_missing_imports = True
 If there are typing-stubs packages you can install using `pip`, you can use these packages instead of ignoring the reported errors.
 To find out, which packages could be installed you can use the following command:
 
-
 ```bash
 python3 -m mypy geoengine --install-types
 python3 -m mypy tests --install-types
@@ -125,9 +123,7 @@ python3 -m mypy tests --install-types
 
 Keep in mind, that you need to add the missing stubs by extending the dependencies in `setup.cfg` or ignoring them with `mypy.ini`.
 
-
 Our tip is to activate type checking with `mypy` in your IDE.
-
 
 ## Documentation
 
