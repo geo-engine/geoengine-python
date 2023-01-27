@@ -363,7 +363,7 @@ class DatasetProperties():
             'description': self.description,
             'sourceOperator': self.source_operator,
             'symbology': self.symbology.to_api_dict() if self.symbology is not None else None,
-            'provenance': [provenance.to_api_dict() for provenance in self.provenance] if self.provenance is not None else None
+            'provenance': [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
         }
 
 
