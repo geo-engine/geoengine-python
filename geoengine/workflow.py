@@ -31,7 +31,7 @@ from geoengine.colorizer import Colorizer
 from geoengine.error import MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
     MethodNotCalledOnVectorException, check_response_for_error
 from geoengine.tasks import Task, TaskId
-from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
+from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
 
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
@@ -464,7 +464,7 @@ class Workflow:
         with open(file_path, 'wb') as file:
             file.write(response.read())
 
-    def get_provenance(self, timeout: int = 60) -> List[ProvenanceOutput]:
+    def get_provenance(self, timeout: int = 60) -> List[ProvenanceEntry]:
         '''
         Query the provenance of the workflow
         '''
@@ -475,7 +475,7 @@ class Workflow:
 
         response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).json()
 
-        return [ProvenanceOutput.from_response(item) for item in response]
+        return [ProvenanceEntry.from_response(item) for item in response]
 
     def metadata_zip(self, path: Union[PathLike, BytesIO], timeout: int = 60) -> None:
         '''
