@@ -1,0 +1,3920 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>geoengine.api API documentation</title>
+<meta name="description" content="These types represent Geo Engine&#39;s backend API types before/after JSON (de)serialization." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>geoengine.api</code></h1>
+</header>
+<section id="section-intro">
+<p>These types represent Geo Engine's backend API types before/after JSON (de)serialization.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;These types represent Geo Engine&#39;s backend API types before/after JSON (de)serialization.&#39;&#39;&#39;
+
+from enum import Enum
+from typing import Any, Dict, Optional, Tuple, List, Union
+from typing_extensions import Literal, TypedDict
+
+
+class Coordinate2D(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A coordinate with x, y coordinates&#39;&#39;&#39;
+    x: float
+    y: float
+
+
+class SpatialResolution(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A spatial resolution&#39;&#39;&#39;
+    x: float
+    y: float
+
+
+class TimeInterval(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A time interval with iso 8601 strings as start and end or unix timestamps&#39;&#39;&#39;
+    start: Union[str, int]
+    end: Optional[Union[str, int]]
+
+
+class BoundingBox2D(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A bounding box with x, y coordinates&#39;&#39;&#39;
+    lowerLeftCoordinate: Coordinate2D
+    upperRightCoordinate: Coordinate2D
+
+
+class SpatialPartition2D(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A spatial partition with x, y coordinates&#39;&#39;&#39;
+    upperLeftCoordinate: Coordinate2D
+    lowerRightCoordinate: Coordinate2D
+
+
+class QueryRectangle(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A query rectangle with x, y coordinates&#39;&#39;&#39;
+    spatialResolution: SpatialResolution
+    timeInterval: TimeInterval
+
+
+class RasterQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A query rectangle for raster data&#39;&#39;&#39;
+    spatialBounds: SpatialPartition2D
+
+
+class VectorQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A query rectangle for vector data&#39;&#39;&#39;
+    spatialBounds: BoundingBox2D
+
+
+class PlotQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A query rectangle for plot data&#39;&#39;&#39;
+    spatialBounds: BoundingBox2D
+
+
+class ColorizerBreakpoint(TypedDict):  # pylint: disable=too-few-public-methods
+    &#34;&#34;&#34;This class is used to generate geoengine compatible color breakpoint definitions as a dictionary.&#34;&#34;&#34;
+    value: float
+    color: Tuple[int, int, int, int]
+
+
+class Colorizer(TypedDict):  # pylint: disable=too-few-public-methods
+    &#34;&#34;&#34;This is a color map definitions as a dictionary.&#34;&#34;&#34;
+    type: Literal[&#34;linearGradient&#34;, &#34;palette&#34;, &#34;logarithmicGradient&#34;]
+    noDataColor: Tuple[int, int, int, int]
+    defaultColor: Tuple[int, int, int, int]
+
+
+class PaletteColorizer(Colorizer):  # pylint: disable=too-few-public-methods
+    &#34;&#34;&#34;This is a palette color map definitions as a dictionary.&#34;&#34;&#34;
+    colors: Dict[float, Tuple[int, int, int, int]]
+
+
+class LinearGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
+    &#34;&#34;&#34;This is a linear gradient color map definitions as a dictionary.&#34;&#34;&#34;
+    breakpoints: List[ColorizerBreakpoint]
+
+
+class LogarithmicGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
+    &#34;&#34;&#34;This is a logarithmic gradient color map definitions as a dictionary.&#34;&#34;&#34;
+    breakpoints: List[ColorizerBreakpoint]
+
+
+class Provenance(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A provenance dictionary&#39;&#39;&#39;
+    citation: str
+    license: str
+    uri: str
+
+
+class Symbology(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A dictionary representation of a symbology&#39;&#39;&#39;
+    type: Literal[&#39;vector&#39;, &#39;raster&#39;]
+
+
+class RasterSymbology(Symbology):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A dictionary representation of a raster symbology&#39;&#39;&#39;
+    colorizer: Colorizer
+    opacity: float
+
+
+class Measurement(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A measurement&#39;&#39;&#39;
+    type: Literal[&#39;continuous&#39;, &#39;classification&#39;, &#39;unitless&#39;]
+
+
+class ContinuousMeasurement(Measurement):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A continuous measurement&#39;&#39;&#39;
+    measurement: str
+    unit: Optional[str]
+
+
+class ClassificationMeasurement(Measurement):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A classification measurement&#39;&#39;&#39;
+    measurement: str
+    classes: Dict[str, str]  # TODO: this are int in the backend. how is this handled here?
+
+
+class GdalDatasetGeoTransform(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Geo transform of a GDAL dataset&#39;&#39;&#39;
+    originCoordinate: Tuple[float, float]
+    xPixelSize: float
+    yPixelSize: float
+
+
+class FileNotFoundHandling(str, Enum):  # pylint: disable=too-few-public-methods
+    NODATA = &#34;NoData&#34;
+    ERROR = &#34;Abort&#34;
+
+
+class RasterPropertiesKey(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Key of a raster properties entry&#39;&#39;&#39;
+    domain: Optional[str]
+    key: str
+
+
+class RasterPropertiesEntryType(str, Enum):  # pylint: disable=too-few-public-methods
+    NUMBER = &#34;number&#34;
+    STRING = &#34;string&#34;
+
+
+class VectorDataType(str, Enum):
+    &#39;&#39;&#39;An enum of vector data types&#39;&#39;&#39;
+
+    DATA = &#39;Data&#39;
+    MULTI_POINT = &#39;MultiPoint&#39;
+    MULTI_LINE_STRING = &#39;MultiLineString&#39;
+    MULTI_POLYGON = &#39;MultiPolygon&#39;
+
+
+class GdalMetadataMapping(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Mapping of GDAL metadata raster properties&#39;&#39;&#39;
+
+    sourceKey: RasterPropertiesKey
+    targetKey: RasterPropertiesKey
+    targetType: RasterPropertiesEntryType
+
+
+class GdalDatasetParameters(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Parameters for a GDAL dataset&#39;&#39;&#39;
+    filePath: str
+    rasterbandChannel: int
+    geoTransform: GdalDatasetGeoTransform
+    width: int
+    height: int
+    fileNotFoundHandling: FileNotFoundHandling
+    noDataValue: Optional[float]
+    propertiesMapping: Optional[List[GdalMetadataMapping]]
+    gdalOpenOptions: Optional[List[str]]
+    gdalConfigOptions: Optional[List[Tuple[str, str]]]
+    allowAlphabandAsMask: bool
+
+
+class DateTimeParseFormat(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A format for parsing date time strings&#39;&#39;&#39;
+    fmt: str
+    hasTz: bool
+    hasTime: bool
+
+
+class TimeReference(Enum):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The reference for a time placeholder&#39;&#39;&#39;
+    START = &#34;Start&#34;
+    END = &#34;End&#34;
+
+
+class TimeStepGranularity(str, Enum):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;An enum of time step granularities&#39;&#39;&#39;
+    MILLIS = &#39;Millis&#39;
+    SECONDS = &#39;Seconds&#39;
+    MINUTES = &#39;Minutes&#39;
+    HOURS = &#39;Hours&#39;
+    DAYS = &#39;Days&#39;
+    MONTHS = &#39;Months&#39;
+    YEARS = &#39;Years&#39;
+
+
+class TimeStep(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A time step that consists of a granularity and a step size&#39;&#39;&#39;
+    step: int
+    granularity: TimeStepGranularity
+
+
+class GdalSourceTimePlaceholder(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A placeholder for a time value in a file name&#39;&#39;&#39;
+    format: DateTimeParseFormat
+    reference: TimeReference
+
+
+class DatasetId(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A dataset id&#39;&#39;&#39;
+    id: str
+
+
+class UploadId(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A upload id&#39;&#39;&#39;
+    id: str
+
+
+class VolumeId(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A volume id&#39;&#39;&#39;
+    id: str
+
+
+class StoredDataset(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A stored dataset&#39;&#39;&#39;
+    dataset: str
+    upload: str
+
+
+class Volume(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A volume&#39;&#39;&#39;
+    name: str
+    path: str
+
+
+class OgrSourceDurationSpec(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A duration for an OGR source&#39;&#39;&#39;
+    type: Literal[&#39;zero&#39;, &#39;value&#39;, &#39;infinite&#39;]
+
+
+class ValueOgrSourceDurationSpec(OgrSourceDurationSpec):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A fixed value for a source duration&#39;&#39;&#39;
+    step: int
+    granularity: TimeStepGranularity
+
+
+class VectorColumnInfo(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A vector column info&#39;&#39;&#39;
+    dataType: str
+    measurement: Measurement
+
+
+class ResultDescriptor(TypedDict):  # pylint: disable=too-few-public-methods
+    # TODO: add time, bbox, resolution
+    &#39;&#39;&#39;The result descriptor of an operator&#39;&#39;&#39;
+    type: Literal[&#39;raster&#39;, &#39;vector&#39;, &#39;plot&#39;]
+    time: Optional[TimeInterval]
+    resolution: Optional[SpatialResolution]
+
+
+class RasterResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The result descriptor of a raster operator&#39;&#39;&#39;
+    spatialReference: str
+    dataType: Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;]
+    measurement: Measurement
+    bbox: Optional[SpatialPartition2D]
+
+
+class VectorResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The result descriptor of a vector operator&#39;&#39;&#39;
+    spatialReference: str
+    dataType: VectorDataType
+    columns: Dict[str, VectorColumnInfo]
+    bbox: Optional[BoundingBox2D]
+
+
+class PlotResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The result descriptor of a plot operator&#39;&#39;&#39;
+    spatialReference: str
+    dataType: Literal[&#39;Plot&#39;]
+    bbox: Optional[BoundingBox2D]
+
+
+class MetaDataDefinition(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Super class for all metadata definitions&#39;&#39;&#39;
+
+
+class GdalMetaDataStatic(MetaDataDefinition):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Static metadata for GDAL datasets&#39;&#39;&#39;
+    type: Literal[&#34;GdalStatic&#34;]
+    time: Optional[Tuple[str, str]]
+    params: GdalDatasetParameters
+    resultDescriptor: RasterResultDescriptor
+
+
+class GdalMetaDataRegular(MetaDataDefinition):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Metadata for regular GDAL datasets&#39;&#39;&#39;
+    type: Literal[&#34;GdalMetaDataRegular&#34;]
+    resultDescriptor: RasterResultDescriptor
+    params: GdalDatasetParameters
+    timePlaceholders: Dict[str, GdalSourceTimePlaceholder]
+    dataTime: Tuple[str, str]
+    step: TimeStep
+
+
+class GdalMetadataNetCdfCf(MetaDataDefinition):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Metadata for NetCDF CF datasets&#39;&#39;&#39;
+    type: Literal[&#34;GdalMetadataNetCdfCf&#34;]
+    resultDescriptor: RasterResultDescriptor
+    params: GdalDatasetParameters
+    start: str
+    end: str
+    step: TimeStep
+    bandOffset: int
+
+
+class WorkflowId(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A data id&#39;&#39;&#39;
+    id: str
+
+
+class DataId(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A data id&#39;&#39;&#39;
+    type: Literal[&#39;internal&#39;, &#39;external&#39;]
+
+
+class InternalDataId(DataId):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;An internal data id&#39;&#39;&#39;
+    datasetId: str
+
+
+class ExternalDataId(DataId):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;An external data id&#39;&#39;&#39;
+    providerId: str
+    layerId: str
+
+
+class ProvenanceOutput(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A provenance output&#39;&#39;&#39;
+    data: DataId
+    provenance: Provenance
+
+
+class OgrSourceTimeFormat(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A time format for an OGR source&#39;&#39;&#39;
+    format: Literal[&#39;unixTimeStamp&#39;, &#39;custom&#39;, &#39;auto&#39;]
+
+
+class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A custom time format for an OGR source&#39;&#39;&#39;
+    customFormat: str
+
+
+class UnixTimeStampType(Enum):
+    &#39;&#39;&#39;A unix time stamp type&#39;&#39;&#39;
+    EPOCHSECONDS = &#39;epochSeconds&#39;
+    EPOCHMILLISECONDS = &#39;epochMilliseconds&#39;
+
+
+class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A unix time stamp time format for an OGR source&#39;&#39;&#39;
+    timestampType: UnixTimeStampType
+
+
+class OgrSourceDatasetTimeType(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A time type for an OGR source&#39;&#39;&#39;
+    type: Literal[&#39;start&#39;, &#39;start+end&#39;, &#39;start+duration&#39;, &#39;none&#39;]
+
+
+class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A start time type for an OGR source&#39;&#39;&#39;
+    startFormat: OgrSourceTimeFormat
+    startField: str
+    duration: OgrSourceDurationSpec
+
+
+class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A start+end time type for an OGR source&#39;&#39;&#39;
+    startField: str
+    startFormat: OgrSourceTimeFormat
+    endField: str
+    endFormat: OgrSourceTimeFormat
+
+
+class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A start+duration time type for an OGR source&#39;&#39;&#39;
+    startField: str
+    startFormat: OgrSourceTimeFormat
+    durationField: str
+
+
+class OgrOnError(str, Enum):  # pylint: disable=too-few-public-methods
+    IGNORE = &#34;ignore&#34;
+    ABORT = &#34;abort&#34;
+
+
+class GeoEngineExceptionResponse(TypedDict):
+    &#39;&#39;&#39;
+    The error response from the Geo Engine
+    &#39;&#39;&#39;
+    error: str
+    message: str
+
+
+class LayerCollectionAndProviderIdResponse(TypedDict):
+    collectionId: str
+    providerId: str
+
+
+class LayerAndProviderIdResponse(TypedDict):
+    layerId: str
+    providerId: str
+
+
+class LayerCollectionListingResponse(TypedDict):
+    &#39;&#39;&#39;A layer collection listing response JSON from a HTTP request&#39;&#39;&#39;
+    id: Union[LayerCollectionAndProviderIdResponse, LayerAndProviderIdResponse]
+    name: str
+    description: str
+    type: str
+
+
+class LayerCollectionResponse(TypedDict):
+    &#39;&#39;&#39;A layer collection response JSON from a HTTP request&#39;&#39;&#39;
+    id: LayerCollectionAndProviderIdResponse
+    name: str
+    description: str
+    items: List[LayerCollectionListingResponse]
+
+
+class LayerResponse(TypedDict):
+    &#39;&#39;&#39;A layer response JSON from a HTTP request&#39;&#39;&#39;
+    id: LayerAndProviderIdResponse
+    name: str
+    description: str
+    workflow: Dict[str, Any]  # TODO: specify in more detail
+    symbology: Optional[Symbology]
+    properties: List[Any]  # TODO: specify in more detail
+    metadata: Dict[Any, Any]  # TODO: specify in more detail
+
+
+class OgrLoadingInfoColumns(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The columns of an OGR dataset&#39;&#39;&#39;
+    x: Optional[str]
+    y: Optional[str]
+    float: Optional[List[str]]
+    int: Optional[List[str]]
+    text: Optional[List[str]]
+
+
+class OgrLoadingInfo(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The loading info for an OGR dataset&#39;&#39;&#39;
+    fileName: str
+    layerName: str
+    dataType: VectorDataType
+    time: OgrSourceDatasetTimeType
+    columns: OgrLoadingInfoColumns
+    onError: OgrOnError
+
+
+class OgrMetadata(MetaDataDefinition):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Metadata for OGR datasets&#39;&#39;&#39;
+    type: Literal[&#34;OgrMetaData&#34;]
+    loadingInfo: OgrLoadingInfo
+    resultDescriptor: VectorResultDescriptor
+
+
+class DatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The properties of a dataset&#39;&#39;&#39;
+    id: Optional[str]
+    name: str
+    description: str
+    sourceOperator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
+    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
+    provenance: Optional[Provenance]
+
+
+class DatasetStorage(TypedDict):
+    &#39;&#39;&#39;were the dataset is stored&#39;&#39;&#39;
+
+
+class DatasetPath(DatasetStorage):
+    &#39;&#39;&#39;were the dataset is stored&#39;&#39;&#39;
+    upload: str
+
+
+class DatasetVolume(DatasetStorage):
+    &#39;&#39;&#39;were the dataset is stored&#39;&#39;&#39;
+    volume: str
+
+
+class DatasetDefinition(TypedDict):
+    &#39;&#39;&#39;The definition of a dataset&#39;&#39;&#39;
+    properties: DatasetProperties
+    metaData: MetaDataDefinition
+
+
+class CreateDataset(TypedDict):
+    &#39;&#39;&#39;A dataset to create&#39;&#39;&#39;
+    dataPath: DatasetStorage
+    definition: DatasetDefinition</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="geoengine.api.BoundingBox2D"><code class="flex name class">
+<span>class <span class="ident">BoundingBox2D</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A bounding box with x, y coordinates</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BoundingBox2D(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A bounding box with x, y coordinates&#39;&#39;&#39;
+    lowerLeftCoordinate: Coordinate2D
+    upperRightCoordinate: Coordinate2D</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.BoundingBox2D.lowerLeftCoordinate"><code class="name">var <span class="ident">lowerLeftCoordinate</span> : <a title="geoengine.api.Coordinate2D" href="#geoengine.api.Coordinate2D">Coordinate2D</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.BoundingBox2D.upperRightCoordinate"><code class="name">var <span class="ident">upperRightCoordinate</span> : <a title="geoengine.api.Coordinate2D" href="#geoengine.api.Coordinate2D">Coordinate2D</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.ClassificationMeasurement"><code class="flex name class">
+<span>class <span class="ident">ClassificationMeasurement</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A classification measurement</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ClassificationMeasurement(Measurement):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A classification measurement&#39;&#39;&#39;
+    measurement: str
+    classes: Dict[str, str]  # TODO: this are int in the backend. how is this handled here?</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.ClassificationMeasurement.classes"><code class="name">var <span class="ident">classes</span> : Dict[str, str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ClassificationMeasurement.measurement"><code class="name">var <span class="ident">measurement</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ClassificationMeasurement.type"><code class="name">var <span class="ident">type</span> : Literal['continuous', 'classification', 'unitless']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.Colorizer"><code class="flex name class">
+<span>class <span class="ident">Colorizer</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This is a color map definitions as a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Colorizer(TypedDict):  # pylint: disable=too-few-public-methods
+    &#34;&#34;&#34;This is a color map definitions as a dictionary.&#34;&#34;&#34;
+    type: Literal[&#34;linearGradient&#34;, &#34;palette&#34;, &#34;logarithmicGradient&#34;]
+    noDataColor: Tuple[int, int, int, int]
+    defaultColor: Tuple[int, int, int, int]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.Colorizer.defaultColor"><code class="name">var <span class="ident">defaultColor</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.Colorizer.noDataColor"><code class="name">var <span class="ident">noDataColor</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.Colorizer.type"><code class="name">var <span class="ident">type</span> : Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.ColorizerBreakpoint"><code class="flex name class">
+<span>class <span class="ident">ColorizerBreakpoint</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class is used to generate geoengine compatible color breakpoint definitions as a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ColorizerBreakpoint(TypedDict):  # pylint: disable=too-few-public-methods
+    &#34;&#34;&#34;This class is used to generate geoengine compatible color breakpoint definitions as a dictionary.&#34;&#34;&#34;
+    value: float
+    color: Tuple[int, int, int, int]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.ColorizerBreakpoint.color"><code class="name">var <span class="ident">color</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ColorizerBreakpoint.value"><code class="name">var <span class="ident">value</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.ContinuousMeasurement"><code class="flex name class">
+<span>class <span class="ident">ContinuousMeasurement</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A continuous measurement</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ContinuousMeasurement(Measurement):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A continuous measurement&#39;&#39;&#39;
+    measurement: str
+    unit: Optional[str]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.ContinuousMeasurement.measurement"><code class="name">var <span class="ident">measurement</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ContinuousMeasurement.type"><code class="name">var <span class="ident">type</span> : Literal['continuous', 'classification', 'unitless']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ContinuousMeasurement.unit"><code class="name">var <span class="ident">unit</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.Coordinate2D"><code class="flex name class">
+<span>class <span class="ident">Coordinate2D</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A coordinate with x, y coordinates</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Coordinate2D(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A coordinate with x, y coordinates&#39;&#39;&#39;
+    x: float
+    y: float</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.Coordinate2D.x"><code class="name">var <span class="ident">x</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.Coordinate2D.y"><code class="name">var <span class="ident">y</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.CreateDataset"><code class="flex name class">
+<span>class <span class="ident">CreateDataset</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A dataset to create</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CreateDataset(TypedDict):
+    &#39;&#39;&#39;A dataset to create&#39;&#39;&#39;
+    dataPath: DatasetStorage
+    definition: DatasetDefinition</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.CreateDataset.dataPath"><code class="name">var <span class="ident">dataPath</span> : <a title="geoengine.api.DatasetStorage" href="#geoengine.api.DatasetStorage">DatasetStorage</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.CreateDataset.definition"><code class="name">var <span class="ident">definition</span> : <a title="geoengine.api.DatasetDefinition" href="#geoengine.api.DatasetDefinition">DatasetDefinition</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.CustomOgrSourceTimeFormat"><code class="flex name class">
+<span>class <span class="ident">CustomOgrSourceTimeFormat</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A custom time format for an OGR source</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A custom time format for an OGR source&#39;&#39;&#39;
+    customFormat: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.CustomOgrSourceTimeFormat.customFormat"><code class="name">var <span class="ident">customFormat</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.CustomOgrSourceTimeFormat.format"><code class="name">var <span class="ident">format</span> : Literal['unixTimeStamp', 'custom', 'auto']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.DataId"><code class="flex name class">
+<span>class <span class="ident">DataId</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A data id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataId(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A data id&#39;&#39;&#39;
+    type: Literal[&#39;internal&#39;, &#39;external&#39;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.DataId.type"><code class="name">var <span class="ident">type</span> : Literal['internal', 'external']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.DatasetDefinition"><code class="flex name class">
+<span>class <span class="ident">DatasetDefinition</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The definition of a dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatasetDefinition(TypedDict):
+    &#39;&#39;&#39;The definition of a dataset&#39;&#39;&#39;
+    properties: DatasetProperties
+    metaData: MetaDataDefinition</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.DatasetDefinition.metaData"><code class="name">var <span class="ident">metaData</span> : <a title="geoengine.api.MetaDataDefinition" href="#geoengine.api.MetaDataDefinition">MetaDataDefinition</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetDefinition.properties"><code class="name">var <span class="ident">properties</span> : <a title="geoengine.api.DatasetProperties" href="#geoengine.api.DatasetProperties">DatasetProperties</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.DatasetId"><code class="flex name class">
+<span>class <span class="ident">DatasetId</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A dataset id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatasetId(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A dataset id&#39;&#39;&#39;
+    id: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.DatasetId.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.DatasetPath"><code class="flex name class">
+<span>class <span class="ident">DatasetPath</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>were the dataset is stored</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatasetPath(DatasetStorage):
+    &#39;&#39;&#39;were the dataset is stored&#39;&#39;&#39;
+    upload: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.DatasetPath.upload"><code class="name">var <span class="ident">upload</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.DatasetProperties"><code class="flex name class">
+<span>class <span class="ident">DatasetProperties</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The properties of a dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The properties of a dataset&#39;&#39;&#39;
+    id: Optional[str]
+    name: str
+    description: str
+    sourceOperator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
+    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
+    provenance: Optional[Provenance]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.DatasetProperties.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetProperties.id"><code class="name">var <span class="ident">id</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetProperties.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetProperties.provenance"><code class="name">var <span class="ident">provenance</span> : Optional[<a title="geoengine.api.Provenance" href="#geoengine.api.Provenance">Provenance</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetProperties.sourceOperator"><code class="name">var <span class="ident">sourceOperator</span> : Literal['GdalSource', 'OgrSource']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetProperties.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[<a title="geoengine.api.RasterSymbology" href="#geoengine.api.RasterSymbology">RasterSymbology</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.DatasetStorage"><code class="flex name class">
+<span>class <span class="ident">DatasetStorage</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>were the dataset is stored</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatasetStorage(TypedDict):
+    &#39;&#39;&#39;were the dataset is stored&#39;&#39;&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+</dd>
+<dt id="geoengine.api.DatasetVolume"><code class="flex name class">
+<span>class <span class="ident">DatasetVolume</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>were the dataset is stored</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatasetVolume(DatasetStorage):
+    &#39;&#39;&#39;were the dataset is stored&#39;&#39;&#39;
+    volume: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.DatasetVolume.volume"><code class="name">var <span class="ident">volume</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.DateTimeParseFormat"><code class="flex name class">
+<span>class <span class="ident">DateTimeParseFormat</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A format for parsing date time strings</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DateTimeParseFormat(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A format for parsing date time strings&#39;&#39;&#39;
+    fmt: str
+    hasTz: bool
+    hasTime: bool</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.DateTimeParseFormat.fmt"><code class="name">var <span class="ident">fmt</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DateTimeParseFormat.hasTime"><code class="name">var <span class="ident">hasTime</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DateTimeParseFormat.hasTz"><code class="name">var <span class="ident">hasTz</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.ExternalDataId"><code class="flex name class">
+<span>class <span class="ident">ExternalDataId</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An external data id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ExternalDataId(DataId):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;An external data id&#39;&#39;&#39;
+    providerId: str
+    layerId: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.ExternalDataId.layerId"><code class="name">var <span class="ident">layerId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ExternalDataId.providerId"><code class="name">var <span class="ident">providerId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ExternalDataId.type"><code class="name">var <span class="ident">type</span> : Literal['internal', 'external']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.FileNotFoundHandling"><code class="flex name class">
+<span>class <span class="ident">FileNotFoundHandling</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FileNotFoundHandling(str, Enum):  # pylint: disable=too-few-public-methods
+    NODATA = &#34;NoData&#34;
+    ERROR = &#34;Abort&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.FileNotFoundHandling.ERROR"><code class="name">var <span class="ident">ERROR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.FileNotFoundHandling.NODATA"><code class="name">var <span class="ident">NODATA</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.GdalDatasetGeoTransform"><code class="flex name class">
+<span>class <span class="ident">GdalDatasetGeoTransform</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Geo transform of a GDAL dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GdalDatasetGeoTransform(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Geo transform of a GDAL dataset&#39;&#39;&#39;
+    originCoordinate: Tuple[float, float]
+    xPixelSize: float
+    yPixelSize: float</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.GdalDatasetGeoTransform.originCoordinate"><code class="name">var <span class="ident">originCoordinate</span> : Tuple[float, float]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetGeoTransform.xPixelSize"><code class="name">var <span class="ident">xPixelSize</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetGeoTransform.yPixelSize"><code class="name">var <span class="ident">yPixelSize</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.GdalDatasetParameters"><code class="flex name class">
+<span>class <span class="ident">GdalDatasetParameters</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parameters for a GDAL dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GdalDatasetParameters(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Parameters for a GDAL dataset&#39;&#39;&#39;
+    filePath: str
+    rasterbandChannel: int
+    geoTransform: GdalDatasetGeoTransform
+    width: int
+    height: int
+    fileNotFoundHandling: FileNotFoundHandling
+    noDataValue: Optional[float]
+    propertiesMapping: Optional[List[GdalMetadataMapping]]
+    gdalOpenOptions: Optional[List[str]]
+    gdalConfigOptions: Optional[List[Tuple[str, str]]]
+    allowAlphabandAsMask: bool</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.GdalDatasetParameters.allowAlphabandAsMask"><code class="name">var <span class="ident">allowAlphabandAsMask</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetParameters.fileNotFoundHandling"><code class="name">var <span class="ident">fileNotFoundHandling</span> : <a title="geoengine.api.FileNotFoundHandling" href="#geoengine.api.FileNotFoundHandling">FileNotFoundHandling</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetParameters.filePath"><code class="name">var <span class="ident">filePath</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetParameters.gdalConfigOptions"><code class="name">var <span class="ident">gdalConfigOptions</span> : Optional[List[Tuple[str, str]]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetParameters.gdalOpenOptions"><code class="name">var <span class="ident">gdalOpenOptions</span> : Optional[List[str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetParameters.geoTransform"><code class="name">var <span class="ident">geoTransform</span> : <a title="geoengine.api.GdalDatasetGeoTransform" href="#geoengine.api.GdalDatasetGeoTransform">GdalDatasetGeoTransform</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetParameters.height"><code class="name">var <span class="ident">height</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetParameters.noDataValue"><code class="name">var <span class="ident">noDataValue</span> : Optional[float]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetParameters.propertiesMapping"><code class="name">var <span class="ident">propertiesMapping</span> : Optional[List[<a title="geoengine.api.GdalMetadataMapping" href="#geoengine.api.GdalMetadataMapping">GdalMetadataMapping</a>]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetParameters.rasterbandChannel"><code class="name">var <span class="ident">rasterbandChannel</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalDatasetParameters.width"><code class="name">var <span class="ident">width</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.GdalMetaDataRegular"><code class="flex name class">
+<span>class <span class="ident">GdalMetaDataRegular</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Metadata for regular GDAL datasets</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GdalMetaDataRegular(MetaDataDefinition):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Metadata for regular GDAL datasets&#39;&#39;&#39;
+    type: Literal[&#34;GdalMetaDataRegular&#34;]
+    resultDescriptor: RasterResultDescriptor
+    params: GdalDatasetParameters
+    timePlaceholders: Dict[str, GdalSourceTimePlaceholder]
+    dataTime: Tuple[str, str]
+    step: TimeStep</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.GdalMetaDataRegular.dataTime"><code class="name">var <span class="ident">dataTime</span> : Tuple[str, str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetaDataRegular.params"><code class="name">var <span class="ident">params</span> : <a title="geoengine.api.GdalDatasetParameters" href="#geoengine.api.GdalDatasetParameters">GdalDatasetParameters</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetaDataRegular.resultDescriptor"><code class="name">var <span class="ident">resultDescriptor</span> : <a title="geoengine.api.RasterResultDescriptor" href="#geoengine.api.RasterResultDescriptor">RasterResultDescriptor</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetaDataRegular.step"><code class="name">var <span class="ident">step</span> : <a title="geoengine.api.TimeStep" href="#geoengine.api.TimeStep">TimeStep</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetaDataRegular.timePlaceholders"><code class="name">var <span class="ident">timePlaceholders</span> : Dict[str, <a title="geoengine.api.GdalSourceTimePlaceholder" href="#geoengine.api.GdalSourceTimePlaceholder">GdalSourceTimePlaceholder</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetaDataRegular.type"><code class="name">var <span class="ident">type</span> : Literal['<a title="geoengine.api.GdalMetaDataRegular" href="#geoengine.api.GdalMetaDataRegular">GdalMetaDataRegular</a>']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.GdalMetaDataStatic"><code class="flex name class">
+<span>class <span class="ident">GdalMetaDataStatic</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Static metadata for GDAL datasets</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GdalMetaDataStatic(MetaDataDefinition):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Static metadata for GDAL datasets&#39;&#39;&#39;
+    type: Literal[&#34;GdalStatic&#34;]
+    time: Optional[Tuple[str, str]]
+    params: GdalDatasetParameters
+    resultDescriptor: RasterResultDescriptor</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.GdalMetaDataStatic.params"><code class="name">var <span class="ident">params</span> : <a title="geoengine.api.GdalDatasetParameters" href="#geoengine.api.GdalDatasetParameters">GdalDatasetParameters</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetaDataStatic.resultDescriptor"><code class="name">var <span class="ident">resultDescriptor</span> : <a title="geoengine.api.RasterResultDescriptor" href="#geoengine.api.RasterResultDescriptor">RasterResultDescriptor</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetaDataStatic.time"><code class="name">var <span class="ident">time</span> : Optional[Tuple[str, str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetaDataStatic.type"><code class="name">var <span class="ident">type</span> : Literal['GdalStatic']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.GdalMetadataMapping"><code class="flex name class">
+<span>class <span class="ident">GdalMetadataMapping</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mapping of GDAL metadata raster properties</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GdalMetadataMapping(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Mapping of GDAL metadata raster properties&#39;&#39;&#39;
+
+    sourceKey: RasterPropertiesKey
+    targetKey: RasterPropertiesKey
+    targetType: RasterPropertiesEntryType</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.GdalMetadataMapping.sourceKey"><code class="name">var <span class="ident">sourceKey</span> : <a title="geoengine.api.RasterPropertiesKey" href="#geoengine.api.RasterPropertiesKey">RasterPropertiesKey</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetadataMapping.targetKey"><code class="name">var <span class="ident">targetKey</span> : <a title="geoengine.api.RasterPropertiesKey" href="#geoengine.api.RasterPropertiesKey">RasterPropertiesKey</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetadataMapping.targetType"><code class="name">var <span class="ident">targetType</span> : <a title="geoengine.api.RasterPropertiesEntryType" href="#geoengine.api.RasterPropertiesEntryType">RasterPropertiesEntryType</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.GdalMetadataNetCdfCf"><code class="flex name class">
+<span>class <span class="ident">GdalMetadataNetCdfCf</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Metadata for NetCDF CF datasets</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GdalMetadataNetCdfCf(MetaDataDefinition):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Metadata for NetCDF CF datasets&#39;&#39;&#39;
+    type: Literal[&#34;GdalMetadataNetCdfCf&#34;]
+    resultDescriptor: RasterResultDescriptor
+    params: GdalDatasetParameters
+    start: str
+    end: str
+    step: TimeStep
+    bandOffset: int</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.GdalMetadataNetCdfCf.bandOffset"><code class="name">var <span class="ident">bandOffset</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetadataNetCdfCf.end"><code class="name">var <span class="ident">end</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetadataNetCdfCf.params"><code class="name">var <span class="ident">params</span> : <a title="geoengine.api.GdalDatasetParameters" href="#geoengine.api.GdalDatasetParameters">GdalDatasetParameters</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetadataNetCdfCf.resultDescriptor"><code class="name">var <span class="ident">resultDescriptor</span> : <a title="geoengine.api.RasterResultDescriptor" href="#geoengine.api.RasterResultDescriptor">RasterResultDescriptor</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetadataNetCdfCf.start"><code class="name">var <span class="ident">start</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetadataNetCdfCf.step"><code class="name">var <span class="ident">step</span> : <a title="geoengine.api.TimeStep" href="#geoengine.api.TimeStep">TimeStep</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalMetadataNetCdfCf.type"><code class="name">var <span class="ident">type</span> : Literal['<a title="geoengine.api.GdalMetadataNetCdfCf" href="#geoengine.api.GdalMetadataNetCdfCf">GdalMetadataNetCdfCf</a>']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.GdalSourceTimePlaceholder"><code class="flex name class">
+<span>class <span class="ident">GdalSourceTimePlaceholder</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A placeholder for a time value in a file name</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GdalSourceTimePlaceholder(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A placeholder for a time value in a file name&#39;&#39;&#39;
+    format: DateTimeParseFormat
+    reference: TimeReference</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.GdalSourceTimePlaceholder.format"><code class="name">var <span class="ident">format</span> : <a title="geoengine.api.DateTimeParseFormat" href="#geoengine.api.DateTimeParseFormat">DateTimeParseFormat</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GdalSourceTimePlaceholder.reference"><code class="name">var <span class="ident">reference</span> : <a title="geoengine.api.TimeReference" href="#geoengine.api.TimeReference">TimeReference</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.GeoEngineExceptionResponse"><code class="flex name class">
+<span>class <span class="ident">GeoEngineExceptionResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The error response from the Geo Engine</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GeoEngineExceptionResponse(TypedDict):
+    &#39;&#39;&#39;
+    The error response from the Geo Engine
+    &#39;&#39;&#39;
+    error: str
+    message: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.GeoEngineExceptionResponse.error"><code class="name">var <span class="ident">error</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GeoEngineExceptionResponse.message"><code class="name">var <span class="ident">message</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.InternalDataId"><code class="flex name class">
+<span>class <span class="ident">InternalDataId</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An internal data id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InternalDataId(DataId):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;An internal data id&#39;&#39;&#39;
+    datasetId: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.InternalDataId.datasetId"><code class="name">var <span class="ident">datasetId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.InternalDataId.type"><code class="name">var <span class="ident">type</span> : Literal['internal', 'external']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.LayerAndProviderIdResponse"><code class="flex name class">
+<span>class <span class="ident">LayerAndProviderIdResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerAndProviderIdResponse(TypedDict):
+    layerId: str
+    providerId: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.LayerAndProviderIdResponse.layerId"><code class="name">var <span class="ident">layerId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerAndProviderIdResponse.providerId"><code class="name">var <span class="ident">providerId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.LayerCollectionAndProviderIdResponse"><code class="flex name class">
+<span>class <span class="ident">LayerCollectionAndProviderIdResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>dict() -&gt; new empty dictionary
+dict(mapping) -&gt; new dictionary initialized from a mapping object's
+(key, value) pairs
+dict(iterable) -&gt; new dictionary initialized as if via:
+d = {}
+for k, v in iterable:
+d[k] = v
+dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
+in the keyword argument list.
+For example:
+dict(one=1, two=2)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerCollectionAndProviderIdResponse(TypedDict):
+    collectionId: str
+    providerId: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.LayerCollectionAndProviderIdResponse.collectionId"><code class="name">var <span class="ident">collectionId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerCollectionAndProviderIdResponse.providerId"><code class="name">var <span class="ident">providerId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.LayerCollectionListingResponse"><code class="flex name class">
+<span>class <span class="ident">LayerCollectionListingResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A layer collection listing response JSON from a HTTP request</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerCollectionListingResponse(TypedDict):
+    &#39;&#39;&#39;A layer collection listing response JSON from a HTTP request&#39;&#39;&#39;
+    id: Union[LayerCollectionAndProviderIdResponse, LayerAndProviderIdResponse]
+    name: str
+    description: str
+    type: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.LayerCollectionListingResponse.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerCollectionListingResponse.id"><code class="name">var <span class="ident">id</span> : Union[<a title="geoengine.api.LayerCollectionAndProviderIdResponse" href="#geoengine.api.LayerCollectionAndProviderIdResponse">LayerCollectionAndProviderIdResponse</a>, <a title="geoengine.api.LayerAndProviderIdResponse" href="#geoengine.api.LayerAndProviderIdResponse">LayerAndProviderIdResponse</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerCollectionListingResponse.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerCollectionListingResponse.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.LayerCollectionResponse"><code class="flex name class">
+<span>class <span class="ident">LayerCollectionResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A layer collection response JSON from a HTTP request</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerCollectionResponse(TypedDict):
+    &#39;&#39;&#39;A layer collection response JSON from a HTTP request&#39;&#39;&#39;
+    id: LayerCollectionAndProviderIdResponse
+    name: str
+    description: str
+    items: List[LayerCollectionListingResponse]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.LayerCollectionResponse.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerCollectionResponse.id"><code class="name">var <span class="ident">id</span> : <a title="geoengine.api.LayerCollectionAndProviderIdResponse" href="#geoengine.api.LayerCollectionAndProviderIdResponse">LayerCollectionAndProviderIdResponse</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerCollectionResponse.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.api.LayerCollectionResponse.items"><code class="name flex">
+<span>def <span class="ident">items</span></span>(<span>...) ‑> List[<a title="geoengine.api.LayerCollectionListingResponse" href="#geoengine.api.LayerCollectionListingResponse">LayerCollectionListingResponse</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>D.items() -&gt; a set-like object providing a view on D's items</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.LayerResponse"><code class="flex name class">
+<span>class <span class="ident">LayerResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A layer response JSON from a HTTP request</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LayerResponse(TypedDict):
+    &#39;&#39;&#39;A layer response JSON from a HTTP request&#39;&#39;&#39;
+    id: LayerAndProviderIdResponse
+    name: str
+    description: str
+    workflow: Dict[str, Any]  # TODO: specify in more detail
+    symbology: Optional[Symbology]
+    properties: List[Any]  # TODO: specify in more detail
+    metadata: Dict[Any, Any]  # TODO: specify in more detail</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.LayerResponse.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerResponse.id"><code class="name">var <span class="ident">id</span> : <a title="geoengine.api.LayerAndProviderIdResponse" href="#geoengine.api.LayerAndProviderIdResponse">LayerAndProviderIdResponse</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerResponse.metadata"><code class="name">var <span class="ident">metadata</span> : Dict[Any, Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerResponse.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerResponse.properties"><code class="name">var <span class="ident">properties</span> : List[Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerResponse.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[<a title="geoengine.api.Symbology" href="#geoengine.api.Symbology">Symbology</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LayerResponse.workflow"><code class="name">var <span class="ident">workflow</span> : Dict[str, Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.LinearGradientColorizer"><code class="flex name class">
+<span>class <span class="ident">LinearGradientColorizer</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This is a linear gradient color map definitions as a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LinearGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
+    &#34;&#34;&#34;This is a linear gradient color map definitions as a dictionary.&#34;&#34;&#34;
+    breakpoints: List[ColorizerBreakpoint]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.LinearGradientColorizer.breakpoints"><code class="name">var <span class="ident">breakpoints</span> : List[<a title="geoengine.api.ColorizerBreakpoint" href="#geoengine.api.ColorizerBreakpoint">ColorizerBreakpoint</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LinearGradientColorizer.defaultColor"><code class="name">var <span class="ident">defaultColor</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LinearGradientColorizer.noDataColor"><code class="name">var <span class="ident">noDataColor</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LinearGradientColorizer.type"><code class="name">var <span class="ident">type</span> : Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.LogarithmicGradientColorizer"><code class="flex name class">
+<span>class <span class="ident">LogarithmicGradientColorizer</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This is a logarithmic gradient color map definitions as a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LogarithmicGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
+    &#34;&#34;&#34;This is a logarithmic gradient color map definitions as a dictionary.&#34;&#34;&#34;
+    breakpoints: List[ColorizerBreakpoint]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.LogarithmicGradientColorizer.breakpoints"><code class="name">var <span class="ident">breakpoints</span> : List[<a title="geoengine.api.ColorizerBreakpoint" href="#geoengine.api.ColorizerBreakpoint">ColorizerBreakpoint</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LogarithmicGradientColorizer.defaultColor"><code class="name">var <span class="ident">defaultColor</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LogarithmicGradientColorizer.noDataColor"><code class="name">var <span class="ident">noDataColor</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LogarithmicGradientColorizer.type"><code class="name">var <span class="ident">type</span> : Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.Measurement"><code class="flex name class">
+<span>class <span class="ident">Measurement</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A measurement</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Measurement(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A measurement&#39;&#39;&#39;
+    type: Literal[&#39;continuous&#39;, &#39;classification&#39;, &#39;unitless&#39;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.Measurement.type"><code class="name">var <span class="ident">type</span> : Literal['continuous', 'classification', 'unitless']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.MetaDataDefinition"><code class="flex name class">
+<span>class <span class="ident">MetaDataDefinition</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Super class for all metadata definitions</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MetaDataDefinition(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Super class for all metadata definitions&#39;&#39;&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+</dd>
+<dt id="geoengine.api.OgrLoadingInfo"><code class="flex name class">
+<span>class <span class="ident">OgrLoadingInfo</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The loading info for an OGR dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrLoadingInfo(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The loading info for an OGR dataset&#39;&#39;&#39;
+    fileName: str
+    layerName: str
+    dataType: VectorDataType
+    time: OgrSourceDatasetTimeType
+    columns: OgrLoadingInfoColumns
+    onError: OgrOnError</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.OgrLoadingInfo.columns"><code class="name">var <span class="ident">columns</span> : <a title="geoengine.api.OgrLoadingInfoColumns" href="#geoengine.api.OgrLoadingInfoColumns">OgrLoadingInfoColumns</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrLoadingInfo.dataType"><code class="name">var <span class="ident">dataType</span> : <a title="geoengine.api.VectorDataType" href="#geoengine.api.VectorDataType">VectorDataType</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrLoadingInfo.fileName"><code class="name">var <span class="ident">fileName</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrLoadingInfo.layerName"><code class="name">var <span class="ident">layerName</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrLoadingInfo.onError"><code class="name">var <span class="ident">onError</span> : <a title="geoengine.api.OgrOnError" href="#geoengine.api.OgrOnError">OgrOnError</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrLoadingInfo.time"><code class="name">var <span class="ident">time</span> : <a title="geoengine.api.OgrSourceDatasetTimeType" href="#geoengine.api.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.OgrLoadingInfoColumns"><code class="flex name class">
+<span>class <span class="ident">OgrLoadingInfoColumns</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The columns of an OGR dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrLoadingInfoColumns(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The columns of an OGR dataset&#39;&#39;&#39;
+    x: Optional[str]
+    y: Optional[str]
+    float: Optional[List[str]]
+    int: Optional[List[str]]
+    text: Optional[List[str]]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.OgrLoadingInfoColumns.float"><code class="name">var <span class="ident">float</span> : Optional[List[str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrLoadingInfoColumns.int"><code class="name">var <span class="ident">int</span> : Optional[List[str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrLoadingInfoColumns.text"><code class="name">var <span class="ident">text</span> : Optional[List[str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrLoadingInfoColumns.x"><code class="name">var <span class="ident">x</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrLoadingInfoColumns.y"><code class="name">var <span class="ident">y</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.OgrMetadata"><code class="flex name class">
+<span>class <span class="ident">OgrMetadata</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Metadata for OGR datasets</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrMetadata(MetaDataDefinition):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Metadata for OGR datasets&#39;&#39;&#39;
+    type: Literal[&#34;OgrMetaData&#34;]
+    loadingInfo: OgrLoadingInfo
+    resultDescriptor: VectorResultDescriptor</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.OgrMetadata.loadingInfo"><code class="name">var <span class="ident">loadingInfo</span> : <a title="geoengine.api.OgrLoadingInfo" href="#geoengine.api.OgrLoadingInfo">OgrLoadingInfo</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrMetadata.resultDescriptor"><code class="name">var <span class="ident">resultDescriptor</span> : <a title="geoengine.api.VectorResultDescriptor" href="#geoengine.api.VectorResultDescriptor">VectorResultDescriptor</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrMetadata.type"><code class="name">var <span class="ident">type</span> : Literal['OgrMetaData']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.OgrOnError"><code class="flex name class">
+<span>class <span class="ident">OgrOnError</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrOnError(str, Enum):  # pylint: disable=too-few-public-methods
+    IGNORE = &#34;ignore&#34;
+    ABORT = &#34;abort&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.OgrOnError.ABORT"><code class="name">var <span class="ident">ABORT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.OgrOnError.IGNORE"><code class="name">var <span class="ident">IGNORE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.OgrSourceDatasetTimeType"><code class="flex name class">
+<span>class <span class="ident">OgrSourceDatasetTimeType</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A time type for an OGR source</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrSourceDatasetTimeType(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A time type for an OGR source&#39;&#39;&#39;
+    type: Literal[&#39;start&#39;, &#39;start+end&#39;, &#39;start+duration&#39;, &#39;none&#39;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.OgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.OgrSourceDurationSpec"><code class="flex name class">
+<span>class <span class="ident">OgrSourceDurationSpec</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A duration for an OGR source</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrSourceDurationSpec(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A duration for an OGR source&#39;&#39;&#39;
+    type: Literal[&#39;zero&#39;, &#39;value&#39;, &#39;infinite&#39;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.OgrSourceDurationSpec.type"><code class="name">var <span class="ident">type</span> : Literal['zero', 'value', 'infinite']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.OgrSourceTimeFormat"><code class="flex name class">
+<span>class <span class="ident">OgrSourceTimeFormat</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A time format for an OGR source</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrSourceTimeFormat(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A time format for an OGR source&#39;&#39;&#39;
+    format: Literal[&#39;unixTimeStamp&#39;, &#39;custom&#39;, &#39;auto&#39;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.OgrSourceTimeFormat.format"><code class="name">var <span class="ident">format</span> : Literal['unixTimeStamp', 'custom', 'auto']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.PaletteColorizer"><code class="flex name class">
+<span>class <span class="ident">PaletteColorizer</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This is a palette color map definitions as a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PaletteColorizer(Colorizer):  # pylint: disable=too-few-public-methods
+    &#34;&#34;&#34;This is a palette color map definitions as a dictionary.&#34;&#34;&#34;
+    colors: Dict[float, Tuple[int, int, int, int]]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.PaletteColorizer.colors"><code class="name">var <span class="ident">colors</span> : Dict[float, Tuple[int, int, int, int]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PaletteColorizer.defaultColor"><code class="name">var <span class="ident">defaultColor</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PaletteColorizer.noDataColor"><code class="name">var <span class="ident">noDataColor</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PaletteColorizer.type"><code class="name">var <span class="ident">type</span> : Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.PlotQueryRectangle"><code class="flex name class">
+<span>class <span class="ident">PlotQueryRectangle</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A query rectangle for plot data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PlotQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A query rectangle for plot data&#39;&#39;&#39;
+    spatialBounds: BoundingBox2D</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.PlotQueryRectangle.spatialBounds"><code class="name">var <span class="ident">spatialBounds</span> : <a title="geoengine.api.BoundingBox2D" href="#geoengine.api.BoundingBox2D">BoundingBox2D</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PlotQueryRectangle.spatialResolution"><code class="name">var <span class="ident">spatialResolution</span> : <a title="geoengine.api.SpatialResolution" href="#geoengine.api.SpatialResolution">SpatialResolution</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PlotQueryRectangle.timeInterval"><code class="name">var <span class="ident">timeInterval</span> : <a title="geoengine.api.TimeInterval" href="#geoengine.api.TimeInterval">TimeInterval</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.PlotResultDescriptor"><code class="flex name class">
+<span>class <span class="ident">PlotResultDescriptor</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The result descriptor of a plot operator</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PlotResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The result descriptor of a plot operator&#39;&#39;&#39;
+    spatialReference: str
+    dataType: Literal[&#39;Plot&#39;]
+    bbox: Optional[BoundingBox2D]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.PlotResultDescriptor.bbox"><code class="name">var <span class="ident">bbox</span> : Optional[<a title="geoengine.api.BoundingBox2D" href="#geoengine.api.BoundingBox2D">BoundingBox2D</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PlotResultDescriptor.dataType"><code class="name">var <span class="ident">dataType</span> : Literal['Plot']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PlotResultDescriptor.resolution"><code class="name">var <span class="ident">resolution</span> : Optional[<a title="geoengine.api.SpatialResolution" href="#geoengine.api.SpatialResolution">SpatialResolution</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PlotResultDescriptor.spatialReference"><code class="name">var <span class="ident">spatialReference</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PlotResultDescriptor.time"><code class="name">var <span class="ident">time</span> : Optional[<a title="geoengine.api.TimeInterval" href="#geoengine.api.TimeInterval">TimeInterval</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PlotResultDescriptor.type"><code class="name">var <span class="ident">type</span> : Literal['raster', 'vector', 'plot']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.Provenance"><code class="flex name class">
+<span>class <span class="ident">Provenance</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A provenance dictionary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Provenance(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A provenance dictionary&#39;&#39;&#39;
+    citation: str
+    license: str
+    uri: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.Provenance.citation"><code class="name">var <span class="ident">citation</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.Provenance.license"><code class="name">var <span class="ident">license</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.Provenance.uri"><code class="name">var <span class="ident">uri</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.ProvenanceOutput"><code class="flex name class">
+<span>class <span class="ident">ProvenanceOutput</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A provenance output</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ProvenanceOutput(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A provenance output&#39;&#39;&#39;
+    data: DataId
+    provenance: Provenance</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.ProvenanceOutput.data"><code class="name">var <span class="ident">data</span> : <a title="geoengine.api.DataId" href="#geoengine.api.DataId">DataId</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ProvenanceOutput.provenance"><code class="name">var <span class="ident">provenance</span> : <a title="geoengine.api.Provenance" href="#geoengine.api.Provenance">Provenance</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.QueryRectangle"><code class="flex name class">
+<span>class <span class="ident">QueryRectangle</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A query rectangle with x, y coordinates</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class QueryRectangle(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A query rectangle with x, y coordinates&#39;&#39;&#39;
+    spatialResolution: SpatialResolution
+    timeInterval: TimeInterval</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.QueryRectangle.spatialResolution"><code class="name">var <span class="ident">spatialResolution</span> : <a title="geoengine.api.SpatialResolution" href="#geoengine.api.SpatialResolution">SpatialResolution</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.QueryRectangle.timeInterval"><code class="name">var <span class="ident">timeInterval</span> : <a title="geoengine.api.TimeInterval" href="#geoengine.api.TimeInterval">TimeInterval</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.RasterPropertiesEntryType"><code class="flex name class">
+<span>class <span class="ident">RasterPropertiesEntryType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterPropertiesEntryType(str, Enum):  # pylint: disable=too-few-public-methods
+    NUMBER = &#34;number&#34;
+    STRING = &#34;string&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.RasterPropertiesEntryType.NUMBER"><code class="name">var <span class="ident">NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterPropertiesEntryType.STRING"><code class="name">var <span class="ident">STRING</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.RasterPropertiesKey"><code class="flex name class">
+<span>class <span class="ident">RasterPropertiesKey</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Key of a raster properties entry</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterPropertiesKey(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Key of a raster properties entry&#39;&#39;&#39;
+    domain: Optional[str]
+    key: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.RasterPropertiesKey.domain"><code class="name">var <span class="ident">domain</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterPropertiesKey.key"><code class="name">var <span class="ident">key</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.RasterQueryRectangle"><code class="flex name class">
+<span>class <span class="ident">RasterQueryRectangle</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A query rectangle for raster data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A query rectangle for raster data&#39;&#39;&#39;
+    spatialBounds: SpatialPartition2D</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.RasterQueryRectangle.spatialBounds"><code class="name">var <span class="ident">spatialBounds</span> : <a title="geoengine.api.SpatialPartition2D" href="#geoengine.api.SpatialPartition2D">SpatialPartition2D</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterQueryRectangle.spatialResolution"><code class="name">var <span class="ident">spatialResolution</span> : <a title="geoengine.api.SpatialResolution" href="#geoengine.api.SpatialResolution">SpatialResolution</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterQueryRectangle.timeInterval"><code class="name">var <span class="ident">timeInterval</span> : <a title="geoengine.api.TimeInterval" href="#geoengine.api.TimeInterval">TimeInterval</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.RasterResultDescriptor"><code class="flex name class">
+<span>class <span class="ident">RasterResultDescriptor</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The result descriptor of a raster operator</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The result descriptor of a raster operator&#39;&#39;&#39;
+    spatialReference: str
+    dataType: Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;]
+    measurement: Measurement
+    bbox: Optional[SpatialPartition2D]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.RasterResultDescriptor.bbox"><code class="name">var <span class="ident">bbox</span> : Optional[<a title="geoengine.api.SpatialPartition2D" href="#geoengine.api.SpatialPartition2D">SpatialPartition2D</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterResultDescriptor.dataType"><code class="name">var <span class="ident">dataType</span> : Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterResultDescriptor.measurement"><code class="name">var <span class="ident">measurement</span> : <a title="geoengine.api.Measurement" href="#geoengine.api.Measurement">Measurement</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterResultDescriptor.resolution"><code class="name">var <span class="ident">resolution</span> : Optional[<a title="geoengine.api.SpatialResolution" href="#geoengine.api.SpatialResolution">SpatialResolution</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterResultDescriptor.spatialReference"><code class="name">var <span class="ident">spatialReference</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterResultDescriptor.time"><code class="name">var <span class="ident">time</span> : Optional[<a title="geoengine.api.TimeInterval" href="#geoengine.api.TimeInterval">TimeInterval</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterResultDescriptor.type"><code class="name">var <span class="ident">type</span> : Literal['raster', 'vector', 'plot']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.RasterSymbology"><code class="flex name class">
+<span>class <span class="ident">RasterSymbology</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A dictionary representation of a raster symbology</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterSymbology(Symbology):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A dictionary representation of a raster symbology&#39;&#39;&#39;
+    colorizer: Colorizer
+    opacity: float</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.RasterSymbology.colorizer"><code class="name">var <span class="ident">colorizer</span> : <a title="geoengine.api.Colorizer" href="#geoengine.api.Colorizer">Colorizer</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterSymbology.opacity"><code class="name">var <span class="ident">opacity</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.RasterSymbology.type"><code class="name">var <span class="ident">type</span> : Literal['vector', 'raster']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.ResultDescriptor"><code class="flex name class">
+<span>class <span class="ident">ResultDescriptor</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The result descriptor of an operator</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ResultDescriptor(TypedDict):  # pylint: disable=too-few-public-methods
+    # TODO: add time, bbox, resolution
+    &#39;&#39;&#39;The result descriptor of an operator&#39;&#39;&#39;
+    type: Literal[&#39;raster&#39;, &#39;vector&#39;, &#39;plot&#39;]
+    time: Optional[TimeInterval]
+    resolution: Optional[SpatialResolution]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.ResultDescriptor.resolution"><code class="name">var <span class="ident">resolution</span> : Optional[<a title="geoengine.api.SpatialResolution" href="#geoengine.api.SpatialResolution">SpatialResolution</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ResultDescriptor.time"><code class="name">var <span class="ident">time</span> : Optional[<a title="geoengine.api.TimeInterval" href="#geoengine.api.TimeInterval">TimeInterval</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ResultDescriptor.type"><code class="name">var <span class="ident">type</span> : Literal['raster', 'vector', 'plot']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.SpatialPartition2D"><code class="flex name class">
+<span>class <span class="ident">SpatialPartition2D</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A spatial partition with x, y coordinates</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SpatialPartition2D(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A spatial partition with x, y coordinates&#39;&#39;&#39;
+    upperLeftCoordinate: Coordinate2D
+    lowerRightCoordinate: Coordinate2D</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.SpatialPartition2D.lowerRightCoordinate"><code class="name">var <span class="ident">lowerRightCoordinate</span> : <a title="geoengine.api.Coordinate2D" href="#geoengine.api.Coordinate2D">Coordinate2D</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.SpatialPartition2D.upperLeftCoordinate"><code class="name">var <span class="ident">upperLeftCoordinate</span> : <a title="geoengine.api.Coordinate2D" href="#geoengine.api.Coordinate2D">Coordinate2D</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.SpatialResolution"><code class="flex name class">
+<span>class <span class="ident">SpatialResolution</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A spatial resolution</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SpatialResolution(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A spatial resolution&#39;&#39;&#39;
+    x: float
+    y: float</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.SpatialResolution.x"><code class="name">var <span class="ident">x</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.SpatialResolution.y"><code class="name">var <span class="ident">y</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.StartDurationOgrSourceDatasetTimeType"><code class="flex name class">
+<span>class <span class="ident">StartDurationOgrSourceDatasetTimeType</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A start+duration time type for an OGR source</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A start+duration time type for an OGR source&#39;&#39;&#39;
+    startField: str
+    startFormat: OgrSourceTimeFormat
+    durationField: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.StartDurationOgrSourceDatasetTimeType.durationField"><code class="name">var <span class="ident">durationField</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.StartDurationOgrSourceDatasetTimeType.startField"><code class="name">var <span class="ident">startField</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.StartDurationOgrSourceDatasetTimeType.startFormat"><code class="name">var <span class="ident">startFormat</span> : <a title="geoengine.api.OgrSourceTimeFormat" href="#geoengine.api.OgrSourceTimeFormat">OgrSourceTimeFormat</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.StartDurationOgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.StartEndOgrSourceDatasetTimeType"><code class="flex name class">
+<span>class <span class="ident">StartEndOgrSourceDatasetTimeType</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A start+end time type for an OGR source</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A start+end time type for an OGR source&#39;&#39;&#39;
+    startField: str
+    startFormat: OgrSourceTimeFormat
+    endField: str
+    endFormat: OgrSourceTimeFormat</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.StartEndOgrSourceDatasetTimeType.endField"><code class="name">var <span class="ident">endField</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.StartEndOgrSourceDatasetTimeType.endFormat"><code class="name">var <span class="ident">endFormat</span> : <a title="geoengine.api.OgrSourceTimeFormat" href="#geoengine.api.OgrSourceTimeFormat">OgrSourceTimeFormat</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.StartEndOgrSourceDatasetTimeType.startField"><code class="name">var <span class="ident">startField</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.StartEndOgrSourceDatasetTimeType.startFormat"><code class="name">var <span class="ident">startFormat</span> : <a title="geoengine.api.OgrSourceTimeFormat" href="#geoengine.api.OgrSourceTimeFormat">OgrSourceTimeFormat</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.StartEndOgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.StartOgrSourceDatasetTimeType"><code class="flex name class">
+<span>class <span class="ident">StartOgrSourceDatasetTimeType</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A start time type for an OGR source</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A start time type for an OGR source&#39;&#39;&#39;
+    startFormat: OgrSourceTimeFormat
+    startField: str
+    duration: OgrSourceDurationSpec</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.StartOgrSourceDatasetTimeType.duration"><code class="name">var <span class="ident">duration</span> : <a title="geoengine.api.OgrSourceDurationSpec" href="#geoengine.api.OgrSourceDurationSpec">OgrSourceDurationSpec</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.StartOgrSourceDatasetTimeType.startField"><code class="name">var <span class="ident">startField</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.StartOgrSourceDatasetTimeType.startFormat"><code class="name">var <span class="ident">startFormat</span> : <a title="geoengine.api.OgrSourceTimeFormat" href="#geoengine.api.OgrSourceTimeFormat">OgrSourceTimeFormat</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.StartOgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.StoredDataset"><code class="flex name class">
+<span>class <span class="ident">StoredDataset</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A stored dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StoredDataset(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A stored dataset&#39;&#39;&#39;
+    dataset: str
+    upload: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.StoredDataset.dataset"><code class="name">var <span class="ident">dataset</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.StoredDataset.upload"><code class="name">var <span class="ident">upload</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.Symbology"><code class="flex name class">
+<span>class <span class="ident">Symbology</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A dictionary representation of a symbology</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Symbology(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A dictionary representation of a symbology&#39;&#39;&#39;
+    type: Literal[&#39;vector&#39;, &#39;raster&#39;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.Symbology.type"><code class="name">var <span class="ident">type</span> : Literal['vector', 'raster']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.TimeInterval"><code class="flex name class">
+<span>class <span class="ident">TimeInterval</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A time interval with iso 8601 strings as start and end or unix timestamps</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TimeInterval(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A time interval with iso 8601 strings as start and end or unix timestamps&#39;&#39;&#39;
+    start: Union[str, int]
+    end: Optional[Union[str, int]]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.TimeInterval.end"><code class="name">var <span class="ident">end</span> : Union[str, int, ForwardRef(None)]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.TimeInterval.start"><code class="name">var <span class="ident">start</span> : Union[str, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.TimeReference"><code class="flex name class">
+<span>class <span class="ident">TimeReference</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The reference for a time placeholder</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TimeReference(Enum):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The reference for a time placeholder&#39;&#39;&#39;
+    START = &#34;Start&#34;
+    END = &#34;End&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.TimeReference.END"><code class="name">var <span class="ident">END</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.TimeReference.START"><code class="name">var <span class="ident">START</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.TimeStep"><code class="flex name class">
+<span>class <span class="ident">TimeStep</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A time step that consists of a granularity and a step size</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TimeStep(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A time step that consists of a granularity and a step size&#39;&#39;&#39;
+    step: int
+    granularity: TimeStepGranularity</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.TimeStep.granularity"><code class="name">var <span class="ident">granularity</span> : <a title="geoengine.api.TimeStepGranularity" href="#geoengine.api.TimeStepGranularity">TimeStepGranularity</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.TimeStep.step"><code class="name">var <span class="ident">step</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.TimeStepGranularity"><code class="flex name class">
+<span>class <span class="ident">TimeStepGranularity</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enum of time step granularities</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TimeStepGranularity(str, Enum):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;An enum of time step granularities&#39;&#39;&#39;
+    MILLIS = &#39;Millis&#39;
+    SECONDS = &#39;Seconds&#39;
+    MINUTES = &#39;Minutes&#39;
+    HOURS = &#39;Hours&#39;
+    DAYS = &#39;Days&#39;
+    MONTHS = &#39;Months&#39;
+    YEARS = &#39;Years&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.TimeStepGranularity.DAYS"><code class="name">var <span class="ident">DAYS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.TimeStepGranularity.HOURS"><code class="name">var <span class="ident">HOURS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.TimeStepGranularity.MILLIS"><code class="name">var <span class="ident">MILLIS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.TimeStepGranularity.MINUTES"><code class="name">var <span class="ident">MINUTES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.TimeStepGranularity.MONTHS"><code class="name">var <span class="ident">MONTHS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.TimeStepGranularity.SECONDS"><code class="name">var <span class="ident">SECONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.TimeStepGranularity.YEARS"><code class="name">var <span class="ident">YEARS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.UnixTimeStampOgrSourceTimeFormat"><code class="flex name class">
+<span>class <span class="ident">UnixTimeStampOgrSourceTimeFormat</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A unix time stamp time format for an OGR source</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A unix time stamp time format for an OGR source&#39;&#39;&#39;
+    timestampType: UnixTimeStampType</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.UnixTimeStampOgrSourceTimeFormat.format"><code class="name">var <span class="ident">format</span> : Literal['unixTimeStamp', 'custom', 'auto']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.UnixTimeStampOgrSourceTimeFormat.timestampType"><code class="name">var <span class="ident">timestampType</span> : <a title="geoengine.api.UnixTimeStampType" href="#geoengine.api.UnixTimeStampType">UnixTimeStampType</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.UnixTimeStampType"><code class="flex name class">
+<span>class <span class="ident">UnixTimeStampType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A unix time stamp type</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UnixTimeStampType(Enum):
+    &#39;&#39;&#39;A unix time stamp type&#39;&#39;&#39;
+    EPOCHSECONDS = &#39;epochSeconds&#39;
+    EPOCHMILLISECONDS = &#39;epochMilliseconds&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.UnixTimeStampType.EPOCHMILLISECONDS"><code class="name">var <span class="ident">EPOCHMILLISECONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.UnixTimeStampType.EPOCHSECONDS"><code class="name">var <span class="ident">EPOCHSECONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.UploadId"><code class="flex name class">
+<span>class <span class="ident">UploadId</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A upload id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UploadId(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A upload id&#39;&#39;&#39;
+    id: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.UploadId.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.ValueOgrSourceDurationSpec"><code class="flex name class">
+<span>class <span class="ident">ValueOgrSourceDurationSpec</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A fixed value for a source duration</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ValueOgrSourceDurationSpec(OgrSourceDurationSpec):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A fixed value for a source duration&#39;&#39;&#39;
+    step: int
+    granularity: TimeStepGranularity</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.ValueOgrSourceDurationSpec.granularity"><code class="name">var <span class="ident">granularity</span> : <a title="geoengine.api.TimeStepGranularity" href="#geoengine.api.TimeStepGranularity">TimeStepGranularity</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ValueOgrSourceDurationSpec.step"><code class="name">var <span class="ident">step</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ValueOgrSourceDurationSpec.type"><code class="name">var <span class="ident">type</span> : Literal['zero', 'value', 'infinite']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.VectorColumnInfo"><code class="flex name class">
+<span>class <span class="ident">VectorColumnInfo</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A vector column info</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VectorColumnInfo(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A vector column info&#39;&#39;&#39;
+    dataType: str
+    measurement: Measurement</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.VectorColumnInfo.dataType"><code class="name">var <span class="ident">dataType</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorColumnInfo.measurement"><code class="name">var <span class="ident">measurement</span> : <a title="geoengine.api.Measurement" href="#geoengine.api.Measurement">Measurement</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.VectorDataType"><code class="flex name class">
+<span>class <span class="ident">VectorDataType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enum of vector data types</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VectorDataType(str, Enum):
+    &#39;&#39;&#39;An enum of vector data types&#39;&#39;&#39;
+
+    DATA = &#39;Data&#39;
+    MULTI_POINT = &#39;MultiPoint&#39;
+    MULTI_LINE_STRING = &#39;MultiLineString&#39;
+    MULTI_POLYGON = &#39;MultiPolygon&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.VectorDataType.DATA"><code class="name">var <span class="ident">DATA</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorDataType.MULTI_LINE_STRING"><code class="name">var <span class="ident">MULTI_LINE_STRING</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorDataType.MULTI_POINT"><code class="name">var <span class="ident">MULTI_POINT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorDataType.MULTI_POLYGON"><code class="name">var <span class="ident">MULTI_POLYGON</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.VectorQueryRectangle"><code class="flex name class">
+<span>class <span class="ident">VectorQueryRectangle</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A query rectangle for vector data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VectorQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A query rectangle for vector data&#39;&#39;&#39;
+    spatialBounds: BoundingBox2D</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.VectorQueryRectangle.spatialBounds"><code class="name">var <span class="ident">spatialBounds</span> : <a title="geoengine.api.BoundingBox2D" href="#geoengine.api.BoundingBox2D">BoundingBox2D</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorQueryRectangle.spatialResolution"><code class="name">var <span class="ident">spatialResolution</span> : <a title="geoengine.api.SpatialResolution" href="#geoengine.api.SpatialResolution">SpatialResolution</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorQueryRectangle.timeInterval"><code class="name">var <span class="ident">timeInterval</span> : <a title="geoengine.api.TimeInterval" href="#geoengine.api.TimeInterval">TimeInterval</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.VectorResultDescriptor"><code class="flex name class">
+<span>class <span class="ident">VectorResultDescriptor</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The result descriptor of a vector operator</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VectorResultDescriptor(ResultDescriptor):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The result descriptor of a vector operator&#39;&#39;&#39;
+    spatialReference: str
+    dataType: VectorDataType
+    columns: Dict[str, VectorColumnInfo]
+    bbox: Optional[BoundingBox2D]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.VectorResultDescriptor.bbox"><code class="name">var <span class="ident">bbox</span> : Optional[<a title="geoengine.api.BoundingBox2D" href="#geoengine.api.BoundingBox2D">BoundingBox2D</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorResultDescriptor.columns"><code class="name">var <span class="ident">columns</span> : Dict[str, <a title="geoengine.api.VectorColumnInfo" href="#geoengine.api.VectorColumnInfo">VectorColumnInfo</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorResultDescriptor.dataType"><code class="name">var <span class="ident">dataType</span> : <a title="geoengine.api.VectorDataType" href="#geoengine.api.VectorDataType">VectorDataType</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorResultDescriptor.resolution"><code class="name">var <span class="ident">resolution</span> : Optional[<a title="geoengine.api.SpatialResolution" href="#geoengine.api.SpatialResolution">SpatialResolution</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorResultDescriptor.spatialReference"><code class="name">var <span class="ident">spatialReference</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorResultDescriptor.time"><code class="name">var <span class="ident">time</span> : Optional[<a title="geoengine.api.TimeInterval" href="#geoengine.api.TimeInterval">TimeInterval</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.VectorResultDescriptor.type"><code class="name">var <span class="ident">type</span> : Literal['raster', 'vector', 'plot']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.Volume"><code class="flex name class">
+<span>class <span class="ident">Volume</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A volume</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Volume(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A volume&#39;&#39;&#39;
+    name: str
+    path: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.Volume.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.Volume.path"><code class="name">var <span class="ident">path</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.VolumeId"><code class="flex name class">
+<span>class <span class="ident">VolumeId</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A volume id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VolumeId(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A volume id&#39;&#39;&#39;
+    id: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.VolumeId.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.WorkflowId"><code class="flex name class">
+<span>class <span class="ident">WorkflowId</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A data id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class WorkflowId(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A data id&#39;&#39;&#39;
+    id: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.WorkflowId.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="geoengine" href="index.html">geoengine</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="geoengine.api.BoundingBox2D" href="#geoengine.api.BoundingBox2D">BoundingBox2D</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.BoundingBox2D.lowerLeftCoordinate" href="#geoengine.api.BoundingBox2D.lowerLeftCoordinate">lowerLeftCoordinate</a></code></li>
+<li><code><a title="geoengine.api.BoundingBox2D.upperRightCoordinate" href="#geoengine.api.BoundingBox2D.upperRightCoordinate">upperRightCoordinate</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.ClassificationMeasurement" href="#geoengine.api.ClassificationMeasurement">ClassificationMeasurement</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.ClassificationMeasurement.classes" href="#geoengine.api.ClassificationMeasurement.classes">classes</a></code></li>
+<li><code><a title="geoengine.api.ClassificationMeasurement.measurement" href="#geoengine.api.ClassificationMeasurement.measurement">measurement</a></code></li>
+<li><code><a title="geoengine.api.ClassificationMeasurement.type" href="#geoengine.api.ClassificationMeasurement.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.Colorizer" href="#geoengine.api.Colorizer">Colorizer</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.Colorizer.defaultColor" href="#geoengine.api.Colorizer.defaultColor">defaultColor</a></code></li>
+<li><code><a title="geoengine.api.Colorizer.noDataColor" href="#geoengine.api.Colorizer.noDataColor">noDataColor</a></code></li>
+<li><code><a title="geoengine.api.Colorizer.type" href="#geoengine.api.Colorizer.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.ColorizerBreakpoint" href="#geoengine.api.ColorizerBreakpoint">ColorizerBreakpoint</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.ColorizerBreakpoint.color" href="#geoengine.api.ColorizerBreakpoint.color">color</a></code></li>
+<li><code><a title="geoengine.api.ColorizerBreakpoint.value" href="#geoengine.api.ColorizerBreakpoint.value">value</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.ContinuousMeasurement" href="#geoengine.api.ContinuousMeasurement">ContinuousMeasurement</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.ContinuousMeasurement.measurement" href="#geoengine.api.ContinuousMeasurement.measurement">measurement</a></code></li>
+<li><code><a title="geoengine.api.ContinuousMeasurement.type" href="#geoengine.api.ContinuousMeasurement.type">type</a></code></li>
+<li><code><a title="geoengine.api.ContinuousMeasurement.unit" href="#geoengine.api.ContinuousMeasurement.unit">unit</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.Coordinate2D" href="#geoengine.api.Coordinate2D">Coordinate2D</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.Coordinate2D.x" href="#geoengine.api.Coordinate2D.x">x</a></code></li>
+<li><code><a title="geoengine.api.Coordinate2D.y" href="#geoengine.api.Coordinate2D.y">y</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.CreateDataset" href="#geoengine.api.CreateDataset">CreateDataset</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.CreateDataset.dataPath" href="#geoengine.api.CreateDataset.dataPath">dataPath</a></code></li>
+<li><code><a title="geoengine.api.CreateDataset.definition" href="#geoengine.api.CreateDataset.definition">definition</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.CustomOgrSourceTimeFormat" href="#geoengine.api.CustomOgrSourceTimeFormat">CustomOgrSourceTimeFormat</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.CustomOgrSourceTimeFormat.customFormat" href="#geoengine.api.CustomOgrSourceTimeFormat.customFormat">customFormat</a></code></li>
+<li><code><a title="geoengine.api.CustomOgrSourceTimeFormat.format" href="#geoengine.api.CustomOgrSourceTimeFormat.format">format</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.DataId" href="#geoengine.api.DataId">DataId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.DataId.type" href="#geoengine.api.DataId.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.DatasetDefinition" href="#geoengine.api.DatasetDefinition">DatasetDefinition</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.DatasetDefinition.metaData" href="#geoengine.api.DatasetDefinition.metaData">metaData</a></code></li>
+<li><code><a title="geoengine.api.DatasetDefinition.properties" href="#geoengine.api.DatasetDefinition.properties">properties</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.DatasetId" href="#geoengine.api.DatasetId">DatasetId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.DatasetId.id" href="#geoengine.api.DatasetId.id">id</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.DatasetPath" href="#geoengine.api.DatasetPath">DatasetPath</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.DatasetPath.upload" href="#geoengine.api.DatasetPath.upload">upload</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.DatasetProperties" href="#geoengine.api.DatasetProperties">DatasetProperties</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.DatasetProperties.description" href="#geoengine.api.DatasetProperties.description">description</a></code></li>
+<li><code><a title="geoengine.api.DatasetProperties.id" href="#geoengine.api.DatasetProperties.id">id</a></code></li>
+<li><code><a title="geoengine.api.DatasetProperties.name" href="#geoengine.api.DatasetProperties.name">name</a></code></li>
+<li><code><a title="geoengine.api.DatasetProperties.provenance" href="#geoengine.api.DatasetProperties.provenance">provenance</a></code></li>
+<li><code><a title="geoengine.api.DatasetProperties.sourceOperator" href="#geoengine.api.DatasetProperties.sourceOperator">sourceOperator</a></code></li>
+<li><code><a title="geoengine.api.DatasetProperties.symbology" href="#geoengine.api.DatasetProperties.symbology">symbology</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.DatasetStorage" href="#geoengine.api.DatasetStorage">DatasetStorage</a></code></h4>
+</li>
+<li>
+<h4><code><a title="geoengine.api.DatasetVolume" href="#geoengine.api.DatasetVolume">DatasetVolume</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.DatasetVolume.volume" href="#geoengine.api.DatasetVolume.volume">volume</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.DateTimeParseFormat" href="#geoengine.api.DateTimeParseFormat">DateTimeParseFormat</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.DateTimeParseFormat.fmt" href="#geoengine.api.DateTimeParseFormat.fmt">fmt</a></code></li>
+<li><code><a title="geoengine.api.DateTimeParseFormat.hasTime" href="#geoengine.api.DateTimeParseFormat.hasTime">hasTime</a></code></li>
+<li><code><a title="geoengine.api.DateTimeParseFormat.hasTz" href="#geoengine.api.DateTimeParseFormat.hasTz">hasTz</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.ExternalDataId" href="#geoengine.api.ExternalDataId">ExternalDataId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.ExternalDataId.layerId" href="#geoengine.api.ExternalDataId.layerId">layerId</a></code></li>
+<li><code><a title="geoengine.api.ExternalDataId.providerId" href="#geoengine.api.ExternalDataId.providerId">providerId</a></code></li>
+<li><code><a title="geoengine.api.ExternalDataId.type" href="#geoengine.api.ExternalDataId.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.FileNotFoundHandling" href="#geoengine.api.FileNotFoundHandling">FileNotFoundHandling</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.FileNotFoundHandling.ERROR" href="#geoengine.api.FileNotFoundHandling.ERROR">ERROR</a></code></li>
+<li><code><a title="geoengine.api.FileNotFoundHandling.NODATA" href="#geoengine.api.FileNotFoundHandling.NODATA">NODATA</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.GdalDatasetGeoTransform" href="#geoengine.api.GdalDatasetGeoTransform">GdalDatasetGeoTransform</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.GdalDatasetGeoTransform.originCoordinate" href="#geoengine.api.GdalDatasetGeoTransform.originCoordinate">originCoordinate</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetGeoTransform.xPixelSize" href="#geoengine.api.GdalDatasetGeoTransform.xPixelSize">xPixelSize</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetGeoTransform.yPixelSize" href="#geoengine.api.GdalDatasetGeoTransform.yPixelSize">yPixelSize</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.GdalDatasetParameters" href="#geoengine.api.GdalDatasetParameters">GdalDatasetParameters</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.GdalDatasetParameters.allowAlphabandAsMask" href="#geoengine.api.GdalDatasetParameters.allowAlphabandAsMask">allowAlphabandAsMask</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetParameters.fileNotFoundHandling" href="#geoengine.api.GdalDatasetParameters.fileNotFoundHandling">fileNotFoundHandling</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetParameters.filePath" href="#geoengine.api.GdalDatasetParameters.filePath">filePath</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetParameters.gdalConfigOptions" href="#geoengine.api.GdalDatasetParameters.gdalConfigOptions">gdalConfigOptions</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetParameters.gdalOpenOptions" href="#geoengine.api.GdalDatasetParameters.gdalOpenOptions">gdalOpenOptions</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetParameters.geoTransform" href="#geoengine.api.GdalDatasetParameters.geoTransform">geoTransform</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetParameters.height" href="#geoengine.api.GdalDatasetParameters.height">height</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetParameters.noDataValue" href="#geoengine.api.GdalDatasetParameters.noDataValue">noDataValue</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetParameters.propertiesMapping" href="#geoengine.api.GdalDatasetParameters.propertiesMapping">propertiesMapping</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetParameters.rasterbandChannel" href="#geoengine.api.GdalDatasetParameters.rasterbandChannel">rasterbandChannel</a></code></li>
+<li><code><a title="geoengine.api.GdalDatasetParameters.width" href="#geoengine.api.GdalDatasetParameters.width">width</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.GdalMetaDataRegular" href="#geoengine.api.GdalMetaDataRegular">GdalMetaDataRegular</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.GdalMetaDataRegular.dataTime" href="#geoengine.api.GdalMetaDataRegular.dataTime">dataTime</a></code></li>
+<li><code><a title="geoengine.api.GdalMetaDataRegular.params" href="#geoengine.api.GdalMetaDataRegular.params">params</a></code></li>
+<li><code><a title="geoengine.api.GdalMetaDataRegular.resultDescriptor" href="#geoengine.api.GdalMetaDataRegular.resultDescriptor">resultDescriptor</a></code></li>
+<li><code><a title="geoengine.api.GdalMetaDataRegular.step" href="#geoengine.api.GdalMetaDataRegular.step">step</a></code></li>
+<li><code><a title="geoengine.api.GdalMetaDataRegular.timePlaceholders" href="#geoengine.api.GdalMetaDataRegular.timePlaceholders">timePlaceholders</a></code></li>
+<li><code><a title="geoengine.api.GdalMetaDataRegular.type" href="#geoengine.api.GdalMetaDataRegular.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.GdalMetaDataStatic" href="#geoengine.api.GdalMetaDataStatic">GdalMetaDataStatic</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.GdalMetaDataStatic.params" href="#geoengine.api.GdalMetaDataStatic.params">params</a></code></li>
+<li><code><a title="geoengine.api.GdalMetaDataStatic.resultDescriptor" href="#geoengine.api.GdalMetaDataStatic.resultDescriptor">resultDescriptor</a></code></li>
+<li><code><a title="geoengine.api.GdalMetaDataStatic.time" href="#geoengine.api.GdalMetaDataStatic.time">time</a></code></li>
+<li><code><a title="geoengine.api.GdalMetaDataStatic.type" href="#geoengine.api.GdalMetaDataStatic.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.GdalMetadataMapping" href="#geoengine.api.GdalMetadataMapping">GdalMetadataMapping</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.GdalMetadataMapping.sourceKey" href="#geoengine.api.GdalMetadataMapping.sourceKey">sourceKey</a></code></li>
+<li><code><a title="geoengine.api.GdalMetadataMapping.targetKey" href="#geoengine.api.GdalMetadataMapping.targetKey">targetKey</a></code></li>
+<li><code><a title="geoengine.api.GdalMetadataMapping.targetType" href="#geoengine.api.GdalMetadataMapping.targetType">targetType</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.GdalMetadataNetCdfCf" href="#geoengine.api.GdalMetadataNetCdfCf">GdalMetadataNetCdfCf</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.GdalMetadataNetCdfCf.bandOffset" href="#geoengine.api.GdalMetadataNetCdfCf.bandOffset">bandOffset</a></code></li>
+<li><code><a title="geoengine.api.GdalMetadataNetCdfCf.end" href="#geoengine.api.GdalMetadataNetCdfCf.end">end</a></code></li>
+<li><code><a title="geoengine.api.GdalMetadataNetCdfCf.params" href="#geoengine.api.GdalMetadataNetCdfCf.params">params</a></code></li>
+<li><code><a title="geoengine.api.GdalMetadataNetCdfCf.resultDescriptor" href="#geoengine.api.GdalMetadataNetCdfCf.resultDescriptor">resultDescriptor</a></code></li>
+<li><code><a title="geoengine.api.GdalMetadataNetCdfCf.start" href="#geoengine.api.GdalMetadataNetCdfCf.start">start</a></code></li>
+<li><code><a title="geoengine.api.GdalMetadataNetCdfCf.step" href="#geoengine.api.GdalMetadataNetCdfCf.step">step</a></code></li>
+<li><code><a title="geoengine.api.GdalMetadataNetCdfCf.type" href="#geoengine.api.GdalMetadataNetCdfCf.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.GdalSourceTimePlaceholder" href="#geoengine.api.GdalSourceTimePlaceholder">GdalSourceTimePlaceholder</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.GdalSourceTimePlaceholder.format" href="#geoengine.api.GdalSourceTimePlaceholder.format">format</a></code></li>
+<li><code><a title="geoengine.api.GdalSourceTimePlaceholder.reference" href="#geoengine.api.GdalSourceTimePlaceholder.reference">reference</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.GeoEngineExceptionResponse" href="#geoengine.api.GeoEngineExceptionResponse">GeoEngineExceptionResponse</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.GeoEngineExceptionResponse.error" href="#geoengine.api.GeoEngineExceptionResponse.error">error</a></code></li>
+<li><code><a title="geoengine.api.GeoEngineExceptionResponse.message" href="#geoengine.api.GeoEngineExceptionResponse.message">message</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.InternalDataId" href="#geoengine.api.InternalDataId">InternalDataId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.InternalDataId.datasetId" href="#geoengine.api.InternalDataId.datasetId">datasetId</a></code></li>
+<li><code><a title="geoengine.api.InternalDataId.type" href="#geoengine.api.InternalDataId.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.LayerAndProviderIdResponse" href="#geoengine.api.LayerAndProviderIdResponse">LayerAndProviderIdResponse</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.LayerAndProviderIdResponse.layerId" href="#geoengine.api.LayerAndProviderIdResponse.layerId">layerId</a></code></li>
+<li><code><a title="geoengine.api.LayerAndProviderIdResponse.providerId" href="#geoengine.api.LayerAndProviderIdResponse.providerId">providerId</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.LayerCollectionAndProviderIdResponse" href="#geoengine.api.LayerCollectionAndProviderIdResponse">LayerCollectionAndProviderIdResponse</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.LayerCollectionAndProviderIdResponse.collectionId" href="#geoengine.api.LayerCollectionAndProviderIdResponse.collectionId">collectionId</a></code></li>
+<li><code><a title="geoengine.api.LayerCollectionAndProviderIdResponse.providerId" href="#geoengine.api.LayerCollectionAndProviderIdResponse.providerId">providerId</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.LayerCollectionListingResponse" href="#geoengine.api.LayerCollectionListingResponse">LayerCollectionListingResponse</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.LayerCollectionListingResponse.description" href="#geoengine.api.LayerCollectionListingResponse.description">description</a></code></li>
+<li><code><a title="geoengine.api.LayerCollectionListingResponse.id" href="#geoengine.api.LayerCollectionListingResponse.id">id</a></code></li>
+<li><code><a title="geoengine.api.LayerCollectionListingResponse.name" href="#geoengine.api.LayerCollectionListingResponse.name">name</a></code></li>
+<li><code><a title="geoengine.api.LayerCollectionListingResponse.type" href="#geoengine.api.LayerCollectionListingResponse.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.LayerCollectionResponse" href="#geoengine.api.LayerCollectionResponse">LayerCollectionResponse</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.LayerCollectionResponse.description" href="#geoengine.api.LayerCollectionResponse.description">description</a></code></li>
+<li><code><a title="geoengine.api.LayerCollectionResponse.id" href="#geoengine.api.LayerCollectionResponse.id">id</a></code></li>
+<li><code><a title="geoengine.api.LayerCollectionResponse.items" href="#geoengine.api.LayerCollectionResponse.items">items</a></code></li>
+<li><code><a title="geoengine.api.LayerCollectionResponse.name" href="#geoengine.api.LayerCollectionResponse.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.LayerResponse" href="#geoengine.api.LayerResponse">LayerResponse</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.LayerResponse.description" href="#geoengine.api.LayerResponse.description">description</a></code></li>
+<li><code><a title="geoengine.api.LayerResponse.id" href="#geoengine.api.LayerResponse.id">id</a></code></li>
+<li><code><a title="geoengine.api.LayerResponse.metadata" href="#geoengine.api.LayerResponse.metadata">metadata</a></code></li>
+<li><code><a title="geoengine.api.LayerResponse.name" href="#geoengine.api.LayerResponse.name">name</a></code></li>
+<li><code><a title="geoengine.api.LayerResponse.properties" href="#geoengine.api.LayerResponse.properties">properties</a></code></li>
+<li><code><a title="geoengine.api.LayerResponse.symbology" href="#geoengine.api.LayerResponse.symbology">symbology</a></code></li>
+<li><code><a title="geoengine.api.LayerResponse.workflow" href="#geoengine.api.LayerResponse.workflow">workflow</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.LinearGradientColorizer" href="#geoengine.api.LinearGradientColorizer">LinearGradientColorizer</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.LinearGradientColorizer.breakpoints" href="#geoengine.api.LinearGradientColorizer.breakpoints">breakpoints</a></code></li>
+<li><code><a title="geoengine.api.LinearGradientColorizer.defaultColor" href="#geoengine.api.LinearGradientColorizer.defaultColor">defaultColor</a></code></li>
+<li><code><a title="geoengine.api.LinearGradientColorizer.noDataColor" href="#geoengine.api.LinearGradientColorizer.noDataColor">noDataColor</a></code></li>
+<li><code><a title="geoengine.api.LinearGradientColorizer.type" href="#geoengine.api.LinearGradientColorizer.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.LogarithmicGradientColorizer" href="#geoengine.api.LogarithmicGradientColorizer">LogarithmicGradientColorizer</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.LogarithmicGradientColorizer.breakpoints" href="#geoengine.api.LogarithmicGradientColorizer.breakpoints">breakpoints</a></code></li>
+<li><code><a title="geoengine.api.LogarithmicGradientColorizer.defaultColor" href="#geoengine.api.LogarithmicGradientColorizer.defaultColor">defaultColor</a></code></li>
+<li><code><a title="geoengine.api.LogarithmicGradientColorizer.noDataColor" href="#geoengine.api.LogarithmicGradientColorizer.noDataColor">noDataColor</a></code></li>
+<li><code><a title="geoengine.api.LogarithmicGradientColorizer.type" href="#geoengine.api.LogarithmicGradientColorizer.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.Measurement" href="#geoengine.api.Measurement">Measurement</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.Measurement.type" href="#geoengine.api.Measurement.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.MetaDataDefinition" href="#geoengine.api.MetaDataDefinition">MetaDataDefinition</a></code></h4>
+</li>
+<li>
+<h4><code><a title="geoengine.api.OgrLoadingInfo" href="#geoengine.api.OgrLoadingInfo">OgrLoadingInfo</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.OgrLoadingInfo.columns" href="#geoengine.api.OgrLoadingInfo.columns">columns</a></code></li>
+<li><code><a title="geoengine.api.OgrLoadingInfo.dataType" href="#geoengine.api.OgrLoadingInfo.dataType">dataType</a></code></li>
+<li><code><a title="geoengine.api.OgrLoadingInfo.fileName" href="#geoengine.api.OgrLoadingInfo.fileName">fileName</a></code></li>
+<li><code><a title="geoengine.api.OgrLoadingInfo.layerName" href="#geoengine.api.OgrLoadingInfo.layerName">layerName</a></code></li>
+<li><code><a title="geoengine.api.OgrLoadingInfo.onError" href="#geoengine.api.OgrLoadingInfo.onError">onError</a></code></li>
+<li><code><a title="geoengine.api.OgrLoadingInfo.time" href="#geoengine.api.OgrLoadingInfo.time">time</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.OgrLoadingInfoColumns" href="#geoengine.api.OgrLoadingInfoColumns">OgrLoadingInfoColumns</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.OgrLoadingInfoColumns.float" href="#geoengine.api.OgrLoadingInfoColumns.float">float</a></code></li>
+<li><code><a title="geoengine.api.OgrLoadingInfoColumns.int" href="#geoengine.api.OgrLoadingInfoColumns.int">int</a></code></li>
+<li><code><a title="geoengine.api.OgrLoadingInfoColumns.text" href="#geoengine.api.OgrLoadingInfoColumns.text">text</a></code></li>
+<li><code><a title="geoengine.api.OgrLoadingInfoColumns.x" href="#geoengine.api.OgrLoadingInfoColumns.x">x</a></code></li>
+<li><code><a title="geoengine.api.OgrLoadingInfoColumns.y" href="#geoengine.api.OgrLoadingInfoColumns.y">y</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.OgrMetadata" href="#geoengine.api.OgrMetadata">OgrMetadata</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.OgrMetadata.loadingInfo" href="#geoengine.api.OgrMetadata.loadingInfo">loadingInfo</a></code></li>
+<li><code><a title="geoengine.api.OgrMetadata.resultDescriptor" href="#geoengine.api.OgrMetadata.resultDescriptor">resultDescriptor</a></code></li>
+<li><code><a title="geoengine.api.OgrMetadata.type" href="#geoengine.api.OgrMetadata.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.OgrOnError" href="#geoengine.api.OgrOnError">OgrOnError</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.OgrOnError.ABORT" href="#geoengine.api.OgrOnError.ABORT">ABORT</a></code></li>
+<li><code><a title="geoengine.api.OgrOnError.IGNORE" href="#geoengine.api.OgrOnError.IGNORE">IGNORE</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.OgrSourceDatasetTimeType" href="#geoengine.api.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.OgrSourceDatasetTimeType.type" href="#geoengine.api.OgrSourceDatasetTimeType.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.OgrSourceDurationSpec" href="#geoengine.api.OgrSourceDurationSpec">OgrSourceDurationSpec</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.OgrSourceDurationSpec.type" href="#geoengine.api.OgrSourceDurationSpec.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.OgrSourceTimeFormat" href="#geoengine.api.OgrSourceTimeFormat">OgrSourceTimeFormat</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.OgrSourceTimeFormat.format" href="#geoengine.api.OgrSourceTimeFormat.format">format</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.PaletteColorizer" href="#geoengine.api.PaletteColorizer">PaletteColorizer</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.PaletteColorizer.colors" href="#geoengine.api.PaletteColorizer.colors">colors</a></code></li>
+<li><code><a title="geoengine.api.PaletteColorizer.defaultColor" href="#geoengine.api.PaletteColorizer.defaultColor">defaultColor</a></code></li>
+<li><code><a title="geoengine.api.PaletteColorizer.noDataColor" href="#geoengine.api.PaletteColorizer.noDataColor">noDataColor</a></code></li>
+<li><code><a title="geoengine.api.PaletteColorizer.type" href="#geoengine.api.PaletteColorizer.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.PlotQueryRectangle" href="#geoengine.api.PlotQueryRectangle">PlotQueryRectangle</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.PlotQueryRectangle.spatialBounds" href="#geoengine.api.PlotQueryRectangle.spatialBounds">spatialBounds</a></code></li>
+<li><code><a title="geoengine.api.PlotQueryRectangle.spatialResolution" href="#geoengine.api.PlotQueryRectangle.spatialResolution">spatialResolution</a></code></li>
+<li><code><a title="geoengine.api.PlotQueryRectangle.timeInterval" href="#geoengine.api.PlotQueryRectangle.timeInterval">timeInterval</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.PlotResultDescriptor" href="#geoengine.api.PlotResultDescriptor">PlotResultDescriptor</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.PlotResultDescriptor.bbox" href="#geoengine.api.PlotResultDescriptor.bbox">bbox</a></code></li>
+<li><code><a title="geoengine.api.PlotResultDescriptor.dataType" href="#geoengine.api.PlotResultDescriptor.dataType">dataType</a></code></li>
+<li><code><a title="geoengine.api.PlotResultDescriptor.resolution" href="#geoengine.api.PlotResultDescriptor.resolution">resolution</a></code></li>
+<li><code><a title="geoengine.api.PlotResultDescriptor.spatialReference" href="#geoengine.api.PlotResultDescriptor.spatialReference">spatialReference</a></code></li>
+<li><code><a title="geoengine.api.PlotResultDescriptor.time" href="#geoengine.api.PlotResultDescriptor.time">time</a></code></li>
+<li><code><a title="geoengine.api.PlotResultDescriptor.type" href="#geoengine.api.PlotResultDescriptor.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.Provenance" href="#geoengine.api.Provenance">Provenance</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.Provenance.citation" href="#geoengine.api.Provenance.citation">citation</a></code></li>
+<li><code><a title="geoengine.api.Provenance.license" href="#geoengine.api.Provenance.license">license</a></code></li>
+<li><code><a title="geoengine.api.Provenance.uri" href="#geoengine.api.Provenance.uri">uri</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.ProvenanceOutput" href="#geoengine.api.ProvenanceOutput">ProvenanceOutput</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.ProvenanceOutput.data" href="#geoengine.api.ProvenanceOutput.data">data</a></code></li>
+<li><code><a title="geoengine.api.ProvenanceOutput.provenance" href="#geoengine.api.ProvenanceOutput.provenance">provenance</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.QueryRectangle" href="#geoengine.api.QueryRectangle">QueryRectangle</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.QueryRectangle.spatialResolution" href="#geoengine.api.QueryRectangle.spatialResolution">spatialResolution</a></code></li>
+<li><code><a title="geoengine.api.QueryRectangle.timeInterval" href="#geoengine.api.QueryRectangle.timeInterval">timeInterval</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.RasterPropertiesEntryType" href="#geoengine.api.RasterPropertiesEntryType">RasterPropertiesEntryType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.RasterPropertiesEntryType.NUMBER" href="#geoengine.api.RasterPropertiesEntryType.NUMBER">NUMBER</a></code></li>
+<li><code><a title="geoengine.api.RasterPropertiesEntryType.STRING" href="#geoengine.api.RasterPropertiesEntryType.STRING">STRING</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.RasterPropertiesKey" href="#geoengine.api.RasterPropertiesKey">RasterPropertiesKey</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.RasterPropertiesKey.domain" href="#geoengine.api.RasterPropertiesKey.domain">domain</a></code></li>
+<li><code><a title="geoengine.api.RasterPropertiesKey.key" href="#geoengine.api.RasterPropertiesKey.key">key</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.RasterQueryRectangle" href="#geoengine.api.RasterQueryRectangle">RasterQueryRectangle</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.RasterQueryRectangle.spatialBounds" href="#geoengine.api.RasterQueryRectangle.spatialBounds">spatialBounds</a></code></li>
+<li><code><a title="geoengine.api.RasterQueryRectangle.spatialResolution" href="#geoengine.api.RasterQueryRectangle.spatialResolution">spatialResolution</a></code></li>
+<li><code><a title="geoengine.api.RasterQueryRectangle.timeInterval" href="#geoengine.api.RasterQueryRectangle.timeInterval">timeInterval</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.RasterResultDescriptor" href="#geoengine.api.RasterResultDescriptor">RasterResultDescriptor</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.RasterResultDescriptor.bbox" href="#geoengine.api.RasterResultDescriptor.bbox">bbox</a></code></li>
+<li><code><a title="geoengine.api.RasterResultDescriptor.dataType" href="#geoengine.api.RasterResultDescriptor.dataType">dataType</a></code></li>
+<li><code><a title="geoengine.api.RasterResultDescriptor.measurement" href="#geoengine.api.RasterResultDescriptor.measurement">measurement</a></code></li>
+<li><code><a title="geoengine.api.RasterResultDescriptor.resolution" href="#geoengine.api.RasterResultDescriptor.resolution">resolution</a></code></li>
+<li><code><a title="geoengine.api.RasterResultDescriptor.spatialReference" href="#geoengine.api.RasterResultDescriptor.spatialReference">spatialReference</a></code></li>
+<li><code><a title="geoengine.api.RasterResultDescriptor.time" href="#geoengine.api.RasterResultDescriptor.time">time</a></code></li>
+<li><code><a title="geoengine.api.RasterResultDescriptor.type" href="#geoengine.api.RasterResultDescriptor.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.RasterSymbology" href="#geoengine.api.RasterSymbology">RasterSymbology</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.RasterSymbology.colorizer" href="#geoengine.api.RasterSymbology.colorizer">colorizer</a></code></li>
+<li><code><a title="geoengine.api.RasterSymbology.opacity" href="#geoengine.api.RasterSymbology.opacity">opacity</a></code></li>
+<li><code><a title="geoengine.api.RasterSymbology.type" href="#geoengine.api.RasterSymbology.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.ResultDescriptor" href="#geoengine.api.ResultDescriptor">ResultDescriptor</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.ResultDescriptor.resolution" href="#geoengine.api.ResultDescriptor.resolution">resolution</a></code></li>
+<li><code><a title="geoengine.api.ResultDescriptor.time" href="#geoengine.api.ResultDescriptor.time">time</a></code></li>
+<li><code><a title="geoengine.api.ResultDescriptor.type" href="#geoengine.api.ResultDescriptor.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.SpatialPartition2D" href="#geoengine.api.SpatialPartition2D">SpatialPartition2D</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.SpatialPartition2D.lowerRightCoordinate" href="#geoengine.api.SpatialPartition2D.lowerRightCoordinate">lowerRightCoordinate</a></code></li>
+<li><code><a title="geoengine.api.SpatialPartition2D.upperLeftCoordinate" href="#geoengine.api.SpatialPartition2D.upperLeftCoordinate">upperLeftCoordinate</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.SpatialResolution" href="#geoengine.api.SpatialResolution">SpatialResolution</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.SpatialResolution.x" href="#geoengine.api.SpatialResolution.x">x</a></code></li>
+<li><code><a title="geoengine.api.SpatialResolution.y" href="#geoengine.api.SpatialResolution.y">y</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.StartDurationOgrSourceDatasetTimeType" href="#geoengine.api.StartDurationOgrSourceDatasetTimeType">StartDurationOgrSourceDatasetTimeType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.StartDurationOgrSourceDatasetTimeType.durationField" href="#geoengine.api.StartDurationOgrSourceDatasetTimeType.durationField">durationField</a></code></li>
+<li><code><a title="geoengine.api.StartDurationOgrSourceDatasetTimeType.startField" href="#geoengine.api.StartDurationOgrSourceDatasetTimeType.startField">startField</a></code></li>
+<li><code><a title="geoengine.api.StartDurationOgrSourceDatasetTimeType.startFormat" href="#geoengine.api.StartDurationOgrSourceDatasetTimeType.startFormat">startFormat</a></code></li>
+<li><code><a title="geoengine.api.StartDurationOgrSourceDatasetTimeType.type" href="#geoengine.api.StartDurationOgrSourceDatasetTimeType.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.StartEndOgrSourceDatasetTimeType" href="#geoengine.api.StartEndOgrSourceDatasetTimeType">StartEndOgrSourceDatasetTimeType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.StartEndOgrSourceDatasetTimeType.endField" href="#geoengine.api.StartEndOgrSourceDatasetTimeType.endField">endField</a></code></li>
+<li><code><a title="geoengine.api.StartEndOgrSourceDatasetTimeType.endFormat" href="#geoengine.api.StartEndOgrSourceDatasetTimeType.endFormat">endFormat</a></code></li>
+<li><code><a title="geoengine.api.StartEndOgrSourceDatasetTimeType.startField" href="#geoengine.api.StartEndOgrSourceDatasetTimeType.startField">startField</a></code></li>
+<li><code><a title="geoengine.api.StartEndOgrSourceDatasetTimeType.startFormat" href="#geoengine.api.StartEndOgrSourceDatasetTimeType.startFormat">startFormat</a></code></li>
+<li><code><a title="geoengine.api.StartEndOgrSourceDatasetTimeType.type" href="#geoengine.api.StartEndOgrSourceDatasetTimeType.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.StartOgrSourceDatasetTimeType" href="#geoengine.api.StartOgrSourceDatasetTimeType">StartOgrSourceDatasetTimeType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.StartOgrSourceDatasetTimeType.duration" href="#geoengine.api.StartOgrSourceDatasetTimeType.duration">duration</a></code></li>
+<li><code><a title="geoengine.api.StartOgrSourceDatasetTimeType.startField" href="#geoengine.api.StartOgrSourceDatasetTimeType.startField">startField</a></code></li>
+<li><code><a title="geoengine.api.StartOgrSourceDatasetTimeType.startFormat" href="#geoengine.api.StartOgrSourceDatasetTimeType.startFormat">startFormat</a></code></li>
+<li><code><a title="geoengine.api.StartOgrSourceDatasetTimeType.type" href="#geoengine.api.StartOgrSourceDatasetTimeType.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.StoredDataset" href="#geoengine.api.StoredDataset">StoredDataset</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.StoredDataset.dataset" href="#geoengine.api.StoredDataset.dataset">dataset</a></code></li>
+<li><code><a title="geoengine.api.StoredDataset.upload" href="#geoengine.api.StoredDataset.upload">upload</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.Symbology" href="#geoengine.api.Symbology">Symbology</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.Symbology.type" href="#geoengine.api.Symbology.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.TimeInterval" href="#geoengine.api.TimeInterval">TimeInterval</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.TimeInterval.end" href="#geoengine.api.TimeInterval.end">end</a></code></li>
+<li><code><a title="geoengine.api.TimeInterval.start" href="#geoengine.api.TimeInterval.start">start</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.TimeReference" href="#geoengine.api.TimeReference">TimeReference</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.TimeReference.END" href="#geoengine.api.TimeReference.END">END</a></code></li>
+<li><code><a title="geoengine.api.TimeReference.START" href="#geoengine.api.TimeReference.START">START</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.TimeStep" href="#geoengine.api.TimeStep">TimeStep</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.TimeStep.granularity" href="#geoengine.api.TimeStep.granularity">granularity</a></code></li>
+<li><code><a title="geoengine.api.TimeStep.step" href="#geoengine.api.TimeStep.step">step</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.TimeStepGranularity" href="#geoengine.api.TimeStepGranularity">TimeStepGranularity</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.TimeStepGranularity.DAYS" href="#geoengine.api.TimeStepGranularity.DAYS">DAYS</a></code></li>
+<li><code><a title="geoengine.api.TimeStepGranularity.HOURS" href="#geoengine.api.TimeStepGranularity.HOURS">HOURS</a></code></li>
+<li><code><a title="geoengine.api.TimeStepGranularity.MILLIS" href="#geoengine.api.TimeStepGranularity.MILLIS">MILLIS</a></code></li>
+<li><code><a title="geoengine.api.TimeStepGranularity.MINUTES" href="#geoengine.api.TimeStepGranularity.MINUTES">MINUTES</a></code></li>
+<li><code><a title="geoengine.api.TimeStepGranularity.MONTHS" href="#geoengine.api.TimeStepGranularity.MONTHS">MONTHS</a></code></li>
+<li><code><a title="geoengine.api.TimeStepGranularity.SECONDS" href="#geoengine.api.TimeStepGranularity.SECONDS">SECONDS</a></code></li>
+<li><code><a title="geoengine.api.TimeStepGranularity.YEARS" href="#geoengine.api.TimeStepGranularity.YEARS">YEARS</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.UnixTimeStampOgrSourceTimeFormat" href="#geoengine.api.UnixTimeStampOgrSourceTimeFormat">UnixTimeStampOgrSourceTimeFormat</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.UnixTimeStampOgrSourceTimeFormat.format" href="#geoengine.api.UnixTimeStampOgrSourceTimeFormat.format">format</a></code></li>
+<li><code><a title="geoengine.api.UnixTimeStampOgrSourceTimeFormat.timestampType" href="#geoengine.api.UnixTimeStampOgrSourceTimeFormat.timestampType">timestampType</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.UnixTimeStampType" href="#geoengine.api.UnixTimeStampType">UnixTimeStampType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.UnixTimeStampType.EPOCHMILLISECONDS" href="#geoengine.api.UnixTimeStampType.EPOCHMILLISECONDS">EPOCHMILLISECONDS</a></code></li>
+<li><code><a title="geoengine.api.UnixTimeStampType.EPOCHSECONDS" href="#geoengine.api.UnixTimeStampType.EPOCHSECONDS">EPOCHSECONDS</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.UploadId" href="#geoengine.api.UploadId">UploadId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.UploadId.id" href="#geoengine.api.UploadId.id">id</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.ValueOgrSourceDurationSpec" href="#geoengine.api.ValueOgrSourceDurationSpec">ValueOgrSourceDurationSpec</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.ValueOgrSourceDurationSpec.granularity" href="#geoengine.api.ValueOgrSourceDurationSpec.granularity">granularity</a></code></li>
+<li><code><a title="geoengine.api.ValueOgrSourceDurationSpec.step" href="#geoengine.api.ValueOgrSourceDurationSpec.step">step</a></code></li>
+<li><code><a title="geoengine.api.ValueOgrSourceDurationSpec.type" href="#geoengine.api.ValueOgrSourceDurationSpec.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.VectorColumnInfo" href="#geoengine.api.VectorColumnInfo">VectorColumnInfo</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.VectorColumnInfo.dataType" href="#geoengine.api.VectorColumnInfo.dataType">dataType</a></code></li>
+<li><code><a title="geoengine.api.VectorColumnInfo.measurement" href="#geoengine.api.VectorColumnInfo.measurement">measurement</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.VectorDataType" href="#geoengine.api.VectorDataType">VectorDataType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.VectorDataType.DATA" href="#geoengine.api.VectorDataType.DATA">DATA</a></code></li>
+<li><code><a title="geoengine.api.VectorDataType.MULTI_LINE_STRING" href="#geoengine.api.VectorDataType.MULTI_LINE_STRING">MULTI_LINE_STRING</a></code></li>
+<li><code><a title="geoengine.api.VectorDataType.MULTI_POINT" href="#geoengine.api.VectorDataType.MULTI_POINT">MULTI_POINT</a></code></li>
+<li><code><a title="geoengine.api.VectorDataType.MULTI_POLYGON" href="#geoengine.api.VectorDataType.MULTI_POLYGON">MULTI_POLYGON</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.VectorQueryRectangle" href="#geoengine.api.VectorQueryRectangle">VectorQueryRectangle</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.VectorQueryRectangle.spatialBounds" href="#geoengine.api.VectorQueryRectangle.spatialBounds">spatialBounds</a></code></li>
+<li><code><a title="geoengine.api.VectorQueryRectangle.spatialResolution" href="#geoengine.api.VectorQueryRectangle.spatialResolution">spatialResolution</a></code></li>
+<li><code><a title="geoengine.api.VectorQueryRectangle.timeInterval" href="#geoengine.api.VectorQueryRectangle.timeInterval">timeInterval</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.VectorResultDescriptor" href="#geoengine.api.VectorResultDescriptor">VectorResultDescriptor</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.VectorResultDescriptor.bbox" href="#geoengine.api.VectorResultDescriptor.bbox">bbox</a></code></li>
+<li><code><a title="geoengine.api.VectorResultDescriptor.columns" href="#geoengine.api.VectorResultDescriptor.columns">columns</a></code></li>
+<li><code><a title="geoengine.api.VectorResultDescriptor.dataType" href="#geoengine.api.VectorResultDescriptor.dataType">dataType</a></code></li>
+<li><code><a title="geoengine.api.VectorResultDescriptor.resolution" href="#geoengine.api.VectorResultDescriptor.resolution">resolution</a></code></li>
+<li><code><a title="geoengine.api.VectorResultDescriptor.spatialReference" href="#geoengine.api.VectorResultDescriptor.spatialReference">spatialReference</a></code></li>
+<li><code><a title="geoengine.api.VectorResultDescriptor.time" href="#geoengine.api.VectorResultDescriptor.time">time</a></code></li>
+<li><code><a title="geoengine.api.VectorResultDescriptor.type" href="#geoengine.api.VectorResultDescriptor.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.Volume" href="#geoengine.api.Volume">Volume</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.Volume.name" href="#geoengine.api.Volume.name">name</a></code></li>
+<li><code><a title="geoengine.api.Volume.path" href="#geoengine.api.Volume.path">path</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.VolumeId" href="#geoengine.api.VolumeId">VolumeId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.VolumeId.id" href="#geoengine.api.VolumeId.id">id</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.WorkflowId" href="#geoengine.api.WorkflowId">WorkflowId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.WorkflowId.id" href="#geoengine.api.WorkflowId.id">id</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

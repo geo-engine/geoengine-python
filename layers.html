@@ -40,12 +40,13 @@ from typing import Any, Dict, Generic, List, NewType, Optional, TypeVar, Union, 
 from uuid import UUID
 import json
 import urllib
-from typing_extensions import TypedDict
 import requests as req
 from strenum import LowercaseStrEnum
+from geoengine import api
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException, check_response_for_error
 from geoengine.tasks import Task, TaskId
+from geoengine.types import Symbology
 
 LayerId = NewType(&#39;LayerId&#39;, str)
 LayerCollectionId = NewType(&#39;LayerCollectionId&#39;, str)
@@ -53,32 +54,6 @@ LayerProviderId = NewType(&#39;LayerProviderId&#39;, UUID)
 
 LAYER_DB_PROVIDER_ID = LayerProviderId(UUID(&#39;ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74&#39;))
 LAYER_DB_ROOT_COLLECTION_ID = LayerCollectionId(&#39;05102bb3-a855-4a37-8a8a-30026a91fef1&#39;)
-
-
-class LayerCollectionAndProviderIdResponse(TypedDict):
-    collectionId: str
-    providerId: str
-
-
-class LayerAndProviderIdResponse(TypedDict):
-    layerId: str
-    providerId: str
-
-
-class LayerCollectionResponse(TypedDict):
-    &#39;&#39;&#39;A layer collection response JSON from a HTTP request&#39;&#39;&#39;
-    id: LayerCollectionAndProviderIdResponse
-    name: str
-    description: str
-    items: List[LayerCollectionListingResponse]
-
-
-class LayerCollectionListingResponse(TypedDict):
-    &#39;&#39;&#39;A layer collection listing response JSON from a HTTP request&#39;&#39;&#39;
-    id: Union[LayerCollectionAndProviderIdResponse, LayerAndProviderIdResponse]
-    name: str
-    description: str
-    type: str
 
 
 class LayerCollectionListingType(LowercaseStrEnum):
@@ -230,16 +205,16 @@ class LayerCollection:
         self.items = items
 
     @classmethod
-    def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; LayerCollection:
+    def from_response(cls, response_pages: List[api.LayerCollectionResponse]) -&gt; LayerCollection:
         &#39;&#39;&#39;Parse an HTTP JSON response to an `LayerCollection`&#39;&#39;&#39;
 
         assert len(response_pages) &gt; 0, &#39;No response pages&#39;
 
-        def parse_listing(response: LayerCollectionListingResponse) -&gt; Listing:
+        def parse_listing(response: api.LayerCollectionListingResponse) -&gt; Listing:
             item_type = LayerCollectionListingType(item_response[&#39;type&#39;])
 
             if item_type is LayerCollectionListingType.LAYER:
-                layer_id_response = cast(LayerAndProviderIdResponse, response[&#39;id&#39;])
+                layer_id_response = cast(api.LayerAndProviderIdResponse, response[&#39;id&#39;])
                 return LayerListing(
                     listing_id=LayerId(layer_id_response[&#39;layerId&#39;]),
                     provider_id=LayerProviderId(UUID(layer_id_response[&#39;providerId&#39;])),
@@ -248,7 +223,7 @@ class LayerCollection:
                 )
 
             if item_type is LayerCollectionListingType.COLLECTION:
-                collection_id_response = cast(LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
+                collection_id_response = cast(api.LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
                 return LayerCollectionListing(
                     listing_id=LayerCollectionId(collection_id_response[&#39;collectionId&#39;]),
                     provider_id=LayerProviderId(UUID(collection_id_response[&#39;providerId&#39;])),
@@ -448,17 +423,6 @@ class LayerCollection:
         return collection_id
 
 
-class LayerResponse(TypedDict):
-    &#39;&#39;&#39;A layer response JSON from a HTTP request&#39;&#39;&#39;
-    id: LayerAndProviderIdResponse
-    name: str
-    description: str
-    workflow: Dict[str, Any]  # TODO: specify in more detail
-    symbology: Optional[Dict[Any, Any]]  # TODO: specify in more detail
-    properties: List[Any]  # TODO: specify in more detail
-    metadata: Dict[Any, Any]  # TODO: specify in more detail
-
-
 @dataclass(repr=False)
 class Layer:
     &#39;&#39;&#39;A layer&#39;&#39;&#39;
@@ -469,7 +433,7 @@ class Layer:
     layer_id: LayerId
     provider_id: LayerProviderId
     workflow: Dict[str, Any]  # TODO: specify in more detail
-    symbology: Optional[Dict[str, Any]]  # TODO: specify in more detail
+    symbology: Optional[Symbology]
     properties: List[Any]  # TODO: specify in more detail
     metadata: Dict[str, Any]  # TODO: specify in more detail
 
@@ -479,7 +443,7 @@ class Layer:
                  layer_id: LayerId,
                  provider_id: LayerProviderId,
                  workflow: Dict[str, Any],
-                 symbology: Optional[Dict[Any, Any]],
+                 symbology: Optional[Symbology],
                  properties: List[Any],
                  metadata: Dict[Any, Any]) -&gt; None:
         &#39;&#39;&#39;Create a new `Layer`&#39;&#39;&#39;
@@ -495,8 +459,11 @@ class Layer:
         self.metadata = metadata
 
     @classmethod
-    def from_response(cls, response: LayerResponse) -&gt; Layer:
+    def from_response(cls, response: api.LayerResponse) -&gt; Layer:
         &#39;&#39;&#39;Parse an HTTP JSON response to an `Layer`&#39;&#39;&#39;
+        symbology = None
+        if &#39;symbology&#39; in response and response[&#39;symbology&#39;] is not None:
+            symbology = Symbology.from_response(cast(api.Symbology, response[&#39;symbology&#39;]))
 
         return Layer(
             name=response[&#39;name&#39;],
@@ -504,7 +471,7 @@ class Layer:
             layer_id=LayerId(response[&#39;id&#39;][&#39;layerId&#39;]),
             provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
             workflow=response[&#39;workflow&#39;],
-            symbology=response[&#39;symbology&#39;],
+            symbology=symbology,
             properties=response[&#39;properties&#39;],
             metadata=response[&#39;metadata&#39;],
         )
@@ -559,8 +526,9 @@ class Layer:
         &#39;&#39;&#39;
         session = get_session()
 
+        layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
         response = req.post(
-            url=f&#39;{session.server_url}/layers/{self.provider_id}/{self.layer_id}/dataset&#39;,
+            url=f&#39;{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/dataset&#39;,
             headers=session.admin_auth_header,
             timeout=timeout
         )
@@ -568,6 +536,21 @@ class Layer:
         check_response_for_error(response)
 
         return Task(TaskId.from_response(response.json()))
+
+    def to_api_dict(self) -&gt; api.LayerResponse:
+        &#39;&#39;&#39;Convert to a dictionary that can be serialized to JSON&#39;&#39;&#39;
+        return api.LayerResponse({
+            &#39;name&#39;: self.name,
+            &#39;description&#39;: self.description,
+            &#39;id&#39;: {
+                &#39;layerId&#39;: str(self.layer_id),
+                &#39;providerId&#39;: str(self.provider_id),
+            },
+            &#39;workflow&#39;: self.workflow,
+            &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
+            &#39;properties&#39;: self.properties,
+            &#39;metadata&#39;: self.metadata,
+        })
 
 
 def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
@@ -580,10 +563,10 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
     session = get_session()
 
     request = &#39;/layers/collections&#39; if layer_collection_id is None \
-        else f&#39;/layers/collections/{layer_provider_id}/{urllib.parse.quote_plus(layer_collection_id)}&#39;
+        else f&#39;/layers/collections/{layer_provider_id}/{urllib.parse.quote_plus(str(layer_collection_id))}&#39;
 
     page_limit = 20
-    pages: List[LayerCollectionResponse] = []
+    pages: List[api.LayerCollectionResponse] = []
 
     offset = 0
     while True:
@@ -596,7 +579,7 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
         if not response.ok:
             raise GeoEngineException(response.json())
 
-        page: LayerCollectionResponse = response.json()
+        page: api.LayerCollectionResponse = response.json()
 
         if len(page[&#39;items&#39;]) &lt; page_limit:
             if len(pages) == 0 or len(page[&#39;items&#39;]) &gt; 0:  # we need at least one page before breaking
@@ -823,10 +806,10 @@ def _add_existing_layer_to_collection(layer_id: LayerId,
     session = get_session()
 
     request = &#39;/layers/collections&#39; if layer_collection_id is None \
-        else f&#39;/layers/collections/{layer_provider_id}/{urllib.parse.quote_plus(layer_collection_id)}&#39;
+        else f&#39;/layers/collections/{layer_provider_id}/{urllib.parse.quote_plus(str(layer_collection_id))}&#39;
 
     page_limit = 20
-    pages: List[LayerCollectionResponse] = []
+    pages: List[api.LayerCollectionResponse] = []
 
     offset = 0
     while True:
@@ -839,7 +822,7 @@ def _add_existing_layer_to_collection(layer_id: LayerId,
         if not response.ok:
             raise GeoEngineException(response.json())
 
-        page: LayerCollectionResponse = response.json()
+        page: api.LayerCollectionResponse = response.json()
 
         if len(page[&#39;items&#39;]) &lt; page_limit:
             if len(pages) == 0 or len(page[&#39;items&#39;]) &gt; 0:  # we need at least one page before breaking
@@ -859,7 +842,7 @@ def _add_existing_layer_to_collection(layer_id: LayerId,
 <dl>
 <dt id="geoengine.layers.Layer"><code class="flex name class">
 <span>class <span class="ident">Layer</span></span>
-<span>(</span><span>name: str, description: str, layer_id: LayerId, provider_id: LayerProviderId, workflow: Dict[str, Any], symbology: Optional[Dict[Any, Any]], properties: List[Any], metadata: Dict[Any, Any])</span>
+<span>(</span><span>name: str, description: str, layer_id: LayerId, provider_id: LayerProviderId, workflow: Dict[str, Any], symbology: Optional[Symbology], properties: List[Any], metadata: Dict[Any, Any])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A layer</p>
@@ -878,7 +861,7 @@ class Layer:
     layer_id: LayerId
     provider_id: LayerProviderId
     workflow: Dict[str, Any]  # TODO: specify in more detail
-    symbology: Optional[Dict[str, Any]]  # TODO: specify in more detail
+    symbology: Optional[Symbology]
     properties: List[Any]  # TODO: specify in more detail
     metadata: Dict[str, Any]  # TODO: specify in more detail
 
@@ -888,7 +871,7 @@ class Layer:
                  layer_id: LayerId,
                  provider_id: LayerProviderId,
                  workflow: Dict[str, Any],
-                 symbology: Optional[Dict[Any, Any]],
+                 symbology: Optional[Symbology],
                  properties: List[Any],
                  metadata: Dict[Any, Any]) -&gt; None:
         &#39;&#39;&#39;Create a new `Layer`&#39;&#39;&#39;
@@ -904,8 +887,11 @@ class Layer:
         self.metadata = metadata
 
     @classmethod
-    def from_response(cls, response: LayerResponse) -&gt; Layer:
+    def from_response(cls, response: api.LayerResponse) -&gt; Layer:
         &#39;&#39;&#39;Parse an HTTP JSON response to an `Layer`&#39;&#39;&#39;
+        symbology = None
+        if &#39;symbology&#39; in response and response[&#39;symbology&#39;] is not None:
+            symbology = Symbology.from_response(cast(api.Symbology, response[&#39;symbology&#39;]))
 
         return Layer(
             name=response[&#39;name&#39;],
@@ -913,7 +899,7 @@ class Layer:
             layer_id=LayerId(response[&#39;id&#39;][&#39;layerId&#39;]),
             provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
             workflow=response[&#39;workflow&#39;],
-            symbology=response[&#39;symbology&#39;],
+            symbology=symbology,
             properties=response[&#39;properties&#39;],
             metadata=response[&#39;metadata&#39;],
         )
@@ -968,15 +954,31 @@ class Layer:
         &#39;&#39;&#39;
         session = get_session()
 
+        layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
         response = req.post(
-            url=f&#39;{session.server_url}/layers/{self.provider_id}/{self.layer_id}/dataset&#39;,
+            url=f&#39;{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/dataset&#39;,
             headers=session.admin_auth_header,
             timeout=timeout
         )
 
         check_response_for_error(response)
 
-        return Task(TaskId.from_response(response.json()))</code></pre>
+        return Task(TaskId.from_response(response.json()))
+
+    def to_api_dict(self) -&gt; api.LayerResponse:
+        &#39;&#39;&#39;Convert to a dictionary that can be serialized to JSON&#39;&#39;&#39;
+        return api.LayerResponse({
+            &#39;name&#39;: self.name,
+            &#39;description&#39;: self.description,
+            &#39;id&#39;: {
+                &#39;layerId&#39;: str(self.layer_id),
+                &#39;providerId&#39;: str(self.provider_id),
+            },
+            &#39;workflow&#39;: self.workflow,
+            &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
+            &#39;properties&#39;: self.properties,
+            &#39;metadata&#39;: self.metadata,
+        })</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -1004,7 +1006,7 @@ class Layer:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.layers.Layer.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[Dict[str, Any]]</code></dt>
+<dt id="geoengine.layers.Layer.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[<a title="geoengine.types.Symbology" href="types.html#geoengine.types.Symbology">Symbology</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1016,7 +1018,7 @@ class Layer:
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.layers.Layer.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: <a title="geoengine.layers.LayerResponse" href="#geoengine.layers.LayerResponse">LayerResponse</a>) ‑> <a title="geoengine.layers.Layer" href="#geoengine.layers.Layer">Layer</a></span>
+<span>def <span class="ident">from_response</span></span>(<span>response: api.LayerResponse) ‑> <a title="geoengine.layers.Layer" href="#geoengine.layers.Layer">Layer</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse an HTTP JSON response to an <code><a title="geoengine.layers.Layer" href="#geoengine.layers.Layer">Layer</a></code></p></div>
@@ -1025,8 +1027,11 @@ class Layer:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response: LayerResponse) -&gt; Layer:
+def from_response(cls, response: api.LayerResponse) -&gt; Layer:
     &#39;&#39;&#39;Parse an HTTP JSON response to an `Layer`&#39;&#39;&#39;
+    symbology = None
+    if &#39;symbology&#39; in response and response[&#39;symbology&#39;] is not None:
+        symbology = Symbology.from_response(cast(api.Symbology, response[&#39;symbology&#39;]))
 
     return Layer(
         name=response[&#39;name&#39;],
@@ -1034,7 +1039,7 @@ def from_response(cls, response: LayerResponse) -&gt; Layer:
         layer_id=LayerId(response[&#39;id&#39;][&#39;layerId&#39;]),
         provider_id=LayerProviderId(UUID(response[&#39;id&#39;][&#39;providerId&#39;])),
         workflow=response[&#39;workflow&#39;],
-        symbology=response[&#39;symbology&#39;],
+        symbology=symbology,
         properties=response[&#39;properties&#39;],
         metadata=response[&#39;metadata&#39;],
     )</code></pre>
@@ -1058,8 +1063,9 @@ def from_response(cls, response: LayerResponse) -&gt; Layer:
     &#39;&#39;&#39;
     session = get_session()
 
+    layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
     response = req.post(
-        url=f&#39;{session.server_url}/layers/{self.provider_id}/{self.layer_id}/dataset&#39;,
+        url=f&#39;{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/dataset&#39;,
         headers=session.admin_auth_header,
         timeout=timeout
     )
@@ -1069,45 +1075,30 @@ def from_response(cls, response: LayerResponse) -&gt; Layer:
     return Task(TaskId.from_response(response.json()))</code></pre>
 </details>
 </dd>
-</dl>
-</dd>
-<dt id="geoengine.layers.LayerAndProviderIdResponse"><code class="flex name class">
-<span>class <span class="ident">LayerAndProviderIdResponse</span></span>
-<span>(</span><span>*args, **kwargs)</span>
+<dt id="geoengine.layers.Layer.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.LayerResponse" href="api.html#geoengine.api.LayerResponse">LayerResponse</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>dict() -&gt; new empty dictionary
-dict(mapping) -&gt; new dictionary initialized from a mapping object's
-(key, value) pairs
-dict(iterable) -&gt; new dictionary initialized as if via:
-d = {}
-for k, v in iterable:
-d[k] = v
-dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
-in the keyword argument list.
-For example:
-dict(one=1, two=2)</p></div>
+<div class="desc"><p>Convert to a dictionary that can be serialized to JSON</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class LayerAndProviderIdResponse(TypedDict):
-    layerId: str
-    providerId: str</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; api.LayerResponse:
+    &#39;&#39;&#39;Convert to a dictionary that can be serialized to JSON&#39;&#39;&#39;
+    return api.LayerResponse({
+        &#39;name&#39;: self.name,
+        &#39;description&#39;: self.description,
+        &#39;id&#39;: {
+            &#39;layerId&#39;: str(self.layer_id),
+            &#39;providerId&#39;: str(self.provider_id),
+        },
+        &#39;workflow&#39;: self.workflow,
+        &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
+        &#39;properties&#39;: self.properties,
+        &#39;metadata&#39;: self.metadata,
+    })</code></pre>
 </details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.dict</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="geoengine.layers.LayerAndProviderIdResponse.layerId"><code class="name">var <span class="ident">layerId</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerAndProviderIdResponse.providerId"><code class="name">var <span class="ident">providerId</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
 </dd>
 </dl>
 </dd>
@@ -1147,16 +1138,16 @@ dict(one=1, two=2)</p></div>
         self.items = items
 
     @classmethod
-    def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; LayerCollection:
+    def from_response(cls, response_pages: List[api.LayerCollectionResponse]) -&gt; LayerCollection:
         &#39;&#39;&#39;Parse an HTTP JSON response to an `LayerCollection`&#39;&#39;&#39;
 
         assert len(response_pages) &gt; 0, &#39;No response pages&#39;
 
-        def parse_listing(response: LayerCollectionListingResponse) -&gt; Listing:
+        def parse_listing(response: api.LayerCollectionListingResponse) -&gt; Listing:
             item_type = LayerCollectionListingType(item_response[&#39;type&#39;])
 
             if item_type is LayerCollectionListingType.LAYER:
-                layer_id_response = cast(LayerAndProviderIdResponse, response[&#39;id&#39;])
+                layer_id_response = cast(api.LayerAndProviderIdResponse, response[&#39;id&#39;])
                 return LayerListing(
                     listing_id=LayerId(layer_id_response[&#39;layerId&#39;]),
                     provider_id=LayerProviderId(UUID(layer_id_response[&#39;providerId&#39;])),
@@ -1165,7 +1156,7 @@ dict(one=1, two=2)</p></div>
                 )
 
             if item_type is LayerCollectionListingType.COLLECTION:
-                collection_id_response = cast(LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
+                collection_id_response = cast(api.LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
                 return LayerCollectionListing(
                     listing_id=LayerCollectionId(collection_id_response[&#39;collectionId&#39;]),
                     provider_id=LayerProviderId(UUID(collection_id_response[&#39;providerId&#39;])),
@@ -1390,7 +1381,7 @@ dict(one=1, two=2)</p></div>
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.layers.LayerCollection.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response_pages: List[<a title="geoengine.layers.LayerCollectionResponse" href="#geoengine.layers.LayerCollectionResponse">LayerCollectionResponse</a>]) ‑> <a title="geoengine.layers.LayerCollection" href="#geoengine.layers.LayerCollection">LayerCollection</a></span>
+<span>def <span class="ident">from_response</span></span>(<span>response_pages: List[api.LayerCollectionResponse]) ‑> <a title="geoengine.layers.LayerCollection" href="#geoengine.layers.LayerCollection">LayerCollection</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse an HTTP JSON response to an <code><a title="geoengine.layers.LayerCollection" href="#geoengine.layers.LayerCollection">LayerCollection</a></code></p></div>
@@ -1399,16 +1390,16 @@ dict(one=1, two=2)</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; LayerCollection:
+def from_response(cls, response_pages: List[api.LayerCollectionResponse]) -&gt; LayerCollection:
     &#39;&#39;&#39;Parse an HTTP JSON response to an `LayerCollection`&#39;&#39;&#39;
 
     assert len(response_pages) &gt; 0, &#39;No response pages&#39;
 
-    def parse_listing(response: LayerCollectionListingResponse) -&gt; Listing:
+    def parse_listing(response: api.LayerCollectionListingResponse) -&gt; Listing:
         item_type = LayerCollectionListingType(item_response[&#39;type&#39;])
 
         if item_type is LayerCollectionListingType.LAYER:
-            layer_id_response = cast(LayerAndProviderIdResponse, response[&#39;id&#39;])
+            layer_id_response = cast(api.LayerAndProviderIdResponse, response[&#39;id&#39;])
             return LayerListing(
                 listing_id=LayerId(layer_id_response[&#39;layerId&#39;]),
                 provider_id=LayerProviderId(UUID(layer_id_response[&#39;providerId&#39;])),
@@ -1417,7 +1408,7 @@ def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; Laye
             )
 
         if item_type is LayerCollectionListingType.COLLECTION:
-            collection_id_response = cast(LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
+            collection_id_response = cast(api.LayerCollectionAndProviderIdResponse, response[&#39;id&#39;])
             return LayerCollectionListing(
                 listing_id=LayerCollectionId(collection_id_response[&#39;collectionId&#39;]),
                 provider_id=LayerProviderId(UUID(collection_id_response[&#39;providerId&#39;])),
@@ -1648,46 +1639,6 @@ def from_response(cls, response_pages: List[LayerCollectionResponse]) -&gt; Laye
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.layers.LayerCollectionAndProviderIdResponse"><code class="flex name class">
-<span>class <span class="ident">LayerCollectionAndProviderIdResponse</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>dict() -&gt; new empty dictionary
-dict(mapping) -&gt; new dictionary initialized from a mapping object's
-(key, value) pairs
-dict(iterable) -&gt; new dictionary initialized as if via:
-d = {}
-for k, v in iterable:
-d[k] = v
-dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
-in the keyword argument list.
-For example:
-dict(one=1, two=2)</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class LayerCollectionAndProviderIdResponse(TypedDict):
-    collectionId: str
-    providerId: str</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.dict</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="geoengine.layers.LayerCollectionAndProviderIdResponse.collectionId"><code class="name">var <span class="ident">collectionId</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerCollectionAndProviderIdResponse.providerId"><code class="name">var <span class="ident">providerId</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
 <dt id="geoengine.layers.LayerCollectionListing"><code class="flex name class">
 <span>class <span class="ident">LayerCollectionListing</span></span>
 <span>(</span><span>listing_id: LISTINGID, provider_id: LayerProviderId, name: str, description: str)</span>
@@ -1759,47 +1710,6 @@ class LayerCollectionListing(Listing[LayerCollectionId]):
 </li>
 </ul>
 </dd>
-<dt id="geoengine.layers.LayerCollectionListingResponse"><code class="flex name class">
-<span>class <span class="ident">LayerCollectionListingResponse</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A layer collection listing response JSON from a HTTP request</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class LayerCollectionListingResponse(TypedDict):
-    &#39;&#39;&#39;A layer collection listing response JSON from a HTTP request&#39;&#39;&#39;
-    id: Union[LayerCollectionAndProviderIdResponse, LayerAndProviderIdResponse]
-    name: str
-    description: str
-    type: str</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.dict</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="geoengine.layers.LayerCollectionListingResponse.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerCollectionListingResponse.id"><code class="name">var <span class="ident">id</span> : Union[<a title="geoengine.layers.LayerCollectionAndProviderIdResponse" href="#geoengine.layers.LayerCollectionAndProviderIdResponse">LayerCollectionAndProviderIdResponse</a>, <a title="geoengine.layers.LayerAndProviderIdResponse" href="#geoengine.layers.LayerAndProviderIdResponse">LayerAndProviderIdResponse</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerCollectionListingResponse.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerCollectionListingResponse.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
 <dt id="geoengine.layers.LayerCollectionListingType"><code class="flex name class">
 <span>class <span class="ident">LayerCollectionListingType</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
@@ -1830,52 +1740,6 @@ class LayerCollectionListing(Listing[LayerCollectionId]):
 <dt id="geoengine.layers.LayerCollectionListingType.LAYER"><code class="name">var <span class="ident">LAYER</span></code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-</dl>
-</dd>
-<dt id="geoengine.layers.LayerCollectionResponse"><code class="flex name class">
-<span>class <span class="ident">LayerCollectionResponse</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A layer collection response JSON from a HTTP request</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class LayerCollectionResponse(TypedDict):
-    &#39;&#39;&#39;A layer collection response JSON from a HTTP request&#39;&#39;&#39;
-    id: LayerCollectionAndProviderIdResponse
-    name: str
-    description: str
-    items: List[LayerCollectionListingResponse]</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.dict</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="geoengine.layers.LayerCollectionResponse.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerCollectionResponse.id"><code class="name">var <span class="ident">id</span> : <a title="geoengine.layers.LayerCollectionAndProviderIdResponse" href="#geoengine.layers.LayerCollectionAndProviderIdResponse">LayerCollectionAndProviderIdResponse</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerCollectionResponse.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="geoengine.layers.LayerCollectionResponse.items"><code class="name flex">
-<span>def <span class="ident">items</span></span>(<span>...) ‑> List[<a title="geoengine.layers.LayerCollectionListingResponse" href="#geoengine.layers.LayerCollectionListingResponse">LayerCollectionListingResponse</a>]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>D.items() -&gt; a set-like object providing a view on D's items</p></div>
 </dd>
 </dl>
 </dd>
@@ -1949,62 +1813,6 @@ class LayerListing(Listing[LayerId]):
 </ul>
 </li>
 </ul>
-</dd>
-<dt id="geoengine.layers.LayerResponse"><code class="flex name class">
-<span>class <span class="ident">LayerResponse</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A layer response JSON from a HTTP request</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class LayerResponse(TypedDict):
-    &#39;&#39;&#39;A layer response JSON from a HTTP request&#39;&#39;&#39;
-    id: LayerAndProviderIdResponse
-    name: str
-    description: str
-    workflow: Dict[str, Any]  # TODO: specify in more detail
-    symbology: Optional[Dict[Any, Any]]  # TODO: specify in more detail
-    properties: List[Any]  # TODO: specify in more detail
-    metadata: Dict[Any, Any]  # TODO: specify in more detail</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.dict</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="geoengine.layers.LayerResponse.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerResponse.id"><code class="name">var <span class="ident">id</span> : <a title="geoengine.layers.LayerAndProviderIdResponse" href="#geoengine.layers.LayerAndProviderIdResponse">LayerAndProviderIdResponse</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerResponse.metadata"><code class="name">var <span class="ident">metadata</span> : Dict[Any, Any]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerResponse.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerResponse.properties"><code class="name">var <span class="ident">properties</span> : List[Any]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerResponse.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[Dict[Any, Any]]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.layers.LayerResponse.workflow"><code class="name">var <span class="ident">workflow</span> : Dict[str, Any]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 </dd>
 <dt id="geoengine.layers.Listing"><code class="flex name class">
 <span>class <span class="ident">Listing</span></span>
@@ -2182,14 +1990,8 @@ class Listing(Generic[LISTINGID]):
 <li><code><a title="geoengine.layers.Layer.provider_id" href="#geoengine.layers.Layer.provider_id">provider_id</a></code></li>
 <li><code><a title="geoengine.layers.Layer.save_as_dataset" href="#geoengine.layers.Layer.save_as_dataset">save_as_dataset</a></code></li>
 <li><code><a title="geoengine.layers.Layer.symbology" href="#geoengine.layers.Layer.symbology">symbology</a></code></li>
+<li><code><a title="geoengine.layers.Layer.to_api_dict" href="#geoengine.layers.Layer.to_api_dict">to_api_dict</a></code></li>
 <li><code><a title="geoengine.layers.Layer.workflow" href="#geoengine.layers.Layer.workflow">workflow</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="geoengine.layers.LayerAndProviderIdResponse" href="#geoengine.layers.LayerAndProviderIdResponse">LayerAndProviderIdResponse</a></code></h4>
-<ul class="">
-<li><code><a title="geoengine.layers.LayerAndProviderIdResponse.layerId" href="#geoengine.layers.LayerAndProviderIdResponse.layerId">layerId</a></code></li>
-<li><code><a title="geoengine.layers.LayerAndProviderIdResponse.providerId" href="#geoengine.layers.LayerAndProviderIdResponse.providerId">providerId</a></code></li>
 </ul>
 </li>
 <li>
@@ -2211,28 +2013,12 @@ class Listing(Generic[LISTINGID]):
 </ul>
 </li>
 <li>
-<h4><code><a title="geoengine.layers.LayerCollectionAndProviderIdResponse" href="#geoengine.layers.LayerCollectionAndProviderIdResponse">LayerCollectionAndProviderIdResponse</a></code></h4>
-<ul class="">
-<li><code><a title="geoengine.layers.LayerCollectionAndProviderIdResponse.collectionId" href="#geoengine.layers.LayerCollectionAndProviderIdResponse.collectionId">collectionId</a></code></li>
-<li><code><a title="geoengine.layers.LayerCollectionAndProviderIdResponse.providerId" href="#geoengine.layers.LayerCollectionAndProviderIdResponse.providerId">providerId</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="geoengine.layers.LayerCollectionListing" href="#geoengine.layers.LayerCollectionListing">LayerCollectionListing</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.layers.LayerCollectionListing.description" href="#geoengine.layers.LayerCollectionListing.description">description</a></code></li>
 <li><code><a title="geoengine.layers.LayerCollectionListing.listing_id" href="#geoengine.layers.LayerCollectionListing.listing_id">listing_id</a></code></li>
 <li><code><a title="geoengine.layers.LayerCollectionListing.name" href="#geoengine.layers.LayerCollectionListing.name">name</a></code></li>
 <li><code><a title="geoengine.layers.LayerCollectionListing.provider_id" href="#geoengine.layers.LayerCollectionListing.provider_id">provider_id</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="geoengine.layers.LayerCollectionListingResponse" href="#geoengine.layers.LayerCollectionListingResponse">LayerCollectionListingResponse</a></code></h4>
-<ul class="">
-<li><code><a title="geoengine.layers.LayerCollectionListingResponse.description" href="#geoengine.layers.LayerCollectionListingResponse.description">description</a></code></li>
-<li><code><a title="geoengine.layers.LayerCollectionListingResponse.id" href="#geoengine.layers.LayerCollectionListingResponse.id">id</a></code></li>
-<li><code><a title="geoengine.layers.LayerCollectionListingResponse.name" href="#geoengine.layers.LayerCollectionListingResponse.name">name</a></code></li>
-<li><code><a title="geoengine.layers.LayerCollectionListingResponse.type" href="#geoengine.layers.LayerCollectionListingResponse.type">type</a></code></li>
 </ul>
 </li>
 <li>
@@ -2243,33 +2029,12 @@ class Listing(Generic[LISTINGID]):
 </ul>
 </li>
 <li>
-<h4><code><a title="geoengine.layers.LayerCollectionResponse" href="#geoengine.layers.LayerCollectionResponse">LayerCollectionResponse</a></code></h4>
-<ul class="">
-<li><code><a title="geoengine.layers.LayerCollectionResponse.description" href="#geoengine.layers.LayerCollectionResponse.description">description</a></code></li>
-<li><code><a title="geoengine.layers.LayerCollectionResponse.id" href="#geoengine.layers.LayerCollectionResponse.id">id</a></code></li>
-<li><code><a title="geoengine.layers.LayerCollectionResponse.items" href="#geoengine.layers.LayerCollectionResponse.items">items</a></code></li>
-<li><code><a title="geoengine.layers.LayerCollectionResponse.name" href="#geoengine.layers.LayerCollectionResponse.name">name</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="geoengine.layers.LayerListing" href="#geoengine.layers.LayerListing">LayerListing</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.layers.LayerListing.description" href="#geoengine.layers.LayerListing.description">description</a></code></li>
 <li><code><a title="geoengine.layers.LayerListing.listing_id" href="#geoengine.layers.LayerListing.listing_id">listing_id</a></code></li>
 <li><code><a title="geoengine.layers.LayerListing.name" href="#geoengine.layers.LayerListing.name">name</a></code></li>
 <li><code><a title="geoengine.layers.LayerListing.provider_id" href="#geoengine.layers.LayerListing.provider_id">provider_id</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="geoengine.layers.LayerResponse" href="#geoengine.layers.LayerResponse">LayerResponse</a></code></h4>
-<ul class="two-column">
-<li><code><a title="geoengine.layers.LayerResponse.description" href="#geoengine.layers.LayerResponse.description">description</a></code></li>
-<li><code><a title="geoengine.layers.LayerResponse.id" href="#geoengine.layers.LayerResponse.id">id</a></code></li>
-<li><code><a title="geoengine.layers.LayerResponse.metadata" href="#geoengine.layers.LayerResponse.metadata">metadata</a></code></li>
-<li><code><a title="geoengine.layers.LayerResponse.name" href="#geoengine.layers.LayerResponse.name">name</a></code></li>
-<li><code><a title="geoengine.layers.LayerResponse.properties" href="#geoengine.layers.LayerResponse.properties">properties</a></code></li>
-<li><code><a title="geoengine.layers.LayerResponse.symbology" href="#geoengine.layers.LayerResponse.symbology">symbology</a></code></li>
-<li><code><a title="geoengine.layers.LayerResponse.workflow" href="#geoengine.layers.LayerResponse.workflow">workflow</a></code></li>
 </ul>
 </li>
 <li>

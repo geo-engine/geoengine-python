@@ -29,26 +29,63 @@
 </summary>
 <pre><code class="python">&#34;&#34;&#34;This module is used to generate geoengine compatible color map definitions as a json string.&#34;&#34;&#34;
 
+from abc import abstractmethod
 import json
-from typing import Tuple
+from typing import Dict, List, Tuple, cast
+from typing_extensions import Literal
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from matplotlib.cm import ScalarMappable
+from geoengine import api
+
+
+class ColorBreakpoint():
+    &#34;&#34;&#34;This class is used to generate geoengine compatible color breakpoint definitions.&#34;&#34;&#34;
+    color: Tuple[int, int, int, int]
+    value: float
+
+    def __init__(self, value: float, color: Tuple[int, int, int, int]):
+        &#34;&#34;&#34;Initialize the color breakpoint.&#34;&#34;&#34;
+        self.color = color
+        self.value = value
+
+    def to_api_dict(self) -&gt; api.ColorizerBreakpoint:
+        &#34;&#34;&#34;Return the color breakpoint as a dictionary.&#34;&#34;&#34;
+        return api.ColorizerBreakpoint({&#34;value&#34;: self.value, &#34;color&#34;: self.color})
+
+    @staticmethod
+    def from_response(response: api.ColorizerBreakpoint) -&gt; &#34;ColorBreakpoint&#34;:
+        &#34;&#34;&#34;Parse a http response to a `ColorBreakpoint`.&#34;&#34;&#34;
+        return ColorBreakpoint(response[&#39;value&#39;], response[&#39;color&#39;])
 
 
 class Colorizer():
     &#34;&#34;&#34;This class is used to generate geoengine compatible color map definitions as a json string.&#34;&#34;&#34;
 
-    # pylint: disable=too-few-public-methods
+    type: Literal[&#34;linearGradient&#34;, &#34;palette&#34;, &#34;logarithmicGradient&#34;]
+    no_data_color: Tuple[int, int, int, int]
+    default_color: Tuple[int, int, int, int]
 
     def __init__(
-            self,
-            map_name: ListedColormap,
-            min_max: Tuple[int, int],
-            n_steps: int = 10,
-            default_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
-            no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)):
+        self,
+        no_data_color: Tuple[int, int, int, int],
+        default_color: Tuple[int, int, int, int],
+        colorizer_type: Literal[&#34;linearGradient&#34;, &#34;palette&#34;, &#34;logarithmicGradient&#34;] = &#34;linearGradient&#34;
+    ):
+        &#34;&#34;&#34;Initialize the colorizer.&#34;&#34;&#34;
+        self.type = colorizer_type
+        self.no_data_color = no_data_color
+        self.default_color = default_color
+
+    @staticmethod
+    def linear_with_mpl_cmap(
+        map_name: ListedColormap,
+        min_max: Tuple[int, int],
+        n_steps: int = 10,
+        default_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
+        no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)
+    ) -&gt; &#34;LinearGradientColorizer&#34;:
         &#34;&#34;&#34;Initialize the colorizer.&#34;&#34;&#34;
         # pylint: disable=too-many-arguments
 
@@ -93,47 +130,152 @@ class Colorizer():
         if not all(0 &lt;= elem &lt; 256 for elem in default_color):
             raise ValueError(f&#34;defaultColor must be a RGBA color specification, got {default_color} instead.&#34;)
 
-        self.__map_name = map_name
-        self.__min_max = min_max
-        self.__n_steps = n_steps
-        self.__default_color = default_color
-        self.__no_data_color = no_data_color
-
-    def to_query_string(self) -&gt; str:
-        &#34;&#34;&#34;Generate a json dump that is compatible with the geoengine config protocol.
-
-        Args:
-            map_name (str): a name of a defined colormap.
-            n_steps (int): how many steps the colormap should have.
-
-        Returns:
-            str: Returns the geoengine compatible json configuration string.
-        &#34;&#34;&#34;
         # get the map, and transform it to [0,255] values
-        colormap = ScalarMappable(cmap=self.__map_name).to_rgba(
-            np.linspace(self.__min_max[0], self.__min_max[1], self.__n_steps), bytes=True).tolist()
+        colormap = [
+            (int(x[0]), int(x[1]), int(x[2]), int(x[3])) for x in ScalarMappable(cmap=map_name).to_rgba(
+                np.linspace(min_max[0], min_max[1], n_steps), bytes=True)]
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
         value_bounds = [
-            int(x) for x in np.linspace(self.__min_max[0], self.__min_max[1], self.__n_steps).tolist()
+            int(x) for x in np.linspace(min_max[0], min_max[1], n_steps)
         ]
 
         # generate color map steps for geoengine
         breakpoints = [
-            {&#34;value&#34;: value, &#34;color&#34;: color} for (value, color) in zip(value_bounds, colormap)
+            ColorBreakpoint(color=color, value=value) for (value, color) in zip(value_bounds, colormap)
         ]
 
-        # create the json string for geoengine
-        colorizer = &#34;custom:&#34; + json.dumps(
-            {
-                &#34;type&#34;: &#34;linearGradient&#34;,
-                &#34;breakpoints&#34;: breakpoints,
-                &#34;noDataColor&#34;: self.__no_data_color,
-                &#34;defaultColor&#34;: self.__default_color,
-            }
+        colorizer = LinearGradientColorizer(
+            breakpoints=breakpoints,
+            no_data_color=no_data_color,
+            default_color=default_color
         )
 
-        return colorizer</code></pre>
+        return colorizer
+
+    @abstractmethod
+    def to_api_dict(self) -&gt; api.Colorizer:
+        pass
+
+    def to_json(self) -&gt; str:
+        &#34;&#34;&#34;Return the colorizer as a JSON string.&#34;&#34;&#34;
+        return json.dumps(self.to_api_dict())
+
+    @staticmethod
+    def from_response(response: api.Colorizer) -&gt; &#34;Colorizer&#34;:
+        &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+        if response[&#39;type&#39;] == &#39;linearGradient&#39;:
+            return LinearGradientColorizer.from_response_linear(cast(api.LinearGradientColorizer, response))
+        if response[&#39;type&#39;] == &#39;palette&#39;:
+            return PaletteColorizer.from_response_palette(cast(api.PaletteColorizer, response))
+        if response[&#39;type&#39;] == &#39;logarithmicGradient&#39;:
+            return LogarithmicGradientColorizer.from_response_logarithmic(
+                cast(api.LogarithmicGradientColorizer, response)
+            )
+
+        raise TypeError(f&#34;Unknown colorizer type: {response[&#39;type&#39;]}&#34;)
+
+
+class LinearGradientColorizer(Colorizer):
+    &#39;&#39;&#39;A linear gradient colorizer.&#39;&#39;&#39;
+    breakpoints: List[ColorBreakpoint]
+
+    def __init__(
+        self,
+        breakpoints: List[ColorBreakpoint],
+        no_data_color: Tuple[int, int, int, int],
+        default_color: Tuple[int, int, int, int]
+    ):
+        super().__init__(no_data_color, default_color, &#34;linearGradient&#34;)
+        self.breakpoints = breakpoints
+
+    @staticmethod
+    def from_response_linear(response: api.LinearGradientColorizer) -&gt; &#34;LinearGradientColorizer&#34;:
+        &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+        breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response[&#39;breakpoints&#39;]]
+        return LinearGradientColorizer(
+            breakpoints=breakpoints,
+            no_data_color=response[&#39;noDataColor&#39;],
+            default_color=response[&#39;defaultColor&#39;],
+        )
+
+    def to_api_dict(self) -&gt; api.LinearGradientColorizer:
+        &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
+        return api.LinearGradientColorizer({
+            &#34;type&#34;: self.type,
+            &#34;breakpoints&#34;: [breakpoint.to_api_dict() for breakpoint in self.breakpoints],
+            &#34;noDataColor&#34;: self.no_data_color,
+            &#34;defaultColor&#34;: self.default_color,
+        })
+
+
+class LogarithmicGradientColorizer(Colorizer):
+    &#39;&#39;&#39;A logarithmic gradient colorizer.&#39;&#39;&#39;
+    breakpoints: List[ColorBreakpoint]
+
+    def __init__(
+        self,
+        breakpoints: List[ColorBreakpoint],
+        no_data_color: Tuple[int, int, int, int],
+        default_color: Tuple[int, int, int, int]
+    ):
+        super().__init__(no_data_color, default_color, &#34;logarithmicGradient&#34;)
+        self.breakpoints = breakpoints
+
+    @staticmethod
+    def from_response_logarithmic(response: api.LogarithmicGradientColorizer) -&gt; &#34;LogarithmicGradientColorizer&#34;:
+        &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+        breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response[&#39;breakpoints&#39;]]
+        return LogarithmicGradientColorizer(
+            breakpoints=breakpoints,
+            no_data_color=response[&#39;noDataColor&#39;],
+            default_color=response[&#39;defaultColor&#39;],
+        )
+
+    def to_api_dict(self) -&gt; api.LogarithmicGradientColorizer:
+        &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
+        return api.LogarithmicGradientColorizer({
+            &#34;type&#34;: self.type,
+            &#34;breakpoints&#34;: [breakpoint.to_api_dict() for breakpoint in self.breakpoints],
+            &#34;noDataColor&#34;: self.no_data_color,
+            &#34;defaultColor&#34;: self.default_color,
+        })
+
+
+class PaletteColorizer(Colorizer):
+    &#39;&#39;&#39;A palette colorizer.&#39;&#39;&#39;
+    colors: Dict[float, Tuple[int, int, int, int]]
+
+    def __init__(
+        self,
+        colors: Dict[float, Tuple[int, int, int, int]],
+        no_data_color: Tuple[int, int, int, int],
+        default_color: Tuple[int, int, int, int]
+    ):
+        super().__init__(no_data_color, default_color, &#34;palette&#34;)
+        self.colors = colors
+
+    @staticmethod
+    def from_response_palette(response: api.PaletteColorizer) -&gt; &#34;PaletteColorizer&#34;:
+        &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+
+        return PaletteColorizer(
+            colors=response[&#39;colors&#39;],
+            no_data_color=response[&#39;noDataColor&#39;],
+            default_color=response[&#39;defaultColor&#39;],
+        )
+
+    def to_api_dict(self) -&gt; api.PaletteColorizer:
+        &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
+        return api.PaletteColorizer({
+            &#34;colors&#34;: self.colors,
+            &#34;defaultColor&#34;: self.default_color,
+            &#34;noDataColor&#34;: self.no_data_color,
+            &#34;type&#34;: self.type,
+        })
+
+    def __repr__(self) -&gt; str:
+        return super().__repr__() + f&#34;({self.colors})&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -145,9 +287,86 @@ class Colorizer():
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="geoengine.colorizer.ColorBreakpoint"><code class="flex name class">
+<span>class <span class="ident">ColorBreakpoint</span></span>
+<span>(</span><span>value: float, color: Tuple[int, int, int, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class is used to generate geoengine compatible color breakpoint definitions.</p>
+<p>Initialize the color breakpoint.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ColorBreakpoint():
+    &#34;&#34;&#34;This class is used to generate geoengine compatible color breakpoint definitions.&#34;&#34;&#34;
+    color: Tuple[int, int, int, int]
+    value: float
+
+    def __init__(self, value: float, color: Tuple[int, int, int, int]):
+        &#34;&#34;&#34;Initialize the color breakpoint.&#34;&#34;&#34;
+        self.color = color
+        self.value = value
+
+    def to_api_dict(self) -&gt; api.ColorizerBreakpoint:
+        &#34;&#34;&#34;Return the color breakpoint as a dictionary.&#34;&#34;&#34;
+        return api.ColorizerBreakpoint({&#34;value&#34;: self.value, &#34;color&#34;: self.color})
+
+    @staticmethod
+    def from_response(response: api.ColorizerBreakpoint) -&gt; &#34;ColorBreakpoint&#34;:
+        &#34;&#34;&#34;Parse a http response to a `ColorBreakpoint`.&#34;&#34;&#34;
+        return ColorBreakpoint(response[&#39;value&#39;], response[&#39;color&#39;])</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.colorizer.ColorBreakpoint.color"><code class="name">var <span class="ident">color</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.colorizer.ColorBreakpoint.value"><code class="name">var <span class="ident">value</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.colorizer.ColorBreakpoint.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: <a title="geoengine.api.ColorizerBreakpoint" href="api.html#geoengine.api.ColorizerBreakpoint">ColorizerBreakpoint</a>) ‑> <a title="geoengine.colorizer.ColorBreakpoint" href="#geoengine.colorizer.ColorBreakpoint">ColorBreakpoint</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a http response to a <code><a title="geoengine.colorizer.ColorBreakpoint" href="#geoengine.colorizer.ColorBreakpoint">ColorBreakpoint</a></code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_response(response: api.ColorizerBreakpoint) -&gt; &#34;ColorBreakpoint&#34;:
+    &#34;&#34;&#34;Parse a http response to a `ColorBreakpoint`.&#34;&#34;&#34;
+    return ColorBreakpoint(response[&#39;value&#39;], response[&#39;color&#39;])</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.colorizer.ColorBreakpoint.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.ColorizerBreakpoint" href="api.html#geoengine.api.ColorizerBreakpoint">ColorizerBreakpoint</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the color breakpoint as a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; api.ColorizerBreakpoint:
+    &#34;&#34;&#34;Return the color breakpoint as a dictionary.&#34;&#34;&#34;
+    return api.ColorizerBreakpoint({&#34;value&#34;: self.value, &#34;color&#34;: self.color})</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.colorizer.Colorizer"><code class="flex name class">
 <span>class <span class="ident">Colorizer</span></span>
-<span>(</span><span>map_name: matplotlib.colors.ListedColormap, min_max: Tuple[int, int], n_steps: int = 10, default_color: Tuple[int, int, int, int] = (0, 0, 0, 0), no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0))</span>
+<span>(</span><span>no_data_color: Tuple[int, int, int, int], default_color: Tuple[int, int, int, int], colorizer_type: Literal['linearGradient', 'palette', 'logarithmicGradient'] = 'linearGradient')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This class is used to generate geoengine compatible color map definitions as a json string.</p>
@@ -159,15 +378,29 @@ class Colorizer():
 <pre><code class="python">class Colorizer():
     &#34;&#34;&#34;This class is used to generate geoengine compatible color map definitions as a json string.&#34;&#34;&#34;
 
-    # pylint: disable=too-few-public-methods
+    type: Literal[&#34;linearGradient&#34;, &#34;palette&#34;, &#34;logarithmicGradient&#34;]
+    no_data_color: Tuple[int, int, int, int]
+    default_color: Tuple[int, int, int, int]
 
     def __init__(
-            self,
-            map_name: ListedColormap,
-            min_max: Tuple[int, int],
-            n_steps: int = 10,
-            default_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
-            no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)):
+        self,
+        no_data_color: Tuple[int, int, int, int],
+        default_color: Tuple[int, int, int, int],
+        colorizer_type: Literal[&#34;linearGradient&#34;, &#34;palette&#34;, &#34;logarithmicGradient&#34;] = &#34;linearGradient&#34;
+    ):
+        &#34;&#34;&#34;Initialize the colorizer.&#34;&#34;&#34;
+        self.type = colorizer_type
+        self.no_data_color = no_data_color
+        self.default_color = default_color
+
+    @staticmethod
+    def linear_with_mpl_cmap(
+        map_name: ListedColormap,
+        min_max: Tuple[int, int],
+        n_steps: int = 10,
+        default_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
+        no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)
+    ) -&gt; &#34;LinearGradientColorizer&#34;:
         &#34;&#34;&#34;Initialize the colorizer.&#34;&#34;&#34;
         # pylint: disable=too-many-arguments
 
@@ -212,109 +445,548 @@ class Colorizer():
         if not all(0 &lt;= elem &lt; 256 for elem in default_color):
             raise ValueError(f&#34;defaultColor must be a RGBA color specification, got {default_color} instead.&#34;)
 
-        self.__map_name = map_name
-        self.__min_max = min_max
-        self.__n_steps = n_steps
-        self.__default_color = default_color
-        self.__no_data_color = no_data_color
-
-    def to_query_string(self) -&gt; str:
-        &#34;&#34;&#34;Generate a json dump that is compatible with the geoengine config protocol.
-
-        Args:
-            map_name (str): a name of a defined colormap.
-            n_steps (int): how many steps the colormap should have.
-
-        Returns:
-            str: Returns the geoengine compatible json configuration string.
-        &#34;&#34;&#34;
         # get the map, and transform it to [0,255] values
-        colormap = ScalarMappable(cmap=self.__map_name).to_rgba(
-            np.linspace(self.__min_max[0], self.__min_max[1], self.__n_steps), bytes=True).tolist()
+        colormap = [
+            (int(x[0]), int(x[1]), int(x[2]), int(x[3])) for x in ScalarMappable(cmap=map_name).to_rgba(
+                np.linspace(min_max[0], min_max[1], n_steps), bytes=True)]
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
         value_bounds = [
-            int(x) for x in np.linspace(self.__min_max[0], self.__min_max[1], self.__n_steps).tolist()
+            int(x) for x in np.linspace(min_max[0], min_max[1], n_steps)
         ]
 
         # generate color map steps for geoengine
         breakpoints = [
-            {&#34;value&#34;: value, &#34;color&#34;: color} for (value, color) in zip(value_bounds, colormap)
+            ColorBreakpoint(color=color, value=value) for (value, color) in zip(value_bounds, colormap)
         ]
 
-        # create the json string for geoengine
-        colorizer = &#34;custom:&#34; + json.dumps(
-            {
-                &#34;type&#34;: &#34;linearGradient&#34;,
-                &#34;breakpoints&#34;: breakpoints,
-                &#34;noDataColor&#34;: self.__no_data_color,
-                &#34;defaultColor&#34;: self.__default_color,
-            }
+        colorizer = LinearGradientColorizer(
+            breakpoints=breakpoints,
+            no_data_color=no_data_color,
+            default_color=default_color
         )
 
-        return colorizer</code></pre>
+        return colorizer
+
+    @abstractmethod
+    def to_api_dict(self) -&gt; api.Colorizer:
+        pass
+
+    def to_json(self) -&gt; str:
+        &#34;&#34;&#34;Return the colorizer as a JSON string.&#34;&#34;&#34;
+        return json.dumps(self.to_api_dict())
+
+    @staticmethod
+    def from_response(response: api.Colorizer) -&gt; &#34;Colorizer&#34;:
+        &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+        if response[&#39;type&#39;] == &#39;linearGradient&#39;:
+            return LinearGradientColorizer.from_response_linear(cast(api.LinearGradientColorizer, response))
+        if response[&#39;type&#39;] == &#39;palette&#39;:
+            return PaletteColorizer.from_response_palette(cast(api.PaletteColorizer, response))
+        if response[&#39;type&#39;] == &#39;logarithmicGradient&#39;:
+            return LogarithmicGradientColorizer.from_response_logarithmic(
+                cast(api.LogarithmicGradientColorizer, response)
+            )
+
+        raise TypeError(f&#34;Unknown colorizer type: {response[&#39;type&#39;]}&#34;)</code></pre>
 </details>
-<h3>Methods</h3>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.colorizer.LinearGradientColorizer" href="#geoengine.colorizer.LinearGradientColorizer">LinearGradientColorizer</a></li>
+<li><a title="geoengine.colorizer.LogarithmicGradientColorizer" href="#geoengine.colorizer.LogarithmicGradientColorizer">LogarithmicGradientColorizer</a></li>
+<li><a title="geoengine.colorizer.PaletteColorizer" href="#geoengine.colorizer.PaletteColorizer">PaletteColorizer</a></li>
+</ul>
+<h3>Class variables</h3>
 <dl>
-<dt id="geoengine.colorizer.Colorizer.to_query_string"><code class="name flex">
-<span>def <span class="ident">to_query_string</span></span>(<span>self) ‑> str</span>
+<dt id="geoengine.colorizer.Colorizer.default_color"><code class="name">var <span class="ident">default_color</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.colorizer.Colorizer.no_data_color"><code class="name">var <span class="ident">no_data_color</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.colorizer.Colorizer.type"><code class="name">var <span class="ident">type</span> : Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.colorizer.Colorizer.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: <a title="geoengine.api.Colorizer" href="api.html#geoengine.api.Colorizer">Colorizer</a>) ‑> <a title="geoengine.colorizer.Colorizer" href="#geoengine.colorizer.Colorizer">Colorizer</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Generate a json dump that is compatible with the geoengine config protocol.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>map_name</code></strong> :&ensp;<code>str</code></dt>
-<dd>a name of a defined colormap.</dd>
-<dt><strong><code>n_steps</code></strong> :&ensp;<code>int</code></dt>
-<dd>how many steps the colormap should have.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>str</code></dt>
-<dd>Returns the geoengine compatible json configuration string.</dd>
-</dl></div>
+<div class="desc"><p>Create a colorizer from a response.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_query_string(self) -&gt; str:
-    &#34;&#34;&#34;Generate a json dump that is compatible with the geoengine config protocol.
+<pre><code class="python">@staticmethod
+def from_response(response: api.Colorizer) -&gt; &#34;Colorizer&#34;:
+    &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+    if response[&#39;type&#39;] == &#39;linearGradient&#39;:
+        return LinearGradientColorizer.from_response_linear(cast(api.LinearGradientColorizer, response))
+    if response[&#39;type&#39;] == &#39;palette&#39;:
+        return PaletteColorizer.from_response_palette(cast(api.PaletteColorizer, response))
+    if response[&#39;type&#39;] == &#39;logarithmicGradient&#39;:
+        return LogarithmicGradientColorizer.from_response_logarithmic(
+            cast(api.LogarithmicGradientColorizer, response)
+        )
 
-    Args:
-        map_name (str): a name of a defined colormap.
-        n_steps (int): how many steps the colormap should have.
+    raise TypeError(f&#34;Unknown colorizer type: {response[&#39;type&#39;]}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.colorizer.Colorizer.linear_with_mpl_cmap"><code class="name flex">
+<span>def <span class="ident">linear_with_mpl_cmap</span></span>(<span>map_name: matplotlib.colors.ListedColormap, min_max: Tuple[int, int], n_steps: int = 10, default_color: Tuple[int, int, int, int] = (0, 0, 0, 0), no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)) ‑> <a title="geoengine.colorizer.LinearGradientColorizer" href="#geoengine.colorizer.LinearGradientColorizer">LinearGradientColorizer</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initialize the colorizer.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def linear_with_mpl_cmap(
+    map_name: ListedColormap,
+    min_max: Tuple[int, int],
+    n_steps: int = 10,
+    default_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
+    no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)
+) -&gt; &#34;LinearGradientColorizer&#34;:
+    &#34;&#34;&#34;Initialize the colorizer.&#34;&#34;&#34;
+    # pylint: disable=too-many-arguments
 
-    Returns:
-        str: Returns the geoengine compatible json configuration string.
-    &#34;&#34;&#34;
+    # assert correct parameters are given
+    if not isinstance(map_name, ListedColormap):
+        if map_name not in plt.colormaps():
+            raise AssertionError(
+                &#34;The given name is not a valid matplotlib colormap. Valid names are: &#34;
+                &#34;[&#39;magma&#39;, &#39;inferno&#39;, &#39;plasma&#39;, &#39;viridis&#39;, &#39;cividis&#39;, &#39;twilight&#39;, &#39;twilight_shifted&#39;,&#34;
+                &#34;&#39;turbo&#39;, &#39;Blues&#39;, &#39;BrBG&#39;, &#39;BuGn&#39;, &#39;BuPu&#39;, &#39;CMRmap&#39;, &#39;GnBu&#39;, &#39;Greens&#39;, &#39;Greys&#39;, &#39;OrRd&#39;, &#34;
+                &#34;&#39;Oranges&#39;, &#39;PRGn&#39;, &#39;PiYG&#39;, &#39;PuBu&#39;, &#39;PuBuGn&#39;, &#39;PuOr&#39;, &#39;PuRd&#39;, &#39;Purples&#39;, &#39;RdBu&#39;, &#39;RdGy&#39;, &#34;
+                &#34;&#39;RdPu&#39;, &#39;RdYlBu&#39;, &#39;RdYlGn&#39;, &#39;Reds&#39;, &#39;Spectral&#39;, &#39;Wistia&#39;, &#39;YlGn&#39;, &#39;YlGnBu&#39;, &#39;YlOrBr&#39;, &#34;
+                &#34;&#39;YlOrRd&#39;, &#39;afmhot&#39;, &#39;autumn&#39;, &#39;binary&#39;, &#39;bone&#39;, &#39;brg&#39;, &#39;bwr&#39;, &#39;cool&#39;, &#39;coolwarm&#39;, &#34;
+                &#34;&#39;copper&#39;, &#39;cubehelix&#39;, &#39;flag&#39;, &#39;gist_earth&#39;, &#39;gist_gray&#39;, &#39;gist_heat&#39;, &#39;gist_ncar&#39;, &#34;
+                &#34;&#39;gist_rainbow&#39;, &#39;gist_stern&#39;, &#39;gist_yarg&#39;, &#39;gnuplot&#39;, &#39;gnuplot2&#39;, &#39;gray&#39;, &#39;hot&#39;, &#34;
+                &#34;&#39;hsv&#39;, &#39;jet&#39;, &#39;nipy_spectral&#39;, &#39;ocean&#39;, &#39;pink&#39;, &#39;prism&#39;, &#39;rainbow&#39;, &#39;seismic&#39;, &#39;spring&#39;, &#34;
+                &#34;&#39;summer&#39;, &#39;terrain&#39;, &#39;winter&#39;, &#39;Accent&#39;, &#39;Dark2&#39;, &#39;Paired&#39;, &#39;Pastel1&#39;, &#39;Pastel2&#39;, &#34;
+                &#34;&#39;Set1&#39;, &#39;Set2&#39;, &#39;Set3&#39;, &#39;tab10&#39;, &#39;tab20&#39;, &#39;tab20b&#39;, &#39;tab20c&#39;, &#39;magma_r&#39;, &#39;inferno_r&#39;, &#34;
+                &#34;&#39;plasma_r&#39;, &#39;viridis_r&#39;, &#39;cividis_r&#39;, &#39;twilight_r&#39;, &#39;twilight_shifted_r&#39;, &#39;turbo_r&#39;, &#34;
+                &#34;&#39;Blues_r&#39;, &#39;BrBG_r&#39;, &#39;BuGn_r&#39;, &#39;BuPu_r&#39;, &#39;CMRmap_r&#39;, &#39;GnBu_r&#39;, &#39;Greens_r&#39;, &#39;Greys_r&#39;, &#34;
+                &#34;&#39;OrRd_r&#39;, &#39;Oranges_r&#39;, &#39;PRGn_r&#39;, &#39;PiYG_r&#39;, &#39;PuBu_r&#39;, &#39;PuBuGn_r&#39;, &#39;PuOr_r&#39;, &#39;PuRd_r&#39;, &#34;
+                &#34;&#39;Purples_r&#39;, &#39;RdBu_r&#39;, &#39;RdGy_r&#39;, &#39;RdPu_r&#39;, &#39;RdYlBu_r&#39;, &#39;RdYlGn_r&#39;, &#39;Reds_r&#39;, &#34;
+                &#34;&#39;Spectral_r&#39;, &#39;Wistia_r&#39;, &#39;YlGn_r&#39;, &#39;YlGnBu_r&#39;, &#39;YlOrBr_r&#39;, &#39;YlOrRd_r&#39;, &#39;afmhot_r&#39;, &#34;
+                &#34;&#39;autumn_r&#39;, &#39;binary_r&#39;, &#39;bone_r&#39;, &#39;brg_r&#39;, &#39;bwr_r&#39;, &#39;cool_r&#39;, &#39;coolwarm_r&#39;, &#39;copper_r&#39;, &#34;
+                &#34;&#39;cubehelix_r&#39;, &#39;flag_r&#39;, &#39;gist_earth_r&#39;, &#39;gist_gray_r&#39;, &#39;gist_heat_r&#39;, &#39;gist_ncar_r&#39;, &#34;
+                &#34;&#39;gist_rainbow_r&#39;, &#39;gist_stern_r&#39;, &#39;gist_yarg_r&#39;, &#39;gnuplot_r&#39;, &#39;gnuplot2_r&#39;, &#39;gray_r&#39;, &#34;
+                &#34;&#39;hot_r&#39;, &#39;hsv_r&#39;, &#39;jet_r&#39;, &#39;nipy_spectral_r&#39;, &#39;ocean_r&#39;, &#39;pink_r&#39;, &#39;prism_r&#39;, &#34;
+                &#34;&#39;rainbow_r&#39;, &#39;seismic_r&#39;, &#39;spring_r&#39;, &#39;summer_r&#39;, &#39;terrain_r&#39;, &#39;winter_r&#39;, &#39;Accent_r&#39;, &#34;
+                &#34;&#39;Dark2_r&#39;, &#39;Paired_r&#39;, &#39;Pastel1_r&#39;, &#39;Pastel2_r&#39;, &#39;Set1_r&#39;, &#39;Set2_r&#39;, &#39;Set3_r&#39;, &#34;
+                &#34;&#39;tab10_r&#39;, &#39;tab20_r&#39;, &#39;tab20b_r&#39;, &#39;tab20c_r&#39;]&#34;)
+
+    if n_steps &lt; 2:
+        raise ValueError(f&#34;n_steps must be greater than or equal to 2, got {n_steps} instead.&#34;)
+    if min_max[1] &lt;= min_max[0]:
+        raise ValueError(f&#34;min_max[1] must be greater than min_max[0], got {min_max[1]} and {min_max[0]}.&#34;)
+    if len(default_color) != 4:
+        raise ValueError(f&#34;defaultColor must be a tuple of length 4, got {len(default_color)} instead.&#34;)
+    if len(no_data_color) != 4:
+        raise ValueError(f&#34;noDataColor must be a tuple of length 4, got {len(no_data_color)} instead.&#34;)
+    if not all(0 &lt;= elem &lt; 256 for elem in no_data_color):
+        raise ValueError(f&#34;noDataColor must be a RGBA color specification, got {no_data_color} instead.&#34;)
+    if not all(0 &lt;= elem &lt; 256 for elem in default_color):
+        raise ValueError(f&#34;defaultColor must be a RGBA color specification, got {default_color} instead.&#34;)
+
     # get the map, and transform it to [0,255] values
-    colormap = ScalarMappable(cmap=self.__map_name).to_rgba(
-        np.linspace(self.__min_max[0], self.__min_max[1], self.__n_steps), bytes=True).tolist()
+    colormap = [
+        (int(x[0]), int(x[1]), int(x[2]), int(x[3])) for x in ScalarMappable(cmap=map_name).to_rgba(
+            np.linspace(min_max[0], min_max[1], n_steps), bytes=True)]
 
     # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
     value_bounds = [
-        int(x) for x in np.linspace(self.__min_max[0], self.__min_max[1], self.__n_steps).tolist()
+        int(x) for x in np.linspace(min_max[0], min_max[1], n_steps)
     ]
 
     # generate color map steps for geoengine
     breakpoints = [
-        {&#34;value&#34;: value, &#34;color&#34;: color} for (value, color) in zip(value_bounds, colormap)
+        ColorBreakpoint(color=color, value=value) for (value, color) in zip(value_bounds, colormap)
     ]
 
-    # create the json string for geoengine
-    colorizer = &#34;custom:&#34; + json.dumps(
-        {
-            &#34;type&#34;: &#34;linearGradient&#34;,
-            &#34;breakpoints&#34;: breakpoints,
-            &#34;noDataColor&#34;: self.__no_data_color,
-            &#34;defaultColor&#34;: self.__default_color,
-        }
+    colorizer = LinearGradientColorizer(
+        breakpoints=breakpoints,
+        no_data_color=no_data_color,
+        default_color=default_color
     )
 
     return colorizer</code></pre>
 </details>
 </dd>
 </dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.colorizer.Colorizer.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.Colorizer" href="api.html#geoengine.api.Colorizer">Colorizer</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def to_api_dict(self) -&gt; api.Colorizer:
+    pass</code></pre>
+</details>
+</dd>
+<dt id="geoengine.colorizer.Colorizer.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the colorizer as a JSON string.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self) -&gt; str:
+    &#34;&#34;&#34;Return the colorizer as a JSON string.&#34;&#34;&#34;
+    return json.dumps(self.to_api_dict())</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.colorizer.LinearGradientColorizer"><code class="flex name class">
+<span>class <span class="ident">LinearGradientColorizer</span></span>
+<span>(</span><span>breakpoints: List[<a title="geoengine.colorizer.ColorBreakpoint" href="#geoengine.colorizer.ColorBreakpoint">ColorBreakpoint</a>], no_data_color: Tuple[int, int, int, int], default_color: Tuple[int, int, int, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A linear gradient colorizer.</p>
+<p>Initialize the colorizer.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LinearGradientColorizer(Colorizer):
+    &#39;&#39;&#39;A linear gradient colorizer.&#39;&#39;&#39;
+    breakpoints: List[ColorBreakpoint]
+
+    def __init__(
+        self,
+        breakpoints: List[ColorBreakpoint],
+        no_data_color: Tuple[int, int, int, int],
+        default_color: Tuple[int, int, int, int]
+    ):
+        super().__init__(no_data_color, default_color, &#34;linearGradient&#34;)
+        self.breakpoints = breakpoints
+
+    @staticmethod
+    def from_response_linear(response: api.LinearGradientColorizer) -&gt; &#34;LinearGradientColorizer&#34;:
+        &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+        breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response[&#39;breakpoints&#39;]]
+        return LinearGradientColorizer(
+            breakpoints=breakpoints,
+            no_data_color=response[&#39;noDataColor&#39;],
+            default_color=response[&#39;defaultColor&#39;],
+        )
+
+    def to_api_dict(self) -&gt; api.LinearGradientColorizer:
+        &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
+        return api.LinearGradientColorizer({
+            &#34;type&#34;: self.type,
+            &#34;breakpoints&#34;: [breakpoint.to_api_dict() for breakpoint in self.breakpoints],
+            &#34;noDataColor&#34;: self.no_data_color,
+            &#34;defaultColor&#34;: self.default_color,
+        })</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.colorizer.Colorizer" href="#geoengine.colorizer.Colorizer">Colorizer</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.colorizer.LinearGradientColorizer.breakpoints"><code class="name">var <span class="ident">breakpoints</span> : List[<a title="geoengine.colorizer.ColorBreakpoint" href="#geoengine.colorizer.ColorBreakpoint">ColorBreakpoint</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.colorizer.LinearGradientColorizer.from_response_linear"><code class="name flex">
+<span>def <span class="ident">from_response_linear</span></span>(<span>response: <a title="geoengine.api.LinearGradientColorizer" href="api.html#geoengine.api.LinearGradientColorizer">LinearGradientColorizer</a>) ‑> <a title="geoengine.colorizer.LinearGradientColorizer" href="#geoengine.colorizer.LinearGradientColorizer">LinearGradientColorizer</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a colorizer from a response.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_response_linear(response: api.LinearGradientColorizer) -&gt; &#34;LinearGradientColorizer&#34;:
+    &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+    breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response[&#39;breakpoints&#39;]]
+    return LinearGradientColorizer(
+        breakpoints=breakpoints,
+        no_data_color=response[&#39;noDataColor&#39;],
+        default_color=response[&#39;defaultColor&#39;],
+    )</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.colorizer.LinearGradientColorizer.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.LinearGradientColorizer" href="api.html#geoengine.api.LinearGradientColorizer">LinearGradientColorizer</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the colorizer as a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; api.LinearGradientColorizer:
+    &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
+    return api.LinearGradientColorizer({
+        &#34;type&#34;: self.type,
+        &#34;breakpoints&#34;: [breakpoint.to_api_dict() for breakpoint in self.breakpoints],
+        &#34;noDataColor&#34;: self.no_data_color,
+        &#34;defaultColor&#34;: self.default_color,
+    })</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.colorizer.Colorizer" href="#geoengine.colorizer.Colorizer">Colorizer</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.colorizer.Colorizer.from_response" href="#geoengine.colorizer.Colorizer.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.linear_with_mpl_cmap" href="#geoengine.colorizer.Colorizer.linear_with_mpl_cmap">linear_with_mpl_cmap</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.to_json" href="#geoengine.colorizer.Colorizer.to_json">to_json</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.colorizer.LogarithmicGradientColorizer"><code class="flex name class">
+<span>class <span class="ident">LogarithmicGradientColorizer</span></span>
+<span>(</span><span>breakpoints: List[<a title="geoengine.colorizer.ColorBreakpoint" href="#geoengine.colorizer.ColorBreakpoint">ColorBreakpoint</a>], no_data_color: Tuple[int, int, int, int], default_color: Tuple[int, int, int, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A logarithmic gradient colorizer.</p>
+<p>Initialize the colorizer.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LogarithmicGradientColorizer(Colorizer):
+    &#39;&#39;&#39;A logarithmic gradient colorizer.&#39;&#39;&#39;
+    breakpoints: List[ColorBreakpoint]
+
+    def __init__(
+        self,
+        breakpoints: List[ColorBreakpoint],
+        no_data_color: Tuple[int, int, int, int],
+        default_color: Tuple[int, int, int, int]
+    ):
+        super().__init__(no_data_color, default_color, &#34;logarithmicGradient&#34;)
+        self.breakpoints = breakpoints
+
+    @staticmethod
+    def from_response_logarithmic(response: api.LogarithmicGradientColorizer) -&gt; &#34;LogarithmicGradientColorizer&#34;:
+        &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+        breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response[&#39;breakpoints&#39;]]
+        return LogarithmicGradientColorizer(
+            breakpoints=breakpoints,
+            no_data_color=response[&#39;noDataColor&#39;],
+            default_color=response[&#39;defaultColor&#39;],
+        )
+
+    def to_api_dict(self) -&gt; api.LogarithmicGradientColorizer:
+        &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
+        return api.LogarithmicGradientColorizer({
+            &#34;type&#34;: self.type,
+            &#34;breakpoints&#34;: [breakpoint.to_api_dict() for breakpoint in self.breakpoints],
+            &#34;noDataColor&#34;: self.no_data_color,
+            &#34;defaultColor&#34;: self.default_color,
+        })</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.colorizer.Colorizer" href="#geoengine.colorizer.Colorizer">Colorizer</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.colorizer.LogarithmicGradientColorizer.breakpoints"><code class="name">var <span class="ident">breakpoints</span> : List[<a title="geoengine.colorizer.ColorBreakpoint" href="#geoengine.colorizer.ColorBreakpoint">ColorBreakpoint</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.colorizer.LogarithmicGradientColorizer.from_response_logarithmic"><code class="name flex">
+<span>def <span class="ident">from_response_logarithmic</span></span>(<span>response: <a title="geoengine.api.LogarithmicGradientColorizer" href="api.html#geoengine.api.LogarithmicGradientColorizer">LogarithmicGradientColorizer</a>) ‑> <a title="geoengine.colorizer.LogarithmicGradientColorizer" href="#geoengine.colorizer.LogarithmicGradientColorizer">LogarithmicGradientColorizer</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a colorizer from a response.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_response_logarithmic(response: api.LogarithmicGradientColorizer) -&gt; &#34;LogarithmicGradientColorizer&#34;:
+    &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+    breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response[&#39;breakpoints&#39;]]
+    return LogarithmicGradientColorizer(
+        breakpoints=breakpoints,
+        no_data_color=response[&#39;noDataColor&#39;],
+        default_color=response[&#39;defaultColor&#39;],
+    )</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.colorizer.LogarithmicGradientColorizer.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.LogarithmicGradientColorizer" href="api.html#geoengine.api.LogarithmicGradientColorizer">LogarithmicGradientColorizer</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the colorizer as a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; api.LogarithmicGradientColorizer:
+    &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
+    return api.LogarithmicGradientColorizer({
+        &#34;type&#34;: self.type,
+        &#34;breakpoints&#34;: [breakpoint.to_api_dict() for breakpoint in self.breakpoints],
+        &#34;noDataColor&#34;: self.no_data_color,
+        &#34;defaultColor&#34;: self.default_color,
+    })</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.colorizer.Colorizer" href="#geoengine.colorizer.Colorizer">Colorizer</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.colorizer.Colorizer.from_response" href="#geoengine.colorizer.Colorizer.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.linear_with_mpl_cmap" href="#geoengine.colorizer.Colorizer.linear_with_mpl_cmap">linear_with_mpl_cmap</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.to_json" href="#geoengine.colorizer.Colorizer.to_json">to_json</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.colorizer.PaletteColorizer"><code class="flex name class">
+<span>class <span class="ident">PaletteColorizer</span></span>
+<span>(</span><span>colors: Dict[float, Tuple[int, int, int, int]], no_data_color: Tuple[int, int, int, int], default_color: Tuple[int, int, int, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A palette colorizer.</p>
+<p>Initialize the colorizer.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PaletteColorizer(Colorizer):
+    &#39;&#39;&#39;A palette colorizer.&#39;&#39;&#39;
+    colors: Dict[float, Tuple[int, int, int, int]]
+
+    def __init__(
+        self,
+        colors: Dict[float, Tuple[int, int, int, int]],
+        no_data_color: Tuple[int, int, int, int],
+        default_color: Tuple[int, int, int, int]
+    ):
+        super().__init__(no_data_color, default_color, &#34;palette&#34;)
+        self.colors = colors
+
+    @staticmethod
+    def from_response_palette(response: api.PaletteColorizer) -&gt; &#34;PaletteColorizer&#34;:
+        &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+
+        return PaletteColorizer(
+            colors=response[&#39;colors&#39;],
+            no_data_color=response[&#39;noDataColor&#39;],
+            default_color=response[&#39;defaultColor&#39;],
+        )
+
+    def to_api_dict(self) -&gt; api.PaletteColorizer:
+        &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
+        return api.PaletteColorizer({
+            &#34;colors&#34;: self.colors,
+            &#34;defaultColor&#34;: self.default_color,
+            &#34;noDataColor&#34;: self.no_data_color,
+            &#34;type&#34;: self.type,
+        })
+
+    def __repr__(self) -&gt; str:
+        return super().__repr__() + f&#34;({self.colors})&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.colorizer.Colorizer" href="#geoengine.colorizer.Colorizer">Colorizer</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.colorizer.PaletteColorizer.colors"><code class="name">var <span class="ident">colors</span> : Dict[float, Tuple[int, int, int, int]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.colorizer.PaletteColorizer.from_response_palette"><code class="name flex">
+<span>def <span class="ident">from_response_palette</span></span>(<span>response: <a title="geoengine.api.PaletteColorizer" href="api.html#geoengine.api.PaletteColorizer">PaletteColorizer</a>) ‑> <a title="geoengine.colorizer.PaletteColorizer" href="#geoengine.colorizer.PaletteColorizer">PaletteColorizer</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a colorizer from a response.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_response_palette(response: api.PaletteColorizer) -&gt; &#34;PaletteColorizer&#34;:
+    &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
+
+    return PaletteColorizer(
+        colors=response[&#39;colors&#39;],
+        no_data_color=response[&#39;noDataColor&#39;],
+        default_color=response[&#39;defaultColor&#39;],
+    )</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.colorizer.PaletteColorizer.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.PaletteColorizer" href="api.html#geoengine.api.PaletteColorizer">PaletteColorizer</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the colorizer as a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; api.PaletteColorizer:
+    &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
+    return api.PaletteColorizer({
+        &#34;colors&#34;: self.colors,
+        &#34;defaultColor&#34;: self.default_color,
+        &#34;noDataColor&#34;: self.no_data_color,
+        &#34;type&#34;: self.type,
+    })</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.colorizer.Colorizer" href="#geoengine.colorizer.Colorizer">Colorizer</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.colorizer.Colorizer.from_response" href="#geoengine.colorizer.Colorizer.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.linear_with_mpl_cmap" href="#geoengine.colorizer.Colorizer.linear_with_mpl_cmap">linear_with_mpl_cmap</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.to_json" href="#geoengine.colorizer.Colorizer.to_json">to_json</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 </dl>
 </section>
@@ -333,9 +1005,48 @@ class Colorizer():
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="geoengine.colorizer.ColorBreakpoint" href="#geoengine.colorizer.ColorBreakpoint">ColorBreakpoint</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.colorizer.ColorBreakpoint.color" href="#geoengine.colorizer.ColorBreakpoint.color">color</a></code></li>
+<li><code><a title="geoengine.colorizer.ColorBreakpoint.from_response" href="#geoengine.colorizer.ColorBreakpoint.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.colorizer.ColorBreakpoint.to_api_dict" href="#geoengine.colorizer.ColorBreakpoint.to_api_dict">to_api_dict</a></code></li>
+<li><code><a title="geoengine.colorizer.ColorBreakpoint.value" href="#geoengine.colorizer.ColorBreakpoint.value">value</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.colorizer.Colorizer" href="#geoengine.colorizer.Colorizer">Colorizer</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.colorizer.Colorizer.to_query_string" href="#geoengine.colorizer.Colorizer.to_query_string">to_query_string</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.default_color" href="#geoengine.colorizer.Colorizer.default_color">default_color</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.from_response" href="#geoengine.colorizer.Colorizer.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.linear_with_mpl_cmap" href="#geoengine.colorizer.Colorizer.linear_with_mpl_cmap">linear_with_mpl_cmap</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.no_data_color" href="#geoengine.colorizer.Colorizer.no_data_color">no_data_color</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.to_api_dict" href="#geoengine.colorizer.Colorizer.to_api_dict">to_api_dict</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.to_json" href="#geoengine.colorizer.Colorizer.to_json">to_json</a></code></li>
+<li><code><a title="geoengine.colorizer.Colorizer.type" href="#geoengine.colorizer.Colorizer.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.colorizer.LinearGradientColorizer" href="#geoengine.colorizer.LinearGradientColorizer">LinearGradientColorizer</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.colorizer.LinearGradientColorizer.breakpoints" href="#geoengine.colorizer.LinearGradientColorizer.breakpoints">breakpoints</a></code></li>
+<li><code><a title="geoengine.colorizer.LinearGradientColorizer.from_response_linear" href="#geoengine.colorizer.LinearGradientColorizer.from_response_linear">from_response_linear</a></code></li>
+<li><code><a title="geoengine.colorizer.LinearGradientColorizer.to_api_dict" href="#geoengine.colorizer.LinearGradientColorizer.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.colorizer.LogarithmicGradientColorizer" href="#geoengine.colorizer.LogarithmicGradientColorizer">LogarithmicGradientColorizer</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.colorizer.LogarithmicGradientColorizer.breakpoints" href="#geoengine.colorizer.LogarithmicGradientColorizer.breakpoints">breakpoints</a></code></li>
+<li><code><a title="geoengine.colorizer.LogarithmicGradientColorizer.from_response_logarithmic" href="#geoengine.colorizer.LogarithmicGradientColorizer.from_response_logarithmic">from_response_logarithmic</a></code></li>
+<li><code><a title="geoengine.colorizer.LogarithmicGradientColorizer.to_api_dict" href="#geoengine.colorizer.LogarithmicGradientColorizer.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.colorizer.PaletteColorizer" href="#geoengine.colorizer.PaletteColorizer">PaletteColorizer</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.colorizer.PaletteColorizer.colors" href="#geoengine.colorizer.PaletteColorizer.colors">colors</a></code></li>
+<li><code><a title="geoengine.colorizer.PaletteColorizer.from_response_palette" href="#geoengine.colorizer.PaletteColorizer.from_response_palette">from_response_palette</a></code></li>
+<li><code><a title="geoengine.colorizer.PaletteColorizer.to_api_dict" href="#geoengine.colorizer.PaletteColorizer.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>
 </ul>

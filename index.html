@@ -33,18 +33,21 @@ from pkg_resources import get_distribution
 from requests import utils
 
 from .auth import Session, get_session, initialize, reset
-from .colorizer import Colorizer
-from .datasets import upload_dataframe, StoredDataset, add_public_raster_dataset, volumes, GdalMetaDataStatic, \
-    GdalMetaDataRegular, GdalMetadataNetCdfCf, delete_dataset
+from .colorizer import Colorizer, ColorBreakpoint, LinearGradientColorizer, PaletteColorizer, \
+    LogarithmicGradientColorizer
+from .datasets import upload_dataframe, StoredDataset, add_public_raster_dataset, volumes, DatasetProperties, \
+    delete_dataset
 from .error import GeoEngineException, InputException, UninitializedException, TypeException, \
     MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, \
     SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \
-    GeoEngineExceptionResponse, NoAdminSessionException
+    NoAdminSessionException
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
     LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer
-from .types import QueryRectangle, GdalDatasetParameters, GdalDatasetGeoTransform, FileNotFoundHandling, \
-    RasterResultDescriptor
+from .types import QueryRectangle,  \
+    RasterResultDescriptor, Provenance, UnitlessMeasurement, ContinuousMeasurement, \
+    ClassificationMeasurement, BoundingBox2D, TimeInterval, SpatialResolution, SpatialPartition2D, \
+    RasterSymbology, VectorSymbology
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow
 
 
@@ -61,6 +64,10 @@ utils.default_user_agent = default_user_agent</code></pre>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
+<dt><code class="name"><a title="geoengine.api" href="api.html">geoengine.api</a></code></dt>
+<dd>
+<div class="desc"><p>These types represent Geo Engine's backend API types before/after JSON (de)serialization.</p></div>
+</dd>
 <dt><code class="name"><a title="geoengine.auth" href="auth.html">geoengine.auth</a></code></dt>
 <dd>
 <div class="desc"><p>Module for encapsulating Geo Engine authentication</p></div>
@@ -126,6 +133,7 @@ utils.default_user_agent = default_user_agent</code></pre>
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
+<li><code><a title="geoengine.api" href="api.html">geoengine.api</a></code></li>
 <li><code><a title="geoengine.auth" href="auth.html">geoengine.auth</a></code></li>
 <li><code><a title="geoengine.colorizer" href="colorizer.html">geoengine.colorizer</a></code></li>
 <li><code><a title="geoengine.datasets" href="datasets.html">geoengine.datasets</a></code></li>

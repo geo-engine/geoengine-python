@@ -53,6 +53,7 @@ class TaskId:
     @classmethod
     def from_response(cls, response: Dict[str, str]) -&gt; TaskId:
         &#39;&#39;&#39;Parse a http response to an `TaskId`&#39;&#39;&#39;
+
         if &#39;task_id&#39; not in response:
             raise GeoEngineException(response)
 
@@ -739,6 +740,7 @@ The status is printed after each check-in. Check-ins happen in intervals of chec
     @classmethod
     def from_response(cls, response: Dict[str, str]) -&gt; TaskId:
         &#39;&#39;&#39;Parse a http response to an `TaskId`&#39;&#39;&#39;
+
         if &#39;task_id&#39; not in response:
             raise GeoEngineException(response)
 
@@ -771,6 +773,7 @@ The status is printed after each check-in. Check-ins happen in intervals of chec
 <pre><code class="python">@classmethod
 def from_response(cls, response: Dict[str, str]) -&gt; TaskId:
     &#39;&#39;&#39;Parse a http response to an `TaskId`&#39;&#39;&#39;
+
     if &#39;task_id&#39; not in response:
         raise GeoEngineException(response)
 

@@ -54,12 +54,14 @@ from typing_extensions import TypedDict
 from vega import VegaLite
 from xarray import DataArray
 
+from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
-from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, \
-    MethodNotCalledOnVectorException, SpatialReferenceMismatchException, check_response_for_error
+from geoengine.error import MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
+    MethodNotCalledOnVectorException, check_response_for_error
 from geoengine.tasks import Task, TaskId
 from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
+
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
 JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
@@ -87,13 +89,12 @@ class WorkflowId:
         self.__workflow_id = workflow_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -&gt; WorkflowId:
+    def from_response(cls, response: api.WorkflowId) -&gt; WorkflowId:
         &#39;&#39;&#39;
         Create a `WorkflowId` from an http response
         &#39;&#39;&#39;
         if &#39;id&#39; not in response:
-            raise GeoEngineException(response)
-
+            raise TypeError(&#39;Response does not contain a workflow id.&#39;)
         return WorkflowId(UUID(response[&#39;id&#39;]))
 
     def __str__(self) -&gt; str:
@@ -172,7 +173,7 @@ class Workflow:
             bbox=bbox.bbox_str,
             time=bbox.time_str,
             srsName=bbox.srs,
-            queryResolution=f&#39;{bbox.resolution[0]},{bbox.resolution[1]}&#39;
+            queryResolution=str(bbox.spatial_resolution)
         )
 
         wfs_url = req.Request(
@@ -261,8 +262,10 @@ class Workflow:
 
         session = get_session()
 
-        width = int((bbox.xmax - bbox.xmin) / bbox.resolution[0])
-        height = int((bbox.ymax - bbox.ymin) / bbox.resolution[1])
+        width = int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) / bbox.spatial_resolution.x_resolution)
+        height = int((bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) / bbox.spatial_resolution.y_resolution)
+
+        colorizer_colorizer_str = &#39;custom:&#39; + colorizer.to_json()
 
         params = dict(
             service=&#39;WMS&#39;,
@@ -275,7 +278,7 @@ class Workflow:
             width=width,
             height=height,
             format=&#39;image/png&#39;,
-            styles=colorizer.to_query_string(),
+            styles=colorizer_colorizer_str,
         )
 
         return req.Request(
@@ -307,7 +310,7 @@ class Workflow:
 
         time = urllib.parse.quote(bbox.time_str)
         spatial_bounds = urllib.parse.quote(bbox.bbox_str)
-        resolution = str(f&#39;{bbox.resolution[0]},{bbox.resolution[1]}&#39;)
+        resolution = str(bbox.spatial_resolution)
 
         plot_url = f&#39;{session.server_url}/plot/{self}?bbox={spatial_bounds}&amp;crs={bbox.srs}&amp;time={time}&#39;\
             f&#39;&amp;spatialResolution={resolution}&#39;
@@ -522,7 +525,7 @@ class Workflow:
 
     def save_as_dataset(
             self,
-            bbox: QueryRectangle,
+            query_rectangle: api.RasterQueryRectangle,
             name: str,
             description: str = &#39;&#39;,
             timeout: int = 3600) -&gt; Task:
@@ -532,19 +535,12 @@ class Workflow:
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
 
-        # The dataset is created in the spatial reference system of the workflow result
-        if self.get_result_descriptor().spatial_reference != bbox.srs:
-            raise SpatialReferenceMismatchException(
-                self.get_result_descriptor().spatial_reference,
-                bbox.srs
-            )
-
         session = get_session()
 
         request_body = {
             &#39;name&#39;: name,
             &#39;description&#39;: description,
-            &#39;query&#39;: bbox.__dict__(),
+            &#39;query&#39;: query_rectangle,
         }
 
         response = req.post(
@@ -954,7 +950,7 @@ dict(one=1, two=2)</p></div>
             bbox=bbox.bbox_str,
             time=bbox.time_str,
             srsName=bbox.srs,
-            queryResolution=f&#39;{bbox.resolution[0]},{bbox.resolution[1]}&#39;
+            queryResolution=str(bbox.spatial_resolution)
         )
 
         wfs_url = req.Request(
@@ -1043,8 +1039,10 @@ dict(one=1, two=2)</p></div>
 
         session = get_session()
 
-        width = int((bbox.xmax - bbox.xmin) / bbox.resolution[0])
-        height = int((bbox.ymax - bbox.ymin) / bbox.resolution[1])
+        width = int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) / bbox.spatial_resolution.x_resolution)
+        height = int((bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) / bbox.spatial_resolution.y_resolution)
+
+        colorizer_colorizer_str = &#39;custom:&#39; + colorizer.to_json()
 
         params = dict(
             service=&#39;WMS&#39;,
@@ -1057,7 +1055,7 @@ dict(one=1, two=2)</p></div>
             width=width,
             height=height,
             format=&#39;image/png&#39;,
-            styles=colorizer.to_query_string(),
+            styles=colorizer_colorizer_str,
         )
 
         return req.Request(
@@ -1089,7 +1087,7 @@ dict(one=1, two=2)</p></div>
 
         time = urllib.parse.quote(bbox.time_str)
         spatial_bounds = urllib.parse.quote(bbox.bbox_str)
-        resolution = str(f&#39;{bbox.resolution[0]},{bbox.resolution[1]}&#39;)
+        resolution = str(bbox.spatial_resolution)
 
         plot_url = f&#39;{session.server_url}/plot/{self}?bbox={spatial_bounds}&amp;crs={bbox.srs}&amp;time={time}&#39;\
             f&#39;&amp;spatialResolution={resolution}&#39;
@@ -1304,7 +1302,7 @@ dict(one=1, two=2)</p></div>
 
     def save_as_dataset(
             self,
-            bbox: QueryRectangle,
+            query_rectangle: api.RasterQueryRectangle,
             name: str,
             description: str = &#39;&#39;,
             timeout: int = 3600) -&gt; Task:
@@ -1314,19 +1312,12 @@ dict(one=1, two=2)</p></div>
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
 
-        # The dataset is created in the spatial reference system of the workflow result
-        if self.get_result_descriptor().spatial_reference != bbox.srs:
-            raise SpatialReferenceMismatchException(
-                self.get_result_descriptor().spatial_reference,
-                bbox.srs
-            )
-
         session = get_session()
 
         request_body = {
             &#39;name&#39;: name,
             &#39;description&#39;: description,
-            &#39;query&#39;: bbox.__dict__(),
+            &#39;query&#39;: query_rectangle,
         }
 
         response = req.post(
@@ -1657,7 +1648,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 
     time = urllib.parse.quote(bbox.time_str)
     spatial_bounds = urllib.parse.quote(bbox.bbox_str)
-    resolution = str(f&#39;{bbox.resolution[0]},{bbox.resolution[1]}&#39;)
+    resolution = str(bbox.spatial_resolution)
 
     plot_url = f&#39;{session.server_url}/plot/{self}?bbox={spatial_bounds}&amp;crs={bbox.srs}&amp;time={time}&#39;\
         f&#39;&amp;spatialResolution={resolution}&#39;
@@ -1675,7 +1666,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.save_as_dataset"><code class="name flex">
-<span>def <span class="ident">save_as_dataset</span></span>(<span>self, bbox: QueryRectangle, name: str, description: str = '', timeout: int = 3600) ‑> <a title="geoengine.tasks.Task" href="tasks.html#geoengine.tasks.Task">Task</a></span>
+<span>def <span class="ident">save_as_dataset</span></span>(<span>self, query_rectangle: api.RasterQueryRectangle, name: str, description: str = '', timeout: int = 3600) ‑> <a title="geoengine.tasks.Task" href="tasks.html#geoengine.tasks.Task">Task</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Init task to store the workflow result as a layer</p></div>
@@ -1685,7 +1676,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </summary>
 <pre><code class="python">def save_as_dataset(
         self,
-        bbox: QueryRectangle,
+        query_rectangle: api.RasterQueryRectangle,
         name: str,
         description: str = &#39;&#39;,
         timeout: int = 3600) -&gt; Task:
@@ -1695,19 +1686,12 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
     if not self.__result_descriptor.is_raster_result():
         raise MethodNotCalledOnRasterException()
 
-    # The dataset is created in the spatial reference system of the workflow result
-    if self.get_result_descriptor().spatial_reference != bbox.srs:
-        raise SpatialReferenceMismatchException(
-            self.get_result_descriptor().spatial_reference,
-            bbox.srs
-        )
-
     session = get_session()
 
     request_body = {
         &#39;name&#39;: name,
         &#39;description&#39;: description,
-        &#39;query&#39;: bbox.__dict__(),
+        &#39;query&#39;: query_rectangle,
     }
 
     response = req.post(
@@ -1808,13 +1792,12 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
         self.__workflow_id = workflow_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -&gt; WorkflowId:
+    def from_response(cls, response: api.WorkflowId) -&gt; WorkflowId:
         &#39;&#39;&#39;
         Create a `WorkflowId` from an http response
         &#39;&#39;&#39;
         if &#39;id&#39; not in response:
-            raise GeoEngineException(response)
-
+            raise TypeError(&#39;Response does not contain a workflow id.&#39;)
         return WorkflowId(UUID(response[&#39;id&#39;]))
 
     def __str__(self) -&gt; str:
@@ -1826,7 +1809,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.workflow.WorkflowId.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a></span>
+<span>def <span class="ident">from_response</span></span>(<span>response: api.WorkflowId) ‑> <a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Create a <code><a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a></code> from an http response</p></div>
@@ -1835,13 +1818,12 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response: Dict[str, str]) -&gt; WorkflowId:
+def from_response(cls, response: api.WorkflowId) -&gt; WorkflowId:
     &#39;&#39;&#39;
     Create a `WorkflowId` from an http response
     &#39;&#39;&#39;
     if &#39;id&#39; not in response:
-        raise GeoEngineException(response)
-
+        raise TypeError(&#39;Response does not contain a workflow id.&#39;)
     return WorkflowId(UUID(response[&#39;id&#39;]))</code></pre>
 </details>
 </dd>
