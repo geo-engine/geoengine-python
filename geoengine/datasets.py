@@ -335,7 +335,7 @@ class DatasetProperties():
     description: str
     source_operator: Literal['GdalSource', 'OgrSource']  # TODO: add more operators
     symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
-    provenance: Optional[Provenance]
+    provenance: Optional[List[Provenance]]
 
     def __init__(
         # pylint: disable=too-many-arguments
@@ -344,7 +344,7 @@ class DatasetProperties():
         description: str,
         source_operator: Literal['GdalSource', 'OgrSource'] = "GdalSource",
         symbology: Optional[RasterSymbology] = None,
-        provenance: Optional[Provenance] = None,
+        provenance: Optional[List[Provenance]] = None,
         dataset_id: Optional[DatasetId] = None
     ):
         '''Creates a new `AddDatasetProperties` object'''
@@ -363,7 +363,7 @@ class DatasetProperties():
             'description': self.description,
             'sourceOperator': self.source_operator,
             'symbology': self.symbology.to_api_dict() if self.symbology is not None else None,
-            'provenance': self.provenance.to_api_dict() if self.provenance is not None else None
+            'provenance': [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
         }
 
 

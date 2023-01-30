@@ -339,10 +339,10 @@ class ExternalDataId(DataId):  # pylint: disable=too-few-public-methods
     layerId: str
 
 
-class ProvenanceOutput(TypedDict):  # pylint: disable=too-few-public-methods
-    '''A provenance output'''
-    data: DataId
+class ProvenanceEntry(TypedDict):  # pylint: disable=too-few-public-methods
+    '''A provenance entry'''
     provenance: Provenance
+    data: List[DataId]
 
 
 class OgrSourceTimeFormat(TypedDict):  # pylint: disable=too-few-public-methods
@@ -476,7 +476,7 @@ class DatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
     description: str
     sourceOperator: Literal['GdalSource', 'OgrSource']  # TODO: add more operators
     symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
-    provenance: Optional[Provenance]
+    provenance: Optional[List[Provenance]]
 
 
 class DatasetStorage(TypedDict):

@@ -9,7 +9,7 @@ from abc import abstractmethod
 from datetime import datetime
 from uuid import UUID
 from enum import Enum
-from typing import Dict, Optional, Tuple, cast
+from typing import Dict, Optional, Tuple, cast, List
 from typing_extensions import Literal
 from attr import dataclass
 from geoengine.colorizer import Colorizer
@@ -808,20 +808,20 @@ class Provenance:
 
 
 @dataclass
-class ProvenanceOutput:
+class ProvenanceEntry:
     '''Provenance of a dataset'''
 
-    data: DataId
+    data: List[DataId]
     provenance: Provenance
 
     @classmethod
-    def from_response(cls, response: api.ProvenanceOutput) -> ProvenanceOutput:
-        '''Parse an http response to a `ProvenanceOutput` object'''
+    def from_response(cls, response: api.ProvenanceEntry) -> ProvenanceEntry:
+        '''Parse an http response to a `ProvenanceEntry` object'''
 
-        dataset = DataId.from_response(response['data'])
+        dataset = [DataId.from_response(data) for data in response['data']]
         provenance = Provenance.from_response(response['provenance'])
 
-        return ProvenanceOutput(dataset, provenance)
+        return ProvenanceEntry(dataset, provenance)
 
 
 class Symbology:
