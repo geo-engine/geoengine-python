@@ -364,7 +364,7 @@ class DatasetProperties():
     description: str
     source_operator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
     symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
-    provenance: Optional[Provenance]
+    provenance: Optional[List[Provenance]]
 
     def __init__(
         # pylint: disable=too-many-arguments
@@ -373,7 +373,7 @@ class DatasetProperties():
         description: str,
         source_operator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;] = &#34;GdalSource&#34;,
         symbology: Optional[RasterSymbology] = None,
-        provenance: Optional[Provenance] = None,
+        provenance: Optional[List[Provenance]] = None,
         dataset_id: Optional[DatasetId] = None
     ):
         &#39;&#39;&#39;Creates a new `AddDatasetProperties` object&#39;&#39;&#39;
@@ -392,7 +392,7 @@ class DatasetProperties():
             &#39;description&#39;: self.description,
             &#39;sourceOperator&#39;: self.source_operator,
             &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
-            &#39;provenance&#39;: self.provenance.to_api_dict() if self.provenance is not None else None
+            &#39;provenance&#39;: [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
         }
 
 
@@ -1039,7 +1039,7 @@ def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
 </dd>
 <dt id="geoengine.datasets.DatasetProperties"><code class="flex name class">
 <span>class <span class="ident">DatasetProperties</span></span>
-<span>(</span><span>name: str, description: str, source_operator: "Literal['GdalSource', 'OgrSource']" = 'GdalSource', symbology: Optional[RasterSymbology] = None, provenance: Optional[Provenance] = None, dataset_id: Optional[<a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a>] = None)</span>
+<span>(</span><span>name: str, description: str, source_operator: "Literal['GdalSource', 'OgrSource']" = 'GdalSource', symbology: Optional[RasterSymbology] = None, provenance: Optional[List[Provenance]] = None, dataset_id: Optional[<a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The properties of a dataset</p>
@@ -1055,7 +1055,7 @@ def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
     description: str
     source_operator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
     symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
-    provenance: Optional[Provenance]
+    provenance: Optional[List[Provenance]]
 
     def __init__(
         # pylint: disable=too-many-arguments
@@ -1064,7 +1064,7 @@ def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
         description: str,
         source_operator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;] = &#34;GdalSource&#34;,
         symbology: Optional[RasterSymbology] = None,
-        provenance: Optional[Provenance] = None,
+        provenance: Optional[List[Provenance]] = None,
         dataset_id: Optional[DatasetId] = None
     ):
         &#39;&#39;&#39;Creates a new `AddDatasetProperties` object&#39;&#39;&#39;
@@ -1083,7 +1083,7 @@ def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
             &#39;description&#39;: self.description,
             &#39;sourceOperator&#39;: self.source_operator,
             &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
-            &#39;provenance&#39;: self.provenance.to_api_dict() if self.provenance is not None else None
+            &#39;provenance&#39;: [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
         }</code></pre>
 </details>
 <h3>Class variables</h3>
@@ -1100,7 +1100,7 @@ def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.datasets.DatasetProperties.provenance"><code class="name">var <span class="ident">provenance</span> : Optional[<a title="geoengine.types.Provenance" href="types.html#geoengine.types.Provenance">Provenance</a>]</code></dt>
+<dt id="geoengine.datasets.DatasetProperties.provenance"><code class="name">var <span class="ident">provenance</span> : Optional[List[<a title="geoengine.types.Provenance" href="types.html#geoengine.types.Provenance">Provenance</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1132,7 +1132,7 @@ def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
         &#39;description&#39;: self.description,
         &#39;sourceOperator&#39;: self.source_operator,
         &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
-        &#39;provenance&#39;: self.provenance.to_api_dict() if self.provenance is not None else None
+        &#39;provenance&#39;: [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
     }</code></pre>
 </details>
 </dd>

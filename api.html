@@ -368,10 +368,10 @@ class ExternalDataId(DataId):  # pylint: disable=too-few-public-methods
     layerId: str
 
 
-class ProvenanceOutput(TypedDict):  # pylint: disable=too-few-public-methods
-    &#39;&#39;&#39;A provenance output&#39;&#39;&#39;
-    data: DataId
+class ProvenanceEntry(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A provenance entry&#39;&#39;&#39;
     provenance: Provenance
+    data: List[DataId]
 
 
 class OgrSourceTimeFormat(TypedDict):  # pylint: disable=too-few-public-methods
@@ -505,7 +505,7 @@ class DatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
     description: str
     sourceOperator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
     symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
-    provenance: Optional[Provenance]
+    provenance: Optional[List[Provenance]]
 
 
 class DatasetStorage(TypedDict):
@@ -929,7 +929,7 @@ class CreateDataset(TypedDict):
     description: str
     sourceOperator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
     symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
-    provenance: Optional[Provenance]</code></pre>
+    provenance: Optional[List[Provenance]]</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -949,7 +949,7 @@ class CreateDataset(TypedDict):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.DatasetProperties.provenance"><code class="name">var <span class="ident">provenance</span> : Optional[<a title="geoengine.api.Provenance" href="#geoengine.api.Provenance">Provenance</a>]</code></dt>
+<dt id="geoengine.api.DatasetProperties.provenance"><code class="name">var <span class="ident">provenance</span> : Optional[List[<a title="geoengine.api.Provenance" href="#geoengine.api.Provenance">Provenance</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2241,20 +2241,20 @@ dict(one=1, two=2)</p></div>
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.api.ProvenanceOutput"><code class="flex name class">
-<span>class <span class="ident">ProvenanceOutput</span></span>
+<dt id="geoengine.api.ProvenanceEntry"><code class="flex name class">
+<span>class <span class="ident">ProvenanceEntry</span></span>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A provenance output</p></div>
+<div class="desc"><p>A provenance entry</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ProvenanceOutput(TypedDict):  # pylint: disable=too-few-public-methods
-    &#39;&#39;&#39;A provenance output&#39;&#39;&#39;
-    data: DataId
-    provenance: Provenance</code></pre>
+<pre><code class="python">class ProvenanceEntry(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A provenance entry&#39;&#39;&#39;
+    provenance: Provenance
+    data: List[DataId]</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2262,11 +2262,11 @@ dict(one=1, two=2)</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.ProvenanceOutput.data"><code class="name">var <span class="ident">data</span> : <a title="geoengine.api.DataId" href="#geoengine.api.DataId">DataId</a></code></dt>
+<dt id="geoengine.api.ProvenanceEntry.data"><code class="name">var <span class="ident">data</span> : List[<a title="geoengine.api.DataId" href="#geoengine.api.DataId">DataId</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.ProvenanceOutput.provenance"><code class="name">var <span class="ident">provenance</span> : <a title="geoengine.api.Provenance" href="#geoengine.api.Provenance">Provenance</a></code></dt>
+<dt id="geoengine.api.ProvenanceEntry.provenance"><code class="name">var <span class="ident">provenance</span> : <a title="geoengine.api.Provenance" href="#geoengine.api.Provenance">Provenance</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3674,10 +3674,10 @@ dict(one=1, two=2)</p></div>
 </ul>
 </li>
 <li>
-<h4><code><a title="geoengine.api.ProvenanceOutput" href="#geoengine.api.ProvenanceOutput">ProvenanceOutput</a></code></h4>
+<h4><code><a title="geoengine.api.ProvenanceEntry" href="#geoengine.api.ProvenanceEntry">ProvenanceEntry</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.api.ProvenanceOutput.data" href="#geoengine.api.ProvenanceOutput.data">data</a></code></li>
-<li><code><a title="geoengine.api.ProvenanceOutput.provenance" href="#geoengine.api.ProvenanceOutput.provenance">provenance</a></code></li>
+<li><code><a title="geoengine.api.ProvenanceEntry.data" href="#geoengine.api.ProvenanceEntry.data">data</a></code></li>
+<li><code><a title="geoengine.api.ProvenanceEntry.provenance" href="#geoengine.api.ProvenanceEntry.provenance">provenance</a></code></li>
 </ul>
 </li>
 <li>

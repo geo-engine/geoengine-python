@@ -60,7 +60,7 @@ from geoengine.colorizer import Colorizer
 from geoengine.error import MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
     MethodNotCalledOnVectorException, check_response_for_error
 from geoengine.tasks import Task, TaskId
-from geoengine.types import ProvenanceOutput, QueryRectangle, ResultDescriptor
+from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
 
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
@@ -493,7 +493,7 @@ class Workflow:
         with open(file_path, &#39;wb&#39;) as file:
             file.write(response.read())
 
-    def get_provenance(self, timeout: int = 60) -&gt; List[ProvenanceOutput]:
+    def get_provenance(self, timeout: int = 60) -&gt; List[ProvenanceEntry]:
         &#39;&#39;&#39;
         Query the provenance of the workflow
         &#39;&#39;&#39;
@@ -504,7 +504,7 @@ class Workflow:
 
         response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).json()
 
-        return [ProvenanceOutput.from_response(item) for item in response]
+        return [ProvenanceEntry.from_response(item) for item in response]
 
     def metadata_zip(self, path: Union[PathLike, BytesIO], timeout: int = 60) -&gt; None:
         &#39;&#39;&#39;
@@ -1270,7 +1270,7 @@ dict(one=1, two=2)</p></div>
         with open(file_path, &#39;wb&#39;) as file:
             file.write(response.read())
 
-    def get_provenance(self, timeout: int = 60) -&gt; List[ProvenanceOutput]:
+    def get_provenance(self, timeout: int = 60) -&gt; List[ProvenanceEntry]:
         &#39;&#39;&#39;
         Query the provenance of the workflow
         &#39;&#39;&#39;
@@ -1281,7 +1281,7 @@ dict(one=1, two=2)</p></div>
 
         response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).json()
 
-        return [ProvenanceOutput.from_response(item) for item in response]
+        return [ProvenanceEntry.from_response(item) for item in response]
 
     def metadata_zip(self, path: Union[PathLike, BytesIO], timeout: int = 60) -&gt; None:
         &#39;&#39;&#39;
@@ -1478,7 +1478,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.get_provenance"><code class="name flex">
-<span>def <span class="ident">get_provenance</span></span>(<span>self, timeout: int = 60) ‑> List[<a title="geoengine.types.ProvenanceOutput" href="types.html#geoengine.types.ProvenanceOutput">ProvenanceOutput</a>]</span>
+<span>def <span class="ident">get_provenance</span></span>(<span>self, timeout: int = 60) ‑> List[<a title="geoengine.types.ProvenanceEntry" href="types.html#geoengine.types.ProvenanceEntry">ProvenanceEntry</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Query the provenance of the workflow</p></div>
@@ -1486,7 +1486,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_provenance(self, timeout: int = 60) -&gt; List[ProvenanceOutput]:
+<pre><code class="python">def get_provenance(self, timeout: int = 60) -&gt; List[ProvenanceEntry]:
     &#39;&#39;&#39;
     Query the provenance of the workflow
     &#39;&#39;&#39;
@@ -1497,7 +1497,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 
     response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).json()
 
-    return [ProvenanceOutput.from_response(item) for item in response]</code></pre>
+    return [ProvenanceEntry.from_response(item) for item in response]</code></pre>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.get_result_descriptor"><code class="name flex">
