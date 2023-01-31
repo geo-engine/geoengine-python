@@ -12,7 +12,7 @@ class ColorizerTests(unittest.TestCase):
 
     def setUp(self) -> None:
         """Set up the geo engine session."""
-        ge.reset(False)
+        ge.reset(logout=False)
 
     def test_viridis(self):
         """Test the basic viridis cmap colorizer."""

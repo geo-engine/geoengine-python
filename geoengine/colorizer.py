@@ -16,12 +16,12 @@ from geoengine import api
 @dataclass
 class ColorBreakpoint():
     """This class is used to generate geoengine compatible color breakpoint definitions."""
-    color: Tuple[int, int, int, int]
     value: float
+    color: Tuple[int, int, int, int]
 
     def to_api_dict(self) -> api.ColorizerBreakpoint:
         """Return the color breakpoint as a dictionary."""
-        return api.ColorizerBreakpoint({"value": self.value, "color": self.color})
+        return api.ColorizerBreakpoint(value=self.value, color=self.color)
 
     @staticmethod
     def from_response(response: api.ColorizerBreakpoint) -> ColorBreakpoint:
@@ -74,18 +74,17 @@ class Colorizer():
 
         # generate color map steps for geoengine
         breakpoints = [
-            ColorBreakpoint(color=tuple(color.tolist()), value=value) for (value, color) in zip(values_of_breakpoints, list_of_rgba_colors)
+            ColorBreakpoint(color=tuple(color.tolist()), value=value) for (value, color) in zip(
+                values_of_breakpoints, list_of_rgba_colors)
         ]
 
-        colorizer = LinearGradientColorizer(
+        return LinearGradientColorizer(
             type='linearGradient',
             breakpoints=breakpoints,
             no_data_color=no_data_color,
             over_color=over_color,
             under_color=under_color
         )
-
-        return colorizer
 
     @abstractmethod
     def to_api_dict(self) -> api.Colorizer:
