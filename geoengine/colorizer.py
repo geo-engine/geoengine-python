@@ -102,19 +102,16 @@ class Colorizer():
         if not all(0 <= elem < 256 for elem in default_color):
             raise ValueError(f"defaultColor must be a RGBA color specification, got {default_color} instead.")
 
-        # get the map, and transform it to [0,255] values
-        colormap = [
-            (int(x[0]), int(x[1]), int(x[2]), int(x[3])) for x in ScalarMappable(cmap=map_name).to_rgba(
-                np.linspace(min_max[0], min_max[1], n_steps), bytes=True)]
+        # get the map, and transform it to a list of (uint8) rgba values
+        list_of_rgba_colors: List[Tuple[int, int, int, int]] = ScalarMappable(cmap=map_name).to_rgba(
+            np.linspace(min_max[0], min_max[1], n_steps), bytes=True)
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
-        value_bounds = [
-            int(x) for x in np.linspace(min_max[0], min_max[1], n_steps)
-        ]
+        values_of_breakpoints: List[int] = np.linspace(min_max[0], min_max[1], n_steps, dtype=int).tolist()
 
         # generate color map steps for geoengine
         breakpoints = [
-            ColorBreakpoint(color=color, value=value) for (value, color) in zip(value_bounds, colormap)
+            ColorBreakpoint(color=tuple(color.tolist()), value=value) for (value, color) in zip(values_of_breakpoints, list_of_rgba_colors)
         ]
 
         colorizer = LinearGradientColorizer(
