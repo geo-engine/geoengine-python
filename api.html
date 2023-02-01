@@ -203,13 +203,6 @@ class GdalDatasetParameters(TypedDict):  # pylint: disable=too-few-public-method
     allowAlphabandAsMask: bool
 
 
-class DateTimeParseFormat(TypedDict):  # pylint: disable=too-few-public-methods
-    &#39;&#39;&#39;A format for parsing date time strings&#39;&#39;&#39;
-    fmt: str
-    hasTz: bool
-    hasTime: bool
-
-
 class TimeReference(Enum):  # pylint: disable=too-few-public-methods
     &#39;&#39;&#39;The reference for a time placeholder&#39;&#39;&#39;
     START = &#34;Start&#34;
@@ -235,7 +228,7 @@ class TimeStep(TypedDict):  # pylint: disable=too-few-public-methods
 
 class GdalSourceTimePlaceholder(TypedDict):  # pylint: disable=too-few-public-methods
     &#39;&#39;&#39;A placeholder for a time value in a file name&#39;&#39;&#39;
-    format: DateTimeParseFormat
+    format: str
     reference: TimeReference
 
 
@@ -1007,42 +1000,6 @@ class CreateDataset(TypedDict):
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.api.DateTimeParseFormat"><code class="flex name class">
-<span>class <span class="ident">DateTimeParseFormat</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A format for parsing date time strings</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DateTimeParseFormat(TypedDict):  # pylint: disable=too-few-public-methods
-    &#39;&#39;&#39;A format for parsing date time strings&#39;&#39;&#39;
-    fmt: str
-    hasTz: bool
-    hasTime: bool</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.dict</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="geoengine.api.DateTimeParseFormat.fmt"><code class="name">var <span class="ident">fmt</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.api.DateTimeParseFormat.hasTime"><code class="name">var <span class="ident">hasTime</span> : bool</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.api.DateTimeParseFormat.hasTz"><code class="name">var <span class="ident">hasTz</span> : bool</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
 <dt id="geoengine.api.ExternalDataId"><code class="flex name class">
 <span>class <span class="ident">ExternalDataId</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -1418,7 +1375,7 @@ class CreateDataset(TypedDict):
 </summary>
 <pre><code class="python">class GdalSourceTimePlaceholder(TypedDict):  # pylint: disable=too-few-public-methods
     &#39;&#39;&#39;A placeholder for a time value in a file name&#39;&#39;&#39;
-    format: DateTimeParseFormat
+    format: str
     reference: TimeReference</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1427,7 +1384,7 @@ class CreateDataset(TypedDict):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.GdalSourceTimePlaceholder.format"><code class="name">var <span class="ident">format</span> : <a title="geoengine.api.DateTimeParseFormat" href="#geoengine.api.DateTimeParseFormat">DateTimeParseFormat</a></code></dt>
+<dt id="geoengine.api.GdalSourceTimePlaceholder.format"><code class="name">var <span class="ident">format</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3402,14 +3359,6 @@ dict(one=1, two=2)</p></div>
 <h4><code><a title="geoengine.api.DatasetVolume" href="#geoengine.api.DatasetVolume">DatasetVolume</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.api.DatasetVolume.volume" href="#geoengine.api.DatasetVolume.volume">volume</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="geoengine.api.DateTimeParseFormat" href="#geoengine.api.DateTimeParseFormat">DateTimeParseFormat</a></code></h4>
-<ul class="">
-<li><code><a title="geoengine.api.DateTimeParseFormat.fmt" href="#geoengine.api.DateTimeParseFormat.fmt">fmt</a></code></li>
-<li><code><a title="geoengine.api.DateTimeParseFormat.hasTime" href="#geoengine.api.DateTimeParseFormat.hasTime">hasTime</a></code></li>
-<li><code><a title="geoengine.api.DateTimeParseFormat.hasTz" href="#geoengine.api.DateTimeParseFormat.hasTz">hasTz</a></code></li>
 </ul>
 </li>
 <li>
