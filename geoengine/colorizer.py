@@ -1,5 +1,6 @@
 """This module is used to generate geoengine compatible color map definitions as a json string."""
 
+from __future__ import annotations
 from abc import abstractmethod
 import json
 from typing import Dict, List, Tuple, cast
@@ -26,7 +27,7 @@ class ColorBreakpoint():
         return api.ColorizerBreakpoint({"value": self.value, "color": self.color})
 
     @staticmethod
-    def from_response(response: api.ColorizerBreakpoint) -> "ColorBreakpoint":
+    def from_response(response: api.ColorizerBreakpoint) -> ColorBreakpoint:
         """Parse a http response to a `ColorBreakpoint`."""
         return ColorBreakpoint(response['value'], response['color'])
 
@@ -56,7 +57,7 @@ class Colorizer():
         n_steps: int = 10,
         default_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
         no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)
-    ) -> "LinearGradientColorizer":
+    ) -> LinearGradientColorizer:
         """Initialize the colorizer."""
         # pylint: disable=too-many-arguments
 
@@ -133,7 +134,7 @@ class Colorizer():
         return json.dumps(self.to_api_dict())
 
     @staticmethod
-    def from_response(response: api.Colorizer) -> "Colorizer":
+    def from_response(response: api.Colorizer) -> Colorizer:
         """Create a colorizer from a response."""
         if response['type'] == 'linearGradient':
             return LinearGradientColorizer.from_response_linear(cast(api.LinearGradientColorizer, response))
@@ -161,7 +162,7 @@ class LinearGradientColorizer(Colorizer):
         self.breakpoints = breakpoints
 
     @staticmethod
-    def from_response_linear(response: api.LinearGradientColorizer) -> "LinearGradientColorizer":
+    def from_response_linear(response: api.LinearGradientColorizer) -> LinearGradientColorizer:
         """Create a colorizer from a response."""
         breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response['breakpoints']]
         return LinearGradientColorizer(
@@ -194,7 +195,7 @@ class LogarithmicGradientColorizer(Colorizer):
         self.breakpoints = breakpoints
 
     @staticmethod
-    def from_response_logarithmic(response: api.LogarithmicGradientColorizer) -> "LogarithmicGradientColorizer":
+    def from_response_logarithmic(response: api.LogarithmicGradientColorizer) -> LogarithmicGradientColorizer:
         """Create a colorizer from a response."""
         breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response['breakpoints']]
         return LogarithmicGradientColorizer(
@@ -227,7 +228,7 @@ class PaletteColorizer(Colorizer):
         self.colors = colors
 
     @staticmethod
-    def from_response_palette(response: api.PaletteColorizer) -> "PaletteColorizer":
+    def from_response_palette(response: api.PaletteColorizer) -> PaletteColorizer:
         """Create a colorizer from a response."""
 
         return PaletteColorizer(
