@@ -56,7 +56,7 @@ class WmsTests(unittest.TestCase):
 
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=200&height=100&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0%2C+%22color%22%3A+%5B0%2C+0%2C+0%2C+255%5D%7D%2C+%7B%22value%22%3A+255%2C+%22color%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22overColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22underColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%7D',
+                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=200&height=100&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0.0%2C+%22color%22%3A+%5B0%2C+0%2C+0%2C+255%5D%7D%2C+%7B%22value%22%3A+255.0%2C+%22color%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22overColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22underColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%7D',
                 body=ndvi_png,
             )
 
@@ -86,7 +86,7 @@ class WmsTests(unittest.TestCase):
                     ge.TimeInterval(time),
                     resolution=ge.SpatialResolution(1.8, 1.8)
                 ),
-                colorizer=Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2),
+                colorizer=Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0.0, 255.0), n_steps=2),
             )
 
             self.assertEqual(img, Image.open("tests/responses/wms-ndvi.png"))
@@ -122,7 +122,7 @@ class WmsTests(unittest.TestCase):
             # Unfortunately, we need a separate library to catch the request from the WMS call
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=200&height=100&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0%2C+%22color%22%3A+%5B0%2C+0%2C+0%2C+255%5D%7D%2C+%7B%22value%22%3A+255%2C+%22color%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22overColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22underColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%7D',
+                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=200&height=100&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0.0%2C+%22color%22%3A+%5B0%2C+0%2C+0%2C+255%5D%7D%2C+%7B%22value%22%3A+255.0%2C+%22color%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22overColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22underColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%7D',
                 json={
                     "error": "Operator",
                     "message": 'Operator: Could not open gdal dataset for file path '
@@ -158,7 +158,7 @@ class WmsTests(unittest.TestCase):
                         time_interval=ge.TimeInterval(time),
                         resolution=ge.SpatialResolution(1.8, 1.8)
                     ),
-                    colorizer=Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2),
+                    colorizer=Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0.0, 255.0), n_steps=2),
                 )
 
             self.assertEqual(str(ctx.exception),
@@ -217,12 +217,12 @@ class WmsTests(unittest.TestCase):
                     ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                     ge.TimeInterval(time),
                     resolution=ge.SpatialResolution(1, 1)
-                ), Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0, 255), n_steps=2))
+                ), Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0.0, 255.0), n_steps=2))
 
             self.assertEqual(
                 # pylint: disable=line-too-long
                 wms_curl,
-                """curl -X GET -H "Authorization: Bearer c4983c3e-9b53-47ae-bda9-382223bd5081" 'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=360&height=180&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0%2C+%22color%22%3A+%5B0%2C+0%2C+0%2C+255%5D%7D%2C+%7B%22value%22%3A+255%2C+%22color%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22overColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22underColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%7D'"""
+                """curl -X GET -H "Authorization: Bearer c4983c3e-9b53-47ae-bda9-382223bd5081" 'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=360&height=180&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0.0%2C+%22color%22%3A+%5B0%2C+0%2C+0%2C+255%5D%7D%2C+%7B%22value%22%3A+255.0%2C+%22color%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22overColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22underColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%7D'"""
             )
 
     def test_result_descriptor(self):

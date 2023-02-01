@@ -3,7 +3,7 @@
 from __future__ import annotations
 from abc import abstractmethod
 import json
-from typing import Dict, List, Tuple, cast
+from typing import Dict, List, Tuple, Union, cast
 from typing_extensions import Literal
 import numpy as np
 import matplotlib.pyplot as plt
@@ -52,8 +52,8 @@ class Colorizer():
 
     @staticmethod
     def linear_with_mpl_cmap(
-        map_name: ListedColormap,
-        min_max: Tuple[int, int],
+        map_name: Union[str, Colormap],
+        min_max: Tuple[float, float],
         n_steps: int = 10,
         default_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
         no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)
@@ -79,7 +79,7 @@ class Colorizer():
             np.linspace(min_max[0], min_max[1], n_steps), bytes=True)
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
-        values_of_breakpoints: List[int] = np.linspace(min_max[0], min_max[1], n_steps, dtype=int).tolist()
+        values_of_breakpoints: List[float] = np.linspace(min_max[0], min_max[1], n_steps).tolist()
 
         # generate color map steps for geoengine
         breakpoints = [
