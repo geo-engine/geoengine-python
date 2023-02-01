@@ -174,13 +174,6 @@ class GdalDatasetParameters(TypedDict):  # pylint: disable=too-few-public-method
     allowAlphabandAsMask: bool
 
 
-class DateTimeParseFormat(TypedDict):  # pylint: disable=too-few-public-methods
-    '''A format for parsing date time strings'''
-    fmt: str
-    hasTz: bool
-    hasTime: bool
-
-
 class TimeReference(Enum):  # pylint: disable=too-few-public-methods
     '''The reference for a time placeholder'''
     START = "Start"
@@ -206,7 +199,7 @@ class TimeStep(TypedDict):  # pylint: disable=too-few-public-methods
 
 class GdalSourceTimePlaceholder(TypedDict):  # pylint: disable=too-few-public-methods
     '''A placeholder for a time value in a file name'''
-    format: DateTimeParseFormat
+    format: str
     reference: TimeReference
 
 
