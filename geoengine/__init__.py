@@ -18,7 +18,7 @@ from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing
 from .types import QueryRectangle,  \
     RasterResultDescriptor, Provenance, UnitlessMeasurement, ContinuousMeasurement, \
     ClassificationMeasurement, BoundingBox2D, TimeInterval, SpatialResolution, SpatialPartition2D, \
-    RasterSymbology, VectorSymbology
+    RasterSymbology, VectorSymbology, VectorDataType, VectorResultDescriptor, VectorColumnInfo
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow
 
 
