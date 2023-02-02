@@ -66,21 +66,25 @@ class Colorizer(TypedDict):  # pylint: disable=too-few-public-methods
     """This is a color map definitions as a dictionary."""
     type: Literal["linearGradient", "palette", "logarithmicGradient"]
     noDataColor: Tuple[int, int, int, int]
-    defaultColor: Tuple[int, int, int, int]
 
 
 class PaletteColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     """This is a palette color map definitions as a dictionary."""
     colors: Dict[float, Tuple[int, int, int, int]]
+    defaultColor: Tuple[int, int, int, int]
 
 
 class LinearGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     """This is a linear gradient color map definitions as a dictionary."""
+    overColor: Tuple[int, int, int, int]
+    underColor: Tuple[int, int, int, int]
     breakpoints: List[ColorizerBreakpoint]
 
 
 class LogarithmicGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     """This is a logarithmic gradient color map definitions as a dictionary."""
+    overColor: Tuple[int, int, int, int]
+    underColor: Tuple[int, int, int, int]
     breakpoints: List[ColorizerBreakpoint]
 
 
