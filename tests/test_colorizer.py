@@ -14,23 +14,48 @@ class ColorizerTests(unittest.TestCase):
         """Set up the geo engine session."""
         ge.reset(logout=False)
 
-    def test_viridis(self):
-        """Test the basic viridis cmap colorizer."""
+    def test_gray_linear(self):
+        """Test the basic black to white cmap colorizer."""
         expected = {
             "type": "linearGradient",
             "breakpoints": [
-                {"value": 0.0, "color": (68, 1, 84, 255)},
-                {"value": 255.0, "color": (253, 231, 36, 255)}
+                {"value": 0.0, "color": (0, 0, 0, 255)},
+                {"value": 63.75, "color": (64, 64, 64, 255)},
+                {"value": 127.5, "color": (128, 128, 128, 255)},
+                {"value": 191.25, "color": (192, 192, 192, 255)},
+                {"value": 255.0, "color": (255, 255, 255, 255)}
             ],
             "noDataColor": (0, 0, 0, 0),
             "overColor": (0, 0, 0, 0),
             "underColor": (0, 0, 0, 0)
         }
 
-        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="viridis", min_max=(0.0, 255.0), n_steps=2)
-        viridis = geo_colorizer.to_api_dict()
+        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0.0, 255.0), n_steps=5)
+        gray = geo_colorizer.to_api_dict()
 
-        assert viridis == expected
+        assert gray == expected
+
+    def test_gray_logarithmic(self):
+        """Test the basic black to white cmap colorizer."""
+        expected = {
+            "type": "logarithmicGradient",
+            "breakpoints": [
+                {"value": 1.0, "color": (0, 0, 0, 255)},
+                {"value": 10.0, "color": (64, 64, 64, 255)},
+                {"value": 100.0, "color": (128, 128, 128, 255)},
+                {"value": 1000.0, "color": (192, 192, 192, 255)},
+                {"value": 10000.0, "color": (255, 255, 255, 255)}
+            ],
+            "noDataColor": (0, 0, 0, 0),
+            "overColor": (0, 0, 0, 0),
+            "underColor": (0, 0, 0, 0)
+        }
+
+        geo_colorizer = colorizer.Colorizer.logarithmic_with_mpl_cmap(
+            map_name="gray", min_max=(1.0, 10000.0), n_steps=5)
+        gray = geo_colorizer.to_api_dict()
+
+        assert gray == expected
 
     def test_colormap_not_available(self):
         """Test that an error is raised when a colormap is not available."""
@@ -136,6 +161,14 @@ class ColorizerTests(unittest.TestCase):
         viridis = geo_colorizer.to_api_dict()
 
         assert viridis == expected
+
+    def test_set_minmax_log_wrong_values(self):
+        """Tests the setting of wrong values for the min and max of a logarithmic gradient."""
+
+        with self.assertRaises(ValueError) as ctx:
+            colorizer.Colorizer.logarithmic_with_mpl_cmap(map_name="viridis", min_max=(-10.0, 10.0), n_steps=3)
+
+        self.assertEqual(str(ctx.exception), "min_max[0] must be greater than 0 for a logarithmic gradient, got -10.0.")
 
     def test_minmax_wrong_order(self):
         """Tests if an error is raised, when the setting of the min and max values is wrong."""

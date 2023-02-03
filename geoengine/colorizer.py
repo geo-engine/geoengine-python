@@ -90,6 +90,60 @@ class Colorizer():
             under_color=under_color
         )
 
+    @staticmethod
+    def logarithmic_with_mpl_cmap(
+        map_name: Union[str, Colormap],
+        min_max: Tuple[float, float],
+        n_steps: int = 10,
+        over_color: Rgba = (0, 0, 0, 0),
+        under_color: Rgba = (0, 0, 0, 0),
+        no_data_color: Rgba = (0, 0, 0, 0)
+    ) -> LogarithmicGradientColorizer:
+        """Initialize the colorizer."""
+        # pylint: disable=too-many-arguments
+
+        if n_steps < 2:
+            raise ValueError(f"n_steps must be greater than or equal to 2, got {n_steps} instead.")
+        if min_max[0] <= 0:
+            raise ValueError(f"min_max[0] must be greater than 0 for a logarithmic gradient, got {min_max[0]}.")
+        if min_max[1] <= min_max[0]:
+            raise ValueError(f"min_max[1] must be greater than min_max[0], got {min_max[1]} and {min_max[0]}.")
+        if len(over_color) != 4:
+            raise ValueError(f"overColor must be a tuple of length 4, got {len(over_color)} instead.")
+        if len(under_color) != 4:
+            raise ValueError(f"underColor must be a tuple of length 4, got {len(under_color)} instead.")
+        if len(no_data_color) != 4:
+            raise ValueError(f"noDataColor must be a tuple of length 4, got {len(no_data_color)} instead.")
+        if not all(0 <= elem < 256 for elem in no_data_color):
+            raise ValueError(f"noDataColor must be a RGBA color specification, got {no_data_color} instead.")
+        if not all(0 <= elem < 256 for elem in over_color):
+            raise ValueError(f"overColor must be a RGBA color specification, got {over_color} instead.")
+        if not all(0 <= elem < 256 for elem in under_color):
+            raise ValueError(f"underColor must be a RGBA color specification, got {under_color} instead.")
+
+        # get the map, and transform it to a list of (uint8) rgba values
+        list_of_rgba_colors: List[npt.NDArray[np.uint8]] = ScalarMappable(cmap=map_name).to_rgba(
+            np.linspace(min_max[0], min_max[1], n_steps), bytes=True)
+
+        # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
+        values_of_breakpoints: List[float] = np.logspace(np.log10(min_max[0]), np.log10(min_max[1]), n_steps).tolist()
+
+        # generate color map steps for geoengine
+        breakpoints: List[ColorBreakpoint] = [
+            ColorBreakpoint(
+                color=cast(Rgba, tuple(color.tolist())), value=value
+            ) for (value, color) in zip(
+                values_of_breakpoints, list_of_rgba_colors)
+        ]
+
+        return LogarithmicGradientColorizer(
+            type='logarithmicGradient',
+            breakpoints=breakpoints,
+            no_data_color=no_data_color,
+            over_color=over_color,
+            under_color=under_color
+        )
+
     @abstractmethod
     def to_api_dict(self) -> api.Colorizer:
         pass
