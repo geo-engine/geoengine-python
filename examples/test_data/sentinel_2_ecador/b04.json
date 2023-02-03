@@ -1,0 +1,353 @@
+{
+  "properties": {
+    "id": "7963f0e7-1ea0-4744-a2f1-b379a113359e",
+    "name": "Sentinel 2 B04 CF 1 months",
+    "description": "Sentinel 2 B04 CF 1 months",
+    "sourceOperator": "GdalSource",
+    "symbology": {
+      "type": "raster",
+      "colorizer": {
+        "type": "linearGradient",
+        "breakpoints": [
+          {
+            "value": 0.0,
+            "color": [
+              68,
+              1,
+              84,
+              255
+            ]
+          },
+          {
+            "value": 20000.0,
+            "color": [
+              33,
+              145,
+              140,
+              255
+            ]
+          },
+          {
+            "value": 60000.0,
+            "color": [
+              253,
+              231,
+              37,
+              255
+            ]
+          }
+        ],
+        "noDataColor": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "defaultColor": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "opacity": 1.0
+    },
+    "provenance": [
+      {
+        "citation": "TODO",
+        "license": "TODO",
+        "uri": "TODO"
+      },
+      {
+        "citation": "Geo Engine GmbH",
+        "license": "TODO",
+        "uri": "TODO"
+      }
+    ]
+  },
+  "metaData": {
+    "type": "GdalMetaDataList",
+    "resultDescriptor": {
+      "type": "raster",
+      "dataType": "U16",
+      "measurement": {
+        "type": "continuous",
+        "measurement": "",
+        "unit": ""
+      },
+      "spatialReference": "EPSG:32717",
+      "time": {
+        "start": "2019-01-01T00:00:00.000+00:00",
+        "end": "2019-12-29T00:00:00.000+00:00"
+      },
+      "bbox": {
+        "upperLeftCoordinate": {
+          "x": 650000,
+          "y": 9600000
+        },
+        "lowerRightCoordinate": {
+          "x": 730000,
+          "y": 9520000
+        }
+      },
+      "resolution": {
+        "x": 10,
+        "y": 10
+      }
+    },
+    "params": [
+      {
+        "time": {
+          "start": "2019-01-01T00:00:00.000+00:00",
+          "end": "2019-02-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-01-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      },
+      {
+        "time": {
+          "start": "2019-02-01T00:00:00.000+00:00",
+          "end": "2019-03-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-02-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      },
+      {
+        "time": {
+          "start": "2019-03-01T00:00:00.000+00:00",
+          "end": "2019-04-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-03-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      },
+      {
+        "time": {
+          "start": "2019-04-01T00:00:00.000+00:00",
+          "end": "2019-05-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-04-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      },
+      {
+        "time": {
+          "start": "2019-05-01T00:00:00.000+00:00",
+          "end": "2019-06-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-05-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      },
+      {
+        "time": {
+          "start": "2019-06-01T00:00:00.000+00:00",
+          "end": "2019-07-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-06-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      },
+      {
+        "time": {
+          "start": "2019-07-01T00:00:00.000+00:00",
+          "end": "2019-08-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-07-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      },
+      {
+        "time": {
+          "start": "2019-08-01T00:00:00.000+00:00",
+          "end": "2019-09-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-08-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      },
+      {
+        "time": {
+          "start": "2019-09-01T00:00:00.000+00:00",
+          "end": "2019-10-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-09-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      },
+      {
+        "time": {
+          "start": "2019-10-01T00:00:00.000+00:00",
+          "end": "2019-11-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-10-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      },
+      {
+        "time": {
+          "start": "2019-11-01T00:00:00.000+00:00",
+          "end": "2019-12-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-11-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      },
+      {
+        "time": {
+          "start": "2019-12-01T00:00:00.000+00:00",
+          "end": "2020-01-01T00:00:00.000+00:00"
+        },
+        "params": {
+          "filePath": "/mnt/data_raid/geo_data/respect/sentinel_2/agg_1_months//b04/raster_2019-12-01T00-00-00-000.tiff",
+          "rasterbandChannel": 1,
+          "geoTransform": {
+            "originCoordinate": {
+              "x": 650000,
+              "y": 9600000
+            },
+            "xPixelSize": 10,
+            "yPixelSize": -10.0
+          },
+          "width": 8000,
+          "height": 8000,
+          "fileNotFoundHandling": "NoData"
+        }
+      }
+    ]
+  }
+}

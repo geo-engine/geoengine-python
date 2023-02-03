@@ -539,7 +539,6 @@ def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -> Workflow:
         headers=session.auth_header,
         timeout=timeout
     ).json()
-
     return Workflow(WorkflowId.from_response(workflow_response))
 
 
