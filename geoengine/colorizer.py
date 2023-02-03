@@ -7,8 +7,8 @@ import json
 from typing import Dict, List, Tuple, Union, cast
 from typing_extensions import Literal
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
+import numpy.typing as npt
+from matplotlib.colors import Colormap
 from matplotlib.cm import ScalarMappable
 from geoengine import api
 
@@ -66,15 +66,17 @@ class Colorizer():
             raise ValueError(f"underColor must be a RGBA color specification, got {under_color} instead.")
 
         # get the map, and transform it to a list of (uint8) rgba values
-        list_of_rgba_colors: List[Tuple[int, int, int, int]] = ScalarMappable(cmap=map_name).to_rgba(
+        list_of_rgba_colors: List[npt.NDArray[np.uint8]] = ScalarMappable(cmap=map_name).to_rgba(
             np.linspace(min_max[0], min_max[1], n_steps), bytes=True)
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
         values_of_breakpoints: List[float] = np.linspace(min_max[0], min_max[1], n_steps).tolist()
 
         # generate color map steps for geoengine
-        breakpoints = [
-            ColorBreakpoint(color=tuple(color.tolist()), value=value) for (value, color) in zip(
+        breakpoints: List[ColorBreakpoint] = [
+            ColorBreakpoint(
+                color=cast(Tuple[int, int, int, int], tuple(color.tolist())), value=value
+            ) for (value, color) in zip(
                 values_of_breakpoints, list_of_rgba_colors)
         ]
 
