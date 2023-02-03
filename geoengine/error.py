@@ -137,7 +137,7 @@ class SpatialReferenceMismatchException(Exception):
         return f"Spatial reference mismatch {self.__spatial_reference_a} != {self.__spatial_reference_b}"
 
 
-class NoValidUrlException(Exception):
+class InvalidUrlException(Exception):
     '''
     Exception for when no valid url is provided
     '''
@@ -151,22 +151,22 @@ class NoValidUrlException(Exception):
         return f"{self.__msg}"
 
 
-class UnexpectedResponseException(Exception):
+class MissingFieldInResponseExcpetion(Exception):
     '''
-    Exception for when the response is not as expected
+    Exception for when a field is missing in a response
     '''
 
-    msg: str
+    missing_field: str
     response: Any
 
-    def __init__(self, msg: str, response: Any) -> None:
+    def __init__(self, missing_field: str, response: Any) -> None:
         super().__init__()
 
-        self.__msg = msg
-        self.__response = response
+        self.missing_field = missing_field
+        self.response = response
 
     def __str__(self) -> str:
-        return f"{self.__msg}, response: {self.__response}"
+        return f"Missing field '{self.missing_field}' in response: {self.response}"
 
 
 def check_response_for_error(response: Response) -> None:

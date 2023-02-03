@@ -14,7 +14,7 @@ import numpy as np
 import geopandas as gpd
 import requests as req
 from geoengine import api
-from geoengine.error import GeoEngineException, InputException, UnexpectedResponseException
+from geoengine.error import GeoEngineException, InputException, MissingFieldInResponseExcpetion
 from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
@@ -267,7 +267,7 @@ class DatasetId:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         if 'id' not in response:
-            raise UnexpectedResponseException('No id in response', response)
+            raise MissingFieldInResponseExcpetion('id', response)
 
         return DatasetId(UUID(response['id']))
 
@@ -305,7 +305,7 @@ class UploadId:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         if 'id' not in response:  # TODO: improve error handling
-            raise UnexpectedResponseException('No id in response', response)
+            raise MissingFieldInResponseExcpetion('id', response)
 
         return UploadId(UUID(response['id']))
 
@@ -382,7 +382,7 @@ class VolumeId:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         if 'id' not in response:  # TODO: improve error handling
-            raise UnexpectedResponseException('No id in response', response)
+            raise MissingFieldInResponseExcpetion('id', response)
 
         return VolumeId(UUID(response['id']))
 
@@ -515,8 +515,10 @@ class StoredDataset(NamedTuple):
         if 'error' in response:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
-        if 'dataset' not in response and 'upload' not in response:  # TODO: improve error handling
-            raise UnexpectedResponseException('No dataset and upload in response', response)
+        if 'dataset' not in response:  # TODO: improve error handling
+            raise MissingFieldInResponseExcpetion('dataset', response)
+        if 'upload' not in response:
+            raise MissingFieldInResponseExcpetion('upload', response)
 
         return StoredDataset(
             dataset_id=DatasetId(UUID(response['dataset'])),

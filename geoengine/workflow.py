@@ -29,7 +29,7 @@ from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
 from geoengine.error import MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
-    MethodNotCalledOnVectorException, check_response_for_error, NoValidUrlException
+    MethodNotCalledOnVectorException, check_response_for_error, InvalidUrlException
 from geoengine.tasks import Task, TaskId
 from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
 
@@ -153,7 +153,7 @@ class Workflow:
         debug(f'WFS URL:\n{wfs_url}')
 
         if not wfs_url:
-            raise NoValidUrlException('Failed to build WFS URL for workflow {self.__workflow_id}.')
+            raise InvalidUrlException('Failed to build WFS URL for workflow {self.__workflow_id}.')
         return wfs_url
 
     def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -> str:
