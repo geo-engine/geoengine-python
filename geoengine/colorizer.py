@@ -5,19 +5,21 @@ from abc import abstractmethod
 from dataclasses import dataclass
 import json
 from typing import Dict, List, Tuple, Union, cast
-from typing_extensions import Literal
+from typing_extensions import Literal, TypeAlias
 import numpy as np
 import numpy.typing as npt
 from matplotlib.colors import Colormap
 from matplotlib.cm import ScalarMappable
 from geoengine import api
 
+Rgba: TypeAlias = Tuple[int, int, int, int]
+
 
 @dataclass
 class ColorBreakpoint():
     """This class is used to generate geoengine compatible color breakpoint definitions."""
     value: float
-    color: Tuple[int, int, int, int]
+    color: Rgba
 
     def to_api_dict(self) -> api.ColorizerBreakpoint:
         """Return the color breakpoint as a dictionary."""
@@ -34,16 +36,16 @@ class Colorizer():
     """This class is used to generate geoengine compatible color map definitions as a json string."""
 
     type: Literal["linearGradient", "palette", "logarithmicGradient"]
-    no_data_color: Tuple[int, int, int, int]
+    no_data_color: Rgba
 
     @staticmethod
     def linear_with_mpl_cmap(
         map_name: Union[str, Colormap],
         min_max: Tuple[float, float],
         n_steps: int = 10,
-        over_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
-        under_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
-        no_data_color: Tuple[int, int, int, int] = (0, 0, 0, 0)
+        over_color: Rgba = (0, 0, 0, 0),
+        under_color: Rgba = (0, 0, 0, 0),
+        no_data_color: Rgba = (0, 0, 0, 0)
     ) -> LinearGradientColorizer:
         """Initialize the colorizer."""
         # pylint: disable=too-many-arguments
@@ -75,7 +77,7 @@ class Colorizer():
         # generate color map steps for geoengine
         breakpoints: List[ColorBreakpoint] = [
             ColorBreakpoint(
-                color=cast(Tuple[int, int, int, int], tuple(color.tolist())), value=value
+                color=cast(Rgba, tuple(color.tolist())), value=value
             ) for (value, color) in zip(
                 values_of_breakpoints, list_of_rgba_colors)
         ]
@@ -115,8 +117,8 @@ class Colorizer():
 class LinearGradientColorizer(Colorizer):
     '''A linear gradient colorizer.'''
     breakpoints: List[ColorBreakpoint]
-    over_color: Tuple[int, int, int, int]
-    under_color: Tuple[int, int, int, int]
+    over_color: Rgba
+    under_color: Rgba
 
     @staticmethod
     def from_response_linear(response: api.LinearGradientColorizer) -> LinearGradientColorizer:
@@ -145,8 +147,8 @@ class LinearGradientColorizer(Colorizer):
 class LogarithmicGradientColorizer(Colorizer):
     '''A logarithmic gradient colorizer.'''
     breakpoints: List[ColorBreakpoint]
-    over_color: Tuple[int, int, int, int]
-    under_color: Tuple[int, int, int, int]
+    over_color: Rgba
+    under_color: Rgba
 
     @staticmethod
     def from_response_logarithmic(response: api.LogarithmicGradientColorizer) -> LogarithmicGradientColorizer:
@@ -174,8 +176,8 @@ class LogarithmicGradientColorizer(Colorizer):
 @dataclass
 class PaletteColorizer(Colorizer):
     '''A palette colorizer.'''
-    colors: Dict[float, Tuple[int, int, int, int]]
-    default_color: Tuple[int, int, int, int]
+    colors: Dict[float, Rgba]
+    default_color: Rgba
 
     @staticmethod
     def from_response_palette(response: api.PaletteColorizer) -> PaletteColorizer:
