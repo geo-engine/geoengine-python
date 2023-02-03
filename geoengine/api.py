@@ -496,3 +496,14 @@ class CreateDataset(TypedDict):
     '''A dataset to create'''
     dataPath: DatasetStorage
     definition: DatasetDefinition
+
+
+class Quota(TypedDict):
+    '''Quota of a user'''
+    available: int
+    used: int
+
+
+class UpdateQuota(TypedDict):
+    '''Update request for quota'''
+    available: int

@@ -19,7 +19,7 @@ from .types import QueryRectangle,  \
     RasterResultDescriptor, Provenance, UnitlessMeasurement, ContinuousMeasurement, \
     ClassificationMeasurement, BoundingBox2D, TimeInterval, SpatialResolution, SpatialPartition2D, \
     RasterSymbology, VectorSymbology
-from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow
+from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow, get_quota, update_quota
 
 
 DEFAULT_USER_AGENT = f'geoengine-python/{get_distribution("geoengine").version}'

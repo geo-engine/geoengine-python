@@ -11,7 +11,8 @@ from dotenv import load_dotenv
 import requests as req
 from requests.auth import AuthBase
 
-from geoengine.error import GeoEngineException, UninitializedException, NoAdminSessionException
+from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro, UninitializedException,\
+    NoAdminSessionException
 
 
 class BearerAuth(AuthBase):  # pylint: disable=too-few-public-methods
@@ -33,6 +34,7 @@ class Session:
     '''
 
     __id: UUID
+    __user_id: Optional[UUID] = None
     __valid_until: Optional[str] = None
     __server_url: str
     __timeout: int = 60
@@ -92,6 +94,9 @@ class Session:
 
         self.__id = session['id']
 
+        if 'user' in session and 'id' in session['user']:
+            self.__user_id = session['user']['id']
+
         if 'validUntil' in session:
             self.__valid_until = session['validUntil']
 
@@ -106,6 +111,10 @@ class Session:
         '''Display representation of a session'''
         r = ''
         r += f'Server:              {self.server_url}\n'
+
+        if self.__user_id is not None:
+            r += f'User Id:             {self.__user_id}\n'
+
         r += f'Session Id:          {self.__id}\n'
 
         if self.__valid_until is not None:
@@ -150,6 +159,16 @@ class Session:
         '''
 
         return self.__server_url
+
+    @property
+    def user_id(self) -> UUID:
+        '''
+        Return the user id. Only works in Geo Engine Pro.
+        '''
+        if self.__user_id is None:
+            raise MethodOnlyAvailableInGeoEnginePro("User id is only available in Geo Engine Pro")
+
+        return self.__id
 
     def requests_bearer_auth(self) -> BearerAuth:
         '''
