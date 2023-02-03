@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 import json
-from typing import Dict, List, Tuple, Union, cast
+from typing import Dict, List, Optional, Tuple, Union, cast
 from typing_extensions import Literal, TypeAlias
 import numpy as np
 import numpy.typing as npt
@@ -40,7 +40,7 @@ class Colorizer():
 
     @staticmethod
     def linear_with_mpl_cmap(
-        map_name: Union[str, Colormap],
+        color_map: Union[str, Colormap],
         min_max: Tuple[float, float],
         n_steps: int = 10,
         over_color: Rgba = (0, 0, 0, 0),
@@ -68,7 +68,7 @@ class Colorizer():
             raise ValueError(f"underColor must be a RGBA color specification, got {under_color} instead.")
 
         # get the map, and transform it to a list of (uint8) rgba values
-        list_of_rgba_colors: List[npt.NDArray[np.uint8]] = ScalarMappable(cmap=map_name).to_rgba(
+        list_of_rgba_colors: List[npt.NDArray[np.uint8]] = ScalarMappable(cmap=color_map).to_rgba(
             np.linspace(min_max[0], min_max[1], n_steps), bytes=True)
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
@@ -92,7 +92,7 @@ class Colorizer():
 
     @staticmethod
     def logarithmic_with_mpl_cmap(
-        map_name: Union[str, Colormap],
+        color_map: Union[str, Colormap],
         min_max: Tuple[float, float],
         n_steps: int = 10,
         over_color: Rgba = (0, 0, 0, 0),
@@ -122,7 +122,7 @@ class Colorizer():
             raise ValueError(f"underColor must be a RGBA color specification, got {under_color} instead.")
 
         # get the map, and transform it to a list of (uint8) rgba values
-        list_of_rgba_colors: List[npt.NDArray[np.uint8]] = ScalarMappable(cmap=map_name).to_rgba(
+        list_of_rgba_colors: List[npt.NDArray[np.uint8]] = ScalarMappable(cmap=color_map).to_rgba(
             np.linspace(min_max[0], min_max[1], n_steps), bytes=True)
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
@@ -142,6 +142,42 @@ class Colorizer():
             no_data_color=no_data_color,
             over_color=over_color,
             under_color=under_color
+        )
+
+    @staticmethod
+    def palette(
+        values_or_mapping: Union[List[float], Dict[float, Rgba]],
+        color_map: Optional[Union[str, Colormap]] = "gray",
+        default_color: Rgba = (0, 0, 0, 0),
+        no_data_color: Rgba = (0, 0, 0, 0),
+    ) -> PaletteColorizer:
+        """Initialize the colorizer."""
+
+        if len(no_data_color) != 4:
+            raise ValueError(f"noDataColor must be a tuple of length 4, got {len(no_data_color)} instead.")
+        if len(default_color) != 4:
+            raise ValueError(f"defaultColor must be a tuple of length 4, got {len(default_color)} instead.")
+        if not all(0 <= elem < 256 for elem in no_data_color):
+            raise ValueError(f"noDataColor must be a RGBA color specification, got {no_data_color} instead.")
+        if not all(0 <= elem < 256 for elem in default_color):
+            raise ValueError(f"defaultColor must be a RGBA color specification, got {default_color} instead.")
+
+        if isinstance(values_or_mapping, List):
+            # we only need to generate enough different colors for all values specified in the colors parameter
+            list_of_rgba_colors: List[npt.NDArray[np.uint8]] = ScalarMappable(cmap=color_map).to_rgba(
+                np.linspace(0, len(values_or_mapping), len(values_or_mapping)), bytes=True)
+
+            # generate the dict with value: color mapping
+            values_or_mapping = dict(zip(
+                values_or_mapping,
+                [cast(Rgba, tuple(color.tolist())) for color in list_of_rgba_colors])
+            )
+
+        return PaletteColorizer(
+            type='palette',
+            no_data_color=no_data_color,
+            colors=values_or_mapping,
+            default_color=default_color,
         )
 
     @abstractmethod

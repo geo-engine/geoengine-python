@@ -2,6 +2,7 @@
 
 
 import unittest
+import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import geoengine as ge
 from geoengine import colorizer
@@ -30,7 +31,7 @@ class ColorizerTests(unittest.TestCase):
             "underColor": (0, 0, 0, 0)
         }
 
-        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="gray", min_max=(0.0, 255.0), n_steps=5)
+        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map="gray", min_max=(0.0, 255.0), n_steps=5)
         gray = geo_colorizer.to_api_dict()
 
         assert gray == expected
@@ -52,7 +53,86 @@ class ColorizerTests(unittest.TestCase):
         }
 
         geo_colorizer = colorizer.Colorizer.logarithmic_with_mpl_cmap(
-            map_name="gray", min_max=(1.0, 10000.0), n_steps=5)
+            color_map="gray", min_max=(1.0, 10000.0), n_steps=5)
+        gray = geo_colorizer.to_api_dict()
+
+        assert gray == expected
+
+    def test_gray_palette(self):
+        """Test the basic black to white cmap colorizer."""
+        expected = {
+            "type": "palette",
+            "colors": {
+                1.0: (0, 0, 0, 255),
+                2.0: (128, 128, 128, 255),
+                3.0: (255, 255, 255, 255)
+            },
+            "noDataColor": (0, 0, 0, 0),
+            "defaultColor": (0, 0, 0, 0)
+        }
+
+        geo_colorizer = colorizer.Colorizer.palette(
+            values_or_mapping={
+                1.0: (0, 0, 0, 255),
+                2.0: (128, 128, 128, 255),
+                3.0: (255, 255, 255, 255),
+            })
+
+        gray = geo_colorizer.to_api_dict()
+
+        assert gray == expected
+
+    def test_gray_palette_with_mpl_cmap(self):
+        """Test the basic black to white cmap colorizer. 
+        Checks, if cmap or name of cmap can be given as a parameter."""
+        expected = {
+            "type": "palette",
+            "colors": {
+                1.0: (0, 0, 0, 255),
+                2.0: (128, 128, 128, 255),
+                3.0: (255, 255, 255, 255)
+            },
+            "noDataColor": (0, 0, 0, 0),
+            "defaultColor": (0, 0, 0, 0)
+        }
+
+        # verify color map object variant
+        cmap_obj = plt.cm.gray
+
+        geo_colorizer = colorizer.Colorizer.palette(
+            values_or_mapping=[1.0, 2.0, 3.0], color_map=cmap_obj)
+
+        gray_obj = geo_colorizer.to_api_dict()
+
+        assert gray_obj == expected
+
+        # verify color map name variant
+        cmap_name = "gray"
+
+        geo_colorizer = colorizer.Colorizer.palette(
+            values_or_mapping=[1.0, 2.0, 3.0], color_map=cmap_name)
+
+        gray_name = geo_colorizer.to_api_dict()
+
+        assert gray_name == expected
+
+    def test_gray_palette_without_cmap(self):
+        """Test the basic black to white cmap colorizer. Should fallback to a gray cmap."""
+        expected = {
+            "type": "palette",
+            "colors": {
+                1.0: (0, 0, 0, 255),
+                2.0: (64, 64, 64, 255),
+                3.0: (128, 128, 128, 255),
+                12.0: (192, 192, 192, 255),
+                42.0: (255, 255, 255, 255)
+            },
+            "noDataColor": (0, 0, 0, 0),
+            "defaultColor": (0, 0, 0, 0)
+        }
+
+        geo_colorizer = colorizer.Colorizer.palette(values_or_mapping=[1.0, 2.0, 3.0, 12.0, 42.0])
+
         gray = geo_colorizer.to_api_dict()
 
         assert gray == expected
@@ -60,7 +140,7 @@ class ColorizerTests(unittest.TestCase):
     def test_colormap_not_available(self):
         """Test that an error is raised when a colormap is not available."""
         with self.assertRaises(ValueError) as ctx:
-            colorizer.Colorizer.linear_with_mpl_cmap(map_name="some_map", min_max=(0.0, 255.0))
+            colorizer.Colorizer.linear_with_mpl_cmap(color_map="some_map", min_max=(0.0, 255.0))
 
         self.assertEqual(str(ctx.exception),
                          "'some_map' is not a valid value for cmap; supported values are 'Accent', 'Accent_r', "
@@ -101,7 +181,7 @@ class ColorizerTests(unittest.TestCase):
         }
 
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(
-            map_name="viridis",
+            color_map="viridis",
             min_max=(0.0, 255.0),
             n_steps=2,
             no_data_color=(100, 100, 100, 100),
@@ -114,7 +194,7 @@ class ColorizerTests(unittest.TestCase):
 
     def test_set_steps(self):
         """Tests the setting of the number of steps."""
-        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="viridis", min_max=(0.0, 255.0), n_steps=2)
+        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map="viridis", min_max=(0.0, 255.0), n_steps=2)
         viridis = geo_colorizer.to_api_dict()
         expected = {
             "type": "linearGradient",
@@ -129,7 +209,7 @@ class ColorizerTests(unittest.TestCase):
 
         assert viridis == expected
 
-        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="viridis", min_max=(0.0, 255.0), n_steps=3)
+        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map="viridis", min_max=(0.0, 255.0), n_steps=3)
         viridis = geo_colorizer.to_api_dict()
         expected = {
             "type": "linearGradient", "breakpoints": [
@@ -146,7 +226,7 @@ class ColorizerTests(unittest.TestCase):
 
     def test_set_minmax(self):
         """Tests the setting of the min and max values."""
-        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="viridis", min_max=(-10.0, 10.0), n_steps=3)
+        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map="viridis", min_max=(-10.0, 10.0), n_steps=3)
         expected = {
             "type": "linearGradient",
                     "breakpoints": [
@@ -166,7 +246,7 @@ class ColorizerTests(unittest.TestCase):
         """Tests the setting of wrong values for the min and max of a logarithmic gradient."""
 
         with self.assertRaises(ValueError) as ctx:
-            colorizer.Colorizer.logarithmic_with_mpl_cmap(map_name="viridis", min_max=(-10.0, 10.0), n_steps=3)
+            colorizer.Colorizer.logarithmic_with_mpl_cmap(color_map="viridis", min_max=(-10.0, 10.0), n_steps=3)
 
         self.assertEqual(str(ctx.exception), "min_max[0] must be greater than 0 for a logarithmic gradient, got -10.0.")
 
@@ -176,7 +256,7 @@ class ColorizerTests(unittest.TestCase):
         wrong_max = -10.0
 
         with self.assertRaises(ValueError) as ctx:
-            colorizer.Colorizer.linear_with_mpl_cmap(map_name="viridis", min_max=(wrong_min, wrong_max), n_steps=3)
+            colorizer.Colorizer.linear_with_mpl_cmap(color_map="viridis", min_max=(wrong_min, wrong_max), n_steps=3)
 
         self.assertEqual(str(ctx.exception), "min_max[1] must be greater than min_max[0],"
                          f" got {wrong_max} and {wrong_min}.")
@@ -189,7 +269,7 @@ class ColorizerTests(unittest.TestCase):
             with self.assertRaises(ValueError) as ctx:
 
                 colorizer.Colorizer.linear_with_mpl_cmap(
-                    map_name="viridis",
+                    color_map="viridis",
                     min_max=(0.0, 255.0),
                     n_steps=3,
                     no_data_color=wrong_color_code
@@ -201,7 +281,7 @@ class ColorizerTests(unittest.TestCase):
             # over color
             with self.assertRaises(ValueError) as ctx:
                 colorizer.Colorizer.linear_with_mpl_cmap(
-                    map_name="viridis",
+                    color_map="viridis",
                     min_max=(0.0, 255.0),
                     n_steps=3,
                     over_color=wrong_color_code
@@ -213,7 +293,7 @@ class ColorizerTests(unittest.TestCase):
             # under color
             with self.assertRaises(ValueError) as ctx:
                 colorizer.Colorizer.linear_with_mpl_cmap(
-                    map_name="viridis",
+                    color_map="viridis",
                     min_max=(0.0, 255.0),
                     n_steps=3,
                     under_color=wrong_color_code
@@ -236,7 +316,7 @@ class ColorizerTests(unittest.TestCase):
             "underColor": (0, 0, 0, 0)
         }
         custom_map = ListedColormap(["darkorange", "gold", "lawngreen", "lightseagreen"])
-        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name=custom_map, min_max=(0.0, 255.0), n_steps=3)
+        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map=custom_map, min_max=(0.0, 255.0), n_steps=3)
         custom = geo_colorizer.to_api_dict()
 
         assert custom == expected
@@ -256,7 +336,7 @@ class ColorizerTests(unittest.TestCase):
         }
         custom_map = ListedColormap(["darkorange", "gold", "lawngreen", "lightseagreen"])
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(
-            map_name=custom_map,
+            color_map=custom_map,
             min_max=(40.0, 400.0),
             n_steps=3,
             no_data_color=(100, 100, 100, 100),
@@ -273,7 +353,7 @@ class ColorizerTests(unittest.TestCase):
             '}, {"value": 255.0, "color": [253, 231, 36, 255]}], "noDataColor": [0, 0, 0, 0],'\
             ' "overColor": [0, 0, 0, 0], "underColor": [0, 0, 0, 0]}'
 
-        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(map_name="viridis", min_max=(0.0, 255.0), n_steps=2)
+        geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map="viridis", min_max=(0.0, 255.0), n_steps=2)
         jsonstr = geo_colorizer.to_json()
 
         assert jsonstr == expected
