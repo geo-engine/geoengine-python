@@ -4,6 +4,7 @@
 import unittest
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+import pytest
 import geoengine as ge
 from geoengine import colorizer
 
@@ -83,7 +84,7 @@ class ColorizerTests(unittest.TestCase):
         assert gray == expected
 
     def test_gray_palette_with_mpl_cmap(self):
-        """Test the basic black to white cmap colorizer. 
+        """Test the basic black to white cmap colorizer.
         Checks, if cmap or name of cmap can be given as a parameter."""
         expected = {
             "type": "palette",
@@ -357,6 +358,35 @@ class ColorizerTests(unittest.TestCase):
         jsonstr = geo_colorizer.to_json()
 
         assert jsonstr == expected
+
+    def test_palette_with_too_small_colormap(self):
+        """Tests, if the warning is emittd if an unappropriate color map is chosen."""
+
+        with pytest.warns(UserWarning, match="Warning!\nYour colormap does not have enough colors "
+                          "to display all unique values of the palette!"
+                          "\nNumber of values given: 6 vs. Number of available colors: 4"):
+
+            custom_map = ListedColormap(["darkorange", "gold", "lawngreen", "lightseagreen"])
+            colorizer.Colorizer.palette(
+                values_or_mapping=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+                color_map=custom_map,
+                no_data_color=(0, 0, 0, 0),
+                default_color=(0, 0, 0, 0)
+            )
+
+    def test_palette_with_too_small_colormap_from_mpl(self):
+        """Tests, if the warning is emittd if an unappropriate color map is chosen."""
+
+        with pytest.warns(UserWarning, match="Warning!\nYour colormap does not have enough colors "
+                          "to display all unique values of the palette!"
+                          "\nNumber of values given: 10 vs. Number of available colors: 8"):
+
+            colorizer.Colorizer.palette(
+                values_or_mapping=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
+                color_map="Accent",  # holds 8 colors
+                no_data_color=(0, 0, 0, 0),
+                default_color=(0, 0, 0, 0)
+            )
 
 
 if __name__ == '__main__':

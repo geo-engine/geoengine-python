@@ -4,6 +4,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 import json
+import warnings
 from typing import Dict, List, Optional, Tuple, Union, cast
 from typing_extensions import Literal, TypeAlias
 import numpy as np
@@ -162,7 +163,16 @@ class Colorizer():
         if not all(0 <= elem < 256 for elem in default_color):
             raise ValueError(f"defaultColor must be a RGBA color specification, got {default_color} instead.")
 
+        # this block handles the automatic generation of a color mapping for the given values
         if isinstance(values_or_mapping, List):
+            n_colors_of_cmap: int = ScalarMappable(cmap=color_map).get_cmap().N
+
+            if n_colors_of_cmap < len(values_or_mapping):
+                warnings.warn(UserWarning(f"Warning!\nYour colormap does not have enough colors "
+                              "to display all unique values of the palette!"
+                                          f"\nNumber of values given: {len(values_or_mapping)} vs. "
+                                          f"Number of available colors: {n_colors_of_cmap}"))
+
             # we only need to generate enough different colors for all values specified in the colors parameter
             list_of_rgba_colors: List[npt.NDArray[np.uint8]] = ScalarMappable(cmap=color_map).to_rgba(
                 np.linspace(0, len(values_or_mapping), len(values_or_mapping)), bytes=True)
