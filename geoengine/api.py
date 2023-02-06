@@ -2,7 +2,9 @@
 
 from enum import Enum
 from typing import Any, Dict, Optional, Tuple, List, Union
-from typing_extensions import Literal, TypedDict
+from typing_extensions import Literal, TypedDict, TypeAlias
+
+Rgba: TypeAlias = Tuple[int, int, int, int]
 
 
 class Coordinate2D(TypedDict):  # pylint: disable=too-few-public-methods
@@ -59,28 +61,32 @@ class PlotQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-meth
 class ColorizerBreakpoint(TypedDict):  # pylint: disable=too-few-public-methods
     """This class is used to generate geoengine compatible color breakpoint definitions as a dictionary."""
     value: float
-    color: Tuple[int, int, int, int]
+    color: Rgba
 
 
 class Colorizer(TypedDict):  # pylint: disable=too-few-public-methods
     """This is a color map definitions as a dictionary."""
     type: Literal["linearGradient", "palette", "logarithmicGradient"]
-    noDataColor: Tuple[int, int, int, int]
-    defaultColor: Tuple[int, int, int, int]
+    noDataColor: Rgba
 
 
 class PaletteColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     """This is a palette color map definitions as a dictionary."""
-    colors: Dict[float, Tuple[int, int, int, int]]
+    colors: Dict[float, Rgba]
+    defaultColor: Rgba
 
 
 class LinearGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     """This is a linear gradient color map definitions as a dictionary."""
+    overColor: Rgba
+    underColor: Rgba
     breakpoints: List[ColorizerBreakpoint]
 
 
 class LogarithmicGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     """This is a logarithmic gradient color map definitions as a dictionary."""
+    overColor: Rgba
+    underColor: Rgba
     breakpoints: List[ColorizerBreakpoint]
 
 
