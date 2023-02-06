@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import json
 import warnings
 from typing import Dict, List, Optional, Tuple, Union, cast
-from typing_extensions import Literal, TypeAlias
+from typing_extensions import TypeAlias
 import numpy as np
 import numpy.typing as npt
 from matplotlib.colors import Colormap
@@ -36,7 +36,6 @@ class ColorBreakpoint():
 class Colorizer():
     """This class is used to generate geoengine compatible color map definitions as a json string."""
 
-    type: Literal["linearGradient", "palette", "logarithmicGradient"]
     no_data_color: Rgba
 
     @staticmethod
@@ -84,7 +83,6 @@ class Colorizer():
         ]
 
         return LinearGradientColorizer(
-            type='linearGradient',
             breakpoints=breakpoints,
             no_data_color=no_data_color,
             over_color=over_color,
@@ -138,7 +136,6 @@ class Colorizer():
         ]
 
         return LogarithmicGradientColorizer(
-            type='logarithmicGradient',
             breakpoints=breakpoints,
             no_data_color=no_data_color,
             over_color=over_color,
@@ -168,7 +165,6 @@ class Colorizer():
             values_or_mapping = Colorizer.__palette_from_list(values_or_mapping, color_map)
 
         return PaletteColorizer(
-            type='palette',
             no_data_color=no_data_color,
             colors=values_or_mapping,
             default_color=default_color,
@@ -233,7 +229,6 @@ class LinearGradientColorizer(Colorizer):
         """Create a colorizer from a response."""
         breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response['breakpoints']]
         return LinearGradientColorizer(
-            type='linearGradient',
             breakpoints=breakpoints,
             no_data_color=response['noDataColor'],
             over_color=response['overColor'],
@@ -243,7 +238,7 @@ class LinearGradientColorizer(Colorizer):
     def to_api_dict(self) -> api.LinearGradientColorizer:
         """Return the colorizer as a dictionary."""
         return api.LinearGradientColorizer(
-            type=self.type,
+            type='linearGradient',
             breakpoints=[breakpoint.to_api_dict() for breakpoint in self.breakpoints],
             noDataColor=self.no_data_color,
             overColor=self.over_color,
@@ -263,7 +258,6 @@ class LogarithmicGradientColorizer(Colorizer):
         """Create a colorizer from a response."""
         breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response['breakpoints']]
         return LogarithmicGradientColorizer(
-            type='logarithmicGradient',
             breakpoints=breakpoints,
             no_data_color=response['noDataColor'],
             over_color=response['overColor'],
@@ -273,7 +267,7 @@ class LogarithmicGradientColorizer(Colorizer):
     def to_api_dict(self) -> api.LogarithmicGradientColorizer:
         """Return the colorizer as a dictionary."""
         return api.LogarithmicGradientColorizer(
-            type=self.type,
+            type='logarithmicGradient',
             breakpoints=[breakpoint.to_api_dict() for breakpoint in self.breakpoints],
             noDataColor=self.no_data_color,
             overColor=self.over_color,
@@ -292,7 +286,6 @@ class PaletteColorizer(Colorizer):
         """Create a colorizer from a response."""
 
         return PaletteColorizer(
-            type='palette',
             colors=response['colors'],
             no_data_color=response['noDataColor'],
             default_color=response['defaultColor'],
@@ -301,7 +294,7 @@ class PaletteColorizer(Colorizer):
     def to_api_dict(self) -> api.PaletteColorizer:
         """Return the colorizer as a dictionary."""
         return api.PaletteColorizer(
-            type=self.type,
+            type='palette',
             colors=self.colors,
             defaultColor=self.default_color,
             noDataColor=self.no_data_color,
