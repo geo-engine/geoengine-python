@@ -151,7 +151,7 @@ class InvalidUrlException(Exception):
         return f"{self.__msg}"
 
 
-class MissingFieldInResponseExcpetion(Exception):
+class MissingFieldInResponseException(Exception):
     '''
     Exception for when a field is missing in a response
     '''
