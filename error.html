@@ -31,7 +31,7 @@
 Package errors and backend mapped error types
 &#39;&#39;&#39;
 
-from typing import Dict, Union
+from typing import Any, Dict, Union
 from requests import Response, HTTPError
 from geoengine import api
 
@@ -164,6 +164,38 @@ class SpatialReferenceMismatchException(Exception):
 
     def __str__(self) -&gt; str:
         return f&#34;Spatial reference mismatch {self.__spatial_reference_a} != {self.__spatial_reference_b}&#34;
+
+
+class InvalidUrlException(Exception):
+    &#39;&#39;&#39;
+    Exception for when no valid url is provided
+    &#39;&#39;&#39;
+
+    def __init__(self, msg: str) -&gt; None:
+        super().__init__()
+
+        self.__msg = msg
+
+    def __str__(self) -&gt; str:
+        return f&#34;{self.__msg}&#34;
+
+
+class MissingFieldInResponseException(Exception):
+    &#39;&#39;&#39;
+    Exception for when a field is missing in a response
+    &#39;&#39;&#39;
+
+    missing_field: str
+    response: Any
+
+    def __init__(self, missing_field: str, response: Any) -&gt; None:
+        super().__init__()
+
+        self.missing_field = missing_field
+        self.response = response
+
+    def __str__(self) -&gt; str:
+        return f&#34;Missing field &#39;{self.missing_field}&#39; in response: {self.response}&#34;
 
 
 def check_response_for_error(response: Response) -&gt; None:
@@ -314,6 +346,35 @@ def check_response_for_error(response: Response) -&gt; None:
 <li>builtins.BaseException</li>
 </ul>
 </dd>
+<dt id="geoengine.error.InvalidUrlException"><code class="flex name class">
+<span>class <span class="ident">InvalidUrlException</span></span>
+<span>(</span><span>msg: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Exception for when no valid url is provided</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InvalidUrlException(Exception):
+    &#39;&#39;&#39;
+    Exception for when no valid url is provided
+    &#39;&#39;&#39;
+
+    def __init__(self, msg: str) -&gt; None:
+        super().__init__()
+
+        self.__msg = msg
+
+    def __str__(self) -&gt; str:
+        return f&#34;{self.__msg}&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
 <dt id="geoengine.error.MethodNotCalledOnPlotException"><code class="flex name class">
 <span>class <span class="ident">MethodNotCalledOnPlotException</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -385,6 +446,50 @@ def check_response_for_error(response: Response) -&gt; None:
 <li>builtins.Exception</li>
 <li>builtins.BaseException</li>
 </ul>
+</dd>
+<dt id="geoengine.error.MissingFieldInResponseException"><code class="flex name class">
+<span>class <span class="ident">MissingFieldInResponseException</span></span>
+<span>(</span><span>missing_field: str, response: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Exception for when a field is missing in a response</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MissingFieldInResponseException(Exception):
+    &#39;&#39;&#39;
+    Exception for when a field is missing in a response
+    &#39;&#39;&#39;
+
+    missing_field: str
+    response: Any
+
+    def __init__(self, missing_field: str, response: Any) -&gt; None:
+        super().__init__()
+
+        self.missing_field = missing_field
+        self.response = response
+
+    def __str__(self) -&gt; str:
+        return f&#34;Missing field &#39;{self.missing_field}&#39; in response: {self.response}&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.error.MissingFieldInResponseException.missing_field"><code class="name">var <span class="ident">missing_field</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.error.MissingFieldInResponseException.response"><code class="name">var <span class="ident">response</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="geoengine.error.ModificationNotOnLayerDbException"><code class="flex name class">
 <span>class <span class="ident">ModificationNotOnLayerDbException</span></span>
@@ -558,6 +663,9 @@ def check_response_for_error(response: Response) -&gt; None:
 <h4><code><a title="geoengine.error.InputException" href="#geoengine.error.InputException">InputException</a></code></h4>
 </li>
 <li>
+<h4><code><a title="geoengine.error.InvalidUrlException" href="#geoengine.error.InvalidUrlException">InvalidUrlException</a></code></h4>
+</li>
+<li>
 <h4><code><a title="geoengine.error.MethodNotCalledOnPlotException" href="#geoengine.error.MethodNotCalledOnPlotException">MethodNotCalledOnPlotException</a></code></h4>
 </li>
 <li>
@@ -565,6 +673,13 @@ def check_response_for_error(response: Response) -&gt; None:
 </li>
 <li>
 <h4><code><a title="geoengine.error.MethodNotCalledOnVectorException" href="#geoengine.error.MethodNotCalledOnVectorException">MethodNotCalledOnVectorException</a></code></h4>
+</li>
+<li>
+<h4><code><a title="geoengine.error.MissingFieldInResponseException" href="#geoengine.error.MissingFieldInResponseException">MissingFieldInResponseException</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.error.MissingFieldInResponseException.missing_field" href="#geoengine.error.MissingFieldInResponseException.missing_field">missing_field</a></code></li>
+<li><code><a title="geoengine.error.MissingFieldInResponseException.response" href="#geoengine.error.MissingFieldInResponseException.response">response</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="geoengine.error.ModificationNotOnLayerDbException" href="#geoengine.error.ModificationNotOnLayerDbException">ModificationNotOnLayerDbException</a></code></h4>

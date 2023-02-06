@@ -54,10 +54,12 @@ class TaskId:
     def from_response(cls, response: Dict[str, str]) -&gt; TaskId:
         &#39;&#39;&#39;Parse a http response to an `TaskId`&#39;&#39;&#39;
 
-        if &#39;task_id&#39; not in response:
+        if &#39;task_id&#39; not in response and &#39;taskId&#39; not in response:
             raise GeoEngineException(response)
 
-        return TaskId(UUID(response[&#39;task_id&#39;]))
+        task_id = response[&#39;task_id&#39;] if &#39;task_id&#39; in response else response[&#39;taskId&#39;]
+
+        return TaskId(UUID(task_id))
 
     def __eq__(self, other) -&gt; bool:
         &#39;&#39;&#39;Checks if two dataset ids are equal&#39;&#39;&#39;
@@ -85,6 +87,8 @@ class TaskStatus(Enum):
 class TaskStatusInfo:  # pylint: disable=too-few-public-methods
     &#39;&#39;&#39;A wrapper for a task status type&#39;&#39;&#39;
 
+    status: TaskStatus
+
     def __init__(self, status) -&gt; None:
         self.status = status
 
@@ -103,9 +107,14 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         status = TaskStatus(response[&#39;status&#39;])
 
         if status == TaskStatus.RUNNING:
-            if &#39;pct_complete&#39; not in response or &#39;time_estimate&#39; not in response or &#39;info&#39; not in response:
+            if (&#39;pctComplete&#39; not in response and &#39;pct_complete&#39; not in response) \
+                    or (&#39;timeEstimate&#39; not in response and &#39;time_estimate&#39; not in response) \
+                    or &#39;info&#39; not in response:
                 raise GeoEngineException(response)
-            return RunningTaskStatusInfo(status, response[&#39;pct_complete&#39;], response[&#39;time_estimate&#39;], response[&#39;info&#39;])
+            pct_complete = response[&#39;pct_complete&#39;] if &#39;pct_complete&#39; in response else response[&#39;pctComplete&#39;]
+            time_estimate = response[&#39;time_estimate&#39;] if &#39;time_estimate&#39; in response else response[&#39;timeEstimate&#39;]
+
+            return RunningTaskStatusInfo(status, pct_complete, time_estimate, response[&#39;info&#39;])
         if status == TaskStatus.COMPLETED:
             if &#39;info&#39; not in response or &#39;timeTotal&#39; not in response:
                 raise GeoEngineException(response)
@@ -309,9 +318,12 @@ def get_task_list(timeout: int = 3600) -&gt; List[Tuple[Task, TaskStatusInfo]]:
 
     result = []
     for item in response_json:
-        if &#39;task_id&#39; not in item:
+        if &#39;task_id&#39; not in item and &#39;taskId&#39; not in item:
             raise GeoEngineException(response_json)
-        result.append((Task(TaskId(UUID(item[&#39;task_id&#39;]))), TaskStatusInfo.from_response(item)))
+
+        task_id = item[&#39;task_id&#39;] if &#39;task_id&#39; in item else item[&#39;taskId&#39;]
+
+        result.append((Task(TaskId(UUID(task_id))), TaskStatusInfo.from_response(item)))
 
     return result</code></pre>
 </details>
@@ -350,9 +362,12 @@ def get_task_list(timeout: int = 3600) -&gt; List[Tuple[Task, TaskStatusInfo]]:
 
     result = []
     for item in response_json:
-        if &#39;task_id&#39; not in item:
+        if &#39;task_id&#39; not in item and &#39;taskId&#39; not in item:
             raise GeoEngineException(response_json)
-        result.append((Task(TaskId(UUID(item[&#39;task_id&#39;]))), TaskStatusInfo.from_response(item)))
+
+        task_id = item[&#39;task_id&#39;] if &#39;task_id&#39; in item else item[&#39;taskId&#39;]
+
+        result.append((Task(TaskId(UUID(task_id))), TaskStatusInfo.from_response(item)))
 
     return result</code></pre>
 </details>
@@ -396,6 +411,13 @@ def get_task_list(timeout: int = 3600) -&gt; List[Tuple[Task, TaskStatusInfo]]:
 <ul class="hlist">
 <li><a title="geoengine.tasks.TaskStatusInfo" href="#geoengine.tasks.TaskStatusInfo">TaskStatusInfo</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.tasks.AbortedTaskStatusInfo.status"><code class="name">var <span class="ident">status</span> : <a title="geoengine.tasks.TaskStatus" href="#geoengine.tasks.TaskStatus">TaskStatus</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="geoengine.tasks.TaskStatusInfo" href="#geoengine.tasks.TaskStatusInfo">TaskStatusInfo</a></b></code>:
@@ -440,6 +462,13 @@ def get_task_list(timeout: int = 3600) -&gt; List[Tuple[Task, TaskStatusInfo]]:
 <ul class="hlist">
 <li><a title="geoengine.tasks.TaskStatusInfo" href="#geoengine.tasks.TaskStatusInfo">TaskStatusInfo</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.tasks.CompletedTaskStatusInfo.status"><code class="name">var <span class="ident">status</span> : <a title="geoengine.tasks.TaskStatus" href="#geoengine.tasks.TaskStatus">TaskStatus</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="geoengine.tasks.TaskStatusInfo" href="#geoengine.tasks.TaskStatusInfo">TaskStatusInfo</a></b></code>:
@@ -484,6 +513,13 @@ def get_task_list(timeout: int = 3600) -&gt; List[Tuple[Task, TaskStatusInfo]]:
 <ul class="hlist">
 <li><a title="geoengine.tasks.TaskStatusInfo" href="#geoengine.tasks.TaskStatusInfo">TaskStatusInfo</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.tasks.FailedTaskStatusInfo.status"><code class="name">var <span class="ident">status</span> : <a title="geoengine.tasks.TaskStatus" href="#geoengine.tasks.TaskStatus">TaskStatus</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="geoengine.tasks.TaskStatusInfo" href="#geoengine.tasks.TaskStatusInfo">TaskStatusInfo</a></b></code>:
@@ -532,6 +568,13 @@ def get_task_list(timeout: int = 3600) -&gt; List[Tuple[Task, TaskStatusInfo]]:
 <ul class="hlist">
 <li><a title="geoengine.tasks.TaskStatusInfo" href="#geoengine.tasks.TaskStatusInfo">TaskStatusInfo</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.tasks.RunningTaskStatusInfo.status"><code class="name">var <span class="ident">status</span> : <a title="geoengine.tasks.TaskStatus" href="#geoengine.tasks.TaskStatus">TaskStatus</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="geoengine.tasks.TaskStatusInfo" href="#geoengine.tasks.TaskStatusInfo">TaskStatusInfo</a></b></code>:
@@ -741,10 +784,12 @@ The status is printed after each check-in. Check-ins happen in intervals of chec
     def from_response(cls, response: Dict[str, str]) -&gt; TaskId:
         &#39;&#39;&#39;Parse a http response to an `TaskId`&#39;&#39;&#39;
 
-        if &#39;task_id&#39; not in response:
+        if &#39;task_id&#39; not in response and &#39;taskId&#39; not in response:
             raise GeoEngineException(response)
 
-        return TaskId(UUID(response[&#39;task_id&#39;]))
+        task_id = response[&#39;task_id&#39;] if &#39;task_id&#39; in response else response[&#39;taskId&#39;]
+
+        return TaskId(UUID(task_id))
 
     def __eq__(self, other) -&gt; bool:
         &#39;&#39;&#39;Checks if two dataset ids are equal&#39;&#39;&#39;
@@ -774,10 +819,12 @@ The status is printed after each check-in. Check-ins happen in intervals of chec
 def from_response(cls, response: Dict[str, str]) -&gt; TaskId:
     &#39;&#39;&#39;Parse a http response to an `TaskId`&#39;&#39;&#39;
 
-    if &#39;task_id&#39; not in response:
+    if &#39;task_id&#39; not in response and &#39;taskId&#39; not in response:
         raise GeoEngineException(response)
 
-    return TaskId(UUID(response[&#39;task_id&#39;]))</code></pre>
+    task_id = response[&#39;task_id&#39;] if &#39;task_id&#39; in response else response[&#39;taskId&#39;]
+
+    return TaskId(UUID(task_id))</code></pre>
 </details>
 </dd>
 </dl>
@@ -837,6 +884,8 @@ def from_response(cls, response: Dict[str, str]) -&gt; TaskId:
 <pre><code class="python">class TaskStatusInfo:  # pylint: disable=too-few-public-methods
     &#39;&#39;&#39;A wrapper for a task status type&#39;&#39;&#39;
 
+    status: TaskStatus
+
     def __init__(self, status) -&gt; None:
         self.status = status
 
@@ -855,9 +904,14 @@ def from_response(cls, response: Dict[str, str]) -&gt; TaskId:
         status = TaskStatus(response[&#39;status&#39;])
 
         if status == TaskStatus.RUNNING:
-            if &#39;pct_complete&#39; not in response or &#39;time_estimate&#39; not in response or &#39;info&#39; not in response:
+            if (&#39;pctComplete&#39; not in response and &#39;pct_complete&#39; not in response) \
+                    or (&#39;timeEstimate&#39; not in response and &#39;time_estimate&#39; not in response) \
+                    or &#39;info&#39; not in response:
                 raise GeoEngineException(response)
-            return RunningTaskStatusInfo(status, response[&#39;pct_complete&#39;], response[&#39;time_estimate&#39;], response[&#39;info&#39;])
+            pct_complete = response[&#39;pct_complete&#39;] if &#39;pct_complete&#39; in response else response[&#39;pctComplete&#39;]
+            time_estimate = response[&#39;time_estimate&#39;] if &#39;time_estimate&#39; in response else response[&#39;timeEstimate&#39;]
+
+            return RunningTaskStatusInfo(status, pct_complete, time_estimate, response[&#39;info&#39;])
         if status == TaskStatus.COMPLETED:
             if &#39;info&#39; not in response or &#39;timeTotal&#39; not in response:
                 raise GeoEngineException(response)
@@ -879,6 +933,13 @@ def from_response(cls, response: Dict[str, str]) -&gt; TaskId:
 <li><a title="geoengine.tasks.FailedTaskStatusInfo" href="#geoengine.tasks.FailedTaskStatusInfo">FailedTaskStatusInfo</a></li>
 <li><a title="geoengine.tasks.RunningTaskStatusInfo" href="#geoengine.tasks.RunningTaskStatusInfo">RunningTaskStatusInfo</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.tasks.TaskStatusInfo.status"><code class="name">var <span class="ident">status</span> : <a title="geoengine.tasks.TaskStatus" href="#geoengine.tasks.TaskStatus">TaskStatus</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.tasks.TaskStatusInfo.from_response"><code class="name flex">
@@ -907,9 +968,14 @@ def from_response(cls, response: Dict[str, str]) -&gt; TaskStatusInfo:
     status = TaskStatus(response[&#39;status&#39;])
 
     if status == TaskStatus.RUNNING:
-        if &#39;pct_complete&#39; not in response or &#39;time_estimate&#39; not in response or &#39;info&#39; not in response:
+        if (&#39;pctComplete&#39; not in response and &#39;pct_complete&#39; not in response) \
+                or (&#39;timeEstimate&#39; not in response and &#39;time_estimate&#39; not in response) \
+                or &#39;info&#39; not in response:
             raise GeoEngineException(response)
-        return RunningTaskStatusInfo(status, response[&#39;pct_complete&#39;], response[&#39;time_estimate&#39;], response[&#39;info&#39;])
+        pct_complete = response[&#39;pct_complete&#39;] if &#39;pct_complete&#39; in response else response[&#39;pctComplete&#39;]
+        time_estimate = response[&#39;time_estimate&#39;] if &#39;time_estimate&#39; in response else response[&#39;timeEstimate&#39;]
+
+        return RunningTaskStatusInfo(status, pct_complete, time_estimate, response[&#39;info&#39;])
     if status == TaskStatus.COMPLETED:
         if &#39;info&#39; not in response or &#39;timeTotal&#39; not in response:
             raise GeoEngineException(response)
@@ -950,15 +1016,27 @@ def from_response(cls, response: Dict[str, str]) -&gt; TaskStatusInfo:
 <ul>
 <li>
 <h4><code><a title="geoengine.tasks.AbortedTaskStatusInfo" href="#geoengine.tasks.AbortedTaskStatusInfo">AbortedTaskStatusInfo</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.tasks.AbortedTaskStatusInfo.status" href="#geoengine.tasks.AbortedTaskStatusInfo.status">status</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="geoengine.tasks.CompletedTaskStatusInfo" href="#geoengine.tasks.CompletedTaskStatusInfo">CompletedTaskStatusInfo</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.tasks.CompletedTaskStatusInfo.status" href="#geoengine.tasks.CompletedTaskStatusInfo.status">status</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="geoengine.tasks.FailedTaskStatusInfo" href="#geoengine.tasks.FailedTaskStatusInfo">FailedTaskStatusInfo</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.tasks.FailedTaskStatusInfo.status" href="#geoengine.tasks.FailedTaskStatusInfo.status">status</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="geoengine.tasks.RunningTaskStatusInfo" href="#geoengine.tasks.RunningTaskStatusInfo">RunningTaskStatusInfo</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.tasks.RunningTaskStatusInfo.status" href="#geoengine.tasks.RunningTaskStatusInfo.status">status</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="geoengine.tasks.Task" href="#geoengine.tasks.Task">Task</a></code></h4>
@@ -987,6 +1065,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; TaskStatusInfo:
 <h4><code><a title="geoengine.tasks.TaskStatusInfo" href="#geoengine.tasks.TaskStatusInfo">TaskStatusInfo</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.tasks.TaskStatusInfo.from_response" href="#geoengine.tasks.TaskStatusInfo.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.tasks.TaskStatusInfo.status" href="#geoengine.tasks.TaskStatusInfo.status">status</a></code></li>
 </ul>
 </li>
 </ul>

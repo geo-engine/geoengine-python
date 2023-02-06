@@ -43,7 +43,7 @@ import numpy as np
 import geopandas as gpd
 import requests as req
 from geoengine import api
-from geoengine.error import GeoEngineException, InputException
+from geoengine.error import GeoEngineException, InputException, MissingFieldInResponseException
 from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
@@ -295,8 +295,8 @@ class DatasetId:
         if &#39;error&#39; in response:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
-        if &#39;id&#39; not in response:  # TODO: improve error handling
-            raise Exception(&#39;No id in response&#39;)
+        if &#39;id&#39; not in response:
+            raise MissingFieldInResponseException(&#39;id&#39;, response)
 
         return DatasetId(UUID(response[&#39;id&#39;]))
 
@@ -334,7 +334,7 @@ class UploadId:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         if &#39;id&#39; not in response:  # TODO: improve error handling
-            raise Exception(&#39;No id in response&#39;)
+            raise MissingFieldInResponseException(&#39;id&#39;, response)
 
         return UploadId(UUID(response[&#39;id&#39;]))
 
@@ -411,7 +411,7 @@ class VolumeId:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         if &#39;id&#39; not in response:  # TODO: improve error handling
-            raise Exception(&#39;No id in response&#39;)
+            raise MissingFieldInResponseException(&#39;id&#39;, response)
 
         return VolumeId(UUID(response[&#39;id&#39;]))
 
@@ -544,8 +544,10 @@ class StoredDataset(NamedTuple):
         if &#39;error&#39; in response:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
-        if &#39;dataset&#39; not in response and &#39;upload&#39; not in response:  # TODO: improve error handling
-            raise Exception(&#39;No dataset and upload in response&#39;)
+        if &#39;dataset&#39; not in response:  # TODO: improve error handling
+            raise MissingFieldInResponseException(&#39;dataset&#39;, response)
+        if &#39;upload&#39; not in response:
+            raise MissingFieldInResponseException(&#39;upload&#39;, response)
 
         return StoredDataset(
             dataset_id=DatasetId(UUID(response[&#39;dataset&#39;])),
@@ -971,8 +973,8 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
         if &#39;error&#39; in response:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
-        if &#39;id&#39; not in response:  # TODO: improve error handling
-            raise Exception(&#39;No id in response&#39;)
+        if &#39;id&#39; not in response:
+            raise MissingFieldInResponseException(&#39;id&#39;, response)
 
         return DatasetId(UUID(response[&#39;id&#39;]))
 
@@ -1011,8 +1013,8 @@ def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
     if &#39;error&#39; in response:
         raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
-    if &#39;id&#39; not in response:  # TODO: improve error handling
-        raise Exception(&#39;No id in response&#39;)
+    if &#39;id&#39; not in response:
+        raise MissingFieldInResponseException(&#39;id&#39;, response)
 
     return DatasetId(UUID(response[&#39;id&#39;]))</code></pre>
 </details>
@@ -1895,8 +1897,10 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
         if &#39;error&#39; in response:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
-        if &#39;dataset&#39; not in response and &#39;upload&#39; not in response:  # TODO: improve error handling
-            raise Exception(&#39;No dataset and upload in response&#39;)
+        if &#39;dataset&#39; not in response:  # TODO: improve error handling
+            raise MissingFieldInResponseException(&#39;dataset&#39;, response)
+        if &#39;upload&#39; not in response:
+            raise MissingFieldInResponseException(&#39;upload&#39;, response)
 
         return StoredDataset(
             dataset_id=DatasetId(UUID(response[&#39;dataset&#39;])),
@@ -1927,8 +1931,10 @@ def from_response(cls, response: api.StoredDataset) -&gt; StoredDataset:
     if &#39;error&#39; in response:
         raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
-    if &#39;dataset&#39; not in response and &#39;upload&#39; not in response:  # TODO: improve error handling
-        raise Exception(&#39;No dataset and upload in response&#39;)
+    if &#39;dataset&#39; not in response:  # TODO: improve error handling
+        raise MissingFieldInResponseException(&#39;dataset&#39;, response)
+    if &#39;upload&#39; not in response:
+        raise MissingFieldInResponseException(&#39;upload&#39;, response)
 
     return StoredDataset(
         dataset_id=DatasetId(UUID(response[&#39;dataset&#39;])),
@@ -2093,7 +2099,7 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         if &#39;id&#39; not in response:  # TODO: improve error handling
-            raise Exception(&#39;No id in response&#39;)
+            raise MissingFieldInResponseException(&#39;id&#39;, response)
 
         return UploadId(UUID(response[&#39;id&#39;]))
 
@@ -2133,7 +2139,7 @@ def from_response(cls, response: api.UploadId) -&gt; UploadId:
         raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
     if &#39;id&#39; not in response:  # TODO: improve error handling
-        raise Exception(&#39;No id in response&#39;)
+        raise MissingFieldInResponseException(&#39;id&#39;, response)
 
     return UploadId(UUID(response[&#39;id&#39;]))</code></pre>
 </details>
@@ -2301,7 +2307,7 @@ def from_response(cls, response: api.Volume) -&gt; Volume:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         if &#39;id&#39; not in response:  # TODO: improve error handling
-            raise Exception(&#39;No id in response&#39;)
+            raise MissingFieldInResponseException(&#39;id&#39;, response)
 
         return VolumeId(UUID(response[&#39;id&#39;]))
 
@@ -2336,7 +2342,7 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
         raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
     if &#39;id&#39; not in response:  # TODO: improve error handling
-        raise Exception(&#39;No id in response&#39;)
+        raise MissingFieldInResponseException(&#39;id&#39;, response)
 
     return VolumeId(UUID(response[&#39;id&#39;]))</code></pre>
 </details>

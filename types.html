@@ -120,6 +120,9 @@ class BoundingBox2D(SpatialBounds):
             upper_right[&#39;y&#39;],
         )
 
+    def __repr__(self) -&gt; str:
+        return f&#39;BoundingBox2D(xmin={self.xmin}, ymin={self.ymin}, xmax={self.xmax}, ymax={self.ymax})&#39;
+
 
 class SpatialPartition2D(SpatialBounds):
     &#39;&#39;&#39;A 2D spatial partition.&#39;&#39;&#39;
@@ -219,6 +222,9 @@ class TimeInterval:
             datetime.fromisoformat(end_str) if end_str is not None else None,
         )
 
+    def __repr__(self) -&gt; str:
+        return f&#34;TimeInterval(start={self.start}, end={self.end})&#34;
+
 
 class SpatialResolution:
     &#39;&#39;&#39;&#39;A spatial resolution.&#39;&#39;&#39;
@@ -249,6 +255,9 @@ class SpatialResolution:
 
     def __str__(self) -&gt; str:
         return str(f&#39;{self.x_resolution},{self.y_resolution}&#39;)
+
+    def __repr__(self) -&gt; str:
+        return str(f&#39;SpatialResolution(x={self.x_resolution}, y={self.y_resolution})&#39;)
 
 
 class QueryRectangle:
@@ -345,6 +354,16 @@ class QueryRectangle:
         Return the SRS string
         &#39;&#39;&#39;
         return self.__srs
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39; Return a string representation of the query rectangle.&#39;&#39;&#39;
+        r = &#39;QueryRectangle( \n&#39;
+        r += &#39;    &#39; + repr(self.__spatial_bounds) + &#39;\n&#39;
+        r += &#39;    &#39; + repr(self.__time_interval) + &#39;\n&#39;
+        r += &#39;    &#39; + repr(self.__resolution) + &#39;\n&#39;
+        r += f&#39;    srs={self.__srs} \n&#39;
+        r += &#39;)&#39;
+        return r
 
 
 class ResultDescriptor:  # pylint: disable=too-few-public-methods
@@ -889,7 +908,7 @@ class RasterSymbology(Symbology):
     __opacity: float
     __colorizer: Colorizer
 
-    def __init__(self, colorizer: Colorizer, opacity: float = 0.0) -&gt; None:
+    def __init__(self, colorizer: Colorizer, opacity: float = 1.0) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterSymbology`&#39;&#39;&#39;
 
         self.__colorizer = colorizer
@@ -1203,7 +1222,10 @@ class ClassificationMeasurement(Measurement):
             lower_left[&#39;y&#39;],
             upper_right[&#39;x&#39;],
             upper_right[&#39;y&#39;],
-        )</code></pre>
+        )
+
+    def __repr__(self) -&gt; str:
+        return f&#39;BoundingBox2D(xmin={self.xmin}, ymin={self.ymin}, xmax={self.xmax}, ymax={self.ymax})&#39;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2373,7 +2395,17 @@ def from_response(cls, response: api.ProvenanceEntry) -&gt; ProvenanceEntry:
         &#39;&#39;&#39;
         Return the SRS string
         &#39;&#39;&#39;
-        return self.__srs</code></pre>
+        return self.__srs
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39; Return a string representation of the query rectangle.&#39;&#39;&#39;
+        r = &#39;QueryRectangle( \n&#39;
+        r += &#39;    &#39; + repr(self.__spatial_bounds) + &#39;\n&#39;
+        r += &#39;    &#39; + repr(self.__time_interval) + &#39;\n&#39;
+        r += &#39;    &#39; + repr(self.__resolution) + &#39;\n&#39;
+        r += f&#39;    srs={self.__srs} \n&#39;
+        r += &#39;)&#39;
+        return r</code></pre>
 </details>
 <h3>Instance variables</h3>
 <dl>
@@ -2776,7 +2808,7 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
 </dd>
 <dt id="geoengine.types.RasterSymbology"><code class="flex name class">
 <span>class <span class="ident">RasterSymbology</span></span>
-<span>(</span><span>colorizer: Colorizer, opacity: float = 0.0)</span>
+<span>(</span><span>colorizer: Colorizer, opacity: float = 1.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A raster symbology</p>
@@ -2790,7 +2822,7 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
     __opacity: float
     __colorizer: Colorizer
 
-    def __init__(self, colorizer: Colorizer, opacity: float = 0.0) -&gt; None:
+    def __init__(self, colorizer: Colorizer, opacity: float = 1.0) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterSymbology`&#39;&#39;&#39;
 
         self.__colorizer = colorizer
@@ -3473,7 +3505,10 @@ def from_response(response: api.SpatialPartition2D) -&gt; SpatialPartition2D:
         return (self.x_resolution, self.y_resolution)
 
     def __str__(self) -&gt; str:
-        return str(f&#39;{self.x_resolution},{self.y_resolution}&#39;)</code></pre>
+        return str(f&#39;{self.x_resolution},{self.y_resolution}&#39;)
+
+    def __repr__(self) -&gt; str:
+        return str(f&#39;SpatialResolution(x={self.x_resolution}, y={self.y_resolution})&#39;)</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -3683,7 +3718,10 @@ def to_api_dict(self) -&gt; api.Symbology:
         return TimeInterval(
             datetime.fromisoformat(start_str),
             datetime.fromisoformat(end_str) if end_str is not None else None,
-        )</code></pre>
+        )
+
+    def __repr__(self) -&gt; str:
+        return f&#34;TimeInterval(start={self.start}, end={self.end})&#34;</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
