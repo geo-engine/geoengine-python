@@ -300,6 +300,18 @@ class GdalMetaDataRegular(MetaDataDefinition):  # pylint: disable=too-few-public
     step: TimeStep
 
 
+class GdalLoadingInfoTemporalSlice(TypedDict):  # pylint: disable=too-few-public-methods
+    time: TimeInterval
+    params: Optional[GdalDatasetParameters]
+
+
+class GdalMetaDataList(MetaDataDefinition):
+    '''Metadata for a list of GDAL datasets'''
+    type: Literal["GdalMetaDataList"]
+    resultDescriptor: RasterResultDescriptor
+    params: List[GdalLoadingInfoTemporalSlice]
+
+
 class GdalMetadataNetCdfCf(MetaDataDefinition):  # pylint: disable=too-few-public-methods
     '''Metadata for NetCDF CF datasets'''
     type: Literal["GdalMetadataNetCdfCf"]

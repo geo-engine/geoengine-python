@@ -25,10 +25,12 @@ class TaskId:
     def from_response(cls, response: Dict[str, str]) -> TaskId:
         '''Parse a http response to an `TaskId`'''
 
-        if 'task_id' not in response:
+        if 'task_id' not in response and 'taskId' not in response:
             raise GeoEngineException(response)
 
-        return TaskId(UUID(response['task_id']))
+        task_id = response['task_id'] if 'task_id' in response else response['taskId']
+
+        return TaskId(UUID(task_id))
 
     def __eq__(self, other) -> bool:
         '''Checks if two dataset ids are equal'''
@@ -56,6 +58,8 @@ class TaskStatus(Enum):
 class TaskStatusInfo:  # pylint: disable=too-few-public-methods
     '''A wrapper for a task status type'''
 
+    status: TaskStatus
+
     def __init__(self, status) -> None:
         self.status = status
 
@@ -74,9 +78,14 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         status = TaskStatus(response['status'])
 
         if status == TaskStatus.RUNNING:
-            if 'pct_complete' not in response or 'time_estimate' not in response or 'info' not in response:
+            if ('pctComplete' not in response and 'pct_complete' not in response) \
+                    or ('timeEstimate' not in response and 'time_estimate' not in response) \
+                    or 'info' not in response:
                 raise GeoEngineException(response)
-            return RunningTaskStatusInfo(status, response['pct_complete'], response['time_estimate'], response['info'])
+            pct_complete = response['pct_complete'] if 'pct_complete' in response else response['pctComplete']
+            time_estimate = response['time_estimate'] if 'time_estimate' in response else response['timeEstimate']
+
+            return RunningTaskStatusInfo(status, pct_complete, time_estimate, response['info'])
         if status == TaskStatus.COMPLETED:
             if 'info' not in response or 'timeTotal' not in response:
                 raise GeoEngineException(response)
@@ -280,8 +289,11 @@ def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
 
     result = []
     for item in response_json:
-        if 'task_id' not in item:
+        if 'task_id' not in item and 'taskId' not in item:
             raise GeoEngineException(response_json)
-        result.append((Task(TaskId(UUID(item['task_id']))), TaskStatusInfo.from_response(item)))
+
+        task_id = item['task_id'] if 'task_id' in item else item['taskId']
+
+        result.append((Task(TaskId(UUID(task_id))), TaskStatusInfo.from_response(item)))
 
     return result
