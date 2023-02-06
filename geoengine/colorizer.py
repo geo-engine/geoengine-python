@@ -5,7 +5,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 import json
 import warnings
-from typing import Dict, List, Optional, Tuple, Union, cast
+from typing import Dict, List, Tuple, Union, cast
 from typing_extensions import TypeAlias
 import numpy as np
 import numpy.typing as npt
@@ -168,7 +168,7 @@ class Colorizer():
     @staticmethod
     def palette_with_colormap(
         values: List[float],
-        color_map: Optional[Union[str, Colormap]] = "gray",
+        color_map: Union[str, Colormap],
         default_color: Rgba = (0, 0, 0, 0),
         no_data_color: Rgba = (0, 0, 0, 0),
     ) -> PaletteColorizer:

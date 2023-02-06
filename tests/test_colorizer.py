@@ -117,27 +117,6 @@ class ColorizerTests(unittest.TestCase):
 
         assert gray_name == expected
 
-    def test_gray_palette_without_cmap(self):
-        """Test the basic black to white cmap colorizer. Should fallback to a gray cmap."""
-        expected = {
-            "type": "palette",
-            "colors": {
-                1.0: (0, 0, 0, 255),
-                2.0: (64, 64, 64, 255),
-                3.0: (128, 128, 128, 255),
-                12.0: (192, 192, 192, 255),
-                42.0: (255, 255, 255, 255)
-            },
-            "noDataColor": (0, 0, 0, 0),
-            "defaultColor": (0, 0, 0, 0)
-        }
-
-        geo_colorizer = colorizer.Colorizer.palette_with_colormap(values=[1.0, 2.0, 3.0, 12.0, 42.0])
-
-        gray = geo_colorizer.to_api_dict()
-
-        assert gray == expected
-
     def test_colormap_not_available(self):
         """Test that an error is raised when a colormap is not available."""
         with self.assertRaises(ValueError) as ctx:
