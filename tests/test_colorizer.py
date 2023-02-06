@@ -59,7 +59,7 @@ class ColorizerTests(unittest.TestCase):
 
         assert gray == expected
 
-    def test_gray_palette(self):
+    def test_gray_palette_with_explicit_mapping(self):
         """Test the basic black to white cmap colorizer."""
         expected = {
             "type": "palette",
@@ -73,7 +73,7 @@ class ColorizerTests(unittest.TestCase):
         }
 
         geo_colorizer = colorizer.Colorizer.palette(
-            values_or_mapping={
+            color_mapping={
                 1.0: (0, 0, 0, 255),
                 2.0: (128, 128, 128, 255),
                 3.0: (255, 255, 255, 255),
@@ -100,8 +100,8 @@ class ColorizerTests(unittest.TestCase):
         # verify color map object variant
         cmap_obj = plt.cm.gray
 
-        geo_colorizer = colorizer.Colorizer.palette(
-            values_or_mapping=[1.0, 2.0, 3.0], color_map=cmap_obj)
+        geo_colorizer = colorizer.Colorizer.palette_with_colormap(
+            values=[1.0, 2.0, 3.0], color_map=cmap_obj)
 
         gray_obj = geo_colorizer.to_api_dict()
 
@@ -110,8 +110,8 @@ class ColorizerTests(unittest.TestCase):
         # verify color map name variant
         cmap_name = "gray"
 
-        geo_colorizer = colorizer.Colorizer.palette(
-            values_or_mapping=[1.0, 2.0, 3.0], color_map=cmap_name)
+        geo_colorizer = colorizer.Colorizer.palette_with_colormap(
+            values=[1.0, 2.0, 3.0], color_map=cmap_name)
 
         gray_name = geo_colorizer.to_api_dict()
 
@@ -132,7 +132,7 @@ class ColorizerTests(unittest.TestCase):
             "defaultColor": (0, 0, 0, 0)
         }
 
-        geo_colorizer = colorizer.Colorizer.palette(values_or_mapping=[1.0, 2.0, 3.0, 12.0, 42.0])
+        geo_colorizer = colorizer.Colorizer.palette_with_colormap(values=[1.0, 2.0, 3.0, 12.0, 42.0])
 
         gray = geo_colorizer.to_api_dict()
 
@@ -369,8 +369,8 @@ class ColorizerTests(unittest.TestCase):
                           "\nNumber of values given: 6 vs. Number of available colors: 4"):
 
             custom_map = ListedColormap(["darkorange", "gold", "lawngreen", "lightseagreen"])
-            colorizer.Colorizer.palette(
-                values_or_mapping=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            colorizer.Colorizer.palette_with_colormap(
+                values=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
                 color_map=custom_map,
                 no_data_color=(0, 0, 0, 0),
                 default_color=(0, 0, 0, 0)
@@ -383,8 +383,8 @@ class ColorizerTests(unittest.TestCase):
                           "to display all unique values of the palette!"
                           "\nNumber of values given: 10 vs. Number of available colors: 8"):
 
-            colorizer.Colorizer.palette(
-                values_or_mapping=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
+            colorizer.Colorizer.palette_with_colormap(
+                values=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0],
                 color_map="Accent",  # holds 8 colors
                 no_data_color=(0, 0, 0, 0),
                 default_color=(0, 0, 0, 0)

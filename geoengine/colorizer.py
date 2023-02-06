@@ -144,8 +144,7 @@ class Colorizer():
 
     @staticmethod
     def palette(
-        values_or_mapping: Union[List[float], Dict[float, Rgba]],
-        color_map: Optional[Union[str, Colormap]] = "gray",
+        color_mapping: Dict[float, Rgba],
         default_color: Rgba = (0, 0, 0, 0),
         no_data_color: Rgba = (0, 0, 0, 0),
     ) -> PaletteColorizer:
@@ -160,22 +159,31 @@ class Colorizer():
         if not all(0 <= elem < 256 for elem in default_color):
             raise ValueError(f"defaultColor must be a RGBA color specification, got {default_color} instead.")
 
-        # handle special case where only values are provided
-        if isinstance(values_or_mapping, List):
-            values_or_mapping = Colorizer.__palette_from_list(values_or_mapping, color_map)
-
         return PaletteColorizer(
+            colors=color_mapping,
             no_data_color=no_data_color,
-            colors=values_or_mapping,
             default_color=default_color,
         )
 
     @staticmethod
-    def __palette_from_list(
+    def palette_with_colormap(
         values: List[float],
         color_map: Optional[Union[str, Colormap]] = "gray",
-    ) -> Dict[float, Rgba]:
-        """Private method to generate a palette colorizer from a given list of values without explicit colors."""
+        default_color: Rgba = (0, 0, 0, 0),
+        no_data_color: Rgba = (0, 0, 0, 0),
+    ) -> PaletteColorizer:
+        """This method generates a palette colorizer from a given list of values.
+        A colormap can be given as an object or by name only."""
+
+        if len(no_data_color) != 4:
+            raise ValueError(f"noDataColor must be a tuple of length 4, got {len(no_data_color)} instead.")
+        if len(default_color) != 4:
+            raise ValueError(f"defaultColor must be a tuple of length 4, got {len(default_color)} instead.")
+        if not all(0 <= elem < 256 for elem in no_data_color):
+            raise ValueError(f"noDataColor must be a RGBA color specification, got {no_data_color} instead.")
+        if not all(0 <= elem < 256 for elem in default_color):
+            raise ValueError(f"defaultColor must be a RGBA color specification, got {default_color} instead.")
+
         n_colors_of_cmap: int = ScalarMappable(cmap=color_map).get_cmap().N
 
         if n_colors_of_cmap < len(values):
@@ -189,9 +197,15 @@ class Colorizer():
             np.linspace(0, len(values), len(values)), bytes=True)
 
         # generate the dict with value: color mapping
-        return dict(zip(
+        color_mapping = dict(zip(
             values,
-            [cast(Rgba, tuple(color.tolist())) for color in list_of_rgba_colors])
+            [(color[0], color[1], color[2], color[3]) for color in list_of_rgba_colors])
+        )
+
+        return PaletteColorizer(
+            colors=color_mapping,
+            no_data_color=no_data_color,
+            default_color=default_color,
         )
 
     @abstractmethod
