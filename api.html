@@ -31,7 +31,9 @@
 
 from enum import Enum
 from typing import Any, Dict, Optional, Tuple, List, Union
-from typing_extensions import Literal, TypedDict
+from typing_extensions import Literal, TypedDict, TypeAlias
+
+Rgba: TypeAlias = Tuple[int, int, int, int]
 
 
 class Coordinate2D(TypedDict):  # pylint: disable=too-few-public-methods
@@ -88,28 +90,32 @@ class PlotQueryRectangle(QueryRectangle):  # pylint: disable=too-few-public-meth
 class ColorizerBreakpoint(TypedDict):  # pylint: disable=too-few-public-methods
     &#34;&#34;&#34;This class is used to generate geoengine compatible color breakpoint definitions as a dictionary.&#34;&#34;&#34;
     value: float
-    color: Tuple[int, int, int, int]
+    color: Rgba
 
 
 class Colorizer(TypedDict):  # pylint: disable=too-few-public-methods
     &#34;&#34;&#34;This is a color map definitions as a dictionary.&#34;&#34;&#34;
     type: Literal[&#34;linearGradient&#34;, &#34;palette&#34;, &#34;logarithmicGradient&#34;]
-    noDataColor: Tuple[int, int, int, int]
-    defaultColor: Tuple[int, int, int, int]
+    noDataColor: Rgba
 
 
 class PaletteColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     &#34;&#34;&#34;This is a palette color map definitions as a dictionary.&#34;&#34;&#34;
-    colors: Dict[float, Tuple[int, int, int, int]]
+    colors: Dict[float, Rgba]
+    defaultColor: Rgba
 
 
 class LinearGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     &#34;&#34;&#34;This is a linear gradient color map definitions as a dictionary.&#34;&#34;&#34;
+    overColor: Rgba
+    underColor: Rgba
     breakpoints: List[ColorizerBreakpoint]
 
 
 class LogarithmicGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     &#34;&#34;&#34;This is a logarithmic gradient color map definitions as a dictionary.&#34;&#34;&#34;
+    overColor: Rgba
+    underColor: Rgba
     breakpoints: List[ColorizerBreakpoint]
 
 
@@ -627,8 +633,7 @@ class CreateDataset(TypedDict):
 <pre><code class="python">class Colorizer(TypedDict):  # pylint: disable=too-few-public-methods
     &#34;&#34;&#34;This is a color map definitions as a dictionary.&#34;&#34;&#34;
     type: Literal[&#34;linearGradient&#34;, &#34;palette&#34;, &#34;logarithmicGradient&#34;]
-    noDataColor: Tuple[int, int, int, int]
-    defaultColor: Tuple[int, int, int, int]</code></pre>
+    noDataColor: Rgba</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -636,10 +641,6 @@ class CreateDataset(TypedDict):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.Colorizer.defaultColor"><code class="name">var <span class="ident">defaultColor</span> : Tuple[int, int, int, int]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="geoengine.api.Colorizer.noDataColor"><code class="name">var <span class="ident">noDataColor</span> : Tuple[int, int, int, int]</code></dt>
 <dd>
 <div class="desc"></div>
@@ -663,7 +664,7 @@ class CreateDataset(TypedDict):
 <pre><code class="python">class ColorizerBreakpoint(TypedDict):  # pylint: disable=too-few-public-methods
     &#34;&#34;&#34;This class is used to generate geoengine compatible color breakpoint definitions as a dictionary.&#34;&#34;&#34;
     value: float
-    color: Tuple[int, int, int, int]</code></pre>
+    color: Rgba</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1780,6 +1781,8 @@ dict(one=1, two=2)</p></div>
 </summary>
 <pre><code class="python">class LinearGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     &#34;&#34;&#34;This is a linear gradient color map definitions as a dictionary.&#34;&#34;&#34;
+    overColor: Rgba
+    underColor: Rgba
     breakpoints: List[ColorizerBreakpoint]</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1792,15 +1795,19 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.LinearGradientColorizer.defaultColor"><code class="name">var <span class="ident">defaultColor</span> : Tuple[int, int, int, int]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="geoengine.api.LinearGradientColorizer.noDataColor"><code class="name">var <span class="ident">noDataColor</span> : Tuple[int, int, int, int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="geoengine.api.LinearGradientColorizer.overColor"><code class="name">var <span class="ident">overColor</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="geoengine.api.LinearGradientColorizer.type"><code class="name">var <span class="ident">type</span> : Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LinearGradientColorizer.underColor"><code class="name">var <span class="ident">underColor</span> : Tuple[int, int, int, int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1818,6 +1825,8 @@ dict(one=1, two=2)</p></div>
 </summary>
 <pre><code class="python">class LogarithmicGradientColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     &#34;&#34;&#34;This is a logarithmic gradient color map definitions as a dictionary.&#34;&#34;&#34;
+    overColor: Rgba
+    underColor: Rgba
     breakpoints: List[ColorizerBreakpoint]</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1830,15 +1839,19 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.LogarithmicGradientColorizer.defaultColor"><code class="name">var <span class="ident">defaultColor</span> : Tuple[int, int, int, int]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="geoengine.api.LogarithmicGradientColorizer.noDataColor"><code class="name">var <span class="ident">noDataColor</span> : Tuple[int, int, int, int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="geoengine.api.LogarithmicGradientColorizer.overColor"><code class="name">var <span class="ident">overColor</span> : Tuple[int, int, int, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="geoengine.api.LogarithmicGradientColorizer.type"><code class="name">var <span class="ident">type</span> : Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.LogarithmicGradientColorizer.underColor"><code class="name">var <span class="ident">underColor</span> : Tuple[int, int, int, int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2142,7 +2155,8 @@ dict(one=1, two=2)</p></div>
 </summary>
 <pre><code class="python">class PaletteColorizer(Colorizer):  # pylint: disable=too-few-public-methods
     &#34;&#34;&#34;This is a palette color map definitions as a dictionary.&#34;&#34;&#34;
-    colors: Dict[float, Tuple[int, int, int, int]]</code></pre>
+    colors: Dict[float, Rgba]
+    defaultColor: Rgba</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -3363,7 +3377,6 @@ dict(one=1, two=2)</p></div>
 <li>
 <h4><code><a title="geoengine.api.Colorizer" href="#geoengine.api.Colorizer">Colorizer</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.api.Colorizer.defaultColor" href="#geoengine.api.Colorizer.defaultColor">defaultColor</a></code></li>
 <li><code><a title="geoengine.api.Colorizer.noDataColor" href="#geoengine.api.Colorizer.noDataColor">noDataColor</a></code></li>
 <li><code><a title="geoengine.api.Colorizer.type" href="#geoengine.api.Colorizer.type">type</a></code></li>
 </ul>
@@ -3612,18 +3625,20 @@ dict(one=1, two=2)</p></div>
 <h4><code><a title="geoengine.api.LinearGradientColorizer" href="#geoengine.api.LinearGradientColorizer">LinearGradientColorizer</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.api.LinearGradientColorizer.breakpoints" href="#geoengine.api.LinearGradientColorizer.breakpoints">breakpoints</a></code></li>
-<li><code><a title="geoengine.api.LinearGradientColorizer.defaultColor" href="#geoengine.api.LinearGradientColorizer.defaultColor">defaultColor</a></code></li>
 <li><code><a title="geoengine.api.LinearGradientColorizer.noDataColor" href="#geoengine.api.LinearGradientColorizer.noDataColor">noDataColor</a></code></li>
+<li><code><a title="geoengine.api.LinearGradientColorizer.overColor" href="#geoengine.api.LinearGradientColorizer.overColor">overColor</a></code></li>
 <li><code><a title="geoengine.api.LinearGradientColorizer.type" href="#geoengine.api.LinearGradientColorizer.type">type</a></code></li>
+<li><code><a title="geoengine.api.LinearGradientColorizer.underColor" href="#geoengine.api.LinearGradientColorizer.underColor">underColor</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="geoengine.api.LogarithmicGradientColorizer" href="#geoengine.api.LogarithmicGradientColorizer">LogarithmicGradientColorizer</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.api.LogarithmicGradientColorizer.breakpoints" href="#geoengine.api.LogarithmicGradientColorizer.breakpoints">breakpoints</a></code></li>
-<li><code><a title="geoengine.api.LogarithmicGradientColorizer.defaultColor" href="#geoengine.api.LogarithmicGradientColorizer.defaultColor">defaultColor</a></code></li>
 <li><code><a title="geoengine.api.LogarithmicGradientColorizer.noDataColor" href="#geoengine.api.LogarithmicGradientColorizer.noDataColor">noDataColor</a></code></li>
+<li><code><a title="geoengine.api.LogarithmicGradientColorizer.overColor" href="#geoengine.api.LogarithmicGradientColorizer.overColor">overColor</a></code></li>
 <li><code><a title="geoengine.api.LogarithmicGradientColorizer.type" href="#geoengine.api.LogarithmicGradientColorizer.type">type</a></code></li>
+<li><code><a title="geoengine.api.LogarithmicGradientColorizer.underColor" href="#geoengine.api.LogarithmicGradientColorizer.underColor">underColor</a></code></li>
 </ul>
 </li>
 <li>
