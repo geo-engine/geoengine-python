@@ -77,7 +77,7 @@ class Colorizer():
         # generate color map steps for geoengine
         breakpoints: List[ColorBreakpoint] = [
             ColorBreakpoint(
-                color=cast(Rgba, tuple(color.tolist())), value=value
+                color=(int(color[0]), int(color[1]), int(color[2]), int(color[3])), value=value
             ) for (value, color) in zip(
                 values_of_breakpoints, list_of_rgba_colors)
         ]
@@ -130,7 +130,7 @@ class Colorizer():
         # generate color map steps for geoengine
         breakpoints: List[ColorBreakpoint] = [
             ColorBreakpoint(
-                color=cast(Rgba, tuple(color.tolist())), value=value
+                color=(int(color[0]), int(color[1]), int(color[2]), int(color[3])), value=value
             ) for (value, color) in zip(
                 values_of_breakpoints, list_of_rgba_colors)
         ]
