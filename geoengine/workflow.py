@@ -29,7 +29,7 @@ from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
 from geoengine.error import MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
-    MethodNotCalledOnVectorException, check_response_for_error
+    MethodNotCalledOnVectorException, check_response_for_error, InvalidUrlException
 from geoengine.tasks import Task, TaskId
 from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
 
@@ -135,17 +135,17 @@ class Workflow:
 
         session = get_session()
 
-        params = dict(
-            service='WFS',
-            version="2.0.0",
-            request='GetFeature',
-            outputFormat='application/json',
-            typeNames=f'{self.__workflow_id}',
-            bbox=bbox.bbox_str,
-            time=bbox.time_str,
-            srsName=bbox.srs,
-            queryResolution=str(bbox.spatial_resolution)
-        )
+        params = {
+            'service': 'WFS',
+            'version': "2.0.0",
+            'request': 'GetFeature',
+            'outputFormat': 'application/json',
+            'typeNames': f'{self.__workflow_id}',
+            'bbox': bbox.bbox_str,
+            'time': bbox.time_str,
+            'srsName': bbox.srs,
+            'queryResolution': str(bbox.spatial_resolution)
+        }
 
         wfs_url = req.Request(
             'GET', url=f'{session.server_url}/wfs/{self.__workflow_id}', params=params).prepare().url
@@ -153,7 +153,7 @@ class Workflow:
         debug(f'WFS URL:\n{wfs_url}')
 
         if not wfs_url:
-            raise Exception('Failed to build WFS URL for workflow {self.__workflow_id}.')
+            raise InvalidUrlException('Failed to build WFS URL for workflow {self.__workflow_id}.')
         return wfs_url
 
     def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -> str:
@@ -238,19 +238,19 @@ class Workflow:
 
         colorizer_colorizer_str = 'custom:' + colorizer.to_json()
 
-        params = dict(
-            service='WMS',
-            version='1.3.0',
-            request="GetMap",
-            layers=str(self),
-            time=bbox.time_str,
-            crs=bbox.srs,
-            bbox=bbox.bbox_ogc_str,
-            width=width,
-            height=height,
-            format='image/png',
-            styles=colorizer_colorizer_str,
-        )
+        params = {
+            'service': 'WMS',
+            'version': '1.3.0',
+            'request': "GetMap",
+            'layers': str(self),
+            'time': bbox.time_str,
+            'crs': bbox.srs,
+            'bbox': bbox.bbox_ogc_str,
+            'width': width,
+            'height': height,
+            'format': 'image/png',
+            'styles': colorizer_colorizer_str,
+        }
 
         return req.Request(
             'GET',

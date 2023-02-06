@@ -46,13 +46,13 @@ class TaskTests(unittest.TestCase):
 
             m.get('http://mock-instance/tasks/list', json=[
                 {
-                    'task_id': 'e07aec1e-387a-4d24-8041-fbfba37eae2b',
+                    'taskId': 'e07aec1e-387a-4d24-8041-fbfba37eae2b',
                     'status': 'completed',
                     'info': 'generic info',
                     'timeTotal': '00:00:05',
                 },
                 {
-                    'task_id': 'a04d2e1b-db24-42cb-a620-1d7803df3abe',
+                    'taskId': 'a04d2e1b-db24-42cb-a620-1d7803df3abe',
                     'status': 'running',
                     'pct_complete': '0.00%',
                     'time_estimate': '? (± ?)',
@@ -107,8 +107,8 @@ class TaskTests(unittest.TestCase):
                 {
                     'task_id': 'ee4bc7ca-e637-4427-a617-2d2aa79d1406',
                     'status': 'clear',
-                    'pct_complete': '0.00%',
-                    'time_estimate': '? (± ?)',
+                    'pctComplete': '0.00%',
+                    'timeEstimate': '? (± ?)',
                     'info': 'generic running info',
                 },
             ])
@@ -127,16 +127,16 @@ class TaskTests(unittest.TestCase):
 
             m.get('http://mock-instance/tasks/list', json=[
                 {
-                    'task_id': 'e07aec1e-387a-4d24-8041-fbfba37eae2b',
+                    'taskId': 'e07aec1e-387a-4d24-8041-fbfba37eae2b',
                     'status': 'completed',
                     'info': 'generic info',
                     'timeTotal': '00:00:05',
                 },
                 {
-                    'task_id': 'ee4f1ed9-fd06-40be-90f5-d6289c154fcd',
+                    'taskId': 'ee4f1ed9-fd06-40be-90f5-d6289c154fcd',
                     'status': 'running',
                     # Missing pct_complete field
-                    'time_estimate': '? (± ?)',
+                    'timeEstimate': '? (± ?)',
                     'info': 'generic running info',
                 },
             ])
@@ -186,7 +186,7 @@ class TaskTests(unittest.TestCase):
                   json={
                       'status': 'running',
                       # Missing pct_complete field
-                      'time_estimate': '? (± ?)',
+                      'timeEstimate': '? (± ?)',
                       'info': 'generic running info', })
 
             ge.initialize('http://mock-instance')

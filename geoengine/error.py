@@ -2,7 +2,7 @@
 Package errors and backend mapped error types
 '''
 
-from typing import Dict, Union
+from typing import Any, Dict, Union
 from requests import Response, HTTPError
 from geoengine import api
 
@@ -135,6 +135,38 @@ class SpatialReferenceMismatchException(Exception):
 
     def __str__(self) -> str:
         return f"Spatial reference mismatch {self.__spatial_reference_a} != {self.__spatial_reference_b}"
+
+
+class InvalidUrlException(Exception):
+    '''
+    Exception for when no valid url is provided
+    '''
+
+    def __init__(self, msg: str) -> None:
+        super().__init__()
+
+        self.__msg = msg
+
+    def __str__(self) -> str:
+        return f"{self.__msg}"
+
+
+class MissingFieldInResponseException(Exception):
+    '''
+    Exception for when a field is missing in a response
+    '''
+
+    missing_field: str
+    response: Any
+
+    def __init__(self, missing_field: str, response: Any) -> None:
+        super().__init__()
+
+        self.missing_field = missing_field
+        self.response = response
+
+    def __str__(self) -> str:
+        return f"Missing field '{self.missing_field}' in response: {self.response}"
 
 
 def check_response_for_error(response: Response) -> None:

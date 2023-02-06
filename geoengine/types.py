@@ -91,6 +91,9 @@ class BoundingBox2D(SpatialBounds):
             upper_right['y'],
         )
 
+    def __repr__(self) -> str:
+        return f'BoundingBox2D(xmin={self.xmin}, ymin={self.ymin}, xmax={self.xmax}, ymax={self.ymax})'
+
 
 class SpatialPartition2D(SpatialBounds):
     '''A 2D spatial partition.'''
@@ -190,6 +193,9 @@ class TimeInterval:
             datetime.fromisoformat(end_str) if end_str is not None else None,
         )
 
+    def __repr__(self) -> str:
+        return f"TimeInterval(start={self.start}, end={self.end})"
+
 
 class SpatialResolution:
     ''''A spatial resolution.'''
@@ -220,6 +226,9 @@ class SpatialResolution:
 
     def __str__(self) -> str:
         return str(f'{self.x_resolution},{self.y_resolution}')
+
+    def __repr__(self) -> str:
+        return str(f'SpatialResolution(x={self.x_resolution}, y={self.y_resolution})')
 
 
 class QueryRectangle:
@@ -316,6 +325,16 @@ class QueryRectangle:
         Return the SRS string
         '''
         return self.__srs
+
+    def __repr__(self) -> str:
+        ''' Return a string representation of the query rectangle.'''
+        r = 'QueryRectangle( \n'
+        r += '    ' + repr(self.__spatial_bounds) + '\n'
+        r += '    ' + repr(self.__time_interval) + '\n'
+        r += '    ' + repr(self.__resolution) + '\n'
+        r += f'    srs={self.__srs} \n'
+        r += ')'
+        return r
 
 
 class ResultDescriptor:  # pylint: disable=too-few-public-methods
@@ -860,7 +879,7 @@ class RasterSymbology(Symbology):
     __opacity: float
     __colorizer: Colorizer
 
-    def __init__(self, colorizer: Colorizer, opacity: float = 0.0) -> None:
+    def __init__(self, colorizer: Colorizer, opacity: float = 1.0) -> None:
         '''Initialize a new `RasterSymbology`'''
 
         self.__colorizer = colorizer
