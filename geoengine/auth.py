@@ -94,8 +94,14 @@ class Session:
 
         self.__id = session['id']
 
-        if 'user' in session and 'id' in session['user']:
+        try:
             self.__user_id = session['user']['id']
+        except KeyError:
+            # user id is only present in Pro
+            pass
+        except TypeError:
+            # user is None in non-Pro
+            pass
 
         if 'validUntil' in session:
             self.__valid_until = session['validUntil']
