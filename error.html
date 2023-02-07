@@ -221,7 +221,23 @@ def check_response_for_error(response: Response) -&gt; None:
             raise GeoEngineException(response_json)
 
     # raise `HTTPError` if `GeoEngineException` or any other was not thrown
-    raise exception</code></pre>
+    raise exception
+
+
+class MethodOnlyAvailableInGeoEnginePro(Exception):
+    &#39;&#39;&#39;
+    Exception when trying to use a method that is only available in Geo Engine Pro
+    &#39;&#39;&#39;
+
+    __message: str
+
+    def __init__(self, message: str) -&gt; None:
+        super().__init__()
+
+        self.__message = message
+
+    def __str__(self) -&gt; str:
+        return f&#34;Method is only available in Geo Engine Pro: {self.__message}&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -440,6 +456,37 @@ def check_response_for_error(response: Response) -&gt; None:
 
     def __str__(self) -&gt; str:
         return &#34;Only allowed to call method on vector result&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="geoengine.error.MethodOnlyAvailableInGeoEnginePro"><code class="flex name class">
+<span>class <span class="ident">MethodOnlyAvailableInGeoEnginePro</span></span>
+<span>(</span><span>message: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Exception when trying to use a method that is only available in Geo Engine Pro</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MethodOnlyAvailableInGeoEnginePro(Exception):
+    &#39;&#39;&#39;
+    Exception when trying to use a method that is only available in Geo Engine Pro
+    &#39;&#39;&#39;
+
+    __message: str
+
+    def __init__(self, message: str) -&gt; None:
+        super().__init__()
+
+        self.__message = message
+
+    def __str__(self) -&gt; str:
+        return f&#34;Method is only available in Geo Engine Pro: {self.__message}&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -673,6 +720,9 @@ def check_response_for_error(response: Response) -&gt; None:
 </li>
 <li>
 <h4><code><a title="geoengine.error.MethodNotCalledOnVectorException" href="#geoengine.error.MethodNotCalledOnVectorException">MethodNotCalledOnVectorException</a></code></h4>
+</li>
+<li>
+<h4><code><a title="geoengine.error.MethodOnlyAvailableInGeoEnginePro" href="#geoengine.error.MethodOnlyAvailableInGeoEnginePro">MethodOnlyAvailableInGeoEnginePro</a></code></h4>
 </li>
 <li>
 <h4><code><a title="geoengine.error.MissingFieldInResponseException" href="#geoengine.error.MissingFieldInResponseException">MissingFieldInResponseException</a></code></h4>

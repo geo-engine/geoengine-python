@@ -40,7 +40,8 @@ from dotenv import load_dotenv
 import requests as req
 from requests.auth import AuthBase
 
-from geoengine.error import GeoEngineException, UninitializedException, NoAdminSessionException
+from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro, UninitializedException,\
+    NoAdminSessionException
 
 
 class BearerAuth(AuthBase):  # pylint: disable=too-few-public-methods
@@ -62,6 +63,7 @@ class Session:
     &#39;&#39;&#39;
 
     __id: UUID
+    __user_id: Optional[UUID] = None
     __valid_until: Optional[str] = None
     __server_url: str
     __timeout: int = 60
@@ -121,6 +123,15 @@ class Session:
 
         self.__id = session[&#39;id&#39;]
 
+        try:
+            self.__user_id = session[&#39;user&#39;][&#39;id&#39;]
+        except KeyError:
+            # user id is only present in Pro
+            pass
+        except TypeError:
+            # user is None in non-Pro
+            pass
+
         if &#39;validUntil&#39; in session:
             self.__valid_until = session[&#39;validUntil&#39;]
 
@@ -135,6 +146,10 @@ class Session:
         &#39;&#39;&#39;Display representation of a session&#39;&#39;&#39;
         r = &#39;&#39;
         r += f&#39;Server:              {self.server_url}\n&#39;
+
+        if self.__user_id is not None:
+            r += f&#39;User Id:             {self.__user_id}\n&#39;
+
         r += f&#39;Session Id:          {self.__id}\n&#39;
 
         if self.__valid_until is not None:
@@ -179,6 +194,16 @@ class Session:
         &#39;&#39;&#39;
 
         return self.__server_url
+
+    @property
+    def user_id(self) -&gt; UUID:
+        &#39;&#39;&#39;
+        Return the user id. Only works in Geo Engine Pro.
+        &#39;&#39;&#39;
+        if self.__user_id is None:
+            raise MethodOnlyAvailableInGeoEnginePro(&#34;User id is only available in Geo Engine Pro&#34;)
+
+        return self.__id
 
     def requests_bearer_auth(self) -&gt; BearerAuth:
         &#39;&#39;&#39;
@@ -383,6 +408,7 @@ Credentials and token must not be provided at the same time.</p>
     &#39;&#39;&#39;
 
     __id: UUID
+    __user_id: Optional[UUID] = None
     __valid_until: Optional[str] = None
     __server_url: str
     __timeout: int = 60
@@ -442,6 +468,15 @@ Credentials and token must not be provided at the same time.</p>
 
         self.__id = session[&#39;id&#39;]
 
+        try:
+            self.__user_id = session[&#39;user&#39;][&#39;id&#39;]
+        except KeyError:
+            # user id is only present in Pro
+            pass
+        except TypeError:
+            # user is None in non-Pro
+            pass
+
         if &#39;validUntil&#39; in session:
             self.__valid_until = session[&#39;validUntil&#39;]
 
@@ -456,6 +491,10 @@ Credentials and token must not be provided at the same time.</p>
         &#39;&#39;&#39;Display representation of a session&#39;&#39;&#39;
         r = &#39;&#39;
         r += f&#39;Server:              {self.server_url}\n&#39;
+
+        if self.__user_id is not None:
+            r += f&#39;User Id:             {self.__user_id}\n&#39;
+
         r += f&#39;Session Id:          {self.__id}\n&#39;
 
         if self.__valid_until is not None:
@@ -500,6 +539,16 @@ Credentials and token must not be provided at the same time.</p>
         &#39;&#39;&#39;
 
         return self.__server_url
+
+    @property
+    def user_id(self) -&gt; UUID:
+        &#39;&#39;&#39;
+        Return the user id. Only works in Geo Engine Pro.
+        &#39;&#39;&#39;
+        if self.__user_id is None:
+            raise MethodOnlyAvailableInGeoEnginePro(&#34;User id is only available in Geo Engine Pro&#34;)
+
+        return self.__id
 
     def requests_bearer_auth(self) -&gt; BearerAuth:
         &#39;&#39;&#39;
@@ -594,6 +643,24 @@ def server_url(self) -&gt; str:
     return self.__server_url</code></pre>
 </details>
 </dd>
+<dt id="geoengine.auth.Session.user_id"><code class="name">var <span class="ident">user_id</span> : uuid.UUID</code></dt>
+<dd>
+<div class="desc"><p>Return the user id. Only works in Geo Engine Pro.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def user_id(self) -&gt; UUID:
+    &#39;&#39;&#39;
+    Return the user id. Only works in Geo Engine Pro.
+    &#39;&#39;&#39;
+    if self.__user_id is None:
+        raise MethodOnlyAvailableInGeoEnginePro(&#34;User id is only available in Geo Engine Pro&#34;)
+
+    return self.__id</code></pre>
+</details>
+</dd>
 </dl>
 <h3>Methods</h3>
 <dl>
@@ -669,6 +736,7 @@ def server_url(self) -&gt; str:
 <li><code><a title="geoengine.auth.Session.requests_bearer_auth" href="#geoengine.auth.Session.requests_bearer_auth">requests_bearer_auth</a></code></li>
 <li><code><a title="geoengine.auth.Session.server_url" href="#geoengine.auth.Session.server_url">server_url</a></code></li>
 <li><code><a title="geoengine.auth.Session.session" href="#geoengine.auth.Session.session">session</a></code></li>
+<li><code><a title="geoengine.auth.Session.user_id" href="#geoengine.auth.Session.user_id">user_id</a></code></li>
 </ul>
 </li>
 </ul>

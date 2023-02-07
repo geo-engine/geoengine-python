@@ -579,7 +579,48 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 
     # TODO: check that workflow exists
 
-    return Workflow(WorkflowId(workflow_id))</code></pre>
+    return Workflow(WorkflowId(workflow_id))
+
+
+def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -&gt; api.Quota:
+    &#39;&#39;&#39;
+    Gets a user&#39;s quota. Only admins can get other users&#39; quota.
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    url = f&#39;{session.server_url}/quota&#39;
+
+    if user_id is not None:
+        url = f&#39;{session.server_url}/quotas/{user_id}&#39;
+
+    quota_response = req.get(
+        url,
+        headers=session.admin_or_normal_auth_header,
+        timeout=timeout
+    ).json()
+
+    return api.Quota({
+        &#34;available&#34;: quota_response[&#34;available&#34;],
+        &#34;used&#34;: quota_response[&#34;used&#34;]
+    })
+
+
+def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -&gt; None:
+    &#39;&#39;&#39;
+    Update a user&#39;s quota. Only admins can perform this operation.
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    req.post(
+        f&#39;{session.server_url}/quotas/{user_id}&#39;,
+        headers=session.admin_auth_header,
+        json=api.UpdateQuota({
+            &#39;available&#39;: new_available_quota
+        }),
+        timeout=timeout
+    )</code></pre>
 </details>
 </section>
 <section>
@@ -589,6 +630,39 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="geoengine.workflow.get_quota"><code class="name flex">
+<span>def <span class="ident">get_quota</span></span>(<span>user_id: Optional[UUID] = None, timeout: int = 60) ‑> <a title="geoengine.api.Quota" href="api.html#geoengine.api.Quota">Quota</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets a user's quota. Only admins can get other users' quota.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -&gt; api.Quota:
+    &#39;&#39;&#39;
+    Gets a user&#39;s quota. Only admins can get other users&#39; quota.
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    url = f&#39;{session.server_url}/quota&#39;
+
+    if user_id is not None:
+        url = f&#39;{session.server_url}/quotas/{user_id}&#39;
+
+    quota_response = req.get(
+        url,
+        headers=session.admin_or_normal_auth_header,
+        timeout=timeout
+    ).json()
+
+    return api.Quota({
+        &#34;available&#34;: quota_response[&#34;available&#34;],
+        &#34;used&#34;: quota_response[&#34;used&#34;]
+    })</code></pre>
+</details>
+</dd>
 <dt id="geoengine.workflow.register_workflow"><code class="name flex">
 <span>def <span class="ident">register_workflow</span></span>(<span>workflow: Dict[str, Any], timeout: int = 60) ‑> <a title="geoengine.workflow.Workflow" href="#geoengine.workflow.Workflow">Workflow</a></span>
 </code></dt>
@@ -613,6 +687,32 @@ def workflow_by_id(workflow_id: UUID) -&gt; Workflow:
     ).json()
 
     return Workflow(WorkflowId.from_response(workflow_response))</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.update_quota"><code class="name flex">
+<span>def <span class="ident">update_quota</span></span>(<span>user_id: UUID, new_available_quota: int, timeout: int = 60) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Update a user's quota. Only admins can perform this operation.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -&gt; None:
+    &#39;&#39;&#39;
+    Update a user&#39;s quota. Only admins can perform this operation.
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    req.post(
+        f&#39;{session.server_url}/quotas/{user_id}&#39;,
+        headers=session.admin_auth_header,
+        json=api.UpdateQuota({
+            &#39;available&#39;: new_available_quota
+        }),
+        timeout=timeout
+    )</code></pre>
 </details>
 </dd>
 <dt id="geoengine.workflow.workflow_by_id"><code class="name flex">
@@ -1941,7 +2041,9 @@ dict(one=1, two=2)</p></div>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="geoengine.workflow.get_quota" href="#geoengine.workflow.get_quota">get_quota</a></code></li>
 <li><code><a title="geoengine.workflow.register_workflow" href="#geoengine.workflow.register_workflow">register_workflow</a></code></li>
+<li><code><a title="geoengine.workflow.update_quota" href="#geoengine.workflow.update_quota">update_quota</a></code></li>
 <li><code><a title="geoengine.workflow.workflow_by_id" href="#geoengine.workflow.workflow_by_id">workflow_by_id</a></code></li>
 </ul>
 </li>
