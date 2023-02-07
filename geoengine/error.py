@@ -193,3 +193,19 @@ def check_response_for_error(response: Response) -> None:
 
     # raise `HTTPError` if `GeoEngineException` or any other was not thrown
     raise exception
+
+
+class MethodOnlyAvailableInGeoEnginePro(Exception):
+    '''
+    Exception when trying to use a method that is only available in Geo Engine Pro
+    '''
+
+    __message: str
+
+    def __init__(self, message: str) -> None:
+        super().__init__()
+
+        self.__message = message
+
+    def __str__(self) -> str:
+        return f"Method is only available in Geo Engine Pro: {self.__message}"
