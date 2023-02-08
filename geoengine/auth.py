@@ -174,7 +174,7 @@ class Session:
         if self.__user_id is None:
             raise MethodOnlyAvailableInGeoEnginePro("User id is only available in Geo Engine Pro")
 
-        return self.__id
+        return self.__user_id
 
     def requests_bearer_auth(self) -> BearerAuth:
         '''
