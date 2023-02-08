@@ -203,7 +203,7 @@ class Session:
         if self.__user_id is None:
             raise MethodOnlyAvailableInGeoEnginePro(&#34;User id is only available in Geo Engine Pro&#34;)
 
-        return self.__id
+        return self.__user_id
 
     def requests_bearer_auth(self) -&gt; BearerAuth:
         &#39;&#39;&#39;
@@ -548,7 +548,7 @@ Credentials and token must not be provided at the same time.</p>
         if self.__user_id is None:
             raise MethodOnlyAvailableInGeoEnginePro(&#34;User id is only available in Geo Engine Pro&#34;)
 
-        return self.__id
+        return self.__user_id
 
     def requests_bearer_auth(self) -&gt; BearerAuth:
         &#39;&#39;&#39;
@@ -658,7 +658,7 @@ def user_id(self) -&gt; UUID:
     if self.__user_id is None:
         raise MethodOnlyAvailableInGeoEnginePro(&#34;User id is only available in Geo Engine Pro&#34;)
 
-    return self.__id</code></pre>
+    return self.__user_id</code></pre>
 </details>
 </dd>
 </dl>
