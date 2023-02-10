@@ -551,3 +551,44 @@ def workflow_by_id(workflow_id: UUID) -> Workflow:
     # TODO: check that workflow exists
 
     return Workflow(WorkflowId(workflow_id))
+
+
+def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> api.Quota:
+    '''
+    Gets a user's quota. Only admins can get other users' quota.
+    '''
+
+    session = get_session()
+
+    url = f'{session.server_url}/quota'
+
+    if user_id is not None:
+        url = f'{session.server_url}/quotas/{user_id}'
+
+    quota_response = req.get(
+        url,
+        headers=session.admin_or_normal_auth_header,
+        timeout=timeout
+    ).json()
+
+    return api.Quota({
+        "available": quota_response["available"],
+        "used": quota_response["used"]
+    })
+
+
+def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> None:
+    '''
+    Update a user's quota. Only admins can perform this operation.
+    '''
+
+    session = get_session()
+
+    req.post(
+        f'{session.server_url}/quotas/{user_id}',
+        headers=session.admin_auth_header,
+        json=api.UpdateQuota({
+            'available': new_available_quota
+        }),
+        timeout=timeout
+    )
