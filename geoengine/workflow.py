@@ -32,10 +32,11 @@ import pyarrow as pa
 from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
-from geoengine.error import MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
-    MethodNotCalledOnVectorException, check_response_for_error, InvalidUrlException
+from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
+    MethodNotCalledOnVectorException, TypeException, check_response_for_error, InvalidUrlException
 from geoengine.tasks import Task, TaskId
 from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
+import geoengine.backports as backports
 
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
@@ -591,10 +592,9 @@ class Workflow:
 
         # for the websockets library, it is necessary that the url starts with `ws://``
         [_, url_part] = url.split('://', maxsplit=1)
-        ws_server_url = f'ws://{url_part}'
 
         async with websockets.client.connect(
-            uri=ws_server_url,
+            uri=f'ws://{url_part}',
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
         ) as websocket:
@@ -615,7 +615,7 @@ class Workflow:
 
                         if isinstance(data, str):
                             # the server sent an error message
-                            raise Exception(data)
+                            raise GeoEngineException({'error': data})
 
                         return data
                     except websockets.exceptions.ConnectionClosedOK:
@@ -634,7 +634,8 @@ class Workflow:
 
                 (new_tile_bytes, tile) = await asyncio.gather(
                     read_new_bytes(),
-                    asyncio.to_thread(process_bytes, tile_bytes),
+                    # asyncio.to_thread(process_bytes, tile_bytes), # TODO: use this when min Python version is 3.9
+                    backports.to_thread(process_bytes, tile_bytes),
                 )
 
                 tile_bytes = new_tile_bytes
@@ -675,7 +676,9 @@ class Workflow:
 
         timesteps: List[xr.DataArray] = []
 
-        async def read_tiles(remainder_tile: Optional[xr.DataArray]) -> tuple[List[xr.DataArray], Optional[xr.DataArray]]:
+        async def read_tiles(
+            remainder_tile: Optional[xr.DataArray]
+        ) -> tuple[List[xr.DataArray], Optional[xr.DataArray]]:
             last_timestep: Optional[np.datetime64] = None
             tiles = []
 
@@ -702,7 +705,7 @@ class Workflow:
             combined_tiles = xr.combine_by_coords(tiles)
 
             if isinstance(combined_tiles, xr.Dataset):
-                raise Exception('Internal error: Mergen data arrays should result in a data array.')
+                raise TypeException('Internal error: Merging data arrays should result in a data array.')
 
             return combined_tiles
 
@@ -711,7 +714,8 @@ class Workflow:
         while len(tiles):
             ((new_tiles, new_remainder_tile), new_timestep) = await asyncio.gather(
                 read_tiles(remainder_tile),
-                asyncio.to_thread(merge_tiles, tiles),
+                backports.to_thread(merge_tiles, tiles)
+                # asyncio.to_thread(merge_tiles, tiles), # TODO: use this when min Python version is 3.9
             )
 
             tiles = new_tiles
@@ -722,7 +726,8 @@ class Workflow:
 
         output: xr.DataArray = cast(
             xr.DataArray,
-            await asyncio.to_thread(
+            # await asyncio.to_thread( # TODO: use this when min Python version is 3.9
+            await backports.to_thread(
                 xr.concat,
                 # TODO: This is a typings error, since the method accepts also a `xr.DataArray` and returns one
                 cast(List[xr.Dataset], timesteps),
