@@ -3,13 +3,14 @@ A workflow representation and methods on workflows
 '''
 
 from __future__ import annotations
+import asyncio
 
 import json
 import urllib.parse
 from io import BytesIO
 from logging import debug
 from os import PathLike
-from typing import Any, Dict, List, Optional, Union, Type
+from typing import Any, AsyncIterator, Dict, List, Optional, Union, Type
 from uuid import UUID
 
 import geopandas as gpd
@@ -23,7 +24,10 @@ from owslib.wcs import WebCoverageService
 # TODO: can be imported directly from `typing` with python >= 3.8
 from typing_extensions import TypedDict
 from vega import VegaLite
-from xarray import DataArray
+import websockets
+import websockets.client
+import xarray as xr
+import pyarrow as pa
 
 from geoengine import api
 from geoengine.auth import get_session
@@ -31,7 +35,7 @@ from geoengine.colorizer import Colorizer
 from geoengine.error import MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
     MethodNotCalledOnVectorException, check_response_for_error, InvalidUrlException
 from geoengine.tasks import Task, TaskId
-from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
+from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
 
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
@@ -405,7 +409,7 @@ class Workflow:
         bbox: QueryRectangle,
         timeout=3600,
         force_no_data_value: Optional[float] = None
-    ) -> DataArray:
+    ) -> xr.DataArray:
         '''
         Query a workflow and return the raster result as a georeferenced xarray
 
@@ -425,9 +429,9 @@ class Workflow:
             data_array = rioxarray.open_rasterio(dataset)
 
             # helping mypy with inference
-            assert isinstance(data_array, DataArray)
+            assert isinstance(data_array, xr.DataArray)
 
-            rio: DataArray = data_array.rio
+            rio: xr.DataArray = data_array.rio
             rio.update_attrs({
                 'crs': rio.crs,
                 'res': rio.resolution(),
@@ -524,6 +528,143 @@ class Workflow:
         check_response_for_error(response)
 
         return Task(TaskId.from_response(response.json()))
+
+    async def raster_stream(
+            self,
+            query_rectangle: QueryRectangle,
+            open_timeout: int = 60) -> AsyncIterator[xr.DataArray]:
+        '''Stream the workflow result as series of xarrays'''
+
+        def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
+            reader = pa.ipc.open_file(arrow_ipc)
+            record_batch = reader.get_record_batch(0)
+            return record_batch
+
+        def create_xarray(record_batch: pa.RecordBatch) -> xr.DataArray:
+            metadata = record_batch.schema.metadata
+            spatial_partition: api.SpatialPartition2D = json.loads(metadata[b'spatialPartition'])
+            x_size = int(metadata[b'xSize'])
+            y_size = int(metadata[b'ySize'])
+            spatial_reference = metadata[b'spatialReference'].decode('utf-8')
+            arrow_array = record_batch.column(0)
+
+            xmin = spatial_partition['upperLeftCoordinate']['x']
+            xmax = spatial_partition['lowerRightCoordinate']['x']
+            ymin = spatial_partition['lowerRightCoordinate']['y']
+            ymax = spatial_partition['upperLeftCoordinate']['y']
+
+            time = TimeInterval.from_response(json.loads(metadata[b'time']))
+
+            array = xr.DataArray(
+                arrow_array.to_numpy(
+                    zero_copy_only=False,  # cannot zero-copy as soon as we have nodata values
+                ).reshape(x_size, y_size),
+                dims=["y", "x"],
+                coords={
+                    'x': np.linspace(xmin, xmax, x_size, endpoint=False),
+                    'y': np.linspace(ymax, ymin, y_size, endpoint=False),
+                    'time': time.start,  # TODO: incorporate time end?
+                },
+            )
+
+            array.rio.write_crs(spatial_reference, inplace=True)
+
+            return array
+
+        # Currently, it only works for raster results
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
+        session = get_session()
+
+        url = req.get(
+            f'{session.server_url}/workflow/{self.__workflow_id}/rasterStream',
+            params={
+                'resultType': 'arrow',
+                'spatialBounds': query_rectangle.bbox_str,
+                'timeInterval': query_rectangle.time_str,
+                'spatialResolution': str(query_rectangle.spatial_resolution),
+            },
+            timeout=open_timeout,  # we just have to set a value, but it is not used
+        ).url
+
+        # for the websockets library, it is necessary that the url starts with `ws://``
+        [_, url_part] = url.split('://', maxsplit=1)
+        ws_server_url = f'ws://{url_part}'
+
+        async with websockets.client.connect(
+            uri=ws_server_url,
+            extra_headers=session.auth_header,
+            open_timeout=open_timeout,
+        ) as websocket:
+
+            await websocket.send("NEXT")
+
+            while websocket.open:
+                try:
+                    arrow_ipc = await websocket.recv()
+                except websockets.exceptions.ConnectionClosedOK:
+                    # the websocket connection closed gracefully, so we can stop the loop
+                    break
+
+                if not isinstance(arrow_ipc, bytes):
+                    raise Exception('Received data is not of type `bytes`')
+
+                async def send_next_to_server():
+                    # already send the next request to speed up the process
+                    try:
+                        await websocket.send("NEXT")
+                    except websockets.exceptions.ConnectionClosed:
+                        # the websocket connection is already closed, so we can ignore this
+                        pass
+
+                async def process_batch():
+                    # process the received data
+                    record_batch = read_arrow_ipc(arrow_ipc)
+                    tile = create_xarray(record_batch)
+
+                    return tile
+
+                (_, tile) = await asyncio.gather(
+                    asyncio.create_task(send_next_to_server()),
+                    asyncio.create_task(process_batch()),
+                )
+
+                yield tile
+
+    async def raster_stream_into_xarray(
+            self,
+            query_rectangle: QueryRectangle,
+            open_timeout: int = 60) -> xr.DataArray:
+        '''
+        Stream the workflow result into memory and output a single xarray.
+
+        NOTE: You can run out of memory if the query rectangle is too large.
+        '''
+
+        timesteps: List[xr.DataArray] = []
+
+        last_timestep: Optional[np.datetime64] = None
+        tiles: List[xr.DataArray] = []
+
+        async for tile in self.raster_stream(query_rectangle, open_timeout):
+            timestep: np.datetime64 = tile.time.values
+            if last_timestep is None:
+                last_timestep = timestep
+            elif last_timestep != timestep:
+                combined_tiles = xr.combine_by_coords(tiles)
+
+                if isinstance(combined_tiles, xr.Dataset):
+                    raise Exception('Internal error: Mergen data arrays should result in a data array.')
+
+                timesteps.append(combined_tiles)
+
+                tiles = []
+                last_timestep = timestep
+
+            tiles.append(tile)
+
+        return xr.concat(timesteps, dim='time')
 
 
 def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -> Workflow:
