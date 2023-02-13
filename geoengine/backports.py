@@ -10,7 +10,9 @@ import contextvars
 import functools
 
 
-async def to_thread(func, /, *args, **kwargs):
+# async def to_thread(func, /, *args, **kwargs):
+# TODO: the parameters are positional only, but this syntax appeared in Python 3.8
+async def to_thread(func, *args, **kwargs):
     """
     This is a backport of `asyncio.to_thread`.
 

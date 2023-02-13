@@ -36,7 +36,7 @@ from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, 
     MethodNotCalledOnVectorException, TypeException, check_response_for_error, InvalidUrlException
 from geoengine.tasks import Task, TaskId
 from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
-import geoengine.backports as backports
+from geoengine import backports
 
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
