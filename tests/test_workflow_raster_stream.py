@@ -44,7 +44,7 @@ class MockWebsocket:
     @property
     def open(self) -> bool:
         '''Mock open impl'''
-        return True if len(self.__tiles) > 0 else False
+        return len(self.__tiles) > 0
 
     async def recv(self):
         return self.__tiles.pop()
@@ -115,13 +115,16 @@ class WorkflowRasterStreamTests(unittest.TestCase):
         })):
             ge.initialize("http://localhost:3030", token="no_token")
 
-        with unittest.mock.patch("geoengine.Workflow._Workflow__query_result_descriptor", return_value=ge.RasterResultDescriptor(
-            "U8",
-            ge.UnitlessMeasurement(),
-            "EPSG:4326",
-            spatial_bounds=ge.SpatialPartition2D(-180.0, -90.0, 180.0, 90.0),
-            spatial_resolution=ge.SpatialResolution(45.0, 22.5)
-        )):
+        with unittest.mock.patch(
+            "geoengine.Workflow._Workflow__query_result_descriptor",
+            return_value=ge.RasterResultDescriptor(
+                "U8",
+                ge.UnitlessMeasurement(),
+                "EPSG:4326",
+                spatial_bounds=ge.SpatialPartition2D(-180.0, -90.0, 180.0, 90.0),
+                spatial_resolution=ge.SpatialResolution(45.0, 22.5)
+            ),
+        ):
             workflow = ge.Workflow(UUID("00000000-0000-0000-0000-000000000000"))
 
         query_rect = ge.QueryRectangle(
