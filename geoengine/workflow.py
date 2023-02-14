@@ -32,7 +32,7 @@ import pyarrow as pa
 from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
-from geoengine.error import GeoEngineException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
+from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
     MethodNotCalledOnVectorException, TypeException, check_response_for_error, InvalidUrlException
 from geoengine.tasks import Task, TaskId
 from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
@@ -539,6 +539,7 @@ class Workflow:
 
         def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
             reader = pa.ipc.open_file(arrow_ipc)
+            # We know from the backend that there is only one record batch
             record_batch = reader.get_record_batch(0)
             return record_batch
 
@@ -548,12 +549,19 @@ class Workflow:
             x_size = int(metadata[b'xSize'])
             y_size = int(metadata[b'ySize'])
             spatial_reference = metadata[b'spatialReference'].decode('utf-8')
+            # We know from the backend that there is only one array a.k.a. one column
             arrow_array = record_batch.column(0)
 
             xmin = spatial_partition['upperLeftCoordinate']['x']
             xmax = spatial_partition['lowerRightCoordinate']['x']
             ymin = spatial_partition['lowerRightCoordinate']['y']
             ymax = spatial_partition['upperLeftCoordinate']['y']
+
+            x_pixel_size = (xmax - xmin) / x_size
+            y_pixel_size = (ymax - ymin) / y_size
+
+            x_half_pixel = x_pixel_size / 2
+            y_half_pixel = y_pixel_size / 2
 
             time = TimeInterval.from_response(json.loads(metadata[b'time']))
 
@@ -563,8 +571,8 @@ class Workflow:
                 ).reshape(x_size, y_size),
                 dims=["y", "x"],
                 coords={
-                    'x': np.linspace(xmin, xmax, x_size, endpoint=False),
-                    'y': np.linspace(ymax, ymin, y_size, endpoint=False),
+                    'x': np.linspace(xmin + x_half_pixel, xmax - x_half_pixel, x_size, endpoint=True),
+                    'y': np.linspace(ymax - y_half_pixel, ymin + y_half_pixel, y_size, endpoint=True),
                     'time': time.start,  # TODO: incorporate time end?
                 },
             )
@@ -573,22 +581,35 @@ class Workflow:
 
             return array
 
+        def process_bytes(tile_bytes: Optional[bytes]) -> Optional[xr.DataArray]:
+            if tile_bytes is None:
+                return None
+
+            # process the received data
+            record_batch = read_arrow_ipc(tile_bytes)
+            tile = create_xarray(record_batch)
+
+            return tile
+
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
 
         session = get_session()
 
-        url = req.get(
-            f'{session.server_url}/workflow/{self.__workflow_id}/rasterStream',
+        url = req.Request(
+            'GET',
+            url=f'{session.server_url}/workflow/{self.__workflow_id}/rasterStream',
             params={
                 'resultType': 'arrow',
                 'spatialBounds': query_rectangle.bbox_str,
                 'timeInterval': query_rectangle.time_str,
                 'spatialResolution': str(query_rectangle.spatial_resolution),
             },
-            timeout=open_timeout,  # we just have to set a value, but it is not used
-        ).url
+        ).prepare().url
+
+        if url is None:
+            raise InputException('Invalid websocket url')
 
         # for the websockets library, it is necessary that the url starts with `ws://``
         [_, url_part] = url.split('://', maxsplit=1)
@@ -621,16 +642,6 @@ class Workflow:
                     except websockets.exceptions.ConnectionClosedOK:
                         # the websocket connection closed gracefully, so we stop reading
                         return None
-
-                def process_bytes(tile_bytes: Optional[bytes]) -> Optional[xr.DataArray]:
-                    if tile_bytes is None:
-                        return None
-
-                    # process the received data
-                    record_batch = read_arrow_ipc(tile_bytes)
-                    tile = create_xarray(record_batch)
-
-                    return tile
 
                 (new_tile_bytes, tile) = await asyncio.gather(
                     read_new_bytes(),
