@@ -3,8 +3,8 @@ A workflow representation and methods on workflows
 '''
 
 from __future__ import annotations
-import asyncio
 
+import asyncio
 import json
 import urllib.parse
 from io import BytesIO
@@ -32,11 +32,12 @@ import pyarrow as pa
 from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
-from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
-    MethodNotCalledOnVectorException, TypeException, check_response_for_error, InvalidUrlException
-from geoengine.tasks import Task, TaskId
-from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
+from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
+    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException, check_response_for_error, \
+    InvalidUrlException
 from geoengine import backports
+from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
+from geoengine.tasks import Task, TaskId
 
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
@@ -557,11 +558,8 @@ class Workflow:
             ymin = spatial_partition['lowerRightCoordinate']['y']
             ymax = spatial_partition['upperLeftCoordinate']['y']
 
-            x_pixel_size = (xmax - xmin) / x_size
-            y_pixel_size = (ymax - ymin) / y_size
-
-            x_half_pixel = x_pixel_size / 2
-            y_half_pixel = y_pixel_size / 2
+            x_half_pixel = ((xmax - xmin) / x_size) / 2
+            y_half_pixel = ((ymax - ymin) / y_size) / 2
 
             time = TimeInterval.from_response(json.loads(metadata[b'time']))
 
@@ -643,13 +641,11 @@ class Workflow:
                         # the websocket connection closed gracefully, so we stop reading
                         return None
 
-                (new_tile_bytes, tile) = await asyncio.gather(
+                (tile_bytes, tile) = await asyncio.gather(
                     read_new_bytes(),
                     # asyncio.to_thread(process_bytes, tile_bytes), # TODO: use this when min Python version is 3.9
                     backports.to_thread(process_bytes, tile_bytes),
                 )
-
-                tile_bytes = new_tile_bytes
 
                 if tile is not None:
                     if clip_to_query_rectangle:
