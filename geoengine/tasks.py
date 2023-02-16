@@ -111,7 +111,7 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
 class RunningTaskStatusInfo(TaskStatusInfo):
     '''A wrapper for a running task status with information about completion progress'''
 
-    def __init__(self, status, start_time, pct_complete, estimated_time_remaining, info) -> None:
+    def __init__(self, status, start_time, pct_complete, estimated_time_remaining, info) -> None:  # pylint: disable=too-many-arguments
         super().__init__(status, start_time)
         self.pct_complete = pct_complete
         self.estimated_time_remaining = estimated_time_remaining
