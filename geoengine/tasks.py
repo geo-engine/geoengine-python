@@ -90,9 +90,9 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
                     or 'info' not in response:
                 raise GeoEngineException(response)
             pct_complete = response['pctComplete']
-            time_estimate = response['estimatedTimeRemaining']
+            estimated_time_remaining = response['estimatedTimeRemaining']
 
-            return RunningTaskStatusInfo(status, time_started, pct_complete, time_estimate, response['info'])
+            return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, response['info'])
         if status == TaskStatus.COMPLETED:
             if 'info' not in response or 'timeTotal' not in response:
                 raise GeoEngineException(response)
@@ -111,10 +111,10 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
 class RunningTaskStatusInfo(TaskStatusInfo):
     '''A wrapper for a running task status with information about completion progress'''
 
-    def __init__(self, status, start_time, pct_complete, time_estimate, info) -> None:
+    def __init__(self, status, start_time, pct_complete, estimated_time_remaining, info) -> None:
         super().__init__(status, start_time)
         self.pct_complete = pct_complete
-        self.time_estimate = time_estimate
+        self.estimated_time_remaining = estimated_time_remaining
         self.info = info
 
     def __eq__(self, other):
@@ -123,16 +123,16 @@ class RunningTaskStatusInfo(TaskStatusInfo):
             return False
 
         return self.status == other.status and self.pct_complete == other.pct_complete \
-            and self.time_estimate == other.time_estimate and self.info == other.info
+            and self.estimated_time_remaining == other.estimated_time_remaining and self.info == other.info
 
     def __str__(self) -> str:
         return f"status={self.status.value}, time_started={self.time_started}, " \
             f"pct_complete={self.pct_complete}, " \
-            f"time_estimate={self.time_estimate}, info={self.info}"
+            f"estimated_time_remaining={self.estimated_time_remaining}, info={self.info}"
 
     def __repr__(self) -> str:
         return f"TaskStatusInfo(status={self.status.value!r}, pct_complete={self.pct_complete!r}, " \
-               f"time_estimate={self.time_estimate!r}, info={self.info!r})"
+               f"estimated_time_remaining={self.estimated_time_remaining!r}, info={self.info!r})"
 
 
 class CompletedTaskStatusInfo(TaskStatusInfo):
@@ -152,11 +152,11 @@ class CompletedTaskStatusInfo(TaskStatusInfo):
 
     def __str__(self) -> str:
         return f"status={self.status.value}, time_started={self.time_started}, info={self.info}, " \
-            "time_total={self.time_total}"
+            f"time_total={self.time_total}"
 
     def __repr__(self) -> str:
         return f"TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r}," \
-            "info = {self.info!r}, time_total = {self.time_total!r})"
+            f"info = {self.info!r}, time_total = {self.time_total!r})"
 
 
 class AbortedTaskStatusInfo(TaskStatusInfo):
@@ -177,8 +177,8 @@ class AbortedTaskStatusInfo(TaskStatusInfo):
         return f"status={self.status.value}, time_started={self.time_started}, clean_up={self.clean_up}"
 
     def __repr__(self) -> str:
-        return f"TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r}," \
-            " clean_up={self.clean_up!r})"
+        return f"TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r}, " \
+            f"clean_up={self.clean_up!r})"
 
 
 class FailedTaskStatusInfo(TaskStatusInfo):
@@ -198,11 +198,11 @@ class FailedTaskStatusInfo(TaskStatusInfo):
 
     def __str__(self) -> str:
         return f"status={self.status.value}, time_started={self.time_started}, error={self.error}, " \
-            " clean_up={self.clean_up}"
+            f"clean_up={self.clean_up}"
 
     def __repr__(self) -> str:
         return f"TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r}, " \
-            " error={self.error!r}, clean_up={self.clean_up!r})"
+            f"error={self.error!r}, clean_up={self.clean_up!r})"
 
 
 class Task:
