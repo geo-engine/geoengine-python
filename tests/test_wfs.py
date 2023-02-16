@@ -288,7 +288,7 @@ class WfsTests(unittest.TestCase):
             }
 
             time = datetime.strptime(
-                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
@@ -338,9 +338,9 @@ class WfsTests(unittest.TestCase):
                     "featurecla": ["Port", "Port", "Port", "Port", "Port", "Port", "Port"],
                     "name": ["Tema", "Buchanan", "Nieuw Nickerie", "Abidjan", "Kourou", "Paramaribo", "Abidjan"],
                     "start": [datetime.strptime(
-                        '2014-04-01T00:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z") for _ in range(7)],
+                        '2014-04-01T00:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT) for _ in range(7)],
                     "end": [datetime.strptime(
-                        '2014-05-01T00:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z") for _ in range(7)],
+                        '2014-05-01T00:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT) for _ in range(7)],
                 },
                 geometry="geometry",
                 crs="EPSG:4326",
@@ -450,7 +450,7 @@ class WfsTests(unittest.TestCase):
             }
 
             time = datetime.strptime(
-                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
@@ -578,7 +578,7 @@ class WfsTests(unittest.TestCase):
             }
 
             time = datetime.strptime(
-                '2004-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
@@ -960,7 +960,7 @@ class WfsTests(unittest.TestCase):
             }
 
             time = datetime.strptime(
-                '2004-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 

@@ -76,7 +76,7 @@ class WmsTests(unittest.TestCase):
             }
 
             time = datetime.strptime(
-                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
@@ -147,7 +147,7 @@ class WmsTests(unittest.TestCase):
             }
 
             time = datetime.strptime(
-                '2004-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
@@ -208,7 +208,7 @@ class WmsTests(unittest.TestCase):
             }
 
             time = datetime.strptime(
-                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
