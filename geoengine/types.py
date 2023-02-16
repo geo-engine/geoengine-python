@@ -1142,3 +1142,68 @@ class ClassificationMeasurement(Measurement):
     @property
     def classes(self) -> Dict[int, str]:
         return self.__classes
+
+
+class GeoTransform:
+    '''The `GeoTransform` specifies the relationship between pixel coordinates and geographic coordinates.'''
+
+    x_min: float
+    y_max: float
+    '''In Geo Engine, x_pixel_size is always positive.'''
+    x_pixel_size: float
+    '''In Geo Engine, y_pixel_size is always negative.'''
+    y_pixel_size: float
+
+    def __init__(self, x_min: float, y_max: float, x_pixel_size: float, y_pixel_size: float):
+        '''Initialize a new `GeoTransform`'''
+
+        assert x_pixel_size > 0, 'In Geo Engine, x_pixel_size is always positive.'
+        assert y_pixel_size < 0, 'In Geo Engine, y_pixel_size is always negative.'
+
+        self.x_min = x_min
+        self.y_max = y_max
+        self.x_pixel_size = x_pixel_size
+        self.y_pixel_size = y_pixel_size
+
+    @classmethod
+    def from_response(cls, response: api.GeoTransform) -> GeoTransform:
+        '''Parse a geotransform from an HTTP JSON response'''
+
+        return GeoTransform(
+            x_min=response['originCoordinate']['x'],
+            y_max=response['originCoordinate']['y'],
+            x_pixel_size=response['xPixelSize'],
+            y_pixel_size=response['yPixelSize'],
+        )
+
+    def to_api_dict(self) -> api.GeoTransform:
+        return api.GeoTransform({
+            'originCoordinate': {
+                'x': self.x_min,
+                'y': self.y_max,
+            },
+            'xPixelSize': self.x_pixel_size,
+            'yPixelSize': self.y_pixel_size
+        })
+
+    def __str__(self) -> str:
+        return f'Origin: ({self.x_min}, {self.y_max}), ' \
+            f'X Pixel Size: {self.x_pixel_size}, ' \
+            f'Y Pixel Size: {self.y_pixel_size}'
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    @property
+    def x_half_pixel_size(self) -> float:
+        return self.x_pixel_size / 2.0
+
+    @property
+    def y_half_pixel_size(self) -> float:
+        return self.y_pixel_size / 2.0
+
+    def x_max(self, number_of_pixels: int) -> float:
+        return self.x_min + number_of_pixels * self.x_pixel_size
+
+    def y_min(self, number_of_pixels: int) -> float:
+        return self.y_max + number_of_pixels * self.y_pixel_size

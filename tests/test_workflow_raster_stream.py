@@ -76,15 +76,13 @@ def arrow_bytes(data: xr.DataArray, time: str) -> bytes:
     array = pa.array(data.to_numpy().reshape(-1))
     batch = pa.RecordBatch.from_arrays([array], ["data"])
     schema = batch.schema.with_metadata({
-        "spatialPartition": json.dumps({
-            "upperLeftCoordinate": {
+        "geoTransform": json.dumps({
+            "originCoordinate": {
                 "x": data.rio.bounds()[0],
                 "y": data.rio.bounds()[3],
             },
-            "lowerRightCoordinate": {
-                "x": data.rio.bounds()[2],
-                "y": data.rio.bounds()[1],
-            }
+            "xPixelSize": 45.0,
+            "yPixelSize": -22.5,
         }),
         "xSize": "4",
         "ySize": "4",
@@ -151,6 +149,9 @@ class WorkflowRasterStreamTests(unittest.TestCase):
                 assert array.shape == (2, 8, 8)
 
                 original_array = rioxarray.open_rasterio("tests/responses/ndvi.tiff").isel(band=0, drop=True)
+
+                print(original_array.y.values)
+                print(array.isel(time=0, drop=True).y.values)
 
                 # Let's check that the output is the same as if we would
                 # have read the whole raster with rioxarray

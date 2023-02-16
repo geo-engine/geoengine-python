@@ -36,7 +36,7 @@ from geoengine.error import GeoEngineException, InputException, MethodNotCalledO
     MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException, check_response_for_error, \
     InvalidUrlException
 from geoengine import backports
-from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
+from geoengine.types import GeoTransform, ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
 from geoengine.tasks import Task, TaskId
 
 
@@ -546,20 +546,12 @@ class Workflow:
 
         def create_xarray(record_batch: pa.RecordBatch) -> xr.DataArray:
             metadata = record_batch.schema.metadata
-            spatial_partition: api.SpatialPartition2D = json.loads(metadata[b'spatialPartition'])
+            geo_transform: GeoTransform = GeoTransform.from_response(json.loads(metadata[b'geoTransform']))
             x_size = int(metadata[b'xSize'])
             y_size = int(metadata[b'ySize'])
             spatial_reference = metadata[b'spatialReference'].decode('utf-8')
             # We know from the backend that there is only one array a.k.a. one column
             arrow_array = record_batch.column(0)
-
-            xmin = spatial_partition['upperLeftCoordinate']['x']
-            xmax = spatial_partition['lowerRightCoordinate']['x']
-            ymin = spatial_partition['lowerRightCoordinate']['y']
-            ymax = spatial_partition['upperLeftCoordinate']['y']
-
-            x_half_pixel = ((xmax - xmin) / x_size) / 2
-            y_half_pixel = ((ymax - ymin) / y_size) / 2
 
             time = TimeInterval.from_response(json.loads(metadata[b'time']))
 
@@ -569,8 +561,16 @@ class Workflow:
                 ).reshape(x_size, y_size),
                 dims=["y", "x"],
                 coords={
-                    'x': np.linspace(xmin + x_half_pixel, xmax - x_half_pixel, x_size, endpoint=True),
-                    'y': np.linspace(ymax - y_half_pixel, ymin + y_half_pixel, y_size, endpoint=True),
+                    'x': np.arange(
+                        start=geo_transform.x_min + geo_transform.x_half_pixel_size,
+                        step=geo_transform.x_pixel_size,
+                        stop=geo_transform.x_max(x_size),
+                    ),
+                    'y': np.arange(
+                        start=geo_transform.y_max + geo_transform.y_half_pixel_size,
+                        step=geo_transform.y_pixel_size,
+                        stop=geo_transform.y_min(y_size),
+                    ),
                     'time': time.start,  # TODO: incorporate time end?
                 },
             )
