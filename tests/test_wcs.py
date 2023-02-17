@@ -124,7 +124,7 @@ class WcsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             time = datetime.strptime(
-                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             query = ge.QueryRectangle(
                 ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
@@ -261,7 +261,7 @@ class WcsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             time = datetime.strptime(
-                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             query = ge.QueryRectangle(
                 ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
@@ -384,7 +384,7 @@ class WcsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             time = datetime.strptime(
-                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             query = ge.QueryRectangle(
                 ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),

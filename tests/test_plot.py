@@ -76,7 +76,7 @@ class PlotTests(unittest.TestCase):
             }
 
             time = datetime.strptime(
-                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
@@ -175,7 +175,7 @@ class PlotTests(unittest.TestCase):
                 '5b9508a8-bd34-5a1c-acd6-75bb832d2d38')
 
             time = datetime.strptime(
-                '2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             with self.assertRaises(ge.MethodNotCalledOnVectorException):
                 workflow.get_dataframe(
@@ -244,7 +244,7 @@ class PlotTests(unittest.TestCase):
             }
 
             time = datetime.strptime(
-                '2004-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
+                '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 

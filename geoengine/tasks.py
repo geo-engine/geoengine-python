@@ -9,8 +9,10 @@ from enum import Enum
 from typing import Dict, List, Tuple
 from uuid import UUID
 
+import datetime
 import requests as req
 
+from geoengine.types import DEFAULT_ISO_TIME_FORMAT
 from geoengine.auth import get_session
 from geoengine.error import check_response_for_error, GeoEngineException
 
@@ -59,9 +61,11 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
     '''A wrapper for a task status type'''
 
     status: TaskStatus
+    time_started: datetime.datetime
 
-    def __init__(self, status) -> None:
+    def __init__(self, status, time_started) -> None:
         self.status = status
+        self.time_started = time_started
 
     @classmethod
     def from_response(cls, response: Dict[str, str]) -> TaskStatusInfo:
@@ -76,38 +80,41 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
             raise GeoEngineException(response)
 
         status = TaskStatus(response['status'])
+        time_started = None
+        if 'timeStarted' in response:
+            time_started = datetime.datetime.strptime(response['timeStarted'], DEFAULT_ISO_TIME_FORMAT)
 
         if status == TaskStatus.RUNNING:
-            if ('pctComplete' not in response and 'pct_complete' not in response) \
-                    or ('timeEstimate' not in response and 'time_estimate' not in response) \
+            if 'pctComplete' not in response  \
+                    or 'estimatedTimeRemaining' not in response \
                     or 'info' not in response:
                 raise GeoEngineException(response)
-            pct_complete = response['pct_complete'] if 'pct_complete' in response else response['pctComplete']
-            time_estimate = response['time_estimate'] if 'time_estimate' in response else response['timeEstimate']
+            pct_complete = response['pctComplete']
+            estimated_time_remaining = response['estimatedTimeRemaining']
 
-            return RunningTaskStatusInfo(status, pct_complete, time_estimate, response['info'])
+            return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, response['info'])
         if status == TaskStatus.COMPLETED:
             if 'info' not in response or 'timeTotal' not in response:
                 raise GeoEngineException(response)
-            return CompletedTaskStatusInfo(status, response['info'], response['timeTotal'])
+            return CompletedTaskStatusInfo(status, time_started, response['info'], response['timeTotal'])
         if status == TaskStatus.ABORTED:
             if 'cleanUp' not in response:
                 raise GeoEngineException(response)
-            return AbortedTaskStatusInfo(status, response['cleanUp'])
+            return AbortedTaskStatusInfo(status, time_started, response['cleanUp'])
         if status == TaskStatus.FAILED:
             if 'error' not in response or 'cleanUp' not in response:
                 raise GeoEngineException(response)
-            return FailedTaskStatusInfo(status, response['error'], response['cleanUp'])
+            return FailedTaskStatusInfo(status, time_started, response['error'], response['cleanUp'])
         raise GeoEngineException(response)
 
 
 class RunningTaskStatusInfo(TaskStatusInfo):
     '''A wrapper for a running task status with information about completion progress'''
 
-    def __init__(self, status, pct_complete, time_estimate, info) -> None:
-        super().__init__(status)
+    def __init__(self, status, start_time, pct_complete, estimated_time_remaining, info) -> None:  # pylint: disable=too-many-arguments
+        super().__init__(status, start_time)
         self.pct_complete = pct_complete
-        self.time_estimate = time_estimate
+        self.estimated_time_remaining = estimated_time_remaining
         self.info = info
 
     def __eq__(self, other):
@@ -116,22 +123,23 @@ class RunningTaskStatusInfo(TaskStatusInfo):
             return False
 
         return self.status == other.status and self.pct_complete == other.pct_complete \
-            and self.time_estimate == other.time_estimate and self.info == other.info
+            and self.estimated_time_remaining == other.estimated_time_remaining and self.info == other.info
 
     def __str__(self) -> str:
-        return f"status={self.status.value}, pct_complete={self.pct_complete}, " \
-               f"time_estimate={self.time_estimate}, info={self.info}"
+        return f"status={self.status.value}, time_started={self.time_started}, " \
+            f"pct_complete={self.pct_complete}, " \
+            f"estimated_time_remaining={self.estimated_time_remaining}, info={self.info}"
 
     def __repr__(self) -> str:
         return f"TaskStatusInfo(status={self.status.value!r}, pct_complete={self.pct_complete!r}, " \
-               f"time_estimate={self.time_estimate!r}, info={self.info!r})"
+               f"estimated_time_remaining={self.estimated_time_remaining!r}, info={self.info!r})"
 
 
 class CompletedTaskStatusInfo(TaskStatusInfo):
     '''A wrapper for a completed task status with information about the completion'''
 
-    def __init__(self, status, info, time_total) -> None:
-        super().__init__(status)
+    def __init__(self, status, time_started, info, time_total) -> None:
+        super().__init__(status, time_started)
         self.info = info
         self.time_total = time_total
 
@@ -143,17 +151,19 @@ class CompletedTaskStatusInfo(TaskStatusInfo):
         return self.status == other.status and self.info == other.info and self.time_total == other.time_total
 
     def __str__(self) -> str:
-        return f"status={self.status.value}, info={self.info}, time_total={self.time_total}"
+        return f"status={self.status.value}, time_started={self.time_started}, info={self.info}, " \
+            f"time_total={self.time_total}"
 
     def __repr__(self) -> str:
-        return f"TaskStatusInfo(status={self.status.value!r}, info={self.info!r}, time_total={self.time_total!r})"
+        return f"TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r}," \
+            f"info = {self.info!r}, time_total = {self.time_total!r})"
 
 
 class AbortedTaskStatusInfo(TaskStatusInfo):
     '''A wrapper for an aborted task status with information about the termination'''
 
-    def __init__(self, status, clean_up) -> None:
-        super().__init__(status)
+    def __init__(self, status, time_started, clean_up) -> None:
+        super().__init__(status, time_started)
         self.clean_up = clean_up
 
     def __eq__(self, other):
@@ -164,17 +174,18 @@ class AbortedTaskStatusInfo(TaskStatusInfo):
         return self.status == other.status and self.clean_up == other.clean_up
 
     def __str__(self) -> str:
-        return f"status={self.status.value}, clean_up={self.clean_up}"
+        return f"status={self.status.value}, time_started={self.time_started}, clean_up={self.clean_up}"
 
     def __repr__(self) -> str:
-        return f"TaskStatusInfo(status={self.status.value!r}, clean_up={self.clean_up!r})"
+        return f"TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r}, " \
+            f"clean_up={self.clean_up!r})"
 
 
 class FailedTaskStatusInfo(TaskStatusInfo):
     '''A wrapper for a failed task status with information about the failure'''
 
-    def __init__(self, status, error, clean_up) -> None:
-        super().__init__(status)
+    def __init__(self, status, time_started, error, clean_up) -> None:
+        super().__init__(status, time_started)
         self.error = error
         self.clean_up = clean_up
 
@@ -186,10 +197,12 @@ class FailedTaskStatusInfo(TaskStatusInfo):
         return self.status == other.status and self.error == other.error and self.clean_up == other.clean_up
 
     def __str__(self) -> str:
-        return f"status={self.status.value}, error={self.error}, clean_up={self.clean_up}"
+        return f"status={self.status.value}, time_started={self.time_started}, error={self.error}, " \
+            f"clean_up={self.clean_up}"
 
     def __repr__(self) -> str:
-        return f"TaskStatusInfo(status={self.status.value!r}, error={self.error!r}, clean_up={self.clean_up!r})"
+        return f"TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r}, " \
+            f"error={self.error!r}, clean_up={self.clean_up!r})"
 
 
 class Task:

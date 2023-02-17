@@ -3,10 +3,11 @@
 import unittest
 from uuid import UUID
 
+import datetime
 import requests_mock
 
 import geoengine as ge
-from geoengine import GeoEngineException
+from geoengine import GeoEngineException, DEFAULT_ISO_TIME_FORMAT
 from geoengine.tasks import CompletedTaskStatusInfo, TaskStatus, RunningTaskStatusInfo, \
     AbortedTaskStatusInfo, FailedTaskStatusInfo, TaskId, Task
 
@@ -50,38 +51,45 @@ class TaskTests(unittest.TestCase):
                     'status': 'completed',
                     'info': 'generic info',
                     'timeTotal': '00:00:05',
+                    'timeStarted': '2023-02-16T15:25:45.390Z'
                 },
                 {
                     'taskId': 'a04d2e1b-db24-42cb-a620-1d7803df3abe',
                     'status': 'running',
-                    'pct_complete': '0.00%',
-                    'time_estimate': '? (± ?)',
+                    'pctComplete': '0.00%',
+                    'estimatedTimeRemaining': '? (± ?)',
                     'info': 'generic running info',
+                    'timeStarted': '2023-02-16T15:25:45.390Z'
                 },
                 {
-                    'task_id': '01d68e7b-c69f-4132-b758-538f2f05acf0',
+                    'taskId': '01d68e7b-c69f-4132-b758-538f2f05acf0',
                     'status': 'aborted',
-                    'cleanUp': {'status': 'noCleanUp'}
+                    'cleanUp': {'status': 'noCleanUp'},
+                    'timeStarted': '2023-02-16T15:25:45.390Z'
                 },
                 {
-                    'task_id': '1ccba900-167d-4dcf-9001-5ce3c0b20844',
+                    'taskId': '1ccba900-167d-4dcf-9001-5ce3c0b20844',
                     'status': 'failed',
                     'error': 'TileLimitExceeded',
-                    'cleanUp': {'status': 'completed', 'info': None}
+                    'cleanUp': {'status': 'completed', 'info': None},
+                    'timeStarted': '2023-02-16T15:25:45.390Z'
                 },
             ])
 
             ge.initialize('http://mock-instance')
 
+            expected_start_time = datetime.datetime.strptime('2023-02-16T15:25:45.390Z', DEFAULT_ISO_TIME_FORMAT)
             expected_result = [
                 (Task(TaskId(UUID('e07aec1e-387a-4d24-8041-fbfba37eae2b'))),
-                 CompletedTaskStatusInfo(TaskStatus.COMPLETED, 'generic info', '00:00:05')),
+                 CompletedTaskStatusInfo(TaskStatus.COMPLETED, expected_start_time, 'generic info', '00:00:05')),
                 (Task(TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe'))),
-                 RunningTaskStatusInfo(TaskStatus.RUNNING, '0.00%', '? (± ?)', 'generic running info')),
+                 RunningTaskStatusInfo(TaskStatus.RUNNING, expected_start_time,
+                                       '0.00%', '? (± ?)', 'generic running info')),
                 (Task(TaskId(UUID('01d68e7b-c69f-4132-b758-538f2f05acf0'))),
-                 AbortedTaskStatusInfo(TaskStatus.ABORTED, {'status': 'noCleanUp'})),
+                 AbortedTaskStatusInfo(TaskStatus.ABORTED, expected_start_time, {'status': 'noCleanUp'})),
                 (Task(TaskId(UUID('1ccba900-167d-4dcf-9001-5ce3c0b20844'))),
-                 FailedTaskStatusInfo(TaskStatus.FAILED, 'TileLimitExceeded', {'status': 'completed', 'info': None})),
+                 FailedTaskStatusInfo(TaskStatus.FAILED, expected_start_time, 'TileLimitExceeded',
+                                      {'status': 'completed', 'info': None})),
             ]
 
             task_list = ge.tasks.get_task_list()
@@ -99,17 +107,19 @@ class TaskTests(unittest.TestCase):
 
             m.get('http://mock-instance/tasks/list', json=[
                 {
-                    'task_id': 'e07aec1e-387a-4d24-8041-fbfba37eae2b',
+                    'taskId': 'e07aec1e-387a-4d24-8041-fbfba37eae2b',
                     'status': 'completed',
                     'info': 'generic info',
                     'timeTotal': '00:00:05',
+                    'timeStarted': '2023-02-16T15:25:45.390Z'
                 },
                 {
-                    'task_id': 'ee4bc7ca-e637-4427-a617-2d2aa79d1406',
+                    'taskId': 'ee4bc7ca-e637-4427-a617-2d2aa79d1406',
                     'status': 'clear',
                     'pctComplete': '0.00%',
-                    'timeEstimate': '? (± ?)',
+                    'estimatedTimeRemaining': '? (± ?)',
                     'info': 'generic running info',
+                    'timeStarted': '2023-02-16T15:25:45.390Z'
                 },
             ])
 
@@ -131,13 +141,15 @@ class TaskTests(unittest.TestCase):
                     'status': 'completed',
                     'info': 'generic info',
                     'timeTotal': '00:00:05',
+                    'timeStarted': '2023-02-16T15:25:45.390Z'
                 },
                 {
                     'taskId': 'ee4f1ed9-fd06-40be-90f5-d6289c154fcd',
                     'status': 'running',
                     # Missing pct_complete field
-                    'timeEstimate': '? (± ?)',
+                    'estimatedTimeRemaing': '? (± ?)',
                     'info': 'generic running info',
+                    'timeStarted': '2023-02-16T15:25:45.390Z'
                 },
             ])
 
@@ -158,45 +170,52 @@ class TaskTests(unittest.TestCase):
                   json={
                       'status': 'completed',
                       'info': 'generic info',
-                      'timeTotal': '00:00:05', })
+                      'timeTotal': '00:00:05',
+                      'timeStarted': '2023-02-16T15:25:45.390Z'})
             m.get('http://mock-instance/tasks/a04d2e1b-db24-42cb-a620-1d7803df3abe/status',
                   json={
                       'status': 'running',
-                      'pct_complete': '0.00%',
-                      'time_estimate': '? (± ?)',
-                      'info': 'generic running info', })
+                      'pctComplete': '0.00%',
+                      'estimatedTimeRemaining': '? (± ?)',
+                      'info': 'generic running info',
+                      'timeStarted': '2023-02-16T15:25:45.390Z'})
             m.get('http://mock-instance/tasks/01d68e7b-c69f-4132-b758-538f2f05acf0/status',
                   json={'status': 'aborted',
                         'cleanUp': {'status': 'noCleanUp'}, })
             m.get('http://mock-instance/tasks/1ccba900-167d-4dcf-9001-5ce3c0b20844/status',
                   json={'status': 'failed',
                         'error': 'TileLimitExceeded',
-                        'cleanUp': {'status': 'completed', 'info': None}})
+                        'cleanUp': {'status': 'completed', 'info': None},
+                        'timeStarted': '2023-02-16T15:25:45.390Z'})
 
             # Unknown status
             m.get('http://mock-instance/tasks/ee4bc7ca-e637-4427-a617-2d2aa79d1406/status',
                   json={
                       'status': 'clear',
-                      'pct_complete': '0.00%',
-                      'time_estimate': '? (± ?)',
-                      'info': 'generic running info', })
+                      'pctComplete': '0.00%',
+                      'estimatedTimeRemaining': '? (± ?)',
+                      'info': 'generic running info',
+                      'timeStarted': '2023-02-16T15:25:45.390Z'})
 
             # Malformed info
             m.get('http://mock-instance/tasks/ee4f1ed9-fd06-40be-90f5-d6289c154fcd/status',
                   json={
                       'status': 'running',
                       # Missing pct_complete field
-                      'timeEstimate': '? (± ?)',
-                      'info': 'generic running info', })
+                      'estimatedTimeRemaining': '? (± ?)',
+                      'info': 'generic running info',
+                      'timeStarted': '2023-02-16T15:25:45.390Z'})
 
             ge.initialize('http://mock-instance')
 
             # Correct results
+            expected_start_time = datetime.datetime.strptime('2023-02-16T15:25:45.390Z', DEFAULT_ISO_TIME_FORMAT)
             expected_results = [
-                CompletedTaskStatusInfo(TaskStatus.COMPLETED, 'generic info', '00:00:05'),
-                RunningTaskStatusInfo(TaskStatus.RUNNING, '0.00%', '? (± ?)', 'generic running info'),
-                AbortedTaskStatusInfo(TaskStatus.ABORTED, {'status': 'noCleanUp'}),
-                FailedTaskStatusInfo(TaskStatus.FAILED, 'TileLimitExceeded',
+                CompletedTaskStatusInfo(TaskStatus.COMPLETED, expected_start_time, 'generic info', '00:00:05'),
+                RunningTaskStatusInfo(TaskStatus.RUNNING, expected_start_time,
+                                      '0.00%', '? (± ?)', 'generic running info'),
+                AbortedTaskStatusInfo(TaskStatus.ABORTED, expected_start_time, {'status': 'noCleanUp'}),
+                FailedTaskStatusInfo(TaskStatus.FAILED, expected_start_time, 'TileLimitExceeded',
                                      {'status': 'completed', 'info': None}),
             ]
 
