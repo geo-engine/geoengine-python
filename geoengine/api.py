@@ -132,6 +132,13 @@ class GdalDatasetGeoTransform(TypedDict):  # pylint: disable=too-few-public-meth
     yPixelSize: float
 
 
+class GeoTransform(TypedDict):  # pylint: disable=too-few-public-methods
+    '''Geo transform of a GDAL dataset'''
+    originCoordinate: Coordinate2D
+    xPixelSize: float
+    yPixelSize: float
+
+
 class FileNotFoundHandling(str, Enum):  # pylint: disable=too-few-public-methods
     NODATA = "NoData"
     ERROR = "Abort"

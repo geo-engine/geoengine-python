@@ -4,12 +4,13 @@ A workflow representation and methods on workflows
 
 from __future__ import annotations
 
+import asyncio
 import json
 import urllib.parse
 from io import BytesIO
 from logging import debug
 from os import PathLike
-from typing import Any, Dict, List, Optional, Union, Type
+from typing import Any, AsyncIterator, Dict, List, Optional, Union, Type, cast
 from uuid import UUID
 
 import geopandas as gpd
@@ -23,15 +24,20 @@ from owslib.wcs import WebCoverageService
 # TODO: can be imported directly from `typing` with python >= 3.8
 from typing_extensions import TypedDict
 from vega import VegaLite
-from xarray import DataArray
+import websockets
+import websockets.client
+import xarray as xr
+import pyarrow as pa
 
 from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
-from geoengine.error import MethodNotCalledOnPlotException, MethodNotCalledOnRasterException,\
-    MethodNotCalledOnVectorException, check_response_for_error, InvalidUrlException
+from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
+    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException, check_response_for_error, \
+    InvalidUrlException
+from geoengine import backports
+from geoengine.types import GeoTransform, ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
 from geoengine.tasks import Task, TaskId
-from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
 
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
@@ -405,7 +411,7 @@ class Workflow:
         bbox: QueryRectangle,
         timeout=3600,
         force_no_data_value: Optional[float] = None
-    ) -> DataArray:
+    ) -> xr.DataArray:
         '''
         Query a workflow and return the raster result as a georeferenced xarray
 
@@ -425,9 +431,9 @@ class Workflow:
             data_array = rioxarray.open_rasterio(dataset)
 
             # helping mypy with inference
-            assert isinstance(data_array, DataArray)
+            assert isinstance(data_array, xr.DataArray)
 
-            rio: DataArray = data_array.rio
+            rio: xr.DataArray = data_array.rio
             rio.update_attrs({
                 'crs': rio.crs,
                 'res': rio.resolution(),
@@ -524,6 +530,219 @@ class Workflow:
         check_response_for_error(response)
 
         return Task(TaskId.from_response(response.json()))
+
+    async def raster_stream(
+            self,
+            query_rectangle: QueryRectangle,
+            clip_to_query_rectangle: bool = False,
+            open_timeout: int = 60) -> AsyncIterator[xr.DataArray]:
+        '''Stream the workflow result as series of xarrays'''
+
+        def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
+            reader = pa.ipc.open_file(arrow_ipc)
+            # We know from the backend that there is only one record batch
+            record_batch = reader.get_record_batch(0)
+            return record_batch
+
+        def create_xarray(record_batch: pa.RecordBatch) -> xr.DataArray:
+            metadata = record_batch.schema.metadata
+            geo_transform: GeoTransform = GeoTransform.from_response(json.loads(metadata[b'geoTransform']))
+            x_size = int(metadata[b'xSize'])
+            y_size = int(metadata[b'ySize'])
+            spatial_reference = metadata[b'spatialReference'].decode('utf-8')
+            # We know from the backend that there is only one array a.k.a. one column
+            arrow_array = record_batch.column(0)
+
+            time = TimeInterval.from_response(json.loads(metadata[b'time']))
+
+            array = xr.DataArray(
+                arrow_array.to_numpy(
+                    zero_copy_only=False,  # cannot zero-copy as soon as we have nodata values
+                ).reshape(x_size, y_size),
+                dims=["y", "x"],
+                coords={
+                    'x': np.arange(
+                        start=geo_transform.x_min + geo_transform.x_half_pixel_size,
+                        step=geo_transform.x_pixel_size,
+                        stop=geo_transform.x_max(x_size),
+                    ),
+                    'y': np.arange(
+                        start=geo_transform.y_max + geo_transform.y_half_pixel_size,
+                        step=geo_transform.y_pixel_size,
+                        stop=geo_transform.y_min(y_size),
+                    ),
+                    'time': time.start,  # TODO: incorporate time end?
+                },
+            )
+
+            array.rio.write_crs(spatial_reference, inplace=True)
+
+            return array
+
+        def process_bytes(tile_bytes: Optional[bytes]) -> Optional[xr.DataArray]:
+            if tile_bytes is None:
+                return None
+
+            # process the received data
+            record_batch = read_arrow_ipc(tile_bytes)
+            tile = create_xarray(record_batch)
+
+            return tile
+
+        # Currently, it only works for raster results
+        if not self.__result_descriptor.is_raster_result():
+            raise MethodNotCalledOnRasterException()
+
+        session = get_session()
+
+        url = req.Request(
+            'GET',
+            url=f'{session.server_url}/workflow/{self.__workflow_id}/rasterStream',
+            params={
+                'resultType': 'arrow',
+                'spatialBounds': query_rectangle.bbox_str,
+                'timeInterval': query_rectangle.time_str,
+                'spatialResolution': str(query_rectangle.spatial_resolution),
+            },
+        ).prepare().url
+
+        if url is None:
+            raise InputException('Invalid websocket url')
+
+        # for the websockets library, it is necessary that the url starts with `ws://``
+        [_, url_part] = url.split('://', maxsplit=1)
+
+        async with websockets.client.connect(
+            uri=f'ws://{url_part}',
+            extra_headers=session.auth_header,
+            open_timeout=open_timeout,
+        ) as websocket:
+
+            tile_bytes: Optional[bytes] = None
+
+            while websocket.open:
+                async def read_new_bytes() -> Optional[bytes]:
+                    # already send the next request to speed up the process
+                    try:
+                        await websocket.send("NEXT")
+                    except websockets.exceptions.ConnectionClosed:
+                        # the websocket connection is already closed, we cannot read anymore
+                        return None
+
+                    try:
+                        data: Union[str, bytes] = await websocket.recv()
+
+                        if isinstance(data, str):
+                            # the server sent an error message
+                            raise GeoEngineException({'error': data})
+
+                        return data
+                    except websockets.exceptions.ConnectionClosedOK:
+                        # the websocket connection closed gracefully, so we stop reading
+                        return None
+
+                (tile_bytes, tile) = await asyncio.gather(
+                    read_new_bytes(),
+                    # asyncio.to_thread(process_bytes, tile_bytes), # TODO: use this when min Python version is 3.9
+                    backports.to_thread(process_bytes, tile_bytes),
+                )
+
+                if tile is not None:
+                    if clip_to_query_rectangle:
+                        tile = tile.rio.clip_box(*query_rectangle.spatial_bounds.as_bbox_tuple())
+                        tile = cast(xr.DataArray, tile)
+
+                    yield tile
+
+            # process the last tile
+            tile = process_bytes(tile_bytes)
+
+            if tile is not None:
+                if clip_to_query_rectangle:
+                    tile = tile.rio.clip_box(*query_rectangle.spatial_bounds.as_bbox_tuple())
+                    tile = cast(xr.DataArray, tile)
+
+                yield tile
+
+    async def raster_stream_into_xarray(
+            self,
+            query_rectangle: QueryRectangle,
+            clip_to_query_rectangle: bool = False,
+            open_timeout: int = 60) -> xr.DataArray:
+        '''
+        Stream the workflow result into memory and output a single xarray.
+
+        NOTE: You can run out of memory if the query rectangle is too large.
+        '''
+
+        tile_stream = self.raster_stream(
+            query_rectangle,
+            clip_to_query_rectangle=clip_to_query_rectangle,
+            open_timeout=open_timeout
+        )
+
+        timesteps: List[xr.DataArray] = []
+
+        async def read_tiles(
+            remainder_tile: Optional[xr.DataArray]
+        ) -> tuple[List[xr.DataArray], Optional[xr.DataArray]]:
+            last_timestep: Optional[np.datetime64] = None
+            tiles = []
+
+            if remainder_tile is not None:
+                last_timestep = remainder_tile.time.values
+                tiles.append(remainder_tile)
+
+            async for tile in tile_stream:
+                timestep: np.datetime64 = tile.time.values
+                if last_timestep is None:
+                    last_timestep = timestep
+                elif last_timestep != timestep:
+                    return tiles, tile
+
+                tiles.append(tile)
+
+            # this seems to be the last time step, so just return tiles
+            return tiles, None
+
+        def merge_tiles(tiles: List[xr.DataArray]) -> Optional[xr.DataArray]:
+            if len(tiles) == 0:
+                return None
+
+            combined_tiles = xr.combine_by_coords(tiles)
+
+            if isinstance(combined_tiles, xr.Dataset):
+                raise TypeException('Internal error: Merging data arrays should result in a data array.')
+
+            return combined_tiles
+
+        (tiles, remainder_tile) = await read_tiles(None)
+
+        while len(tiles):
+            ((new_tiles, new_remainder_tile), new_timestep) = await asyncio.gather(
+                read_tiles(remainder_tile),
+                backports.to_thread(merge_tiles, tiles)
+                # asyncio.to_thread(merge_tiles, tiles), # TODO: use this when min Python version is 3.9
+            )
+
+            tiles = new_tiles
+            remainder_tile = new_remainder_tile
+
+            if new_timestep is not None:
+                timesteps.append(new_timestep)
+
+        output: xr.DataArray = cast(
+            xr.DataArray,
+            # await asyncio.to_thread( # TODO: use this when min Python version is 3.9
+            await backports.to_thread(
+                xr.concat,
+                # TODO: This is a typings error, since the method accepts also a `xr.DataArray` and returns one
+                cast(List[xr.Dataset], timesteps),
+                dim='time'
+            )
+        )
+
+        return output
 
 
 def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -> Workflow:
