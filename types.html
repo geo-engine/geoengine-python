@@ -1172,7 +1172,72 @@ class ClassificationMeasurement(Measurement):
 
     @property
     def classes(self) -&gt; Dict[int, str]:
-        return self.__classes</code></pre>
+        return self.__classes
+
+
+class GeoTransform:
+    &#39;&#39;&#39;The `GeoTransform` specifies the relationship between pixel coordinates and geographic coordinates.&#39;&#39;&#39;
+
+    x_min: float
+    y_max: float
+    &#39;&#39;&#39;In Geo Engine, x_pixel_size is always positive.&#39;&#39;&#39;
+    x_pixel_size: float
+    &#39;&#39;&#39;In Geo Engine, y_pixel_size is always negative.&#39;&#39;&#39;
+    y_pixel_size: float
+
+    def __init__(self, x_min: float, y_max: float, x_pixel_size: float, y_pixel_size: float):
+        &#39;&#39;&#39;Initialize a new `GeoTransform`&#39;&#39;&#39;
+
+        assert x_pixel_size &gt; 0, &#39;In Geo Engine, x_pixel_size is always positive.&#39;
+        assert y_pixel_size &lt; 0, &#39;In Geo Engine, y_pixel_size is always negative.&#39;
+
+        self.x_min = x_min
+        self.y_max = y_max
+        self.x_pixel_size = x_pixel_size
+        self.y_pixel_size = y_pixel_size
+
+    @classmethod
+    def from_response(cls, response: api.GeoTransform) -&gt; GeoTransform:
+        &#39;&#39;&#39;Parse a geotransform from an HTTP JSON response&#39;&#39;&#39;
+
+        return GeoTransform(
+            x_min=response[&#39;originCoordinate&#39;][&#39;x&#39;],
+            y_max=response[&#39;originCoordinate&#39;][&#39;y&#39;],
+            x_pixel_size=response[&#39;xPixelSize&#39;],
+            y_pixel_size=response[&#39;yPixelSize&#39;],
+        )
+
+    def to_api_dict(self) -&gt; api.GeoTransform:
+        return api.GeoTransform({
+            &#39;originCoordinate&#39;: {
+                &#39;x&#39;: self.x_min,
+                &#39;y&#39;: self.y_max,
+            },
+            &#39;xPixelSize&#39;: self.x_pixel_size,
+            &#39;yPixelSize&#39;: self.y_pixel_size
+        })
+
+    def __str__(self) -&gt; str:
+        return f&#39;Origin: ({self.x_min}, {self.y_max}), &#39; \
+            f&#39;X Pixel Size: {self.x_pixel_size}, &#39; \
+            f&#39;Y Pixel Size: {self.y_pixel_size}&#39;
+
+    def __repr__(self) -&gt; str:
+        return str(self)
+
+    @property
+    def x_half_pixel_size(self) -&gt; float:
+        return self.x_pixel_size / 2.0
+
+    @property
+    def y_half_pixel_size(self) -&gt; float:
+        return self.y_pixel_size / 2.0
+
+    def x_max(self, number_of_pixels: int) -&gt; float:
+        return self.x_min + number_of_pixels * self.x_pixel_size
+
+    def y_min(self, number_of_pixels: int) -&gt; float:
+        return self.y_max + number_of_pixels * self.y_pixel_size</code></pre>
 </details>
 </section>
 <section>
@@ -1774,6 +1839,201 @@ def from_response_external(cls, response: api.ExternalDataId) -&gt; ExternalData
 </ul>
 </li>
 </ul>
+</dd>
+<dt id="geoengine.types.GeoTransform"><code class="flex name class">
+<span>class <span class="ident">GeoTransform</span></span>
+<span>(</span><span>x_min: float, y_max: float, x_pixel_size: float, y_pixel_size: float)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The <code><a title="geoengine.types.GeoTransform" href="#geoengine.types.GeoTransform">GeoTransform</a></code> specifies the relationship between pixel coordinates and geographic coordinates.</p>
+<p>Initialize a new <code><a title="geoengine.types.GeoTransform" href="#geoengine.types.GeoTransform">GeoTransform</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GeoTransform:
+    &#39;&#39;&#39;The `GeoTransform` specifies the relationship between pixel coordinates and geographic coordinates.&#39;&#39;&#39;
+
+    x_min: float
+    y_max: float
+    &#39;&#39;&#39;In Geo Engine, x_pixel_size is always positive.&#39;&#39;&#39;
+    x_pixel_size: float
+    &#39;&#39;&#39;In Geo Engine, y_pixel_size is always negative.&#39;&#39;&#39;
+    y_pixel_size: float
+
+    def __init__(self, x_min: float, y_max: float, x_pixel_size: float, y_pixel_size: float):
+        &#39;&#39;&#39;Initialize a new `GeoTransform`&#39;&#39;&#39;
+
+        assert x_pixel_size &gt; 0, &#39;In Geo Engine, x_pixel_size is always positive.&#39;
+        assert y_pixel_size &lt; 0, &#39;In Geo Engine, y_pixel_size is always negative.&#39;
+
+        self.x_min = x_min
+        self.y_max = y_max
+        self.x_pixel_size = x_pixel_size
+        self.y_pixel_size = y_pixel_size
+
+    @classmethod
+    def from_response(cls, response: api.GeoTransform) -&gt; GeoTransform:
+        &#39;&#39;&#39;Parse a geotransform from an HTTP JSON response&#39;&#39;&#39;
+
+        return GeoTransform(
+            x_min=response[&#39;originCoordinate&#39;][&#39;x&#39;],
+            y_max=response[&#39;originCoordinate&#39;][&#39;y&#39;],
+            x_pixel_size=response[&#39;xPixelSize&#39;],
+            y_pixel_size=response[&#39;yPixelSize&#39;],
+        )
+
+    def to_api_dict(self) -&gt; api.GeoTransform:
+        return api.GeoTransform({
+            &#39;originCoordinate&#39;: {
+                &#39;x&#39;: self.x_min,
+                &#39;y&#39;: self.y_max,
+            },
+            &#39;xPixelSize&#39;: self.x_pixel_size,
+            &#39;yPixelSize&#39;: self.y_pixel_size
+        })
+
+    def __str__(self) -&gt; str:
+        return f&#39;Origin: ({self.x_min}, {self.y_max}), &#39; \
+            f&#39;X Pixel Size: {self.x_pixel_size}, &#39; \
+            f&#39;Y Pixel Size: {self.y_pixel_size}&#39;
+
+    def __repr__(self) -&gt; str:
+        return str(self)
+
+    @property
+    def x_half_pixel_size(self) -&gt; float:
+        return self.x_pixel_size / 2.0
+
+    @property
+    def y_half_pixel_size(self) -&gt; float:
+        return self.y_pixel_size / 2.0
+
+    def x_max(self, number_of_pixels: int) -&gt; float:
+        return self.x_min + number_of_pixels * self.x_pixel_size
+
+    def y_min(self, number_of_pixels: int) -&gt; float:
+        return self.y_max + number_of_pixels * self.y_pixel_size</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.GeoTransform.x_min"><code class="name">var <span class="ident">x_min</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.GeoTransform.x_pixel_size"><code class="name">var <span class="ident">x_pixel_size</span> : float</code></dt>
+<dd>
+<div class="desc"><p>In Geo Engine, y_pixel_size is always negative.</p></div>
+</dd>
+<dt id="geoengine.types.GeoTransform.y_max"><code class="name">var <span class="ident">y_max</span> : float</code></dt>
+<dd>
+<div class="desc"><p>In Geo Engine, x_pixel_size is always positive.</p></div>
+</dd>
+<dt id="geoengine.types.GeoTransform.y_pixel_size"><code class="name">var <span class="ident">y_pixel_size</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.GeoTransform.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: api.GeoTransform) ‑> <a title="geoengine.types.GeoTransform" href="#geoengine.types.GeoTransform">GeoTransform</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a geotransform from an HTTP JSON response</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: api.GeoTransform) -&gt; GeoTransform:
+    &#39;&#39;&#39;Parse a geotransform from an HTTP JSON response&#39;&#39;&#39;
+
+    return GeoTransform(
+        x_min=response[&#39;originCoordinate&#39;][&#39;x&#39;],
+        y_max=response[&#39;originCoordinate&#39;][&#39;y&#39;],
+        x_pixel_size=response[&#39;xPixelSize&#39;],
+        y_pixel_size=response[&#39;yPixelSize&#39;],
+    )</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="geoengine.types.GeoTransform.x_half_pixel_size"><code class="name">var <span class="ident">x_half_pixel_size</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def x_half_pixel_size(self) -&gt; float:
+    return self.x_pixel_size / 2.0</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.GeoTransform.y_half_pixel_size"><code class="name">var <span class="ident">y_half_pixel_size</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def y_half_pixel_size(self) -&gt; float:
+    return self.y_pixel_size / 2.0</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.GeoTransform.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.GeoTransform" href="api.html#geoengine.api.GeoTransform">GeoTransform</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; api.GeoTransform:
+    return api.GeoTransform({
+        &#39;originCoordinate&#39;: {
+            &#39;x&#39;: self.x_min,
+            &#39;y&#39;: self.y_max,
+        },
+        &#39;xPixelSize&#39;: self.x_pixel_size,
+        &#39;yPixelSize&#39;: self.y_pixel_size
+    })</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.GeoTransform.x_max"><code class="name flex">
+<span>def <span class="ident">x_max</span></span>(<span>self, number_of_pixels: int) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def x_max(self, number_of_pixels: int) -&gt; float:
+    return self.x_min + number_of_pixels * self.x_pixel_size</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.GeoTransform.y_min"><code class="name flex">
+<span>def <span class="ident">y_min</span></span>(<span>self, number_of_pixels: int) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def y_min(self, number_of_pixels: int) -&gt; float:
+    return self.y_max + number_of_pixels * self.y_pixel_size</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="geoengine.types.InternalDataId"><code class="flex name class">
 <span>class <span class="ident">InternalDataId</span></span>
@@ -4618,6 +4878,21 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
 <ul class="">
 <li><code><a title="geoengine.types.ExternalDataId.from_response_external" href="#geoengine.types.ExternalDataId.from_response_external">from_response_external</a></code></li>
 <li><code><a title="geoengine.types.ExternalDataId.to_api_dict" href="#geoengine.types.ExternalDataId.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.GeoTransform" href="#geoengine.types.GeoTransform">GeoTransform</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.types.GeoTransform.from_response" href="#geoengine.types.GeoTransform.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.to_api_dict" href="#geoengine.types.GeoTransform.to_api_dict">to_api_dict</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.x_half_pixel_size" href="#geoengine.types.GeoTransform.x_half_pixel_size">x_half_pixel_size</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.x_max" href="#geoengine.types.GeoTransform.x_max">x_max</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.x_min" href="#geoengine.types.GeoTransform.x_min">x_min</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.x_pixel_size" href="#geoengine.types.GeoTransform.x_pixel_size">x_pixel_size</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.y_half_pixel_size" href="#geoengine.types.GeoTransform.y_half_pixel_size">y_half_pixel_size</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.y_max" href="#geoengine.types.GeoTransform.y_max">y_max</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.y_min" href="#geoengine.types.GeoTransform.y_min">y_min</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.y_pixel_size" href="#geoengine.types.GeoTransform.y_pixel_size">y_pixel_size</a></code></li>
 </ul>
 </li>
 <li>

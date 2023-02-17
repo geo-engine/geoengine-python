@@ -161,6 +161,13 @@ class GdalDatasetGeoTransform(TypedDict):  # pylint: disable=too-few-public-meth
     yPixelSize: float
 
 
+class GeoTransform(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Geo transform of a GDAL dataset&#39;&#39;&#39;
+    originCoordinate: Coordinate2D
+    xPixelSize: float
+    yPixelSize: float
+
+
 class FileNotFoundHandling(str, Enum):  # pylint: disable=too-few-public-methods
     NODATA = &#34;NoData&#34;
     ERROR = &#34;Abort&#34;
@@ -1522,6 +1529,42 @@ dict(one=1, two=2)</p></div>
 <div class="desc"></div>
 </dd>
 <dt id="geoengine.api.GeoEngineExceptionResponse.message"><code class="name">var <span class="ident">message</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.GeoTransform"><code class="flex name class">
+<span>class <span class="ident">GeoTransform</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Geo transform of a GDAL dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GeoTransform(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;Geo transform of a GDAL dataset&#39;&#39;&#39;
+    originCoordinate: Coordinate2D
+    xPixelSize: float
+    yPixelSize: float</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.GeoTransform.originCoordinate"><code class="name">var <span class="ident">originCoordinate</span> : <a title="geoengine.api.Coordinate2D" href="#geoengine.api.Coordinate2D">Coordinate2D</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GeoTransform.xPixelSize"><code class="name">var <span class="ident">xPixelSize</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.GeoTransform.yPixelSize"><code class="name">var <span class="ident">yPixelSize</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3636,6 +3679,14 @@ dict(one=1, two=2)</p></div>
 <ul class="">
 <li><code><a title="geoengine.api.GeoEngineExceptionResponse.error" href="#geoengine.api.GeoEngineExceptionResponse.error">error</a></code></li>
 <li><code><a title="geoengine.api.GeoEngineExceptionResponse.message" href="#geoengine.api.GeoEngineExceptionResponse.message">message</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.GeoTransform" href="#geoengine.api.GeoTransform">GeoTransform</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.GeoTransform.originCoordinate" href="#geoengine.api.GeoTransform.originCoordinate">originCoordinate</a></code></li>
+<li><code><a title="geoengine.api.GeoTransform.xPixelSize" href="#geoengine.api.GeoTransform.xPixelSize">xPixelSize</a></code></li>
+<li><code><a title="geoengine.api.GeoTransform.yPixelSize" href="#geoengine.api.GeoTransform.yPixelSize">yPixelSize</a></code></li>
 </ul>
 </li>
 <li>
