@@ -16,6 +16,8 @@ from geoengine.colorizer import Colorizer
 from geoengine import api
 from geoengine.error import GeoEngineException, InputException, TypeException
 
+DEFAULT_ISO_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
+
 
 class SpatialBounds:
     '''A spatial bounds object'''

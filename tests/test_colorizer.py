@@ -98,7 +98,8 @@ class ColorizerTests(unittest.TestCase):
         }
 
         # verify color map object variant
-        cmap_obj = plt.get_cmap('gray')
+        cmap_obj = plt.colormaps["gray"]
+
 
         geo_colorizer = colorizer.Colorizer.palette_with_colormap(
             values=[1.0, 2.0, 3.0], color_map=cmap_obj)

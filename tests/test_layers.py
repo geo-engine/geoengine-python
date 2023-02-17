@@ -523,7 +523,7 @@ class LayerTests(unittest.TestCase):
             m.post(
                 # pylint: disable=line-too-long
                 'http://mock-instance/layers/ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b/9ee3619e-d0f9-4ced-9c44-3d407c3aed69/dataset',
-                json={'task_id': '7f210984-8f2d-44f6-b211-ededada17598'},
+                json={'taskId': '7f210984-8f2d-44f6-b211-ededada17598'},
                 request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'})
 
             m.get('http://mock-instance/tasks/7f210984-8f2d-44f6-b211-ededada17598/status',
