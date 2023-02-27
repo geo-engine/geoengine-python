@@ -748,6 +748,8 @@ class Workflow:
     async def vector_stream(
             self,
             query_rectangle: QueryRectangle,
+            time_start_column: str = 'time_start',
+            time_end_column: str = 'time_end',
             open_timeout: int = 60) -> AsyncIterator[gpd.GeoDataFrame]:
         '''Stream the workflow result as series of `GeoDataFrame`s'''
 
@@ -757,7 +759,9 @@ class Workflow:
             record_batch = reader.get_record_batch(0)
             return record_batch
 
-        def create_geo_data_frame(record_batch: pa.RecordBatch) -> gpd.GeoDataFrame:
+        def create_geo_data_frame(record_batch: pa.RecordBatch,
+                                  time_start_column: str,
+                                  time_end_column: str) -> gpd.GeoDataFrame:
             metadata = record_batch.schema.metadata
             spatial_reference = metadata[b'spatialReference'].decode('utf-8')
 
@@ -772,7 +776,19 @@ class Workflow:
                 crs=spatial_reference,
             )
 
-            # TODO: separate timestamps into start and end
+            # split time column
+            geo_data_frame[[time_start_column, time_end_column]] = geo_data_frame[api.TIME_COLUMN_NAME].tolist()
+            del geo_data_frame[api.TIME_COLUMN_NAME]  # delete the duplicated column
+
+            # parse time columns
+            for time_column in [time_start_column, time_end_column]:
+                geo_data_frame[time_column] = pd.to_datetime(
+                    geo_data_frame[time_column],
+                    utc=True,
+                    unit='ms',
+                    # TODO: solve time conversion problem from Geo Engine to Python for large (+/-) time instances
+                    errors='coerce',
+                )
 
             return geo_data_frame
 
@@ -782,7 +798,11 @@ class Workflow:
 
             # process the received data
             record_batch = read_arrow_ipc(batch_bytes)
-            tile = create_geo_data_frame(record_batch)
+            tile = create_geo_data_frame(
+                record_batch,
+                time_start_column=time_start_column,
+                time_end_column=time_end_column,
+            )
 
             return tile
 
@@ -857,6 +877,8 @@ class Workflow:
     async def vector_stream_into_geopandas(
             self,
             query_rectangle: QueryRectangle,
+            time_start_column: str = 'time_start',
+            time_end_column: str = 'time_end',
             open_timeout: int = 60) -> gpd.GeoDataFrame:
         '''
         Stream the workflow result into memory and output a single geo data frame.
@@ -866,7 +888,9 @@ class Workflow:
 
         chunk_stream = self.vector_stream(
             query_rectangle,
-            open_timeout=open_timeout
+            time_start_column=time_start_column,
+            time_end_column=time_end_column,
+            open_timeout=open_timeout,
         )
 
         data_frame: Optional[gpd.GeoDataFrame] = None

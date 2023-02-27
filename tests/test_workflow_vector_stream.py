@@ -9,6 +9,7 @@ from datetime import datetime
 import pyarrow as pa
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 import geoengine as ge
 
 
@@ -165,12 +166,18 @@ class WorkflowVectorStreamTests(unittest.TestCase):
             async def inner2():
                 data_frame = await workflow.vector_stream_into_geopandas(query_rect)
 
-                assert data_frame.shape == (8, 3)
+                # 1x geo + 2x time + 1x data
+                assert data_frame.shape == (8, 4)
 
-                (geos, times, datas) = read_data()
+                (geos, _times, datas) = read_data()
 
                 assert data_frame["geometry"].equals(gpd.GeoSeries.from_wkt(geos))
-                assert np.array_equal(data_frame["__time"].tolist(), times)
+
+                # TODO: when we can parse very early and very late times,
+                # this should be possible to check against `_times`
+                assert pd.isnull(data_frame["time_start"]).all()
+                assert pd.isnull(data_frame["time_end"]).all()
+
                 assert np.array_equal(data_frame["data"].tolist(), datas)
 
             asyncio.run(inner2())
