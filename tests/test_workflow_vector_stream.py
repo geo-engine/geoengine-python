@@ -1,4 +1,4 @@
-'''Tests for WMS calls'''
+'''Tests for vector streaming workflows'''
 
 import asyncio
 from typing import Dict, List, Tuple
