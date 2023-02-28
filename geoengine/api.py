@@ -6,6 +6,9 @@ from typing_extensions import Literal, TypedDict, TypeAlias
 
 Rgba: TypeAlias = Tuple[int, int, int, int]
 
+GEOMETRY_COLUMN_NAME = '__geometry'
+TIME_COLUMN_NAME = '__time'
+
 
 class Coordinate2D(TypedDict):  # pylint: disable=too-few-public-methods
     '''A coordinate with x, y coordinates'''

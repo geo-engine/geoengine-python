@@ -14,6 +14,7 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Union, Type, cast
 from uuid import UUID
 
 import geopandas as gpd
+import pandas as pd
 import numpy as np
 import rasterio.io
 import requests as req
@@ -743,6 +744,189 @@ class Workflow:
         )
 
         return output
+
+    async def vector_stream(
+            self,
+            query_rectangle: QueryRectangle,
+            time_start_column: str = 'time_start',
+            time_end_column: str = 'time_end',
+            open_timeout: int = 60) -> AsyncIterator[gpd.GeoDataFrame]:
+        '''Stream the workflow result as series of `GeoDataFrame`s'''
+
+        def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
+            reader = pa.ipc.open_file(arrow_ipc)
+            # We know from the backend that there is only one record batch
+            record_batch = reader.get_record_batch(0)
+            return record_batch
+
+        def create_geo_data_frame(record_batch: pa.RecordBatch,
+                                  time_start_column: str,
+                                  time_end_column: str) -> gpd.GeoDataFrame:
+            metadata = record_batch.schema.metadata
+            spatial_reference = metadata[b'spatialReference'].decode('utf-8')
+
+            data_frame = record_batch.to_pandas()
+
+            geometry = gpd.GeoSeries.from_wkt(data_frame[api.GEOMETRY_COLUMN_NAME])
+            del data_frame[api.GEOMETRY_COLUMN_NAME]  # delete the duplicated column
+
+            geo_data_frame = gpd.GeoDataFrame(
+                data_frame,
+                geometry=geometry,
+                crs=spatial_reference,
+            )
+
+            # split time column
+            geo_data_frame[[time_start_column, time_end_column]] = geo_data_frame[api.TIME_COLUMN_NAME].tolist()
+            del geo_data_frame[api.TIME_COLUMN_NAME]  # delete the duplicated column
+
+            # parse time columns
+            for time_column in [time_start_column, time_end_column]:
+                geo_data_frame[time_column] = pd.to_datetime(
+                    geo_data_frame[time_column],
+                    utc=True,
+                    unit='ms',
+                    # TODO: solve time conversion problem from Geo Engine to Python for large (+/-) time instances
+                    errors='coerce',
+                )
+
+            return geo_data_frame
+
+        def process_bytes(batch_bytes: Optional[bytes]) -> Optional[gpd.GeoDataFrame]:
+            if batch_bytes is None:
+                return None
+
+            # process the received data
+            record_batch = read_arrow_ipc(batch_bytes)
+            tile = create_geo_data_frame(
+                record_batch,
+                time_start_column=time_start_column,
+                time_end_column=time_end_column,
+            )
+
+            return tile
+
+        # Currently, it only works for raster results
+        if not self.__result_descriptor.is_vector_result():
+            raise MethodNotCalledOnVectorException()
+
+        session = get_session()
+
+        url = req.Request(
+            'GET',
+            url=f'{session.server_url}/workflow/{self.__workflow_id}/vectorStream',
+            params={
+                'resultType': 'arrow',
+                'spatialBounds': query_rectangle.bbox_str,
+                'timeInterval': query_rectangle.time_str,
+                'spatialResolution': str(query_rectangle.spatial_resolution),
+            },
+        ).prepare().url
+
+        if url is None:
+            raise InputException('Invalid websocket url')
+
+        # for the websockets library, it is necessary that the url starts with `ws://``
+        [_, url_part] = url.split('://', maxsplit=1)
+
+        async with websockets.client.connect(
+            uri=f'ws://{url_part}',
+            extra_headers=session.auth_header,
+            open_timeout=open_timeout,
+            max_size=None,  # allow arbitrary large messages, since it is capped by the server's chunk size
+        ) as websocket:
+
+            batch_bytes: Optional[bytes] = None
+
+            while websocket.open:
+                async def read_new_bytes() -> Optional[bytes]:
+                    # already send the next request to speed up the process
+                    try:
+                        await websocket.send("NEXT")
+                    except websockets.exceptions.ConnectionClosed:
+                        # the websocket connection is already closed, we cannot read anymore
+                        return None
+
+                    try:
+                        data: Union[str, bytes] = await websocket.recv()
+
+                        if isinstance(data, str):
+                            # the server sent an error message
+                            raise GeoEngineException({'error': data})
+
+                        return data
+                    except websockets.exceptions.ConnectionClosedOK:
+                        # the websocket connection closed gracefully, so we stop reading
+                        return None
+
+                (batch_bytes, batch) = await asyncio.gather(
+                    read_new_bytes(),
+                    # asyncio.to_thread(process_bytes, batch_bytes), # TODO: use this when min Python version is 3.9
+                    backports.to_thread(process_bytes, batch_bytes),
+                )
+
+                if batch is not None:
+                    yield batch
+
+            # process the last tile
+            batch = process_bytes(batch_bytes)
+
+            if batch is not None:
+                yield batch
+
+    async def vector_stream_into_geopandas(
+            self,
+            query_rectangle: QueryRectangle,
+            time_start_column: str = 'time_start',
+            time_end_column: str = 'time_end',
+            open_timeout: int = 60) -> gpd.GeoDataFrame:
+        '''
+        Stream the workflow result into memory and output a single geo data frame.
+
+        NOTE: You can run out of memory if the query rectangle is too large.
+        '''
+
+        chunk_stream = self.vector_stream(
+            query_rectangle,
+            time_start_column=time_start_column,
+            time_end_column=time_end_column,
+            open_timeout=open_timeout,
+        )
+
+        data_frame: Optional[gpd.GeoDataFrame] = None
+        chunk: Optional[gpd.GeoDataFrame] = None
+
+        async def read_dataframe() -> Optional[gpd.GeoDataFrame]:
+            try:
+                return await chunk_stream.__anext__()
+            except StopAsyncIteration:
+                return None
+
+        def merge_dataframes(
+            df_a: Optional[gpd.GeoDataFrame],
+            df_b: Optional[gpd.GeoDataFrame]
+        ) -> Optional[gpd.GeoDataFrame]:
+            if df_a is None:
+                return df_b
+
+            if df_b is None:
+                return df_a
+
+            return pd.concat([df_a, df_b], ignore_index=True)
+
+        while True:
+            (chunk, data_frame) = await asyncio.gather(
+                read_dataframe(),
+                backports.to_thread(merge_dataframes, data_frame, chunk),
+                # TODO: use this when min Python version is 3.9
+                # asyncio.to_thread(merge_dataframes, data_frame, chunk),
+            )
+
+            # we can stop when the chunk stream is exhausted
+            if chunk is None:
+                break
+
+        return data_frame
 
 
 def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -> Workflow:

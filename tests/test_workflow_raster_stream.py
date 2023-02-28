@@ -1,4 +1,4 @@
-'''Tests for WMS calls'''
+'''Tests for raster streaming workflows'''
 
 import asyncio
 from typing import Dict, List
@@ -149,9 +149,6 @@ class WorkflowRasterStreamTests(unittest.TestCase):
                 assert array.shape == (2, 8, 8)
 
                 original_array = rioxarray.open_rasterio("tests/responses/ndvi.tiff").isel(band=0, drop=True)
-
-                print(original_array.y.values)
-                print(array.isel(time=0, drop=True).y.values)
 
                 # Let's check that the output is the same as if we would
                 # have read the whole raster with rioxarray
