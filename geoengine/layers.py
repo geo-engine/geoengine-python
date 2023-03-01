@@ -18,6 +18,7 @@ from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException, check_response_for_error
 from geoengine.tasks import Task, TaskId
 from geoengine.types import Symbology
+from geoengine.workflow import Workflow, WorkflowId
 
 LayerId = NewType('LayerId', str)
 LayerCollectionId = NewType('LayerCollectionId', str)
@@ -522,6 +523,33 @@ class Layer:
             'properties': self.properties,
             'metadata': self.metadata,
         })
+
+    def as_workflow_id(self, timeout: int = 60) -> WorkflowId:
+        '''
+        Register a layer as a workflow and returns its workflowId
+        '''
+        session = get_session()
+
+        layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
+        response = req.post(
+            url=f'{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/workflowId',
+            headers=session.admin_auth_header,
+            timeout=timeout
+        )
+
+        check_response_for_error(response)
+
+        workflow_id: api.WorkflowId = response.json()
+
+        return WorkflowId.from_response(workflow_id)
+
+    def as_workflow(self, timeout: int = 60) -> Workflow:
+        '''
+        Register a layer as a workflow and returns the workflow
+        '''
+        workflow_id = self.as_workflow_id(timeout=timeout)
+
+        return Workflow(workflow_id)
 
 
 def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
