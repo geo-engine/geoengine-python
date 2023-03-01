@@ -47,6 +47,7 @@ from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException, check_response_for_error
 from geoengine.tasks import Task, TaskId
 from geoengine.types import Symbology
+from geoengine.workflow import Workflow, WorkflowId
 
 LayerId = NewType(&#39;LayerId&#39;, str)
 LayerCollectionId = NewType(&#39;LayerCollectionId&#39;, str)
@@ -552,6 +553,33 @@ class Layer:
             &#39;metadata&#39;: self.metadata,
         })
 
+    def as_workflow_id(self, timeout: int = 60) -&gt; WorkflowId:
+        &#39;&#39;&#39;
+        Register a layer as a workflow and returns its workflowId
+        &#39;&#39;&#39;
+        session = get_session()
+
+        layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
+        response = req.post(
+            url=f&#39;{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/workflowId&#39;,
+            headers=session.admin_auth_header,
+            timeout=timeout
+        )
+
+        check_response_for_error(response)
+
+        workflow_id: api.WorkflowId = response.json()
+
+        return WorkflowId.from_response(workflow_id)
+
+    def as_workflow(self, timeout: int = 60) -&gt; Workflow:
+        &#39;&#39;&#39;
+        Register a layer as a workflow and returns the workflow
+        &#39;&#39;&#39;
+        workflow_id = self.as_workflow_id(timeout=timeout)
+
+        return Workflow(workflow_id)
+
 
 def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
                      layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
@@ -978,7 +1006,34 @@ class Layer:
             &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
             &#39;properties&#39;: self.properties,
             &#39;metadata&#39;: self.metadata,
-        })</code></pre>
+        })
+
+    def as_workflow_id(self, timeout: int = 60) -&gt; WorkflowId:
+        &#39;&#39;&#39;
+        Register a layer as a workflow and returns its workflowId
+        &#39;&#39;&#39;
+        session = get_session()
+
+        layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
+        response = req.post(
+            url=f&#39;{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/workflowId&#39;,
+            headers=session.admin_auth_header,
+            timeout=timeout
+        )
+
+        check_response_for_error(response)
+
+        workflow_id: api.WorkflowId = response.json()
+
+        return WorkflowId.from_response(workflow_id)
+
+    def as_workflow(self, timeout: int = 60) -&gt; Workflow:
+        &#39;&#39;&#39;
+        Register a layer as a workflow and returns the workflow
+        &#39;&#39;&#39;
+        workflow_id = self.as_workflow_id(timeout=timeout)
+
+        return Workflow(workflow_id)</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -1048,6 +1103,53 @@ def from_response(cls, response: api.LayerResponse) -&gt; Layer:
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="geoengine.layers.Layer.as_workflow"><code class="name flex">
+<span>def <span class="ident">as_workflow</span></span>(<span>self, timeout: int = 60) ‑> <a title="geoengine.workflow.Workflow" href="workflow.html#geoengine.workflow.Workflow">Workflow</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Register a layer as a workflow and returns the workflow</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def as_workflow(self, timeout: int = 60) -&gt; Workflow:
+    &#39;&#39;&#39;
+    Register a layer as a workflow and returns the workflow
+    &#39;&#39;&#39;
+    workflow_id = self.as_workflow_id(timeout=timeout)
+
+    return Workflow(workflow_id)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.layers.Layer.as_workflow_id"><code class="name flex">
+<span>def <span class="ident">as_workflow_id</span></span>(<span>self, timeout: int = 60) ‑> <a title="geoengine.workflow.WorkflowId" href="workflow.html#geoengine.workflow.WorkflowId">WorkflowId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Register a layer as a workflow and returns its workflowId</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def as_workflow_id(self, timeout: int = 60) -&gt; WorkflowId:
+    &#39;&#39;&#39;
+    Register a layer as a workflow and returns its workflowId
+    &#39;&#39;&#39;
+    session = get_session()
+
+    layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
+    response = req.post(
+        url=f&#39;{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/workflowId&#39;,
+        headers=session.admin_auth_header,
+        timeout=timeout
+    )
+
+    check_response_for_error(response)
+
+    workflow_id: api.WorkflowId = response.json()
+
+    return WorkflowId.from_response(workflow_id)</code></pre>
+</details>
+</dd>
 <dt id="geoengine.layers.Layer.save_as_dataset"><code class="name flex">
 <span>def <span class="ident">save_as_dataset</span></span>(<span>self, timeout: int = 60) ‑> <a title="geoengine.tasks.Task" href="tasks.html#geoengine.tasks.Task">Task</a></span>
 </code></dt>
@@ -1981,6 +2083,8 @@ class Listing(Generic[LISTINGID]):
 <li>
 <h4><code><a title="geoengine.layers.Layer" href="#geoengine.layers.Layer">Layer</a></code></h4>
 <ul class="two-column">
+<li><code><a title="geoengine.layers.Layer.as_workflow" href="#geoengine.layers.Layer.as_workflow">as_workflow</a></code></li>
+<li><code><a title="geoengine.layers.Layer.as_workflow_id" href="#geoengine.layers.Layer.as_workflow_id">as_workflow_id</a></code></li>
 <li><code><a title="geoengine.layers.Layer.description" href="#geoengine.layers.Layer.description">description</a></code></li>
 <li><code><a title="geoengine.layers.Layer.from_response" href="#geoengine.layers.Layer.from_response">from_response</a></code></li>
 <li><code><a title="geoengine.layers.Layer.layer_id" href="#geoengine.layers.Layer.layer_id">layer_id</a></code></li>
