@@ -1,4 +1,4 @@
-"""Tests for the colorizer module."""
+"""Tests for the types module."""
 
 from datetime import datetime
 import unittest
