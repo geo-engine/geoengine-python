@@ -7,7 +7,6 @@ Different type mappings of geo engine types
 from __future__ import annotations
 from abc import abstractmethod
 from datetime import datetime, timezone
-from types import NoneType
 from uuid import UUID
 from enum import Enum
 from typing import Dict, Optional, Tuple, cast, List
@@ -143,7 +142,7 @@ class TimeInterval:
     def __init__(self, start: datetime, end: Optional[datetime] = None) -> None:
         '''Initialize a new `TimeInterval` object'''
 
-        if not isinstance(start, datetime) or not isinstance(end, (datetime, NoneType)):
+        if not isinstance(start, datetime) or not isinstance(end, (datetime, type(None))):
             raise InputException("`start` and `end` must be of type `datetime.datetime`")
 
         # We assume that a datetime without a timezone means UTC
