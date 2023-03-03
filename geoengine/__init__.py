@@ -20,11 +20,9 @@ from .types import QueryRectangle,  \
     ClassificationMeasurement, BoundingBox2D, TimeInterval, SpatialResolution, SpatialPartition2D, \
     RasterSymbology, VectorSymbology, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
     DEFAULT_ISO_TIME_FORMAT
-
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow, get_quota, update_quota
 
-from . import workflow_operators
-
+from . import unstable
 
 DEFAULT_USER_AGENT = f'geoengine-python/{get_distribution("geoengine").version}'
 
