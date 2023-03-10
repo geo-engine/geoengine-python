@@ -79,7 +79,7 @@ class LayerTests(unittest.TestCase):
                     }
                 })
 
-            ge.initialize("http://mock-instance", admin_token='8aca8875-425a-4ef1-8ee6-cdfc62dd7525')
+            ge.initialize("http://mock-instance")
 
             layer = ge.layer('9ee3619e-d0f9-4ced-9c44-3d407c3aed69', 'ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')
 
@@ -183,7 +183,7 @@ class LayerTests(unittest.TestCase):
                 }
             )
 
-            ge.initialize("http://mock-instance", admin_token='8aca8875-425a-4ef1-8ee6-cdfc62dd7525')
+            ge.initialize("http://mock-instance")
 
             layer_collection = ge.layer_collection(
                 '546073b6-d535-4205-b601-99675c9f6dd7',
@@ -227,7 +227,7 @@ class LayerTests(unittest.TestCase):
             m.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/layers/collections/ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74/05102bb3-a855-4a37-8a8a-30026a91fef1?offset=0&limit=20',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
                 json={
                     "description": "Root collection for LayerDB",
                     "entryLabel": None,
@@ -243,7 +243,7 @@ class LayerTests(unittest.TestCase):
 
             m.post(
                 'http://mock-instance/layerDb/collections/05102bb3-a855-4a37-8a8a-30026a91fef1/collections',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
                 json={
                     "id": "490ef009-aa7a-44b0-bbef-73cfb5916b55"
                 }
@@ -252,7 +252,7 @@ class LayerTests(unittest.TestCase):
             m.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/layers/collections/ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74/490ef009-aa7a-44b0-bbef-73cfb5916b55?offset=0&limit=20',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
                 json={
                     "description": "test description",
                     "entryLabel": None,
@@ -268,7 +268,7 @@ class LayerTests(unittest.TestCase):
 
             m.post(
                 'http://mock-instance/layerDb/collections/490ef009-aa7a-44b0-bbef-73cfb5916b55/collections',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
                 json={
                     "id": "64221c85-22df-4d30-9c97-605e5c498629"
                 }
@@ -276,7 +276,7 @@ class LayerTests(unittest.TestCase):
 
             m.post(
                 'http://mock-instance/layerDb/collections/490ef009-aa7a-44b0-bbef-73cfb5916b55/layers',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
                 additional_matcher=lambda request: request.json() == {
                     'name': 'ports clone',
                     'description': 'test description',
@@ -321,7 +321,7 @@ class LayerTests(unittest.TestCase):
             m.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/layers/collections/ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74/64221c85-22df-4d30-9c97-605e5c498629?offset=0&limit=20',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
                 json={
                     "description": "another description",
                     "entryLabel": None,
@@ -338,12 +338,12 @@ class LayerTests(unittest.TestCase):
             m.post(
                 # pylint: disable=line-too-long
                 'http://mock-instance/layerDb/collections/64221c85-22df-4d30-9c97-605e5c498629/layers/fbffb07e-d8b7-4688-98a5-4665988e6ae3',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
             m.get(
                 'http://mock-instance/layers/ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74/fbffb07e-d8b7-4688-98a5-4665988e6ae3',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
                 json={
                     'id': {
                         "layerId": "fbffb07e-d8b7-4688-98a5-4665988e6ae3",
@@ -390,7 +390,7 @@ class LayerTests(unittest.TestCase):
 
             m.post(
                 'http://mock-instance/layerDb/collections/64221c85-22df-4d30-9c97-605e5c498629/collections',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
                 additional_matcher=lambda request: request.json() == {
                     'name': 'sub sub collection',
                     'description': 'yet another description',
@@ -403,13 +403,13 @@ class LayerTests(unittest.TestCase):
             m.post(
                 # pylint: disable=line-too-long
                 'http://mock-instance/layerDb/collections/490ef009-aa7a-44b0-bbef-73cfb5916b55/collections/cd5c3f0f-c682-4f49-820d-8d704f25e803',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
             m.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/layers/collections/ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74/cd5c3f0f-c682-4f49-820d-8d704f25e803?offset=0&limit=20',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
                 json={
                     "description": "yet another description",
                     "entryLabel": None,
@@ -426,27 +426,27 @@ class LayerTests(unittest.TestCase):
             m.delete(
                 # pylint: disable=line-too-long
                 'http://mock-instance/layerDb/collections/490ef009-aa7a-44b0-bbef-73cfb5916b55/collections/64221c85-22df-4d30-9c97-605e5c498629',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
             m.delete(
                 # pylint: disable=line-too-long
                 'http://mock-instance/layerDb/collections/490ef009-aa7a-44b0-bbef-73cfb5916b55/layers/fbffb07e-d8b7-4688-98a5-4665988e6ae3',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
             m.delete(
                 # pylint: disable=line-too-long
                 'http://mock-instance/layerDb/collections/490ef009-aa7a-44b0-bbef-73cfb5916b55/collections/cd5c3f0f-c682-4f49-820d-8d704f25e803',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
             m.delete(
                 'http://mock-instance/layerDb/collections/490ef009-aa7a-44b0-bbef-73cfb5916b55',
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'},
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
-            ge.initialize("http://mock-instance", admin_token='8aca8875-425a-4ef1-8ee6-cdfc62dd7525')
+            ge.initialize("http://mock-instance")
 
             root_of_layerdb = ge.layer_collection('05102bb3-a855-4a37-8a8a-30026a91fef1')
 
@@ -524,7 +524,7 @@ class LayerTests(unittest.TestCase):
                 # pylint: disable=line-too-long
                 'http://mock-instance/layers/ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b/9ee3619e-d0f9-4ced-9c44-3d407c3aed69/dataset',
                 json={'taskId': '7f210984-8f2d-44f6-b211-ededada17598'},
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'})
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             m.get('http://mock-instance/tasks/7f210984-8f2d-44f6-b211-ededada17598/status',
                   json={'status': 'completed',
@@ -539,9 +539,9 @@ class LayerTests(unittest.TestCase):
                 status_code=400,
                 json={'error': 'Some Processing Error',
                       'message': 'Some Processing Message'},
-                request_headers={'Authorization': 'Bearer 8aca8875-425a-4ef1-8ee6-cdfc62dd7525'})
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            ge.initialize("http://mock-instance", admin_token='8aca8875-425a-4ef1-8ee6-cdfc62dd7525')
+            ge.initialize("http://mock-instance")
 
             # Success case
             layer = ge.Layer(

@@ -970,7 +970,7 @@ def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> api.Quota:
 
     quota_response = req.get(
         url,
-        headers=session.admin_or_normal_auth_header,
+        headers=session.auth_header,
         timeout=timeout
     ).json()
 
@@ -989,7 +989,7 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> 
 
     req.post(
         f'{session.server_url}/quotas/{user_id}',
-        headers=session.admin_auth_header,
+        headers=session.auth_header,
         json=api.UpdateQuota({
             'available': new_available_quota
         }),

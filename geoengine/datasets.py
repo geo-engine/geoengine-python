@@ -548,7 +548,7 @@ def volumes(timeout: int = 60) -> List[Volume]:
     session = get_session()
 
     response = req.get(f'{session.server_url}/dataset/volumes',
-                       headers=session.admin_auth_header,
+                       headers=session.auth_header,
                        timeout=timeout
                        ).json()
 
@@ -575,7 +575,7 @@ def add_public_raster_dataset(volume_id: VolumeId, properties: DatasetProperties
 
     session = get_session()
 
-    headers = session.admin_auth_header
+    headers = session.auth_header
     headers['Content-Type'] = 'application/json'
 
     response = req.post(f'{session.server_url}/dataset',
@@ -595,7 +595,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -> None:
     session = get_session()
 
     response = req.delete(f'{session.server_url}/dataset/{dataset_id}',
-                          headers=session.admin_or_normal_auth_header,
+                          headers=session.auth_header,
                           timeout=timeout)
 
     if response.status_code != 200:
