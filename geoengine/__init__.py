@@ -15,6 +15,8 @@ from .error import GeoEngineException, InputException, UninitializedException, T
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
     LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer
+from .permissions import add_permission, remove_permission, ADMIN_ROLE_ID, REGISTERED_USER_ROLE_ID,\
+    ANONYMOUS_USER_ROLE_ID, ResourceId, Permission
 from .types import QueryRectangle,  \
     RasterResultDescriptor, Provenance, UnitlessMeasurement, ContinuousMeasurement, \
     ClassificationMeasurement, BoundingBox2D, TimeInterval, SpatialResolution, SpatialPartition2D, \
