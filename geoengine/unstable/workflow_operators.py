@@ -4,6 +4,8 @@ from abc import abstractmethod
 from typing import Any, Dict, List, Optional, Union, cast
 from typing_extensions import Literal
 
+from geoengine import api
+
 
 class Operator():
     '''Base class for all operators.'''
@@ -54,11 +56,18 @@ class VectorOperator(Operator):
 
 class GdalSource(RasterOperator):
     '''A GDAL source operator.'''
-    dataset: str
+    dataset: api.DataId
 
-    def __init__(self, dataset: str):
+    def __init__(self, dataset: Union[api.DataId, str]):
         '''Creates a new GDAL source operator.'''
-        self.dataset = dataset
+        if isinstance(dataset, str):
+            self.dataset = api.InternalDataId(
+                type="internal",
+                datasetId=dataset,
+            )
+
+        else:
+            self.dataset = dataset
 
     def name(self) -> str:
         return 'GdalSource'
@@ -67,10 +76,7 @@ class GdalSource(RasterOperator):
         return {
             'type': self.name(),
             'params': {
-                "data": {
-                    "type": "internal",
-                    "datasetId": self.dataset,
-                }
+                "data": self.dataset
             }
         }
 
@@ -145,6 +151,7 @@ class RasterVectorJoin(VectorOperator):
     temporal_aggregation: Literal["none", "first", "mean"] = "none"
     feature_aggregation: Literal["first", "mean"] = "mean"
 
+    # pylint: disable=too-many-arguments
     def __init__(self,
                  raster_sources: List[RasterOperator],
                  vector_source: VectorOperator,
@@ -222,14 +229,14 @@ class RasterScaling(RasterOperator):
     source: RasterOperator
     slope_key_or_value: Optional[Union[float, str]] = None
     offset_key_or_value: Optional[Union[float, str]] = None
-    scaling_mode: Literal["scale", "unscale"] = "scale"
+    scaling_mode: Literal["checkedMulThenAdd", "CheckedSubThenDiv"] = "checkedMulThenAdd"
     output_measurement: Optional[str] = None
 
     def __init__(self,
                  source: RasterOperator,
                  slope_key_or_value: Optional[Union[float, str]] = None,
                  offset_key_or_value: Optional[Union[float, str]] = None,
-                 scaling_mode: Literal["scale", "unscale"] = "scale",
+                 scaling_mode: Literal["checkedMulThenAdd", "CheckedSubThenDiv"] = "checkedMulThenAdd",
                  output_measurement: Optional[str] = None
                  ):
         '''Creates a new RasterScaling operator.'''
@@ -243,11 +250,19 @@ class RasterScaling(RasterOperator):
         return 'RasterScaling'
 
     def to_dict(self) -> Dict[str, Any]:
+        def offset_scale_dict(key_or_value: Optional[Union[float, str]]) -> Dict[str, Any]:
+            if key_or_value is None:
+                return {"type": "deriveFromData"}
+            elif isinstance(key_or_value, float):
+                return {"type": "constant", "value": key_or_value}
+            else:
+                return {"type": "metadataKey", "key": key_or_value}
+
         return {
             "type": self.name(),
             "params": {
-                "offsetKeyOrValue": self.offset_key_or_value,
-                "scaleKeyOrValue": self.slope_key_or_value,
+                "offset": offset_scale_dict(self.offset_key_or_value),
+                "scale": offset_scale_dict(self.slope_key_or_value),
                 "scalingMode": self.scaling_mode
             },
             "sources": {
@@ -326,3 +341,90 @@ class Reprojection(Operator):
         if self.data_type() != 'Raster':
             raise TypeError("Cannot cast to RasterOperator")
         return cast(RasterOperator, self)
+
+
+class Expression(RasterOperator):
+    '''An Expression operator.'''
+
+    expression: str
+    sources: Dict[str, RasterOperator]
+    output_type: Literal["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "f32", "f64"] = "f32"
+    map_no_data: bool = False
+
+    def __init__(self,
+                 expression: str,
+                 sources: Dict[str, RasterOperator],
+                 output_type: Literal["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "f32", "f64"] = "f32",
+                 map_no_data: bool = False
+
+                 ):
+        '''Creates a new Expression operator.'''
+        self.expression = expression
+        self.sources = sources
+        self.output_type = output_type
+        self.map_no_data = map_no_data
+
+    def name(self) -> str:
+        return 'Expression'
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": self.name(),
+            "params": {
+                "expression": self.expression,
+                "outputType": self.output_type,
+                "mapNoData": self.map_no_data
+            },
+            "sources":
+                {i: raster_source.to_dict() for i, raster_source in self.sources.items()}
+
+        }
+
+
+class TemporalRasterAggregation(RasterOperator):
+    '''A TemporalRasterAggregation operator.'''
+
+    source: RasterOperator
+    aggregation_type: Literal["mean", "min", "max", "median", "count", "sum", "first", "last"]
+    ignore_no_data: bool = False
+    window_granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days"
+    window_size: int = 1
+    output_type: Literal["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "f32", "f64"] = "f32"
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 source: RasterOperator,
+                 aggregation_type: Literal["mean", "min", "max", "median", "count", "sum", "first", "last"],
+                 ignore_no_data: bool = False,
+                 window_granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days",
+                 window_size: int = 1,
+                 output_type: Literal["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "f32", "f64"] = "f32",
+                 ):
+        '''Creates a new TemporalRasterAggregation operator.'''
+        self.source = source
+        self.aggregation_type = aggregation_type
+        self.ignore_no_data = ignore_no_data
+        self.window_granularity = window_granularity
+        self.window_size = window_size
+        self.output_type = output_type
+
+    def name(self) -> str:
+        return 'TemporalRasterAggregation'
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": self.name(),
+            "params": {
+                "aggregation": {
+                    "type": self.aggregation_type,
+                    "ignoreNoData": self.ignore_no_data,
+                },
+                "window": {
+                    "granularity": self.window_granularity,
+                    "step": self.window_size
+                },
+            },
+            "sources": {
+                "raster": self.source.to_dict()
+            }
+        }
