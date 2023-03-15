@@ -555,7 +555,7 @@ def volumes(timeout: int = 60) -> List[Volume]:
     return [Volume.from_response(v) for v in response]
 
 
-def add_public_raster_dataset(volume_id: VolumeId, properties: DatasetProperties, meta_data: api.MetaDataDefinition,
+def add_public_raster_dataset(storage: Union[VolumeId, api.DatasetPath], properties: DatasetProperties, meta_data: api.MetaDataDefinition,
                               timeout: int = 60) -> DatasetId:
     '''Adds a public raster dataset to the Geo Engine'''
 
@@ -563,7 +563,7 @@ def add_public_raster_dataset(volume_id: VolumeId, properties: DatasetProperties
 
         {
             "dataPath": api.DatasetVolume({
-                "volume": str(volume_id)
+                "volume": str(storage)
             }),
             "definition": {
                 "properties": properties.to_api_dict(),
