@@ -548,24 +548,49 @@ class VectorResultDescriptor(ResultDescriptor):
         })
 
 
+class FeatureDataType(str, Enum):
+    '''Vector column data type'''
+
+    CATEGORY = "category"
+    INT = "int"
+    FLOAT = "float"
+    TEXT = "text"
+    BOOL = "bool"
+    DATETIME = "dateTime"
+
+    @staticmethod
+    def from_string(data_type: str) -> FeatureDataType:
+        '''Create a new `VectorColumnDataType` from a string'''
+
+        return FeatureDataType(data_type)
+
+    def to_api_enum(self) -> api.FeatureDataType:
+        '''Convert to an API enum'''
+
+        return api.FeatureDataType(self.value)
+
+
 @dataclass
 class VectorColumnInfo:
     '''Vector column information'''
 
-    data_type: str
+    data_type: FeatureDataType
     measurement: Measurement
 
     @staticmethod
     def from_response(response: api.VectorColumnInfo) -> VectorColumnInfo:
         '''Create a new `VectorColumnInfo` from a JSON response'''
 
-        return VectorColumnInfo(response['dataType'], Measurement.from_response(response['measurement']))
+        return VectorColumnInfo(
+            FeatureDataType.from_string(response['dataType']),
+            Measurement.from_response(response['measurement'])
+        )
 
     def to_api_dict(self) -> api.VectorColumnInfo:
         '''Convert to a dictionary'''
 
         return api.VectorColumnInfo({
-            'dataType': self.data_type,
+            'dataType': self.data_type.to_api_enum(),
             'measurement': self.measurement.to_api_dict(),
         })
 
