@@ -6,7 +6,7 @@ Different type mappings of geo engine types
 
 from __future__ import annotations
 from abc import abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 from enum import Enum
 from typing import Dict, Optional, Tuple, cast, List
@@ -141,8 +141,20 @@ class TimeInterval:
 
     def __init__(self, start: datetime, end: Optional[datetime] = None) -> None:
         '''Initialize a new `TimeInterval` object'''
+
+        if not isinstance(start, datetime) or not isinstance(end, (datetime, type(None))):
+            raise InputException("`start` and `end` must be of type `datetime.datetime`")
+
+        # We assume that a datetime without a timezone means UTC
+        if start.tzinfo is None:
+            start = start.replace(tzinfo=timezone.utc)
+        if end is not None and end.tzinfo is None:
+            end = end.replace(tzinfo=timezone.utc)
+
+        # Check validity of time interval if an `end` exists
         if end is not None and start > end:
             raise InputException("Time inverval: Start must be <= End")
+
         self.start = start
         self.end = end
 
@@ -536,24 +548,49 @@ class VectorResultDescriptor(ResultDescriptor):
         })
 
 
+class FeatureDataType(str, Enum):
+    '''Vector column data type'''
+
+    CATEGORY = "category"
+    INT = "int"
+    FLOAT = "float"
+    TEXT = "text"
+    BOOL = "bool"
+    DATETIME = "dateTime"
+
+    @staticmethod
+    def from_string(data_type: str) -> FeatureDataType:
+        '''Create a new `VectorColumnDataType` from a string'''
+
+        return FeatureDataType(data_type)
+
+    def to_api_enum(self) -> api.FeatureDataType:
+        '''Convert to an API enum'''
+
+        return api.FeatureDataType(self.value)
+
+
 @dataclass
 class VectorColumnInfo:
     '''Vector column information'''
 
-    data_type: str
+    data_type: FeatureDataType
     measurement: Measurement
 
     @staticmethod
     def from_response(response: api.VectorColumnInfo) -> VectorColumnInfo:
         '''Create a new `VectorColumnInfo` from a JSON response'''
 
-        return VectorColumnInfo(response['dataType'], Measurement.from_response(response['measurement']))
+        return VectorColumnInfo(
+            FeatureDataType.from_string(response['dataType']),
+            Measurement.from_response(response['measurement'])
+        )
 
     def to_api_dict(self) -> api.VectorColumnInfo:
         '''Convert to a dictionary'''
 
         return api.VectorColumnInfo({
-            'dataType': self.data_type,
+            'dataType': self.data_type.to_api_enum(),
             'measurement': self.measurement.to_api_dict(),
         })
 
