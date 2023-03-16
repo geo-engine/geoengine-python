@@ -257,9 +257,20 @@ class ValueOgrSourceDurationSpec(OgrSourceDurationSpec):  # pylint: disable=too-
     granularity: TimeStepGranularity
 
 
+class FeatureDataType(str, Enum):
+    '''Vector column data type'''
+
+    CATEGORY = "category"
+    INT = "int"
+    FLOAT = "float"
+    TEXT = "text"
+    BOOL = "bool"
+    DATETIME = "dateTime"
+
+
 class VectorColumnInfo(TypedDict):  # pylint: disable=too-few-public-methods
     '''A vector column info'''
-    dataType: str
+    dataType: FeatureDataType
     measurement: Measurement
 
 

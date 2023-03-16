@@ -4,7 +4,7 @@ Module for working with datasets and source definitions
 
 from __future__ import annotations
 from abc import abstractmethod
-from typing import List, NamedTuple, Optional, cast
+from typing import Dict, List, NamedTuple, Optional, Union, cast
 from enum import Enum
 from uuid import UUID
 import json
@@ -18,7 +18,7 @@ from geoengine.error import GeoEngineException, InputException, MissingFieldInRe
 from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
-    UnitlessMeasurement
+    UnitlessMeasurement, FeatureDataType
 
 
 class UnixTimeStampType(Enum):
@@ -323,6 +323,7 @@ class UploadId:
         return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
 
     def to_api_dict(self) -> api.UploadId:
+        '''Converts the upload id to a dict for the api'''
         return {
             'id': str(self.__upload_id)
         }
@@ -399,18 +400,24 @@ class VolumeId:
 
         return self.__volume_id == other.__volume_id  # pylint: disable=protected-access
 
+    def to_api_dict(self) -> api.VolumeId:
+        '''Converts the volume id to a dictionary containing the id'''
+        return {
+            'id': str(self.__volume_id)
+        }
 
-def pandas_dtype_to_column_type(dtype: np.dtype) -> str:
+
+def pandas_dtype_to_column_type(dtype: np.dtype) -> FeatureDataType:
     '''Convert a pandas `dtype` to a column type'''
 
     if np.issubdtype(dtype, np.integer):
-        return 'int'
+        return FeatureDataType.INT
 
     if np.issubdtype(dtype, np.floating):
-        return 'float'
+        return FeatureDataType.FLOAT
 
     if str(dtype) == 'object':
-        return 'text'
+        return FeatureDataType.TEXT
 
     raise InputException(
         f'pandas dtype {dtype} has no corresponding column type')
@@ -541,6 +548,9 @@ class Volume:
         '''Parse a http response to an `Volume`'''
         return Volume(response['name'], response['path'])
 
+    def to_api_dict(self) -> api.Volume:
+        return api.Volume(name=self.name, path=self.path)
+
 
 def volumes(timeout: int = 60) -> List[Volume]:
     '''Returns a list of all volumes'''
@@ -555,16 +565,29 @@ def volumes(timeout: int = 60) -> List[Volume]:
     return [Volume.from_response(v) for v in response]
 
 
-def add_public_raster_dataset(volume_id: VolumeId, properties: DatasetProperties, meta_data: api.MetaDataDefinition,
-                              timeout: int = 60) -> DatasetId:
-    '''Adds a public raster dataset to the Geo Engine'''
+def add_dataset(data_store: Union[Volume, UploadId], properties: DatasetProperties, meta_data: api.MetaDataDefinition,
+                timeout: int = 60) -> DatasetId:
+    '''Adds a dataset to the Geo Engine'''
+    dataset_path: api.DatasetStorage
+    headers: Dict[str, str]
+
+    session = get_session()
+
+    headers = session.auth_header
+
+    if isinstance(data_store, Volume):
+        dataset_path = api.DatasetVolume(
+            volume=data_store.name
+        )
+    else:
+        dataset_path = api.DatasetPath(
+            upload=str(data_store)
+        )
 
     create = api.CreateDataset(
 
         {
-            "dataPath": api.DatasetVolume({
-                "volume": str(volume_id)
-            }),
+            "dataPath": dataset_path,
             "definition": {
                 "properties": properties.to_api_dict(),
                 "metaData": meta_data
