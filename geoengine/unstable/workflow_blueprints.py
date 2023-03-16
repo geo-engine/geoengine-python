@@ -1,19 +1,20 @@
 '''This module contains blueprints for workflows that are not yet stable.'''
 
-import geoengine as ge
+from . import workflow_operators
+from .. import api
 
 
 def sentinel2_cloud_free_band(band_name, provider="5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5", utm_zone="UTM32N"):
     '''Creates a workflow for a cloud free band from Sentinel 2 data.'''
-    band_source = ge.unstable.workflow_operators.GdalSource(
-        dataset=ge.api.ExternalDataId(
+    band_source = workflow_operators.GdalSource(
+        dataset=api.ExternalDataId(
             type="external",
             providerId=provider,
             layerId=f"{utm_zone}:{band_name}"
         )
     )
-    scl_source = ge.unstable.workflow_operators.GdalSource(
-        dataset=ge.api.ExternalDataId(
+    scl_source = workflow_operators.GdalSource(
+        dataset=api.ExternalDataId(
 
             type="external",
             providerId=provider,
@@ -21,7 +22,7 @@ def sentinel2_cloud_free_band(band_name, provider="5779494c-f3a2-48b3-8a2d-5fbba
         )
     )
     # [sen2_mask == 3 |sen2_mask == 7 |sen2_mask == 8 | sen2_mask == 9 |sen2_mask == 10 |sen2_mask == 11 ]
-    cloud_free = ge.unstable.workflow_operators.Expression(
+    cloud_free = workflow_operators.Expression(
         expression=" if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { A }",
         output_type="U16",
         sources={

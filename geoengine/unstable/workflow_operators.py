@@ -233,6 +233,7 @@ class RasterScaling(RasterOperator):
     output_measurement: Optional[str] = None
 
     def __init__(self,
+                 # pylint: disable=too-many-arguments
                  source: RasterOperator,
                  slope_key_or_value: Optional[Union[float, str]] = None,
                  offset_key_or_value: Optional[Union[float, str]] = None,
@@ -253,10 +254,9 @@ class RasterScaling(RasterOperator):
         def offset_scale_dict(key_or_value: Optional[Union[float, str]]) -> Dict[str, Any]:
             if key_or_value is None:
                 return {"type": "deriveFromData"}
-            elif isinstance(key_or_value, float):
+            if isinstance(key_or_value, float):
                 return {"type": "constant", "value": key_or_value}
-            else:
-                return {"type": "metadataKey", "key": key_or_value}
+            return {"type": "metadataKey", "key": key_or_value}
 
         return {
             "type": self.name(),
@@ -396,7 +396,7 @@ class TemporalRasterAggregation(RasterOperator):
                  source: RasterOperator,
                  aggregation_type: Literal["mean", "min", "max", "median", "count", "sum", "first", "last"],
                  ignore_no_data: bool = False,
-                 window_granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days",
+                 granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days",
                  window_size: int = 1,
                  output_type: Literal["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "f32", "f64"] = "f32",
                  ):
@@ -404,7 +404,7 @@ class TemporalRasterAggregation(RasterOperator):
         self.source = source
         self.aggregation_type = aggregation_type
         self.ignore_no_data = ignore_no_data
-        self.window_granularity = window_granularity
+        self.window_granularity = granularity
         self.window_size = window_size
         self.output_type = output_type
 
