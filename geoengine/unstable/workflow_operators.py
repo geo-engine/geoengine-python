@@ -227,23 +227,23 @@ class RasterScaling(RasterOperator):
     '''
 
     source: RasterOperator
-    slope_key_or_value: Optional[Union[float, str]] = None
-    offset_key_or_value: Optional[Union[float, str]] = None
-    scaling_mode: Literal["checkedMulThenAdd", "CheckedSubThenDiv"] = "checkedMulThenAdd"
+    slope: Optional[Union[float, str]] = None
+    offset: Optional[Union[float, str]] = None
+    scaling_mode: Literal["mulSlopeAddOffset", "subOffsetDivSlope"] = "mulSlopeAddOffset"
     output_measurement: Optional[str] = None
 
     def __init__(self,
                  # pylint: disable=too-many-arguments
                  source: RasterOperator,
-                 slope_key_or_value: Optional[Union[float, str]] = None,
-                 offset_key_or_value: Optional[Union[float, str]] = None,
-                 scaling_mode: Literal["checkedMulThenAdd", "CheckedSubThenDiv"] = "checkedMulThenAdd",
+                 slope: Optional[Union[float, str]] = None,
+                 offset: Optional[Union[float, str]] = None,
+                 scaling_mode: Literal["mulSlopeAddOffset", "subOffsetDivSlope"] = "mulSlopeAddOffset",
                  output_measurement: Optional[str] = None
                  ):
         '''Creates a new RasterScaling operator.'''
         self.source = source
-        self.slope_key_or_value = slope_key_or_value
-        self.offset_key_or_value = offset_key_or_value
+        self.slope = slope
+        self.offset = offset
         self.scaling_mode = scaling_mode
         self.output_measurement = output_measurement
 
@@ -261,8 +261,8 @@ class RasterScaling(RasterOperator):
         return {
             "type": self.name(),
             "params": {
-                "offset": offset_scale_dict(self.offset_key_or_value),
-                "scale": offset_scale_dict(self.slope_key_or_value),
+                "offset": offset_scale_dict(self.offset),
+                "slope": offset_scale_dict(self.slope),
                 "scalingMode": self.scaling_mode
             },
             "sources": {
