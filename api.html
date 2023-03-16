@@ -286,9 +286,20 @@ class ValueOgrSourceDurationSpec(OgrSourceDurationSpec):  # pylint: disable=too-
     granularity: TimeStepGranularity
 
 
+class FeatureDataType(str, Enum):
+    &#39;&#39;&#39;Vector column data type&#39;&#39;&#39;
+
+    CATEGORY = &#34;category&#34;
+    INT = &#34;int&#34;
+    FLOAT = &#34;float&#34;
+    TEXT = &#34;text&#34;
+    BOOL = &#34;bool&#34;
+    DATETIME = &#34;dateTime&#34;
+
+
 class VectorColumnInfo(TypedDict):  # pylint: disable=too-few-public-methods
     &#39;&#39;&#39;A vector column info&#39;&#39;&#39;
-    dataType: str
+    dataType: FeatureDataType
     measurement: Measurement
 
 
@@ -1064,6 +1075,59 @@ class UpdateQuota(TypedDict):
 <div class="desc"></div>
 </dd>
 <dt id="geoengine.api.ExternalDataId.type"><code class="name">var <span class="ident">type</span> : Literal['internal', 'external']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.FeatureDataType"><code class="flex name class">
+<span>class <span class="ident">FeatureDataType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Vector column data type</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FeatureDataType(str, Enum):
+    &#39;&#39;&#39;Vector column data type&#39;&#39;&#39;
+
+    CATEGORY = &#34;category&#34;
+    INT = &#34;int&#34;
+    FLOAT = &#34;float&#34;
+    TEXT = &#34;text&#34;
+    BOOL = &#34;bool&#34;
+    DATETIME = &#34;dateTime&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.FeatureDataType.BOOL"><code class="name">var <span class="ident">BOOL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.FeatureDataType.CATEGORY"><code class="name">var <span class="ident">CATEGORY</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.FeatureDataType.DATETIME"><code class="name">var <span class="ident">DATETIME</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.FeatureDataType.FLOAT"><code class="name">var <span class="ident">FLOAT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.FeatureDataType.INT"><code class="name">var <span class="ident">INT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.FeatureDataType.TEXT"><code class="name">var <span class="ident">TEXT</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3225,7 +3289,7 @@ dict(one=1, two=2)</p></div>
 </summary>
 <pre><code class="python">class VectorColumnInfo(TypedDict):  # pylint: disable=too-few-public-methods
     &#39;&#39;&#39;A vector column info&#39;&#39;&#39;
-    dataType: str
+    dataType: FeatureDataType
     measurement: Measurement</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -3234,7 +3298,7 @@ dict(one=1, two=2)</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.VectorColumnInfo.dataType"><code class="name">var <span class="ident">dataType</span> : str</code></dt>
+<dt id="geoengine.api.VectorColumnInfo.dataType"><code class="name">var <span class="ident">dataType</span> : <a title="geoengine.api.FeatureDataType" href="#geoengine.api.FeatureDataType">FeatureDataType</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3582,6 +3646,17 @@ dict(one=1, two=2)</p></div>
 <li><code><a title="geoengine.api.ExternalDataId.layerId" href="#geoengine.api.ExternalDataId.layerId">layerId</a></code></li>
 <li><code><a title="geoengine.api.ExternalDataId.providerId" href="#geoengine.api.ExternalDataId.providerId">providerId</a></code></li>
 <li><code><a title="geoengine.api.ExternalDataId.type" href="#geoengine.api.ExternalDataId.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.FeatureDataType" href="#geoengine.api.FeatureDataType">FeatureDataType</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.FeatureDataType.BOOL" href="#geoengine.api.FeatureDataType.BOOL">BOOL</a></code></li>
+<li><code><a title="geoengine.api.FeatureDataType.CATEGORY" href="#geoengine.api.FeatureDataType.CATEGORY">CATEGORY</a></code></li>
+<li><code><a title="geoengine.api.FeatureDataType.DATETIME" href="#geoengine.api.FeatureDataType.DATETIME">DATETIME</a></code></li>
+<li><code><a title="geoengine.api.FeatureDataType.FLOAT" href="#geoengine.api.FeatureDataType.FLOAT">FLOAT</a></code></li>
+<li><code><a title="geoengine.api.FeatureDataType.INT" href="#geoengine.api.FeatureDataType.INT">INT</a></code></li>
+<li><code><a title="geoengine.api.FeatureDataType.TEXT" href="#geoengine.api.FeatureDataType.TEXT">TEXT</a></code></li>
 </ul>
 </li>
 <li>

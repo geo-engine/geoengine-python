@@ -33,7 +33,7 @@ Module for working with datasets and source definitions
 
 from __future__ import annotations
 from abc import abstractmethod
-from typing import List, NamedTuple, Optional, cast
+from typing import Dict, List, NamedTuple, Optional, Union, cast
 from enum import Enum
 from uuid import UUID
 import json
@@ -47,7 +47,7 @@ from geoengine.error import GeoEngineException, InputException, MissingFieldInRe
 from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
-    UnitlessMeasurement
+    UnitlessMeasurement, FeatureDataType
 
 
 class UnixTimeStampType(Enum):
@@ -352,6 +352,7 @@ class UploadId:
         return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
 
     def to_api_dict(self) -&gt; api.UploadId:
+        &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
         return {
             &#39;id&#39;: str(self.__upload_id)
         }
@@ -428,18 +429,24 @@ class VolumeId:
 
         return self.__volume_id == other.__volume_id  # pylint: disable=protected-access
 
+    def to_api_dict(self) -&gt; api.VolumeId:
+        &#39;&#39;&#39;Converts the volume id to a dictionary containing the id&#39;&#39;&#39;
+        return {
+            &#39;id&#39;: str(self.__volume_id)
+        }
 
-def pandas_dtype_to_column_type(dtype: np.dtype) -&gt; str:
+
+def pandas_dtype_to_column_type(dtype: np.dtype) -&gt; FeatureDataType:
     &#39;&#39;&#39;Convert a pandas `dtype` to a column type&#39;&#39;&#39;
 
     if np.issubdtype(dtype, np.integer):
-        return &#39;int&#39;
+        return FeatureDataType.INT
 
     if np.issubdtype(dtype, np.floating):
-        return &#39;float&#39;
+        return FeatureDataType.FLOAT
 
     if str(dtype) == &#39;object&#39;:
-        return &#39;text&#39;
+        return FeatureDataType.TEXT
 
     raise InputException(
         f&#39;pandas dtype {dtype} has no corresponding column type&#39;)
@@ -570,6 +577,9 @@ class Volume:
         &#39;&#39;&#39;Parse a http response to an `Volume`&#39;&#39;&#39;
         return Volume(response[&#39;name&#39;], response[&#39;path&#39;])
 
+    def to_api_dict(self) -&gt; api.Volume:
+        return api.Volume(name=self.name, path=self.path)
+
 
 def volumes(timeout: int = 60) -&gt; List[Volume]:
     &#39;&#39;&#39;Returns a list of all volumes&#39;&#39;&#39;
@@ -584,16 +594,29 @@ def volumes(timeout: int = 60) -&gt; List[Volume]:
     return [Volume.from_response(v) for v in response]
 
 
-def add_public_raster_dataset(volume_id: VolumeId, properties: DatasetProperties, meta_data: api.MetaDataDefinition,
-                              timeout: int = 60) -&gt; DatasetId:
-    &#39;&#39;&#39;Adds a public raster dataset to the Geo Engine&#39;&#39;&#39;
+def add_dataset(data_store: Union[Volume, UploadId], properties: DatasetProperties, meta_data: api.MetaDataDefinition,
+                timeout: int = 60) -&gt; DatasetId:
+    &#39;&#39;&#39;Adds a dataset to the Geo Engine&#39;&#39;&#39;
+    dataset_path: api.DatasetStorage
+    headers: Dict[str, str]
+
+    session = get_session()
+
+    if isinstance(data_store, Volume):
+        headers = session.admin_auth_header
+        dataset_path = api.DatasetVolume(
+            volume=data_store.name
+        )
+    else:
+        headers = session.auth_header
+        dataset_path = api.DatasetPath(
+            upload=str(data_store)
+        )
 
     create = api.CreateDataset(
 
         {
-            &#34;dataPath&#34;: api.DatasetVolume({
-                &#34;volume&#34;: str(volume_id)
-            }),
+            &#34;dataPath&#34;: dataset_path,
             &#34;definition&#34;: {
                 &#34;properties&#34;: properties.to_api_dict(),
                 &#34;metaData&#34;: meta_data
@@ -602,9 +625,6 @@ def add_public_raster_dataset(volume_id: VolumeId, properties: DatasetProperties
 
     data = json.dumps(create, default=dict)
 
-    session = get_session()
-
-    headers = session.admin_auth_header
     headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
 
     response = req.post(f&#39;{session.server_url}/dataset&#39;,
@@ -639,25 +659,38 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="geoengine.datasets.add_public_raster_dataset"><code class="name flex">
-<span>def <span class="ident">add_public_raster_dataset</span></span>(<span>volume_id: <a title="geoengine.datasets.VolumeId" href="#geoengine.datasets.VolumeId">VolumeId</a>, properties: <a title="geoengine.datasets.DatasetProperties" href="#geoengine.datasets.DatasetProperties">DatasetProperties</a>, meta_data: api.MetaDataDefinition, timeout: int = 60) ‑> <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></span>
+<dt id="geoengine.datasets.add_dataset"><code class="name flex">
+<span>def <span class="ident">add_dataset</span></span>(<span>data_store: Union[<a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a>, <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>], properties: <a title="geoengine.datasets.DatasetProperties" href="#geoengine.datasets.DatasetProperties">DatasetProperties</a>, meta_data: api.MetaDataDefinition, timeout: int = 60) ‑> <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Adds a public raster dataset to the Geo Engine</p></div>
+<div class="desc"><p>Adds a dataset to the Geo Engine</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add_public_raster_dataset(volume_id: VolumeId, properties: DatasetProperties, meta_data: api.MetaDataDefinition,
-                              timeout: int = 60) -&gt; DatasetId:
-    &#39;&#39;&#39;Adds a public raster dataset to the Geo Engine&#39;&#39;&#39;
+<pre><code class="python">def add_dataset(data_store: Union[Volume, UploadId], properties: DatasetProperties, meta_data: api.MetaDataDefinition,
+                timeout: int = 60) -&gt; DatasetId:
+    &#39;&#39;&#39;Adds a dataset to the Geo Engine&#39;&#39;&#39;
+    dataset_path: api.DatasetStorage
+    headers: Dict[str, str]
+
+    session = get_session()
+
+    if isinstance(data_store, Volume):
+        headers = session.admin_auth_header
+        dataset_path = api.DatasetVolume(
+            volume=data_store.name
+        )
+    else:
+        headers = session.auth_header
+        dataset_path = api.DatasetPath(
+            upload=str(data_store)
+        )
 
     create = api.CreateDataset(
 
         {
-            &#34;dataPath&#34;: api.DatasetVolume({
-                &#34;volume&#34;: str(volume_id)
-            }),
+            &#34;dataPath&#34;: dataset_path,
             &#34;definition&#34;: {
                 &#34;properties&#34;: properties.to_api_dict(),
                 &#34;metaData&#34;: meta_data
@@ -666,9 +699,6 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 
     data = json.dumps(create, default=dict)
 
-    session = get_session()
-
-    headers = session.admin_auth_header
     headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
 
     response = req.post(f&#39;{session.server_url}/dataset&#39;,
@@ -706,7 +736,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 </details>
 </dd>
 <dt id="geoengine.datasets.pandas_dtype_to_column_type"><code class="name flex">
-<span>def <span class="ident">pandas_dtype_to_column_type</span></span>(<span>dtype: np.dtype) ‑> str</span>
+<span>def <span class="ident">pandas_dtype_to_column_type</span></span>(<span>dtype: np.dtype) ‑> <a title="geoengine.types.FeatureDataType" href="types.html#geoengine.types.FeatureDataType">FeatureDataType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert a pandas <code>dtype</code> to a column type</p></div>
@@ -714,17 +744,17 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def pandas_dtype_to_column_type(dtype: np.dtype) -&gt; str:
+<pre><code class="python">def pandas_dtype_to_column_type(dtype: np.dtype) -&gt; FeatureDataType:
     &#39;&#39;&#39;Convert a pandas `dtype` to a column type&#39;&#39;&#39;
 
     if np.issubdtype(dtype, np.integer):
-        return &#39;int&#39;
+        return FeatureDataType.INT
 
     if np.issubdtype(dtype, np.floating):
-        return &#39;float&#39;
+        return FeatureDataType.FLOAT
 
     if str(dtype) == &#39;object&#39;:
-        return &#39;text&#39;
+        return FeatureDataType.TEXT
 
     raise InputException(
         f&#39;pandas dtype {dtype} has no corresponding column type&#39;)</code></pre>
@@ -2117,6 +2147,7 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
         return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
 
     def to_api_dict(self) -&gt; api.UploadId:
+        &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
         return {
             &#39;id&#39;: str(self.__upload_id)
         }</code></pre>
@@ -2151,12 +2182,13 @@ def from_response(cls, response: api.UploadId) -&gt; UploadId:
 <span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.UploadId" href="api.html#geoengine.api.UploadId">UploadId</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Converts the upload id to a dict for the api</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_api_dict(self) -&gt; api.UploadId:
+    &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
     return {
         &#39;id&#39;: str(self.__upload_id)
     }</code></pre>
@@ -2250,7 +2282,10 @@ class Volume:
     @classmethod
     def from_response(cls, response: api.Volume) -&gt; Volume:
         &#39;&#39;&#39;Parse a http response to an `Volume`&#39;&#39;&#39;
-        return Volume(response[&#39;name&#39;], response[&#39;path&#39;])</code></pre>
+        return Volume(response[&#39;name&#39;], response[&#39;path&#39;])
+
+    def to_api_dict(self) -&gt; api.Volume:
+        return api.Volume(name=self.name, path=self.path)</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -2278,6 +2313,22 @@ class Volume:
 def from_response(cls, response: api.Volume) -&gt; Volume:
     &#39;&#39;&#39;Parse a http response to an `Volume`&#39;&#39;&#39;
     return Volume(response[&#39;name&#39;], response[&#39;path&#39;])</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.Volume.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.Volume" href="api.html#geoengine.api.Volume">Volume</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; api.Volume:
+    return api.Volume(name=self.name, path=self.path)</code></pre>
 </details>
 </dd>
 </dl>
@@ -2322,7 +2373,13 @@ def from_response(cls, response: api.Volume) -&gt; Volume:
         if not isinstance(other, self.__class__):
             return False
 
-        return self.__volume_id == other.__volume_id  # pylint: disable=protected-access</code></pre>
+        return self.__volume_id == other.__volume_id  # pylint: disable=protected-access
+
+    def to_api_dict(self) -&gt; api.VolumeId:
+        &#39;&#39;&#39;Converts the volume id to a dictionary containing the id&#39;&#39;&#39;
+        return {
+            &#39;id&#39;: str(self.__volume_id)
+        }</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -2345,6 +2402,25 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
         raise MissingFieldInResponseException(&#39;id&#39;, response)
 
     return VolumeId(UUID(response[&#39;id&#39;]))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.VolumeId.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.VolumeId" href="api.html#geoengine.api.VolumeId">VolumeId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts the volume id to a dictionary containing the id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; api.VolumeId:
+    &#39;&#39;&#39;Converts the volume id to a dictionary containing the id&#39;&#39;&#39;
+    return {
+        &#39;id&#39;: str(self.__volume_id)
+    }</code></pre>
 </details>
 </dd>
 </dl>
@@ -2413,7 +2489,7 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="geoengine.datasets.add_public_raster_dataset" href="#geoengine.datasets.add_public_raster_dataset">add_public_raster_dataset</a></code></li>
+<li><code><a title="geoengine.datasets.add_dataset" href="#geoengine.datasets.add_dataset">add_dataset</a></code></li>
 <li><code><a title="geoengine.datasets.delete_dataset" href="#geoengine.datasets.delete_dataset">delete_dataset</a></code></li>
 <li><code><a title="geoengine.datasets.pandas_dtype_to_column_type" href="#geoengine.datasets.pandas_dtype_to_column_type">pandas_dtype_to_column_type</a></code></li>
 <li><code><a title="geoengine.datasets.upload_dataframe" href="#geoengine.datasets.upload_dataframe">upload_dataframe</a></code></li>
@@ -2574,12 +2650,14 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 <li><code><a title="geoengine.datasets.Volume.from_response" href="#geoengine.datasets.Volume.from_response">from_response</a></code></li>
 <li><code><a title="geoengine.datasets.Volume.name" href="#geoengine.datasets.Volume.name">name</a></code></li>
 <li><code><a title="geoengine.datasets.Volume.path" href="#geoengine.datasets.Volume.path">path</a></code></li>
+<li><code><a title="geoengine.datasets.Volume.to_api_dict" href="#geoengine.datasets.Volume.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="geoengine.datasets.VolumeId" href="#geoengine.datasets.VolumeId">VolumeId</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.datasets.VolumeId.from_response" href="#geoengine.datasets.VolumeId.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.datasets.VolumeId.to_api_dict" href="#geoengine.datasets.VolumeId.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>
 <li>

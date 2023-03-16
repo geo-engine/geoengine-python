@@ -577,24 +577,49 @@ class VectorResultDescriptor(ResultDescriptor):
         })
 
 
+class FeatureDataType(str, Enum):
+    &#39;&#39;&#39;Vector column data type&#39;&#39;&#39;
+
+    CATEGORY = &#34;category&#34;
+    INT = &#34;int&#34;
+    FLOAT = &#34;float&#34;
+    TEXT = &#34;text&#34;
+    BOOL = &#34;bool&#34;
+    DATETIME = &#34;dateTime&#34;
+
+    @staticmethod
+    def from_string(data_type: str) -&gt; FeatureDataType:
+        &#39;&#39;&#39;Create a new `VectorColumnDataType` from a string&#39;&#39;&#39;
+
+        return FeatureDataType(data_type)
+
+    def to_api_enum(self) -&gt; api.FeatureDataType:
+        &#39;&#39;&#39;Convert to an API enum&#39;&#39;&#39;
+
+        return api.FeatureDataType(self.value)
+
+
 @dataclass
 class VectorColumnInfo:
     &#39;&#39;&#39;Vector column information&#39;&#39;&#39;
 
-    data_type: str
+    data_type: FeatureDataType
     measurement: Measurement
 
     @staticmethod
     def from_response(response: api.VectorColumnInfo) -&gt; VectorColumnInfo:
         &#39;&#39;&#39;Create a new `VectorColumnInfo` from a JSON response&#39;&#39;&#39;
 
-        return VectorColumnInfo(response[&#39;dataType&#39;], Measurement.from_response(response[&#39;measurement&#39;]))
+        return VectorColumnInfo(
+            FeatureDataType.from_string(response[&#39;dataType&#39;]),
+            Measurement.from_response(response[&#39;measurement&#39;])
+        )
 
     def to_api_dict(self) -&gt; api.VectorColumnInfo:
         &#39;&#39;&#39;Convert to a dictionary&#39;&#39;&#39;
 
         return api.VectorColumnInfo({
-            &#39;dataType&#39;: self.data_type,
+            &#39;dataType&#39;: self.data_type.to_api_enum(),
             &#39;measurement&#39;: self.measurement.to_api_dict(),
         })
 
@@ -1851,6 +1876,107 @@ def from_response_external(cls, response: api.ExternalDataId) -&gt; ExternalData
 </ul>
 </li>
 </ul>
+</dd>
+<dt id="geoengine.types.FeatureDataType"><code class="flex name class">
+<span>class <span class="ident">FeatureDataType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Vector column data type</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FeatureDataType(str, Enum):
+    &#39;&#39;&#39;Vector column data type&#39;&#39;&#39;
+
+    CATEGORY = &#34;category&#34;
+    INT = &#34;int&#34;
+    FLOAT = &#34;float&#34;
+    TEXT = &#34;text&#34;
+    BOOL = &#34;bool&#34;
+    DATETIME = &#34;dateTime&#34;
+
+    @staticmethod
+    def from_string(data_type: str) -&gt; FeatureDataType:
+        &#39;&#39;&#39;Create a new `VectorColumnDataType` from a string&#39;&#39;&#39;
+
+        return FeatureDataType(data_type)
+
+    def to_api_enum(self) -&gt; api.FeatureDataType:
+        &#39;&#39;&#39;Convert to an API enum&#39;&#39;&#39;
+
+        return api.FeatureDataType(self.value)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.FeatureDataType.BOOL"><code class="name">var <span class="ident">BOOL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.FeatureDataType.CATEGORY"><code class="name">var <span class="ident">CATEGORY</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.FeatureDataType.DATETIME"><code class="name">var <span class="ident">DATETIME</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.FeatureDataType.FLOAT"><code class="name">var <span class="ident">FLOAT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.FeatureDataType.INT"><code class="name">var <span class="ident">INT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.FeatureDataType.TEXT"><code class="name">var <span class="ident">TEXT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.FeatureDataType.from_string"><code class="name flex">
+<span>def <span class="ident">from_string</span></span>(<span>data_type: str) ‑> <a title="geoengine.types.FeatureDataType" href="#geoengine.types.FeatureDataType">FeatureDataType</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a new <code>VectorColumnDataType</code> from a string</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_string(data_type: str) -&gt; FeatureDataType:
+    &#39;&#39;&#39;Create a new `VectorColumnDataType` from a string&#39;&#39;&#39;
+
+    return FeatureDataType(data_type)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.FeatureDataType.to_api_enum"><code class="name flex">
+<span>def <span class="ident">to_api_enum</span></span>(<span>self) ‑> <a title="geoengine.api.FeatureDataType" href="api.html#geoengine.api.FeatureDataType">FeatureDataType</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert to an API enum</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_enum(self) -&gt; api.FeatureDataType:
+    &#39;&#39;&#39;Convert to an API enum&#39;&#39;&#39;
+
+    return api.FeatureDataType(self.value)</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="geoengine.types.GeoTransform"><code class="flex name class">
 <span>class <span class="ident">GeoTransform</span></span>
@@ -4304,7 +4430,7 @@ class TimeStep:
 </dd>
 <dt id="geoengine.types.VectorColumnInfo"><code class="flex name class">
 <span>class <span class="ident">VectorColumnInfo</span></span>
-<span>(</span><span>data_type: str, measurement: <a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a>)</span>
+<span>(</span><span>data_type: <a title="geoengine.types.FeatureDataType" href="#geoengine.types.FeatureDataType">FeatureDataType</a>, measurement: <a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Vector column information</p>
@@ -4317,26 +4443,29 @@ class TimeStep:
 class VectorColumnInfo:
     &#39;&#39;&#39;Vector column information&#39;&#39;&#39;
 
-    data_type: str
+    data_type: FeatureDataType
     measurement: Measurement
 
     @staticmethod
     def from_response(response: api.VectorColumnInfo) -&gt; VectorColumnInfo:
         &#39;&#39;&#39;Create a new `VectorColumnInfo` from a JSON response&#39;&#39;&#39;
 
-        return VectorColumnInfo(response[&#39;dataType&#39;], Measurement.from_response(response[&#39;measurement&#39;]))
+        return VectorColumnInfo(
+            FeatureDataType.from_string(response[&#39;dataType&#39;]),
+            Measurement.from_response(response[&#39;measurement&#39;])
+        )
 
     def to_api_dict(self) -&gt; api.VectorColumnInfo:
         &#39;&#39;&#39;Convert to a dictionary&#39;&#39;&#39;
 
         return api.VectorColumnInfo({
-            &#39;dataType&#39;: self.data_type,
+            &#39;dataType&#39;: self.data_type.to_api_enum(),
             &#39;measurement&#39;: self.measurement.to_api_dict(),
         })</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.types.VectorColumnInfo.data_type"><code class="name">var <span class="ident">data_type</span> : str</code></dt>
+<dt id="geoengine.types.VectorColumnInfo.data_type"><code class="name">var <span class="ident">data_type</span> : <a title="geoengine.types.FeatureDataType" href="#geoengine.types.FeatureDataType">FeatureDataType</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -4360,7 +4489,10 @@ class VectorColumnInfo:
 def from_response(response: api.VectorColumnInfo) -&gt; VectorColumnInfo:
     &#39;&#39;&#39;Create a new `VectorColumnInfo` from a JSON response&#39;&#39;&#39;
 
-    return VectorColumnInfo(response[&#39;dataType&#39;], Measurement.from_response(response[&#39;measurement&#39;]))</code></pre>
+    return VectorColumnInfo(
+        FeatureDataType.from_string(response[&#39;dataType&#39;]),
+        Measurement.from_response(response[&#39;measurement&#39;])
+    )</code></pre>
 </details>
 </dd>
 </dl>
@@ -4379,7 +4511,7 @@ def from_response(response: api.VectorColumnInfo) -&gt; VectorColumnInfo:
     &#39;&#39;&#39;Convert to a dictionary&#39;&#39;&#39;
 
     return api.VectorColumnInfo({
-        &#39;dataType&#39;: self.data_type,
+        &#39;dataType&#39;: self.data_type.to_api_enum(),
         &#39;measurement&#39;: self.measurement.to_api_dict(),
     })</code></pre>
 </details>
@@ -4902,6 +5034,19 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
 <ul class="">
 <li><code><a title="geoengine.types.ExternalDataId.from_response_external" href="#geoengine.types.ExternalDataId.from_response_external">from_response_external</a></code></li>
 <li><code><a title="geoengine.types.ExternalDataId.to_api_dict" href="#geoengine.types.ExternalDataId.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.FeatureDataType" href="#geoengine.types.FeatureDataType">FeatureDataType</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.types.FeatureDataType.BOOL" href="#geoengine.types.FeatureDataType.BOOL">BOOL</a></code></li>
+<li><code><a title="geoengine.types.FeatureDataType.CATEGORY" href="#geoengine.types.FeatureDataType.CATEGORY">CATEGORY</a></code></li>
+<li><code><a title="geoengine.types.FeatureDataType.DATETIME" href="#geoengine.types.FeatureDataType.DATETIME">DATETIME</a></code></li>
+<li><code><a title="geoengine.types.FeatureDataType.FLOAT" href="#geoengine.types.FeatureDataType.FLOAT">FLOAT</a></code></li>
+<li><code><a title="geoengine.types.FeatureDataType.INT" href="#geoengine.types.FeatureDataType.INT">INT</a></code></li>
+<li><code><a title="geoengine.types.FeatureDataType.TEXT" href="#geoengine.types.FeatureDataType.TEXT">TEXT</a></code></li>
+<li><code><a title="geoengine.types.FeatureDataType.from_string" href="#geoengine.types.FeatureDataType.from_string">from_string</a></code></li>
+<li><code><a title="geoengine.types.FeatureDataType.to_api_enum" href="#geoengine.types.FeatureDataType.to_api_enum">to_api_enum</a></code></li>
 </ul>
 </li>
 <li>
