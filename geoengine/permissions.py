@@ -5,9 +5,10 @@ A wrapper for the GeoEngine permissions API.
 from __future__ import annotations
 from enum import Enum
 
-from typing import Dict, Literal
+from typing import Dict
 from uuid import UUID
 import json
+from typing_extensions import Literal
 
 import requests as req
 from geoengine import api
