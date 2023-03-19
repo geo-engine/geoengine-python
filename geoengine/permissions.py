@@ -3,16 +3,19 @@ A wrapper for the GeoEngine permissions API.
 '''
 
 from __future__ import annotations
+from enum import Enum
 
-from typing import Dict
+from typing import Dict, Literal
 from uuid import UUID
 import json
 
 import requests as req
+from geoengine import api
 
-from geoengine.api import Permission, ResourceId
 from geoengine.auth import get_session
+from geoengine.datasets import DatasetId
 from geoengine.error import GeoEngineException
+from geoengine.layers import LayerCollectionId, LayerId
 
 
 class RoleId:
@@ -53,7 +56,7 @@ class UserId:
         self.__user_id = user_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> RoleId:
+    def from_response(cls, response: Dict[str, str]) -> UserId:
         '''Parse a http response to an `UserId`'''
         print(response)
         if 'id' not in response:
@@ -77,6 +80,44 @@ class UserId:
         return repr(self.__user_id)
 
 
+class ResourceId:
+    '''A wrapper for a resource id'''
+
+    def __init__(self, resource_type: Literal['Dataset', 'Layer', 'LayerCollection'],
+                 resource_id: str) -> None:
+        '''Create a resource id'''
+        self.__type = resource_type
+        self.__id = resource_id
+
+    @classmethod
+    def from_layer_id(cls, layer_id: LayerId) -> ResourceId:
+        '''Create a resource id from a layer id'''
+        return ResourceId('Layer', str(layer_id))
+
+    @classmethod
+    def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -> ResourceId:
+        '''Create a resource id from a layer collection id'''
+        return ResourceId('LayerCollection', str(layer_collection_id))
+
+    @classmethod
+    def from_dataset_id(cls, dataset_id: DatasetId) -> ResourceId:
+        '''Create a resource id from a dataset id'''
+        return ResourceId('Dataset', str(dataset_id))
+
+    def to_api_dict(self) -> api.ResourceId:
+        '''Convert to a dict for the API'''
+        return {
+            "type": self.__type,
+            "id": self.__id
+        }
+
+
+class Permission(str, Enum):
+    '''A permission'''
+    READ = 'Read'
+    OWNER = 'Owner'
+
+
 ADMIN_ROLE_ID: RoleId = RoleId(UUID("d5328854-6190-4af9-ad69-4e74b0961ac9"))
 REGISTERED_USER_ROLE_ID: RoleId = RoleId(UUID("4e8081b6-8aa6-4275-af0c-2fa2da557d28"))
 ANONYMOUS_USER_ROLE_ID: RoleId = RoleId(UUID("fd8e87bf-515c-4f36-8da6-1a53702ff102"))
@@ -87,11 +128,13 @@ def add_permission(role: RoleId, resource: ResourceId, permission: Permission, t
 
     session = get_session()
 
-    payload = json.dumps({
+    payload = json.dumps(api.PermissionRequest({
         "roleId": role,
-        "resourceId": resource,
+        "resourceId": resource.to_api_dict(),
         "permission": permission
-    }, default=str)
+    }), default=str)
+
+    print(payload)
 
     headers = session.auth_header
     headers['Content-Type'] = 'application/json'
@@ -107,16 +150,16 @@ def add_permission(role: RoleId, resource: ResourceId, permission: Permission, t
         raise GeoEngineException(response.json())
 
 
-def remove_permission(role: UUID, resource: ResourceId, permission: Permission, timeout: int = 60):
+def remove_permission(role: RoleId, resource: ResourceId, permission: Permission, timeout: int = 60):
     """Removes a permission to a resource from a role. Requires admin role."""
 
     session = get_session()
 
-    payload = json.dumps({
+    payload = json.dumps(api.PermissionRequest({
         "roleId": role,
-        "resourceId": resource,
+        "resourceId": resource.to_api_dict(),
         "permission": permission
-    }, default=str)
+    }), default=str)
 
     headers = session.auth_header
     headers['Content-Type'] = 'application/json'
@@ -143,9 +186,9 @@ def add_role(name: str, timeout: int = 60) -> RoleId:
         url=f'{session.server_url}/roles',
         headers=headers,
         timeout=timeout,
-        json={
+        json=api.AddRoleRequest({
             "name": name
-        }
+        })
     )
 
     if not response.ok:

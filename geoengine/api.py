@@ -565,3 +565,8 @@ class PermissionRequest(TypedDict):
     roleId: str  # should be UUID, but UUID is not json serializable
     resourceId: ResourceId
     permission: Permission
+
+
+class AddRoleRequest(TypedDict):
+    '''An add role request'''
+    name: str
