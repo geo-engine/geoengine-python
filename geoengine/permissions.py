@@ -65,7 +65,7 @@ class UserId:
 
         user_id = response['id']
 
-        return RoleId(UUID(user_id))
+        return UserId(UUID(user_id))
 
     def __eq__(self, other) -> bool:
         '''Checks if two role ids are equal'''
@@ -118,6 +118,10 @@ class Permission(str, Enum):
     READ = 'Read'
     OWNER = 'Owner'
 
+    def to_api_dict(self) -> api.Permission:
+        '''Convert to a dict for the API'''
+        return api.Permission(str(self))
+
 
 ADMIN_ROLE_ID: RoleId = RoleId(UUID("d5328854-6190-4af9-ad69-4e74b0961ac9"))
 REGISTERED_USER_ROLE_ID: RoleId = RoleId(UUID("4e8081b6-8aa6-4275-af0c-2fa2da557d28"))
@@ -130,9 +134,9 @@ def add_permission(role: RoleId, resource: ResourceId, permission: Permission, t
     session = get_session()
 
     payload = json.dumps(api.PermissionRequest({
-        "roleId": role,
+        "roleId": str(role),
         "resourceId": resource.to_api_dict(),
-        "permission": permission
+        "permission": permission.to_api_dict()
     }), default=str)
 
     print(payload)
@@ -157,9 +161,9 @@ def remove_permission(role: RoleId, resource: ResourceId, permission: Permission
     session = get_session()
 
     payload = json.dumps(api.PermissionRequest({
-        "roleId": role,
+        "roleId": str(role),
         "resourceId": resource.to_api_dict(),
-        "permission": permission
+        "permission": permission.to_api_dict()
     }), default=str)
 
     headers = session.auth_header
