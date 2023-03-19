@@ -107,10 +107,10 @@ class ResourceId:
 
     def to_api_dict(self) -> api.ResourceId:
         '''Convert to a dict for the API'''
-        return {
+        return api.ResourceId({
             "type": self.__type,
             "id": self.__id
-        }
+        })
 
 
 class Permission(str, Enum):
