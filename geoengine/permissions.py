@@ -120,7 +120,7 @@ class Permission(str, Enum):
 
     def to_api_dict(self) -> api.Permission:
         '''Convert to a dict for the API'''
-        return api.Permission(str(self))
+        return api.Permission(self.value)
 
 
 ADMIN_ROLE_ID: RoleId = RoleId(UUID("d5328854-6190-4af9-ad69-4e74b0961ac9"))
