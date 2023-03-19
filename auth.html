@@ -40,8 +40,7 @@ from dotenv import load_dotenv
 import requests as req
 from requests.auth import AuthBase
 
-from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro, UninitializedException,\
-    NoAdminSessionException
+from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro, UninitializedException
 
 
 class BearerAuth(AuthBase):  # pylint: disable=too-few-public-methods
@@ -68,15 +67,12 @@ class Session:
     __server_url: str
     __timeout: int = 60
 
-    __admin_token: Optional[UUID] = None
-
     session: ClassVar[Optional[Session]] = None
 
     def __init__(self,
                  server_url: str,
                  credentials: Optional[Tuple[str, str]] = None,
-                 token: Optional[str] = None,
-                 admin_token: Optional[str] = None) -&gt; None:
+                 token: Optional[str] = None) -&gt; None:
         &#39;&#39;&#39;
         Initialize communication between this library and a Geo Engine instance
 
@@ -86,13 +82,11 @@ class Session:
         optional arguments:
          - `(email, password)` as tuple
          - `token` as a string
-         - `admin_token` as a string
 
         optional environment variables:
          - `GEOENGINE_EMAIL`
          - `GEOENGINE_PASSWORD`
          - `GEOENGINE_TOKEN`
-         - `GEOENGINE_ADMIN_TOKEN`
         &#39;&#39;&#39;
 
         session = None
@@ -137,11 +131,6 @@ class Session:
 
         self.__server_url = server_url
 
-        if admin_token is not None:
-            self.__admin_token = UUID(admin_token)
-        elif &#34;GEOENGINE_ADMIN_TOKEN&#34; in os.environ:
-            self.__admin_token = UUID(os.environ.get(&#34;GEOENGINE_ADMIN_TOKEN&#34;))
-
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of a session&#39;&#39;&#39;
         r = &#39;&#39;
@@ -164,28 +153,6 @@ class Session:
         &#39;&#39;&#39;
 
         return {&#39;Authorization&#39;: &#39;Bearer &#39; + str(self.__id)}
-
-    @property
-    def admin_auth_header(self) -&gt; Dict[str, str]:
-        &#39;&#39;&#39;
-        Create an authentication header for the current session&#39;s admin token
-        &#39;&#39;&#39;
-
-        if self.__admin_token is None:
-            raise NoAdminSessionException()
-
-        return {&#39;Authorization&#39;: &#39;Bearer &#39; + str(self.__admin_token)}
-
-    @property
-    def admin_or_normal_auth_header(self) -&gt; Dict[str, str]:
-        &#39;&#39;&#39;
-        Create an admin authentication header if possible, else a normal authentication header for the current session
-        &#39;&#39;&#39;
-
-        try:
-            return self.admin_auth_header
-        except NoAdminSessionException:
-            return self.auth_header
 
     @property
     def server_url(self) -&gt; str:
@@ -235,8 +202,7 @@ def get_session() -&gt; Session:
 
 def initialize(server_url: str,
                credentials: Optional[Tuple[str, str]] = None,
-               token: Optional[str] = None,
-               admin_token: Optional[str] = None) -&gt; None:
+               token: Optional[str] = None) -&gt; None:
     &#39;&#39;&#39;
     Initialize communication between this library and a Geo Engine instance
 
@@ -250,7 +216,7 @@ def initialize(server_url: str,
 
     load_dotenv()
 
-    Session.session = Session(server_url, credentials, token, admin_token)
+    Session.session = Session(server_url, credentials, token)
 
 
 def reset(logout: bool = True) -&gt; None:
@@ -295,7 +261,7 @@ def reset(logout: bool = True) -&gt; None:
 </details>
 </dd>
 <dt id="geoengine.auth.initialize"><code class="name flex">
-<span>def <span class="ident">initialize</span></span>(<span>server_url: str, credentials: Optional[Tuple[str, str]] = None, token: Optional[str] = None, admin_token: Optional[str] = None) ‑> None</span>
+<span>def <span class="ident">initialize</span></span>(<span>server_url: str, credentials: Optional[Tuple[str, str]] = None, token: Optional[str] = None) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initialize communication between this library and a Geo Engine instance</p>
@@ -310,8 +276,7 @@ optional .env file defining: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_TOKE
 </summary>
 <pre><code class="python">def initialize(server_url: str,
                credentials: Optional[Tuple[str, str]] = None,
-               token: Optional[str] = None,
-               admin_token: Optional[str] = None) -&gt; None:
+               token: Optional[str] = None) -&gt; None:
     &#39;&#39;&#39;
     Initialize communication between this library and a Geo Engine instance
 
@@ -325,7 +290,7 @@ optional .env file defining: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_TOKE
 
     load_dotenv()
 
-    Session.session = Session(server_url, credentials, token, admin_token)</code></pre>
+    Session.session = Session(server_url, credentials, token)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.auth.reset"><code class="name flex">
@@ -382,7 +347,7 @@ optional .env file defining: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_TOKE
 </dd>
 <dt id="geoengine.auth.Session"><code class="flex name class">
 <span>class <span class="ident">Session</span></span>
-<span>(</span><span>server_url: str, credentials: Optional[Tuple[str, str]] = None, token: Optional[str] = None, admin_token: Optional[str] = None)</span>
+<span>(</span><span>server_url: str, credentials: Optional[Tuple[str, str]] = None, token: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A Geo Engine session</p>
@@ -391,13 +356,11 @@ optional .env file defining: GEOENGINE_EMAIL, GEOENGINE_PASSWORD, GEOENGINE_TOKE
 Credentials and token must not be provided at the same time.</p>
 <p>optional arguments:
 - <code>(email, password)</code> as tuple
-- <code>token</code> as a string
-- <code>admin_token</code> as a string</p>
+- <code>token</code> as a string</p>
 <p>optional environment variables:
 - <code>GEOENGINE_EMAIL</code>
 - <code>GEOENGINE_PASSWORD</code>
-- <code>GEOENGINE_TOKEN</code>
-- <code>GEOENGINE_ADMIN_TOKEN</code></p></div>
+- <code>GEOENGINE_TOKEN</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -413,15 +376,12 @@ Credentials and token must not be provided at the same time.</p>
     __server_url: str
     __timeout: int = 60
 
-    __admin_token: Optional[UUID] = None
-
     session: ClassVar[Optional[Session]] = None
 
     def __init__(self,
                  server_url: str,
                  credentials: Optional[Tuple[str, str]] = None,
-                 token: Optional[str] = None,
-                 admin_token: Optional[str] = None) -&gt; None:
+                 token: Optional[str] = None) -&gt; None:
         &#39;&#39;&#39;
         Initialize communication between this library and a Geo Engine instance
 
@@ -431,13 +391,11 @@ Credentials and token must not be provided at the same time.</p>
         optional arguments:
          - `(email, password)` as tuple
          - `token` as a string
-         - `admin_token` as a string
 
         optional environment variables:
          - `GEOENGINE_EMAIL`
          - `GEOENGINE_PASSWORD`
          - `GEOENGINE_TOKEN`
-         - `GEOENGINE_ADMIN_TOKEN`
         &#39;&#39;&#39;
 
         session = None
@@ -482,11 +440,6 @@ Credentials and token must not be provided at the same time.</p>
 
         self.__server_url = server_url
 
-        if admin_token is not None:
-            self.__admin_token = UUID(admin_token)
-        elif &#34;GEOENGINE_ADMIN_TOKEN&#34; in os.environ:
-            self.__admin_token = UUID(os.environ.get(&#34;GEOENGINE_ADMIN_TOKEN&#34;))
-
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of a session&#39;&#39;&#39;
         r = &#39;&#39;
@@ -509,28 +462,6 @@ Credentials and token must not be provided at the same time.</p>
         &#39;&#39;&#39;
 
         return {&#39;Authorization&#39;: &#39;Bearer &#39; + str(self.__id)}
-
-    @property
-    def admin_auth_header(self) -&gt; Dict[str, str]:
-        &#39;&#39;&#39;
-        Create an authentication header for the current session&#39;s admin token
-        &#39;&#39;&#39;
-
-        if self.__admin_token is None:
-            raise NoAdminSessionException()
-
-        return {&#39;Authorization&#39;: &#39;Bearer &#39; + str(self.__admin_token)}
-
-    @property
-    def admin_or_normal_auth_header(self) -&gt; Dict[str, str]:
-        &#39;&#39;&#39;
-        Create an admin authentication header if possible, else a normal authentication header for the current session
-        &#39;&#39;&#39;
-
-        try:
-            return self.admin_auth_header
-        except NoAdminSessionException:
-            return self.auth_header
 
     @property
     def server_url(self) -&gt; str:
@@ -573,44 +504,6 @@ Credentials and token must not be provided at the same time.</p>
 </dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="geoengine.auth.Session.admin_auth_header"><code class="name">var <span class="ident">admin_auth_header</span> : Dict[str, str]</code></dt>
-<dd>
-<div class="desc"><p>Create an authentication header for the current session's admin token</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def admin_auth_header(self) -&gt; Dict[str, str]:
-    &#39;&#39;&#39;
-    Create an authentication header for the current session&#39;s admin token
-    &#39;&#39;&#39;
-
-    if self.__admin_token is None:
-        raise NoAdminSessionException()
-
-    return {&#39;Authorization&#39;: &#39;Bearer &#39; + str(self.__admin_token)}</code></pre>
-</details>
-</dd>
-<dt id="geoengine.auth.Session.admin_or_normal_auth_header"><code class="name">var <span class="ident">admin_or_normal_auth_header</span> : Dict[str, str]</code></dt>
-<dd>
-<div class="desc"><p>Create an admin authentication header if possible, else a normal authentication header for the current session</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def admin_or_normal_auth_header(self) -&gt; Dict[str, str]:
-    &#39;&#39;&#39;
-    Create an admin authentication header if possible, else a normal authentication header for the current session
-    &#39;&#39;&#39;
-
-    try:
-        return self.admin_auth_header
-    except NoAdminSessionException:
-        return self.auth_header</code></pre>
-</details>
-</dd>
 <dt id="geoengine.auth.Session.auth_header"><code class="name">var <span class="ident">auth_header</span> : Dict[str, str]</code></dt>
 <dd>
 <div class="desc"><p>Create an authentication header for the current session</p></div>
@@ -729,8 +622,6 @@ def user_id(self) -&gt; UUID:
 <li>
 <h4><code><a title="geoengine.auth.Session" href="#geoengine.auth.Session">Session</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.auth.Session.admin_auth_header" href="#geoengine.auth.Session.admin_auth_header">admin_auth_header</a></code></li>
-<li><code><a title="geoengine.auth.Session.admin_or_normal_auth_header" href="#geoengine.auth.Session.admin_or_normal_auth_header">admin_or_normal_auth_header</a></code></li>
 <li><code><a title="geoengine.auth.Session.auth_header" href="#geoengine.auth.Session.auth_header">auth_header</a></code></li>
 <li><code><a title="geoengine.auth.Session.logout" href="#geoengine.auth.Session.logout">logout</a></code></li>
 <li><code><a title="geoengine.auth.Session.requests_bearer_auth" href="#geoengine.auth.Session.requests_bearer_auth">requests_bearer_auth</a></code></li>

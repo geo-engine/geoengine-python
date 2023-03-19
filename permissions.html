@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>geoengine.permissions API documentation</title>
+<meta name="description" content="A wrapper for the GeoEngine permissions API." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>geoengine.permissions</code></h1>
+</header>
+<section id="section-intro">
+<p>A wrapper for the GeoEngine permissions API.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;
+A wrapper for the GeoEngine permissions API.
+&#39;&#39;&#39;
+
+from __future__ import annotations
+from enum import Enum
+
+from typing import Dict
+from uuid import UUID
+import json
+from typing_extensions import Literal
+
+import requests as req
+from geoengine import api
+
+from geoengine.auth import get_session
+from geoengine.datasets import DatasetId
+from geoengine.error import GeoEngineException
+from geoengine.layers import LayerCollectionId, LayerId
+
+
+class RoleId:
+    &#39;&#39;&#39;A wrapper for a role id&#39;&#39;&#39;
+
+    def __init__(self, role_id: UUID) -&gt; None:
+        self.__role_id = role_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; RoleId:
+        &#39;&#39;&#39;Parse a http response to an `RoleId`&#39;&#39;&#39;
+
+        if &#39;id&#39; not in response:
+            raise GeoEngineException(response)
+
+        role_id = response[&#39;id&#39;]
+
+        return RoleId(UUID(role_id))
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two role ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__role_id == other.__role_id  # pylint: disable=protected-access
+
+    def __str__(self) -&gt; str:
+        return str(self.__role_id)
+
+    def __repr__(self) -&gt; str:
+        return repr(self.__role_id)
+
+
+class UserId:
+    &#39;&#39;&#39;A wrapper for a role id&#39;&#39;&#39;
+
+    def __init__(self, user_id: UUID) -&gt; None:
+        self.__user_id = user_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; UserId:
+        &#39;&#39;&#39;Parse a http response to an `UserId`&#39;&#39;&#39;
+        print(response)
+        if &#39;id&#39; not in response:
+            raise GeoEngineException(response)
+
+        user_id = response[&#39;id&#39;]
+
+        return UserId(UUID(user_id))
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two role ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__user_id == other.__user_id  # pylint: disable=protected-access
+
+    def __str__(self) -&gt; str:
+        return str(self.__user_id)
+
+    def __repr__(self) -&gt; str:
+        return repr(self.__user_id)
+
+
+class ResourceId:
+    &#39;&#39;&#39;A wrapper for a resource id&#39;&#39;&#39;
+
+    def __init__(self, resource_type: Literal[&#39;Dataset&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;],
+                 resource_id: str) -&gt; None:
+        &#39;&#39;&#39;Create a resource id&#39;&#39;&#39;
+        self.__type = resource_type
+        self.__id = resource_id
+
+    @classmethod
+    def from_layer_id(cls, layer_id: LayerId) -&gt; ResourceId:
+        &#39;&#39;&#39;Create a resource id from a layer id&#39;&#39;&#39;
+        return ResourceId(&#39;Layer&#39;, str(layer_id))
+
+    @classmethod
+    def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -&gt; ResourceId:
+        &#39;&#39;&#39;Create a resource id from a layer collection id&#39;&#39;&#39;
+        return ResourceId(&#39;LayerCollection&#39;, str(layer_collection_id))
+
+    @classmethod
+    def from_dataset_id(cls, dataset_id: DatasetId) -&gt; ResourceId:
+        &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
+        return ResourceId(&#39;Dataset&#39;, str(dataset_id))
+
+    def to_api_dict(self) -&gt; api.ResourceId:
+        &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
+        return api.ResourceId({
+            &#34;type&#34;: self.__type,
+            &#34;id&#34;: self.__id
+        })
+
+
+class Permission(str, Enum):
+    &#39;&#39;&#39;A permission&#39;&#39;&#39;
+    READ = &#39;Read&#39;
+    OWNER = &#39;Owner&#39;
+
+    def to_api_dict(self) -&gt; api.Permission:
+        &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
+        return api.Permission(self.value)
+
+
+ADMIN_ROLE_ID: RoleId = RoleId(UUID(&#34;d5328854-6190-4af9-ad69-4e74b0961ac9&#34;))
+REGISTERED_USER_ROLE_ID: RoleId = RoleId(UUID(&#34;4e8081b6-8aa6-4275-af0c-2fa2da557d28&#34;))
+ANONYMOUS_USER_ROLE_ID: RoleId = RoleId(UUID(&#34;fd8e87bf-515c-4f36-8da6-1a53702ff102&#34;))
+
+
+def add_permission(role: RoleId, resource: ResourceId, permission: Permission, timeout: int = 60):
+    &#34;&#34;&#34;Add a permission to a resource for a role. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    payload = json.dumps(api.PermissionRequest({
+        &#34;roleId&#34;: str(role),
+        &#34;resourceId&#34;: resource.to_api_dict(),
+        &#34;permission&#34;: permission.to_api_dict()
+    }), default=str)
+
+    print(payload)
+
+    headers = session.auth_header
+    headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
+
+    response = req.put(
+        url=f&#39;{session.server_url}/permissions&#39;,
+        headers=headers,
+        timeout=timeout,
+        data=payload
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+
+def remove_permission(role: RoleId, resource: ResourceId, permission: Permission, timeout: int = 60):
+    &#34;&#34;&#34;Removes a permission to a resource from a role. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    payload = json.dumps(api.PermissionRequest({
+        &#34;roleId&#34;: str(role),
+        &#34;resourceId&#34;: resource.to_api_dict(),
+        &#34;permission&#34;: permission.to_api_dict()
+    }), default=str)
+
+    headers = session.auth_header
+    headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
+
+    response = req.delete(
+        url=f&#39;{session.server_url}/permissions&#39;,
+        headers=headers,
+        timeout=timeout,
+        data=payload
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+
+def add_role(name: str, timeout: int = 60) -&gt; RoleId:
+    &#34;&#34;&#34;Add a new role. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    headers = session.auth_header
+
+    response = req.put(
+        url=f&#39;{session.server_url}/roles&#39;,
+        headers=headers,
+        timeout=timeout,
+        json=api.AddRoleRequest({
+            &#34;name&#34;: name
+        })
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+    return RoleId.from_response(response.json())
+
+
+def remove_role(role: RoleId, timeout: int = 60):
+    &#34;&#34;&#34;Remove a role. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    headers = session.auth_header
+
+    response = req.delete(
+        url=f&#39;{session.server_url}/roles/{role}&#39;,
+        headers=headers,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+
+def assign_role(role: RoleId, user: UserId, timeout: int = 60):
+    &#34;&#34;&#34;Assign a role to a user. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    headers = session.auth_header
+
+    response = req.post(
+        url=f&#39;{session.server_url}/users/{user}/roles/{role}&#39;,
+        headers=headers,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+
+def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
+    &#34;&#34;&#34;Assign a role to a user. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    headers = session.auth_header
+
+    response = req.delete(
+        url=f&#39;{session.server_url}/users/{user}/roles/{role}&#39;,
+        headers=headers,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="geoengine.permissions.add_permission"><code class="name flex">
+<span>def <span class="ident">add_permission</span></span>(<span>role: <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a>, resource: <a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a>, permission: <a title="geoengine.permissions.Permission" href="#geoengine.permissions.Permission">Permission</a>, timeout: int = 60)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a permission to a resource for a role. Requires admin role.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_permission(role: RoleId, resource: ResourceId, permission: Permission, timeout: int = 60):
+    &#34;&#34;&#34;Add a permission to a resource for a role. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    payload = json.dumps(api.PermissionRequest({
+        &#34;roleId&#34;: str(role),
+        &#34;resourceId&#34;: resource.to_api_dict(),
+        &#34;permission&#34;: permission.to_api_dict()
+    }), default=str)
+
+    print(payload)
+
+    headers = session.auth_header
+    headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
+
+    response = req.put(
+        url=f&#39;{session.server_url}/permissions&#39;,
+        headers=headers,
+        timeout=timeout,
+        data=payload
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())</code></pre>
+</details>
+</dd>
+<dt id="geoengine.permissions.add_role"><code class="name flex">
+<span>def <span class="ident">add_role</span></span>(<span>name: str, timeout: int = 60) ‑> <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a new role. Requires admin role.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_role(name: str, timeout: int = 60) -&gt; RoleId:
+    &#34;&#34;&#34;Add a new role. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    headers = session.auth_header
+
+    response = req.put(
+        url=f&#39;{session.server_url}/roles&#39;,
+        headers=headers,
+        timeout=timeout,
+        json=api.AddRoleRequest({
+            &#34;name&#34;: name
+        })
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())
+
+    return RoleId.from_response(response.json())</code></pre>
+</details>
+</dd>
+<dt id="geoengine.permissions.assign_role"><code class="name flex">
+<span>def <span class="ident">assign_role</span></span>(<span>role: <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a>, user: <a title="geoengine.permissions.UserId" href="#geoengine.permissions.UserId">UserId</a>, timeout: int = 60)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Assign a role to a user. Requires admin role.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def assign_role(role: RoleId, user: UserId, timeout: int = 60):
+    &#34;&#34;&#34;Assign a role to a user. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    headers = session.auth_header
+
+    response = req.post(
+        url=f&#39;{session.server_url}/users/{user}/roles/{role}&#39;,
+        headers=headers,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())</code></pre>
+</details>
+</dd>
+<dt id="geoengine.permissions.remove_permission"><code class="name flex">
+<span>def <span class="ident">remove_permission</span></span>(<span>role: <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a>, resource: <a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a>, permission: <a title="geoengine.permissions.Permission" href="#geoengine.permissions.Permission">Permission</a>, timeout: int = 60)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Removes a permission to a resource from a role. Requires admin role.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_permission(role: RoleId, resource: ResourceId, permission: Permission, timeout: int = 60):
+    &#34;&#34;&#34;Removes a permission to a resource from a role. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    payload = json.dumps(api.PermissionRequest({
+        &#34;roleId&#34;: str(role),
+        &#34;resourceId&#34;: resource.to_api_dict(),
+        &#34;permission&#34;: permission.to_api_dict()
+    }), default=str)
+
+    headers = session.auth_header
+    headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
+
+    response = req.delete(
+        url=f&#39;{session.server_url}/permissions&#39;,
+        headers=headers,
+        timeout=timeout,
+        data=payload
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())</code></pre>
+</details>
+</dd>
+<dt id="geoengine.permissions.remove_role"><code class="name flex">
+<span>def <span class="ident">remove_role</span></span>(<span>role: <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a>, timeout: int = 60)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Remove a role. Requires admin role.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_role(role: RoleId, timeout: int = 60):
+    &#34;&#34;&#34;Remove a role. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    headers = session.auth_header
+
+    response = req.delete(
+        url=f&#39;{session.server_url}/roles/{role}&#39;,
+        headers=headers,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())</code></pre>
+</details>
+</dd>
+<dt id="geoengine.permissions.revoke_role"><code class="name flex">
+<span>def <span class="ident">revoke_role</span></span>(<span>role: <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a>, user: <a title="geoengine.permissions.UserId" href="#geoengine.permissions.UserId">UserId</a>, timeout: int = 60)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Assign a role to a user. Requires admin role.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
+    &#34;&#34;&#34;Assign a role to a user. Requires admin role.&#34;&#34;&#34;
+
+    session = get_session()
+
+    headers = session.auth_header
+
+    response = req.delete(
+        url=f&#39;{session.server_url}/users/{user}/roles/{role}&#39;,
+        headers=headers,
+        timeout=timeout,
+    )
+
+    if not response.ok:
+        raise GeoEngineException(response.json())</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="geoengine.permissions.Permission"><code class="flex name class">
+<span>class <span class="ident">Permission</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A permission</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Permission(str, Enum):
+    &#39;&#39;&#39;A permission&#39;&#39;&#39;
+    READ = &#39;Read&#39;
+    OWNER = &#39;Owner&#39;
+
+    def to_api_dict(self) -&gt; api.Permission:
+        &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
+        return api.Permission(self.value)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.permissions.Permission.OWNER"><code class="name">var <span class="ident">OWNER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.permissions.Permission.READ"><code class="name">var <span class="ident">READ</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.permissions.Permission.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.Permission" href="api.html#geoengine.api.Permission">Permission</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert to a dict for the API</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; api.Permission:
+    &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
+    return api.Permission(self.value)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.permissions.ResourceId"><code class="flex name class">
+<span>class <span class="ident">ResourceId</span></span>
+<span>(</span><span>resource_type: "Literal['Dataset', 'Layer', 'LayerCollection']", resource_id: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A wrapper for a resource id</p>
+<p>Create a resource id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ResourceId:
+    &#39;&#39;&#39;A wrapper for a resource id&#39;&#39;&#39;
+
+    def __init__(self, resource_type: Literal[&#39;Dataset&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;],
+                 resource_id: str) -&gt; None:
+        &#39;&#39;&#39;Create a resource id&#39;&#39;&#39;
+        self.__type = resource_type
+        self.__id = resource_id
+
+    @classmethod
+    def from_layer_id(cls, layer_id: LayerId) -&gt; ResourceId:
+        &#39;&#39;&#39;Create a resource id from a layer id&#39;&#39;&#39;
+        return ResourceId(&#39;Layer&#39;, str(layer_id))
+
+    @classmethod
+    def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -&gt; ResourceId:
+        &#39;&#39;&#39;Create a resource id from a layer collection id&#39;&#39;&#39;
+        return ResourceId(&#39;LayerCollection&#39;, str(layer_collection_id))
+
+    @classmethod
+    def from_dataset_id(cls, dataset_id: DatasetId) -&gt; ResourceId:
+        &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
+        return ResourceId(&#39;Dataset&#39;, str(dataset_id))
+
+    def to_api_dict(self) -&gt; api.ResourceId:
+        &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
+        return api.ResourceId({
+            &#34;type&#34;: self.__type,
+            &#34;id&#34;: self.__id
+        })</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.permissions.ResourceId.from_dataset_id"><code class="name flex">
+<span>def <span class="ident">from_dataset_id</span></span>(<span>dataset_id: DatasetId) ‑> <a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a resource id from a dataset id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dataset_id(cls, dataset_id: DatasetId) -&gt; ResourceId:
+    &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
+    return ResourceId(&#39;Dataset&#39;, str(dataset_id))</code></pre>
+</details>
+</dd>
+<dt id="geoengine.permissions.ResourceId.from_layer_collection_id"><code class="name flex">
+<span>def <span class="ident">from_layer_collection_id</span></span>(<span>layer_collection_id: LayerCollectionId) ‑> <a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a resource id from a layer collection id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -&gt; ResourceId:
+    &#39;&#39;&#39;Create a resource id from a layer collection id&#39;&#39;&#39;
+    return ResourceId(&#39;LayerCollection&#39;, str(layer_collection_id))</code></pre>
+</details>
+</dd>
+<dt id="geoengine.permissions.ResourceId.from_layer_id"><code class="name flex">
+<span>def <span class="ident">from_layer_id</span></span>(<span>layer_id: LayerId) ‑> <a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a resource id from a layer id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_layer_id(cls, layer_id: LayerId) -&gt; ResourceId:
+    &#39;&#39;&#39;Create a resource id from a layer id&#39;&#39;&#39;
+    return ResourceId(&#39;Layer&#39;, str(layer_id))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.permissions.ResourceId.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.ResourceId" href="api.html#geoengine.api.ResourceId">ResourceId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert to a dict for the API</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; api.ResourceId:
+    &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
+    return api.ResourceId({
+        &#34;type&#34;: self.__type,
+        &#34;id&#34;: self.__id
+    })</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.permissions.RoleId"><code class="flex name class">
+<span>class <span class="ident">RoleId</span></span>
+<span>(</span><span>role_id: UUID)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A wrapper for a role id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RoleId:
+    &#39;&#39;&#39;A wrapper for a role id&#39;&#39;&#39;
+
+    def __init__(self, role_id: UUID) -&gt; None:
+        self.__role_id = role_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; RoleId:
+        &#39;&#39;&#39;Parse a http response to an `RoleId`&#39;&#39;&#39;
+
+        if &#39;id&#39; not in response:
+            raise GeoEngineException(response)
+
+        role_id = response[&#39;id&#39;]
+
+        return RoleId(UUID(role_id))
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two role ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__role_id == other.__role_id  # pylint: disable=protected-access
+
+    def __str__(self) -&gt; str:
+        return str(self.__role_id)
+
+    def __repr__(self) -&gt; str:
+        return repr(self.__role_id)</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.permissions.RoleId.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a http response to an <code><a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: Dict[str, str]) -&gt; RoleId:
+    &#39;&#39;&#39;Parse a http response to an `RoleId`&#39;&#39;&#39;
+
+    if &#39;id&#39; not in response:
+        raise GeoEngineException(response)
+
+    role_id = response[&#39;id&#39;]
+
+    return RoleId(UUID(role_id))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.permissions.UserId"><code class="flex name class">
+<span>class <span class="ident">UserId</span></span>
+<span>(</span><span>user_id: UUID)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A wrapper for a role id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UserId:
+    &#39;&#39;&#39;A wrapper for a role id&#39;&#39;&#39;
+
+    def __init__(self, user_id: UUID) -&gt; None:
+        self.__user_id = user_id
+
+    @classmethod
+    def from_response(cls, response: Dict[str, str]) -&gt; UserId:
+        &#39;&#39;&#39;Parse a http response to an `UserId`&#39;&#39;&#39;
+        print(response)
+        if &#39;id&#39; not in response:
+            raise GeoEngineException(response)
+
+        user_id = response[&#39;id&#39;]
+
+        return UserId(UUID(user_id))
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two role ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__user_id == other.__user_id  # pylint: disable=protected-access
+
+    def __str__(self) -&gt; str:
+        return str(self.__user_id)
+
+    def __repr__(self) -&gt; str:
+        return repr(self.__user_id)</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.permissions.UserId.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: Dict[str, str]) ‑> <a title="geoengine.permissions.UserId" href="#geoengine.permissions.UserId">UserId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a http response to an <code><a title="geoengine.permissions.UserId" href="#geoengine.permissions.UserId">UserId</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: Dict[str, str]) -&gt; UserId:
+    &#39;&#39;&#39;Parse a http response to an `UserId`&#39;&#39;&#39;
+    print(response)
+    if &#39;id&#39; not in response:
+        raise GeoEngineException(response)
+
+    user_id = response[&#39;id&#39;]
+
+    return UserId(UUID(user_id))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="geoengine" href="index.html">geoengine</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="geoengine.permissions.add_permission" href="#geoengine.permissions.add_permission">add_permission</a></code></li>
+<li><code><a title="geoengine.permissions.add_role" href="#geoengine.permissions.add_role">add_role</a></code></li>
+<li><code><a title="geoengine.permissions.assign_role" href="#geoengine.permissions.assign_role">assign_role</a></code></li>
+<li><code><a title="geoengine.permissions.remove_permission" href="#geoengine.permissions.remove_permission">remove_permission</a></code></li>
+<li><code><a title="geoengine.permissions.remove_role" href="#geoengine.permissions.remove_role">remove_role</a></code></li>
+<li><code><a title="geoengine.permissions.revoke_role" href="#geoengine.permissions.revoke_role">revoke_role</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="geoengine.permissions.Permission" href="#geoengine.permissions.Permission">Permission</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.permissions.Permission.OWNER" href="#geoengine.permissions.Permission.OWNER">OWNER</a></code></li>
+<li><code><a title="geoengine.permissions.Permission.READ" href="#geoengine.permissions.Permission.READ">READ</a></code></li>
+<li><code><a title="geoengine.permissions.Permission.to_api_dict" href="#geoengine.permissions.Permission.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.permissions.ResourceId.from_dataset_id" href="#geoengine.permissions.ResourceId.from_dataset_id">from_dataset_id</a></code></li>
+<li><code><a title="geoengine.permissions.ResourceId.from_layer_collection_id" href="#geoengine.permissions.ResourceId.from_layer_collection_id">from_layer_collection_id</a></code></li>
+<li><code><a title="geoengine.permissions.ResourceId.from_layer_id" href="#geoengine.permissions.ResourceId.from_layer_id">from_layer_id</a></code></li>
+<li><code><a title="geoengine.permissions.ResourceId.to_api_dict" href="#geoengine.permissions.ResourceId.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.permissions.RoleId.from_response" href="#geoengine.permissions.RoleId.from_response">from_response</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.permissions.UserId" href="#geoengine.permissions.UserId">UserId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.permissions.UserId.from_response" href="#geoengine.permissions.UserId.from_response">from_response</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

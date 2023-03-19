@@ -574,7 +574,31 @@ class Quota(TypedDict):
 
 class UpdateQuota(TypedDict):
     &#39;&#39;&#39;Update request for quota&#39;&#39;&#39;
-    available: int</code></pre>
+    available: int
+
+
+class ResourceId(TypedDict):
+    &#39;&#39;&#39;A resource id&#39;&#39;&#39;
+    type: Literal[&#39;Dataset&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;, &#39;Project&#39;]
+    id: str
+
+
+class Permission(str, Enum):
+    &#39;&#39;&#39;A permission&#39;&#39;&#39;
+    READ = &#39;Read&#39;
+    OWNER = &#39;Owner&#39;
+
+
+class PermissionRequest(TypedDict):
+    &#39;&#39;&#39;A permission request&#39;&#39;&#39;
+    roleId: str  # should be UUID, but UUID is not json serializable
+    resourceId: ResourceId
+    permission: Permission
+
+
+class AddRoleRequest(TypedDict):
+    &#39;&#39;&#39;An add role request&#39;&#39;&#39;
+    name: str</code></pre>
 </details>
 </section>
 <section>
@@ -586,6 +610,32 @@ class UpdateQuota(TypedDict):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="geoengine.api.AddRoleRequest"><code class="flex name class">
+<span>class <span class="ident">AddRoleRequest</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An add role request</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AddRoleRequest(TypedDict):
+    &#39;&#39;&#39;An add role request&#39;&#39;&#39;
+    name: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.AddRoleRequest.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.api.BoundingBox2D"><code class="flex name class">
 <span>class <span class="ident">BoundingBox2D</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -2303,6 +2353,74 @@ dict(one=1, two=2)</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="geoengine.api.Permission"><code class="flex name class">
+<span>class <span class="ident">Permission</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A permission</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Permission(str, Enum):
+    &#39;&#39;&#39;A permission&#39;&#39;&#39;
+    READ = &#39;Read&#39;
+    OWNER = &#39;Owner&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.Permission.OWNER"><code class="name">var <span class="ident">OWNER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.Permission.READ"><code class="name">var <span class="ident">READ</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.PermissionRequest"><code class="flex name class">
+<span>class <span class="ident">PermissionRequest</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A permission request</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PermissionRequest(TypedDict):
+    &#39;&#39;&#39;A permission request&#39;&#39;&#39;
+    roleId: str  # should be UUID, but UUID is not json serializable
+    resourceId: ResourceId
+    permission: Permission</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.PermissionRequest.permission"><code class="name">var <span class="ident">permission</span> : <a title="geoengine.api.Permission" href="#geoengine.api.Permission">Permission</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PermissionRequest.resourceId"><code class="name">var <span class="ident">resourceId</span> : <a title="geoengine.api.ResourceId" href="#geoengine.api.ResourceId">ResourceId</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.PermissionRequest.roleId"><code class="name">var <span class="ident">roleId</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.api.PlotQueryRectangle"><code class="flex name class">
 <span>class <span class="ident">PlotQueryRectangle</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -2693,6 +2811,37 @@ dict(one=1, two=2)</p></div>
 <div class="desc"></div>
 </dd>
 <dt id="geoengine.api.RasterSymbology.type"><code class="name">var <span class="ident">type</span> : Literal['vector', 'raster']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.ResourceId"><code class="flex name class">
+<span>class <span class="ident">ResourceId</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A resource id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ResourceId(TypedDict):
+    &#39;&#39;&#39;A resource id&#39;&#39;&#39;
+    type: Literal[&#39;Dataset&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;, &#39;Project&#39;]
+    id: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.ResourceId.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.ResourceId.type"><code class="name">var <span class="ident">type</span> : Literal['Dataset', 'Layer', 'LayerCollection', 'Project']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3538,6 +3687,12 @@ dict(one=1, two=2)</p></div>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="geoengine.api.AddRoleRequest" href="#geoengine.api.AddRoleRequest">AddRoleRequest</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.AddRoleRequest.name" href="#geoengine.api.AddRoleRequest.name">name</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.api.BoundingBox2D" href="#geoengine.api.BoundingBox2D">BoundingBox2D</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.api.BoundingBox2D.lowerLeftCoordinate" href="#geoengine.api.BoundingBox2D.lowerLeftCoordinate">lowerLeftCoordinate</a></code></li>
@@ -3911,6 +4066,21 @@ dict(one=1, two=2)</p></div>
 </ul>
 </li>
 <li>
+<h4><code><a title="geoengine.api.Permission" href="#geoengine.api.Permission">Permission</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.Permission.OWNER" href="#geoengine.api.Permission.OWNER">OWNER</a></code></li>
+<li><code><a title="geoengine.api.Permission.READ" href="#geoengine.api.Permission.READ">READ</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.PermissionRequest" href="#geoengine.api.PermissionRequest">PermissionRequest</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.PermissionRequest.permission" href="#geoengine.api.PermissionRequest.permission">permission</a></code></li>
+<li><code><a title="geoengine.api.PermissionRequest.resourceId" href="#geoengine.api.PermissionRequest.resourceId">resourceId</a></code></li>
+<li><code><a title="geoengine.api.PermissionRequest.roleId" href="#geoengine.api.PermissionRequest.roleId">roleId</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.api.PlotQueryRectangle" href="#geoengine.api.PlotQueryRectangle">PlotQueryRectangle</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.api.PlotQueryRectangle.spatialBounds" href="#geoengine.api.PlotQueryRectangle.spatialBounds">spatialBounds</a></code></li>
@@ -3998,6 +4168,13 @@ dict(one=1, two=2)</p></div>
 <li><code><a title="geoengine.api.RasterSymbology.colorizer" href="#geoengine.api.RasterSymbology.colorizer">colorizer</a></code></li>
 <li><code><a title="geoengine.api.RasterSymbology.opacity" href="#geoengine.api.RasterSymbology.opacity">opacity</a></code></li>
 <li><code><a title="geoengine.api.RasterSymbology.type" href="#geoengine.api.RasterSymbology.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.ResourceId" href="#geoengine.api.ResourceId">ResourceId</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.api.ResourceId.id" href="#geoengine.api.ResourceId.id">id</a></code></li>
+<li><code><a title="geoengine.api.ResourceId.type" href="#geoengine.api.ResourceId.type">type</a></code></li>
 </ul>
 </li>
 <li>

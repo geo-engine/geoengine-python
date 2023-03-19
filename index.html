@@ -40,10 +40,12 @@ from .datasets import upload_dataframe, StoredDataset, add_dataset, volumes, Dat
 from .error import GeoEngineException, InputException, UninitializedException, TypeException, \
     MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, \
     SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \
-    NoAdminSessionException, InvalidUrlException, MissingFieldInResponseException
+    InvalidUrlException, MissingFieldInResponseException
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
     LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer
+from .permissions import add_permission, remove_permission, add_role, remove_role, assign_role, revoke_role, \
+    ADMIN_ROLE_ID, REGISTERED_USER_ROLE_ID, ANONYMOUS_USER_ROLE_ID, Permission, ResourceId, UserId, RoleId
 from .types import QueryRectangle,  \
     RasterResultDescriptor, Provenance, UnitlessMeasurement, ContinuousMeasurement, \
     ClassificationMeasurement, BoundingBox2D, TimeInterval, SpatialResolution, SpatialPartition2D, \
@@ -93,6 +95,10 @@ utils.default_user_agent = default_user_agent</code></pre>
 <dt><code class="name"><a title="geoengine.layers" href="layers.html">geoengine.layers</a></code></dt>
 <dd>
 <div class="desc"><p>A wrapper around the layer and layerDb API</p></div>
+</dd>
+<dt><code class="name"><a title="geoengine.permissions" href="permissions.html">geoengine.permissions</a></code></dt>
+<dd>
+<div class="desc"><p>A wrapper for the GeoEngine permissions API.</p></div>
 </dd>
 <dt><code class="name"><a title="geoengine.tasks" href="tasks.html">geoengine.tasks</a></code></dt>
 <dd>
@@ -146,6 +152,7 @@ utils.default_user_agent = default_user_agent</code></pre>
 <li><code><a title="geoengine.datasets" href="datasets.html">geoengine.datasets</a></code></li>
 <li><code><a title="geoengine.error" href="error.html">geoengine.error</a></code></li>
 <li><code><a title="geoengine.layers" href="layers.html">geoengine.layers</a></code></li>
+<li><code><a title="geoengine.permissions" href="permissions.html">geoengine.permissions</a></code></li>
 <li><code><a title="geoengine.tasks" href="tasks.html">geoengine.tasks</a></code></li>
 <li><code><a title="geoengine.types" href="types.html">geoengine.types</a></code></li>
 <li><code><a title="geoengine.workflow" href="workflow.html">geoengine.workflow</a></code></li>

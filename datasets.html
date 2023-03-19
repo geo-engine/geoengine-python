@@ -587,7 +587,7 @@ def volumes(timeout: int = 60) -&gt; List[Volume]:
     session = get_session()
 
     response = req.get(f&#39;{session.server_url}/dataset/volumes&#39;,
-                       headers=session.admin_auth_header,
+                       headers=session.auth_header,
                        timeout=timeout
                        ).json()
 
@@ -602,13 +602,13 @@ def add_dataset(data_store: Union[Volume, UploadId], properties: DatasetProperti
 
     session = get_session()
 
+    headers = session.auth_header
+
     if isinstance(data_store, Volume):
-        headers = session.admin_auth_header
         dataset_path = api.DatasetVolume(
             volume=data_store.name
         )
     else:
-        headers = session.auth_header
         dataset_path = api.DatasetPath(
             upload=str(data_store)
         )
@@ -625,6 +625,9 @@ def add_dataset(data_store: Union[Volume, UploadId], properties: DatasetProperti
 
     data = json.dumps(create, default=dict)
 
+    session = get_session()
+
+    headers = session.auth_header
     headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
 
     response = req.post(f&#39;{session.server_url}/dataset&#39;,
@@ -644,7 +647,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
     session = get_session()
 
     response = req.delete(f&#39;{session.server_url}/dataset/{dataset_id}&#39;,
-                          headers=session.admin_or_normal_auth_header,
+                          headers=session.auth_header,
                           timeout=timeout)
 
     if response.status_code != 200:
@@ -676,13 +679,13 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 
     session = get_session()
 
+    headers = session.auth_header
+
     if isinstance(data_store, Volume):
-        headers = session.admin_auth_header
         dataset_path = api.DatasetVolume(
             volume=data_store.name
         )
     else:
-        headers = session.auth_header
         dataset_path = api.DatasetPath(
             upload=str(data_store)
         )
@@ -699,6 +702,9 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 
     data = json.dumps(create, default=dict)
 
+    session = get_session()
+
+    headers = session.auth_header
     headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
 
     response = req.post(f&#39;{session.server_url}/dataset&#39;,
@@ -727,7 +733,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
     session = get_session()
 
     response = req.delete(f&#39;{session.server_url}/dataset/{dataset_id}&#39;,
-                          headers=session.admin_or_normal_auth_header,
+                          headers=session.auth_header,
                           timeout=timeout)
 
     if response.status_code != 200:
@@ -871,7 +877,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
     session = get_session()
 
     response = req.get(f&#39;{session.server_url}/dataset/volumes&#39;,
-                       headers=session.admin_auth_header,
+                       headers=session.auth_header,
                        timeout=timeout
                        ).json()
 
