@@ -558,7 +558,7 @@ def volumes(timeout: int = 60) -> List[Volume]:
     session = get_session()
 
     response = req.get(f'{session.server_url}/dataset/volumes',
-                       headers=session.admin_auth_header,
+                       headers=session.auth_header,
                        timeout=timeout
                        ).json()
 
@@ -573,13 +573,13 @@ def add_dataset(data_store: Union[Volume, UploadId], properties: DatasetProperti
 
     session = get_session()
 
+    headers = session.auth_header
+
     if isinstance(data_store, Volume):
-        headers = session.admin_auth_header
         dataset_path = api.DatasetVolume(
             volume=data_store.name
         )
     else:
-        headers = session.auth_header
         dataset_path = api.DatasetPath(
             upload=str(data_store)
         )
@@ -596,6 +596,9 @@ def add_dataset(data_store: Union[Volume, UploadId], properties: DatasetProperti
 
     data = json.dumps(create, default=dict)
 
+    session = get_session()
+
+    headers = session.auth_header
     headers['Content-Type'] = 'application/json'
 
     response = req.post(f'{session.server_url}/dataset',
@@ -615,7 +618,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -> None:
     session = get_session()
 
     response = req.delete(f'{session.server_url}/dataset/{dataset_id}',
-                          headers=session.admin_or_normal_auth_header,
+                          headers=session.auth_header,
                           timeout=timeout)
 
     if response.status_code != 200:

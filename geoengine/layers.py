@@ -501,7 +501,7 @@ class Layer:
         layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
         response = req.post(
             url=f'{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/dataset',
-            headers=session.admin_auth_header,
+            headers=session.auth_header,
             timeout=timeout
         )
 
@@ -533,7 +533,7 @@ class Layer:
         layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
         response = req.post(
             url=f'{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/workflowId',
-            headers=session.admin_auth_header,
+            headers=session.auth_header,
             timeout=timeout
         )
 
@@ -571,7 +571,7 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
     while True:
         response = req.get(
             f'{session.server_url}{request}?offset={offset}&limit={page_limit}',
-            headers=session.admin_or_normal_auth_header,
+            headers=session.auth_header,
             timeout=timeout,
         )
 
@@ -602,7 +602,7 @@ def layer(layer_id: LayerId,
 
     response = req.get(
         f'{session.server_url}/layers/{layer_provider_id}/{urllib.parse.quote_plus(layer_id)}',
-        headers=session.admin_or_normal_auth_header,
+        headers=session.auth_header,
         timeout=timeout,
     )
 
@@ -621,7 +621,7 @@ def _delete_layer_from_collection(collection_id: LayerCollectionId,
 
     response = req.delete(
         f'{session.server_url}/layerDb/collections/{collection_id}/layers/{layer_id}',
-        headers=session.admin_auth_header,
+        headers=session.auth_header,
         timeout=timeout,
     )
 
@@ -638,7 +638,7 @@ def _delete_layer_collection_from_collection(parent_id: LayerCollectionId,
 
     response = req.delete(
         f'{session.server_url}/layerDb/collections/{parent_id}/collections/{collection_id}',
-        headers=session.admin_auth_header,
+        headers=session.auth_header,
         timeout=timeout,
     )
 
@@ -654,7 +654,7 @@ def _delete_layer_collection(collection_id: LayerCollectionId,
 
     response = req.delete(
         f'{session.server_url}/layerDb/collections/{collection_id}',
-        headers=session.admin_auth_header,
+        headers=session.auth_header,
         timeout=timeout,
     )
 
@@ -672,7 +672,7 @@ def _add_layer_collection_to_collection(name: str,
 
     response = req.post(
         f'{session.server_url}/layerDb/collections/{parent_collection_id}/collections',
-        headers=session.admin_auth_header,
+        headers=session.auth_header,
         json={
             "name": name,
             "description": description,
@@ -695,7 +695,7 @@ def _add_existing_layer_collection_to_collection(collection_id: LayerCollectionI
 
     response = req.post(
         f'{session.server_url}/layerDb/collections/{parent_collection_id}/collections/{collection_id}',
-        headers=session.admin_auth_header,
+        headers=session.auth_header,
         timeout=timeout,
     )
 
@@ -716,7 +716,7 @@ def _add_layer_to_collection(name: str,
 
     response = req.post(
         f'{session.server_url}/layerDb/collections/{collection_id}/layers',
-        headers=session.admin_auth_header,
+        headers=session.auth_header,
         json={
             "name": name,
             "description": description,
@@ -741,7 +741,7 @@ def _add_existing_layer_to_collection(layer_id: LayerId,
 
     response = req.post(
         f'{session.server_url}/layerDb/collections/{collection_id}/layers/{layer_id}',
-        headers=session.admin_auth_header,
+        headers=session.auth_header,
         timeout=timeout,
     )
 

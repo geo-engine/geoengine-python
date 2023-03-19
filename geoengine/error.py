@@ -50,15 +50,6 @@ class UninitializedException(Exception):
         return "You have to call `initialize` before using other functionality"
 
 
-class NoAdminSessionException(Exception):
-    '''
-    Exception that is thrown when there is no admin session token supplied
-    '''
-
-    def __str__(self) -> str:
-        return "You need to specify an admin token when initializing the session"
-
-
 class TypeException(Exception):
     '''
     Exception on wrong types of input
