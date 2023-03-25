@@ -4,6 +4,18 @@ from . import workflow_operators
 from .. import api
 
 
+def sentinel2_band(band_name, provider="5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5", utm_zone="UTM32N"):
+    '''Creates a workflow for a band from Sentinel 2 data.'''
+    band_source = workflow_operators.GdalSource(
+        dataset=api.ExternalDataId(
+            type="external",
+            providerId=provider,
+            layerId=f"{utm_zone}:{band_name}"
+        )
+    )
+    return band_source
+
+
 def sentinel2_cloud_free_band(band_name, provider="5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5", utm_zone="UTM32N"):
     '''Creates a workflow for a cloud free band from Sentinel 2 data.'''
     band_source = workflow_operators.GdalSource(
@@ -32,3 +44,127 @@ def sentinel2_cloud_free_band(band_name, provider="5779494c-f3a2-48b3-8a2d-5fbba
     )
 
     return cloud_free
+
+
+def sentinel2_cloud_free_ndvi(provider="5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5", utm_zone="UTM32N"):
+    '''Creates a workflow for a cloud free NDVI from Sentinel 2 data.'''
+    nir_source = workflow_operators.GdalSource(
+        dataset=api.ExternalDataId(
+            type="external",
+            providerId=provider,
+            layerId=f"{utm_zone}:B08"
+        )
+    )
+    red_source = workflow_operators.GdalSource(
+        dataset=api.ExternalDataId(
+            type="external",
+            providerId=provider,
+            layerId=f"{utm_zone}:B04"
+        )
+    )
+    scl_source = workflow_operators.GdalSource(
+        dataset=api.ExternalDataId(
+            type="external",
+            providerId=provider,
+            layerId=f"{utm_zone}:SCL"
+        )
+    )
+    # [sen2_mask == 3 |sen2_mask == 7 |sen2_mask == 8 | sen2_mask == 9 |sen2_mask == 10 |sen2_mask == 11 ]
+    cloud_free = workflow_operators.Expression(
+        expression=" if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { (A - B) / (A + B) }",
+        output_type="F32",
+        sources={
+            "a": nir_source,
+            "b": red_source,
+            "c": scl_source,
+        }
+    )
+
+    return cloud_free
+
+
+def sentinel2_cloud_free_band_custom_input(band_dataset: api.DataId, scl_dataset: api.DataId):
+    '''Creates a workflow for a cloud free band from Sentinel 2 data provided by the inputs.'''
+    band_source = workflow_operators.GdalSource(
+        dataset=band_dataset
+    )
+    scl_source = workflow_operators.GdalSource(
+        dataset=scl_dataset
+    )
+    # [sen2_mask == 3 |sen2_mask == 7 |sen2_mask == 8 | sen2_mask == 9 |sen2_mask == 10 |sen2_mask == 11 ]
+    cloud_free = workflow_operators.Expression(
+        expression=" if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { A }",
+        output_type="U16",
+        sources={
+            "a": band_source,
+            "b": scl_source,
+        }
+    )
+
+    return cloud_free
+
+
+def sentinel2_cloud_free_ndvi_custom_input(nir_dataset: api.DataId, red_dataset: api.DataId, scl_dataset: api.DataId):
+    '''Creates a workflow for a cloud free NDVI from Sentinel 2 data provided by the inputs.'''
+    nir_source = workflow_operators.GdalSource(
+        dataset=nir_dataset
+    )
+    red_source = workflow_operators.GdalSource(
+        dataset=red_dataset
+    )
+    scl_source = workflow_operators.GdalSource(
+        dataset=scl_dataset
+    )
+    # [sen2_mask == 3 |sen2_mask == 7 |sen2_mask == 8 | sen2_mask == 9 |sen2_mask == 10 |sen2_mask == 11 ]
+    cloud_free = workflow_operators.Expression(
+        expression=" if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { (A - B) / (A + B) }",
+        output_type="F32",
+        sources={
+            "a": nir_source,
+            "b": red_source,
+            "c": scl_source,
+        }
+    )
+
+    return cloud_free
+
+
+def s2_cloud_free_monthly_band_custom_input(
+        band, band_data_id_map, granularity="days", window_size=1, aggregation_type="months"
+):
+    '''Creates a workflow for a cloud free monthly band (or NDVI) from Sentinel 2 data provided by the inputs.'''
+    valid_sentinel_bands = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12"]
+
+    if band.upper() not in valid_sentinel_bands and band.upper() != "NDVI":
+        raise ValueError(f"Invalid band: {band}")
+
+    if band.upper() == "NDVI":
+        s2_cloud_free_operator = sentinel2_cloud_free_ndvi_custom_input(
+            band_data_id_map["b08"], band_data_id_map["b04"], band_data_id_map["scl"]
+        )
+    else:
+        s2_cloud_free_operator = sentinel2_cloud_free_band_custom_input(
+            band_data_id_map[band.lower()], band_data_id_map["scl"]
+        )
+
+        # We could also leave out the scaling and use the I64 data directly
+        # s2_cloud_free_operator = geoengine.unstable.workflow_operators.RasterTypeConversion(
+        #    source=s2_cloud_free_operator,
+        #    output_data_type="F32"
+        # )
+        # s2_cloud_free_operator = geoengine.unstable.workflow_operators.RasterScaling(
+        #    source=s2_cloud_free_operator,
+        #    slope = 0.0001,
+        #    offset = -0.1, # this should be -0.1 but the values are too small?
+        #    scaling_mode="mulSlopeAddOffset"
+        # )
+
+    monthly_s2_cloud_free_operator = workflow_operators.TemporalRasterAggregation(
+        source=s2_cloud_free_operator,
+        aggregation_type=aggregation_type,
+        granularity=granularity,
+        window_size=window_size,
+        ignore_no_data=True,
+    )
+
+    return monthly_s2_cloud_free_operator

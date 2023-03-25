@@ -348,13 +348,13 @@ class Expression(RasterOperator):
 
     expression: str
     sources: Dict[str, RasterOperator]
-    output_type: Literal["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "f32", "f64"] = "f32"
+    output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32"
     map_no_data: bool = False
 
     def __init__(self,
                  expression: str,
                  sources: Dict[str, RasterOperator],
-                 output_type: Literal["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "f32", "f64"] = "f32",
+                 output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
                  map_no_data: bool = False
 
                  ):
