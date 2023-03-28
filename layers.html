@@ -423,6 +423,11 @@ class LayerCollection:
 
         return collection_id
 
+    def get_items_by_name(self, name: str) -&gt; List[Listing]:
+        &#39;&#39;&#39;Get all children with the given name&#39;&#39;&#39;
+
+        return [item for item in self.items if item.name == name]
+
 
 @dataclass(repr=False)
 class Layer:
@@ -1455,7 +1460,12 @@ def from_response(cls, response: api.LayerResponse) -&gt; Layer:
             description=child_collection.description,
         ))
 
-        return collection_id</code></pre>
+        return collection_id
+
+    def get_items_by_name(self, name: str) -&gt; List[Listing]:
+        &#39;&#39;&#39;Get all children with the given name&#39;&#39;&#39;
+
+        return [item for item in self.items if item.name == name]</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -1678,6 +1688,21 @@ def from_response(cls, response_pages: List[api.LayerCollectionResponse]) -&gt; 
     ))
 
     return layer_id</code></pre>
+</details>
+</dd>
+<dt id="geoengine.layers.LayerCollection.get_items_by_name"><code class="name flex">
+<span>def <span class="ident">get_items_by_name</span></span>(<span>self, name: str) ‑> List[<a title="geoengine.layers.Listing" href="#geoengine.layers.Listing">Listing</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get all children with the given name</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_items_by_name(self, name: str) -&gt; List[Listing]:
+    &#39;&#39;&#39;Get all children with the given name&#39;&#39;&#39;
+
+    return [item for item in self.items if item.name == name]</code></pre>
 </details>
 </dd>
 <dt id="geoengine.layers.LayerCollection.reload"><code class="name flex">
@@ -2108,6 +2133,7 @@ class Listing(Generic[LISTINGID]):
 <li><code><a title="geoengine.layers.LayerCollection.collection_id" href="#geoengine.layers.LayerCollection.collection_id">collection_id</a></code></li>
 <li><code><a title="geoengine.layers.LayerCollection.description" href="#geoengine.layers.LayerCollection.description">description</a></code></li>
 <li><code><a title="geoengine.layers.LayerCollection.from_response" href="#geoengine.layers.LayerCollection.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.layers.LayerCollection.get_items_by_name" href="#geoengine.layers.LayerCollection.get_items_by_name">get_items_by_name</a></code></li>
 <li><code><a title="geoengine.layers.LayerCollection.items" href="#geoengine.layers.LayerCollection.items">items</a></code></li>
 <li><code><a title="geoengine.layers.LayerCollection.name" href="#geoengine.layers.LayerCollection.name">name</a></code></li>
 <li><code><a title="geoengine.layers.LayerCollection.provider_id" href="#geoengine.layers.LayerCollection.provider_id">provider_id</a></code></li>

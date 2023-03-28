@@ -579,7 +579,7 @@ class UpdateQuota(TypedDict):
 
 class ResourceId(TypedDict):
     &#39;&#39;&#39;A resource id&#39;&#39;&#39;
-    type: Literal[&#39;Dataset&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;, &#39;Project&#39;]
+    type: Literal[&#39;DatasetId&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;, &#39;Project&#39;]
     id: str
 
 
@@ -2828,7 +2828,7 @@ dict(one=1, two=2)</p></div>
 </summary>
 <pre><code class="python">class ResourceId(TypedDict):
     &#39;&#39;&#39;A resource id&#39;&#39;&#39;
-    type: Literal[&#39;Dataset&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;, &#39;Project&#39;]
+    type: Literal[&#39;DatasetId&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;, &#39;Project&#39;]
     id: str</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2841,7 +2841,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.ResourceId.type"><code class="name">var <span class="ident">type</span> : Literal['Dataset', 'Layer', 'LayerCollection', 'Project']</code></dt>
+<dt id="geoengine.api.ResourceId.type"><code class="name">var <span class="ident">type</span> : Literal['<a title="geoengine.api.DatasetId" href="#geoengine.api.DatasetId">DatasetId</a>', 'Layer', 'LayerCollection', 'Project']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

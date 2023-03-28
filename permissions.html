@@ -113,7 +113,7 @@ class UserId:
 class ResourceId:
     &#39;&#39;&#39;A wrapper for a resource id&#39;&#39;&#39;
 
-    def __init__(self, resource_type: Literal[&#39;Dataset&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;],
+    def __init__(self, resource_type: Literal[&#39;DatasetId&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;],
                  resource_id: str) -&gt; None:
         &#39;&#39;&#39;Create a resource id&#39;&#39;&#39;
         self.__type = resource_type
@@ -132,7 +132,7 @@ class ResourceId:
     @classmethod
     def from_dataset_id(cls, dataset_id: DatasetId) -&gt; ResourceId:
         &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
-        return ResourceId(&#39;Dataset&#39;, str(dataset_id))
+        return ResourceId(&#39;DatasetId&#39;, str(dataset_id))
 
     def to_api_dict(self) -&gt; api.ResourceId:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
@@ -528,7 +528,7 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 </dd>
 <dt id="geoengine.permissions.ResourceId"><code class="flex name class">
 <span>class <span class="ident">ResourceId</span></span>
-<span>(</span><span>resource_type: "Literal['Dataset', 'Layer', 'LayerCollection']", resource_id: str)</span>
+<span>(</span><span>resource_type: "Literal['DatasetId', 'Layer', 'LayerCollection']", resource_id: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A wrapper for a resource id</p>
@@ -540,7 +540,7 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 <pre><code class="python">class ResourceId:
     &#39;&#39;&#39;A wrapper for a resource id&#39;&#39;&#39;
 
-    def __init__(self, resource_type: Literal[&#39;Dataset&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;],
+    def __init__(self, resource_type: Literal[&#39;DatasetId&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;],
                  resource_id: str) -&gt; None:
         &#39;&#39;&#39;Create a resource id&#39;&#39;&#39;
         self.__type = resource_type
@@ -559,7 +559,7 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
     @classmethod
     def from_dataset_id(cls, dataset_id: DatasetId) -&gt; ResourceId:
         &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
-        return ResourceId(&#39;Dataset&#39;, str(dataset_id))
+        return ResourceId(&#39;DatasetId&#39;, str(dataset_id))
 
     def to_api_dict(self) -&gt; api.ResourceId:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
@@ -582,7 +582,7 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 <pre><code class="python">@classmethod
 def from_dataset_id(cls, dataset_id: DatasetId) -&gt; ResourceId:
     &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
-    return ResourceId(&#39;Dataset&#39;, str(dataset_id))</code></pre>
+    return ResourceId(&#39;DatasetId&#39;, str(dataset_id))</code></pre>
 </details>
 </dd>
 <dt id="geoengine.permissions.ResourceId.from_layer_collection_id"><code class="name flex">
