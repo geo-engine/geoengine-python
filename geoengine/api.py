@@ -550,7 +550,7 @@ class UpdateQuota(TypedDict):
 
 class ResourceId(TypedDict):
     '''A resource id'''
-    type: Literal['Dataset', 'Layer', 'LayerCollection', 'Project']
+    type: Literal['DatasetId', 'Layer', 'LayerCollection', 'Project']
     id: str
 
 

@@ -84,7 +84,7 @@ class UserId:
 class ResourceId:
     '''A wrapper for a resource id'''
 
-    def __init__(self, resource_type: Literal['Dataset', 'Layer', 'LayerCollection'],
+    def __init__(self, resource_type: Literal['DatasetId', 'Layer', 'LayerCollection'],
                  resource_id: str) -> None:
         '''Create a resource id'''
         self.__type = resource_type
@@ -103,7 +103,7 @@ class ResourceId:
     @classmethod
     def from_dataset_id(cls, dataset_id: DatasetId) -> ResourceId:
         '''Create a resource id from a dataset id'''
-        return ResourceId('Dataset', str(dataset_id))
+        return ResourceId('DatasetId', str(dataset_id))
 
     def to_api_dict(self) -> api.ResourceId:
         '''Convert to a dict for the API'''
