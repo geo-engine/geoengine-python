@@ -573,6 +573,8 @@ def add_dataset(data_store: Union[Volume, UploadId], properties: DatasetProperti
 
     session = get_session()
 
+    headers = session.auth_header
+
     if isinstance(data_store, Volume):
         dataset_path = api.DatasetVolume(
             volume=data_store.name

@@ -394,6 +394,11 @@ class LayerCollection:
 
         return collection_id
 
+    def get_items_by_name(self, name: str) -> List[Listing]:
+        '''Get all children with the given name'''
+
+        return [item for item in self.items if item.name == name]
+
 
 @dataclass(repr=False)
 class Layer:
