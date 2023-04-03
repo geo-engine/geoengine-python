@@ -111,6 +111,7 @@ def s2_cloud_free_aggregated_band(
         window_size=1,
         aggregation_type="mean"
 ):
+    # pylint: disable=too-many-arguments
     '''Creates a workflow for a cloud free monthly band (or NDVI) from Sentinel 2 data.'''
     valid_sentinel_bands = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12"]
 
