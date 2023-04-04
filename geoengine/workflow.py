@@ -1,6 +1,8 @@
 '''
 A workflow representation and methods on workflows
 '''
+# pylint: disable=too-many-lines
+# TODO: split into multiple files
 
 from __future__ import annotations
 
