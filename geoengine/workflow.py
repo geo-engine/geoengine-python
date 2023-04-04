@@ -610,11 +610,8 @@ class Workflow:
         if url is None:
             raise InputException('Invalid websocket url')
 
-        # for the websockets library, it is necessary that the url starts with `ws://``
-        [_, url_part] = url.split('://', maxsplit=1)
-
         async with websockets.client.connect(
-            uri=f'ws://{url_part}',
+            uri=self.__replace_http_with_ws(url),
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
         ) as websocket:
@@ -826,11 +823,8 @@ class Workflow:
         if url is None:
             raise InputException('Invalid websocket url')
 
-        # for the websockets library, it is necessary that the url starts with `ws://``
-        [_, url_part] = url.split('://', maxsplit=1)
-
         async with websockets.client.connect(
-            uri=f'ws://{url_part}',
+            uri=self.__replace_http_with_ws(url),
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
             max_size=None,  # allow arbitrary large messages, since it is capped by the server's chunk size
@@ -927,6 +921,20 @@ class Workflow:
                 break
 
         return data_frame
+
+    def __replace_http_with_ws(self, url: str) -> str:
+        '''
+        Replace the protocol in the url from `http` to `ws`.
+
+        For the websockets library, it is necessary that the url starts with `ws://`.
+        For HTTPS, we need to use `wss://` instead.
+        '''
+
+        [protocol, url_part] = url.split('://', maxsplit=1)
+
+        ws_prefix = 'wss://' if 's' in protocol.lower() else 'ws://'
+
+        return f'{ws_prefix}{url_part}'
 
 
 def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -> Workflow:
