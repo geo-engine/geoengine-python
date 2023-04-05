@@ -488,7 +488,14 @@ class Layer:
         buf.write('<tr><th>workflow</th><td align="left">')
         buf.write(f'<pre>{json.dumps(self.workflow, indent=4)}{os.linesep}</pre></td></tr>')
         buf.write('<tr><th>symbology</th>')
-        buf.write(f'<td align="left">{json.dumps(self.symbology, indent=4)}{os.linesep}</td></tr>')
+        if self.symbology is None:
+            buf.write('<td align="left">None</td></tr>')
+        else:
+            buf.write(
+                '<td align="left">'
+                f'<pre>{json.dumps(self.symbology.to_api_dict(), indent=4)}{os.linesep}</pre>'
+                '</td></tr>'
+            )
         buf.write(f"<tr><th>properties</th><td>{self.properties}{os.linesep}</td></tr>")
         buf.write(f"<tr><th>metadata</th><td>{self.metadata}{os.linesep}</td></tr>")
 

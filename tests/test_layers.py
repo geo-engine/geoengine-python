@@ -5,7 +5,10 @@ from uuid import UUID
 import requests_mock
 import geoengine as ge
 from geoengine import StoredDataset, GeoEngineException
+from geoengine import api
 from geoengine.datasets import DatasetId, UploadId
+from geoengine.layers import Layer, LayerId, LayerProviderId
+from geoengine.types import RasterSymbology
 
 
 class LayerTests(unittest.TestCase):
@@ -598,6 +601,62 @@ class LayerTests(unittest.TestCase):
 
             with self.assertRaises(GeoEngineException):
                 layer.save_as_dataset()
+
+    def test_layer_repr_html_does_not_crash(self):
+        """Test `layer._repr_html_`."""
+
+        layer = Layer(
+            name='Test Raster Layer',
+            description='Test Raster Layer Description',
+            layer_id=LayerId(UUID('9ee3619e-d0f9-4ced-9c44-3d407c3aed69')),
+            provider_id=LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
+            workflow={
+                "operator": {
+                        "params": {
+                            "data": {
+                                "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093",
+                                "type": "internal"
+                            }
+                        },
+                    "type": "GdalSource"
+                },
+                "type": "Raster"
+            },
+            symbology=RasterSymbology.from_response(api.RasterSymbology(
+                type='raster',
+                colorizer=api.LinearGradientColorizer(
+                    type='linearGradient',
+                    noDataColor=[0, 0, 0, 0],
+                    overColor=[0, 0, 0, 0],
+                    underColor=[0, 0, 0, 0],
+                    breakpoints=[
+                        api.ColorizerBreakpoint(value=0., color=[0, 0, 0, 0]),
+                        api.ColorizerBreakpoint(value=1., color=[0, 0, 0, 0]),
+                    ],
+                ),
+                opacity=1,
+            )),
+            properties=[],
+            metadata={},
+        )
+
+        _html = layer._repr_html_()  # pylint: disable=protected-access
+
+        layer.symbology = RasterSymbology.from_response(api.RasterSymbology(
+            type='raster',
+            colorizer=api.PaletteColorizer(
+                type='palette',
+                noDataColor=[0, 0, 0, 0],
+                colors={
+                    0.: [0, 0, 0, 0],
+                    1.: [0, 0, 0, 0],
+                },
+                defaultColor=[0, 0, 0, 0],
+            ),
+            opacity=1,
+        ))
+
+        _html = layer._repr_html_()  # pylint: disable=protected-access
 
 
 if __name__ == '__main__':
