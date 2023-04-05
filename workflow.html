@@ -30,6 +30,8 @@
 <pre><code class="python">&#39;&#39;&#39;
 A workflow representation and methods on workflows
 &#39;&#39;&#39;
+# pylint: disable=too-many-lines
+# TODO: split into multiple files
 
 from __future__ import annotations
 
@@ -639,11 +641,8 @@ class Workflow:
         if url is None:
             raise InputException(&#39;Invalid websocket url&#39;)
 
-        # for the websockets library, it is necessary that the url starts with `ws://``
-        [_, url_part] = url.split(&#39;://&#39;, maxsplit=1)
-
         async with websockets.client.connect(
-            uri=f&#39;ws://{url_part}&#39;,
+            uri=self.__replace_http_with_ws(url),
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
         ) as websocket:
@@ -855,11 +854,8 @@ class Workflow:
         if url is None:
             raise InputException(&#39;Invalid websocket url&#39;)
 
-        # for the websockets library, it is necessary that the url starts with `ws://``
-        [_, url_part] = url.split(&#39;://&#39;, maxsplit=1)
-
         async with websockets.client.connect(
-            uri=f&#39;ws://{url_part}&#39;,
+            uri=self.__replace_http_with_ws(url),
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
             max_size=None,  # allow arbitrary large messages, since it is capped by the server&#39;s chunk size
@@ -956,6 +952,20 @@ class Workflow:
                 break
 
         return data_frame
+
+    def __replace_http_with_ws(self, url: str) -&gt; str:
+        &#39;&#39;&#39;
+        Replace the protocol in the url from `http` to `ws`.
+
+        For the websockets library, it is necessary that the url starts with `ws://`.
+        For HTTPS, we need to use `wss://` instead.
+        &#39;&#39;&#39;
+
+        [protocol, url_part] = url.split(&#39;://&#39;, maxsplit=1)
+
+        ws_prefix = &#39;wss://&#39; if &#39;s&#39; in protocol.lower() else &#39;ws://&#39;
+
+        return f&#39;{ws_prefix}{url_part}&#39;
 
 
 def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -&gt; Workflow:
@@ -1912,11 +1922,8 @@ dict(one=1, two=2)</p></div>
         if url is None:
             raise InputException(&#39;Invalid websocket url&#39;)
 
-        # for the websockets library, it is necessary that the url starts with `ws://``
-        [_, url_part] = url.split(&#39;://&#39;, maxsplit=1)
-
         async with websockets.client.connect(
-            uri=f&#39;ws://{url_part}&#39;,
+            uri=self.__replace_http_with_ws(url),
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
         ) as websocket:
@@ -2128,11 +2135,8 @@ dict(one=1, two=2)</p></div>
         if url is None:
             raise InputException(&#39;Invalid websocket url&#39;)
 
-        # for the websockets library, it is necessary that the url starts with `ws://``
-        [_, url_part] = url.split(&#39;://&#39;, maxsplit=1)
-
         async with websockets.client.connect(
-            uri=f&#39;ws://{url_part}&#39;,
+            uri=self.__replace_http_with_ws(url),
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
             max_size=None,  # allow arbitrary large messages, since it is capped by the server&#39;s chunk size
@@ -2228,7 +2232,21 @@ dict(one=1, two=2)</p></div>
             if chunk is None:
                 break
 
-        return data_frame</code></pre>
+        return data_frame
+
+    def __replace_http_with_ws(self, url: str) -&gt; str:
+        &#39;&#39;&#39;
+        Replace the protocol in the url from `http` to `ws`.
+
+        For the websockets library, it is necessary that the url starts with `ws://`.
+        For HTTPS, we need to use `wss://` instead.
+        &#39;&#39;&#39;
+
+        [protocol, url_part] = url.split(&#39;://&#39;, maxsplit=1)
+
+        ws_prefix = &#39;wss://&#39; if &#39;s&#39; in protocol.lower() else &#39;ws://&#39;
+
+        return f&#39;{ws_prefix}{url_part}&#39;</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -2651,11 +2669,8 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
     if url is None:
         raise InputException(&#39;Invalid websocket url&#39;)
 
-    # for the websockets library, it is necessary that the url starts with `ws://``
-    [_, url_part] = url.split(&#39;://&#39;, maxsplit=1)
-
     async with websockets.client.connect(
-        uri=f&#39;ws://{url_part}&#39;,
+        uri=self.__replace_http_with_ws(url),
         extra_headers=session.auth_header,
         open_timeout=open_timeout,
     ) as websocket:
@@ -2929,11 +2944,8 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
     if url is None:
         raise InputException(&#39;Invalid websocket url&#39;)
 
-    # for the websockets library, it is necessary that the url starts with `ws://``
-    [_, url_part] = url.split(&#39;://&#39;, maxsplit=1)
-
     async with websockets.client.connect(
-        uri=f&#39;ws://{url_part}&#39;,
+        uri=self.__replace_http_with_ws(url),
         extra_headers=session.auth_header,
         open_timeout=open_timeout,
         max_size=None,  # allow arbitrary large messages, since it is capped by the server&#39;s chunk size
