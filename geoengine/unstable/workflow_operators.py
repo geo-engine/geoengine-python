@@ -428,3 +428,57 @@ class TemporalRasterAggregation(RasterOperator):
                 "raster": self.source.to_dict()
             }
         }
+
+
+class TimeShift(Operator):
+    '''A RasterTypeConversion operator.'''
+
+    source: RasterOperator | VectorOperator
+    shift_type: Literal["relative", "absolute"]
+    granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"]
+    value: int
+
+    def __init__(self,
+                 source: RasterOperator | VectorOperator,
+                 shift_type: Literal["relative", "absolute"],
+                 granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"],
+                 value: int,
+                 ):
+        '''Creates a new RasterTypeConversion operator.'''
+        if shift_type == 'absolute':
+            raise NotImplementedError("Absolute time shifts are not supported yet")
+        self.source = source
+        self.shift_type = shift_type
+        self.granularity = granularity
+        self.value = value
+
+    def name(self) -> str:
+        return 'TimeShift'
+
+    def data_type(self) -> Literal['Vector', 'Raster']:
+        return self.source.data_type()
+
+    def as_vector(self) -> VectorOperator:
+        '''Casts this operator to a VectorOperator.'''
+        if self.data_type() != 'Vector':
+            raise TypeError("Cannot cast to VectorOperator")
+        return cast(VectorOperator, self)
+
+    def as_raster(self) -> RasterOperator:
+        '''Casts this operator to a RasterOperator.'''
+        if self.data_type() != 'Raster':
+            raise TypeError("Cannot cast to RasterOperator")
+        return cast(RasterOperator, self)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": self.name(),
+            "params": {
+                "type": self.shift_type,
+                "granularity": self.granularity,
+                "value": self.value
+            },
+            "sources": {
+                "source": self.source.to_dict()
+            }
+        }
