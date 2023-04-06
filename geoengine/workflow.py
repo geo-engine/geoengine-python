@@ -742,6 +742,9 @@ class Workflow:
             )
         )
 
+        # Ensure the 'time' coordinate has a datetime64 data type
+        output['time'] = output['time'].astype('datetime64[ns]')
+
         return output
 
     async def vector_stream(
