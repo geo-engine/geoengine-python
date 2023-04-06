@@ -247,13 +247,13 @@ class TaskTests(unittest.TestCase):
                 "view": None
             })
 
-            m.get('http://mock-instance/tasks/a04d2e1b-db24-42cb-a620-1d7803df3abe/abort',
-                  status_code=200, )
-            m.get('http://mock-instance/tasks/9f008e47-645b-48de-a513-748a1d0c2a3f/abort',
-                  status_code=400,
-                  json={
-                      'error': 'TaskError',
-                      'message': 'TaskError: Task not found with id: 9f008e47-645b-48de-a513-748a1d0c2a3f'})
+            m.delete('http://mock-instance/tasks/a04d2e1b-db24-42cb-a620-1d7803df3abe',
+                     status_code=200, )
+            m.delete('http://mock-instance/tasks/9f008e47-645b-48de-a513-748a1d0c2a3f',
+                     status_code=400,
+                     json={
+                         'error': 'TaskError',
+                         'message': 'TaskError: Task not found with id: 9f008e47-645b-48de-a513-748a1d0c2a3f'})
 
             ge.initialize('http://mock-instance')
 
