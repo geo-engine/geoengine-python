@@ -617,6 +617,7 @@ class Workflow:
             uri=f'ws://{url_part}',
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
+            max_size=None,
         ) as websocket:
 
             tile_bytes: Optional[bytes] = None
