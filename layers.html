@@ -517,7 +517,14 @@ class Layer:
         buf.write(&#39;&lt;tr&gt;&lt;th&gt;workflow&lt;/th&gt;&lt;td align=&#34;left&#34;&gt;&#39;)
         buf.write(f&#39;&lt;pre&gt;{json.dumps(self.workflow, indent=4)}{os.linesep}&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&#39;)
         buf.write(&#39;&lt;tr&gt;&lt;th&gt;symbology&lt;/th&gt;&#39;)
-        buf.write(f&#39;&lt;td align=&#34;left&#34;&gt;{json.dumps(self.symbology, indent=4)}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#39;)
+        if self.symbology is None:
+            buf.write(&#39;&lt;td align=&#34;left&#34;&gt;None&lt;/td&gt;&lt;/tr&gt;&#39;)
+        else:
+            buf.write(
+                &#39;&lt;td align=&#34;left&#34;&gt;&#39;
+                f&#39;&lt;pre&gt;{json.dumps(self.symbology.to_api_dict(), indent=4)}{os.linesep}&lt;/pre&gt;&#39;
+                &#39;&lt;/td&gt;&lt;/tr&gt;&#39;
+            )
         buf.write(f&#34;&lt;tr&gt;&lt;th&gt;properties&lt;/th&gt;&lt;td&gt;{self.properties}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#34;)
         buf.write(f&#34;&lt;tr&gt;&lt;th&gt;metadata&lt;/th&gt;&lt;td&gt;{self.metadata}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#34;)
 
@@ -972,7 +979,14 @@ class Layer:
         buf.write(&#39;&lt;tr&gt;&lt;th&gt;workflow&lt;/th&gt;&lt;td align=&#34;left&#34;&gt;&#39;)
         buf.write(f&#39;&lt;pre&gt;{json.dumps(self.workflow, indent=4)}{os.linesep}&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&#39;)
         buf.write(&#39;&lt;tr&gt;&lt;th&gt;symbology&lt;/th&gt;&#39;)
-        buf.write(f&#39;&lt;td align=&#34;left&#34;&gt;{json.dumps(self.symbology, indent=4)}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#39;)
+        if self.symbology is None:
+            buf.write(&#39;&lt;td align=&#34;left&#34;&gt;None&lt;/td&gt;&lt;/tr&gt;&#39;)
+        else:
+            buf.write(
+                &#39;&lt;td align=&#34;left&#34;&gt;&#39;
+                f&#39;&lt;pre&gt;{json.dumps(self.symbology.to_api_dict(), indent=4)}{os.linesep}&lt;/pre&gt;&#39;
+                &#39;&lt;/td&gt;&lt;/tr&gt;&#39;
+            )
         buf.write(f&#34;&lt;tr&gt;&lt;th&gt;properties&lt;/th&gt;&lt;td&gt;{self.properties}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#34;)
         buf.write(f&#34;&lt;tr&gt;&lt;th&gt;metadata&lt;/th&gt;&lt;td&gt;{self.metadata}{os.linesep}&lt;/td&gt;&lt;/tr&gt;&#34;)
 
