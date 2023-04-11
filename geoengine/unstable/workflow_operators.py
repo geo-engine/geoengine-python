@@ -433,13 +433,13 @@ class TemporalRasterAggregation(RasterOperator):
 class TimeShift(Operator):
     '''A RasterTypeConversion operator.'''
 
-    source: RasterOperator | VectorOperator
+    source: Union[RasterOperator, VectorOperator]
     shift_type: Literal["relative", "absolute"]
     granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"]
     value: int
 
     def __init__(self,
-                 source: RasterOperator | VectorOperator,
+                 source: Union[RasterOperator, VectorOperator],
                  shift_type: Literal["relative", "absolute"],
                  granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"],
                  value: int,
