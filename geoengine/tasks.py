@@ -248,8 +248,8 @@ class Task:
 
         force_str = str(force).lower()
 
-        response = req.get(
-            url=f'{session.server_url}/tasks/{task_id_str}/abort?force={force_str}',
+        response = req.delete(
+            url=f'{session.server_url}/tasks/{task_id_str}?force={force_str}',
             headers=session.auth_header,
             timeout=timeout
         )
