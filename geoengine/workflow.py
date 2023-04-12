@@ -574,7 +574,7 @@ class Workflow:
                         step=geo_transform.y_pixel_size,
                         stop=geo_transform.y_min(y_size),
                     ),
-                    'time': time.start,  # TODO: incorporate time end?
+                    'time': np.datetime64(time.start, 'ms'),  # TODO: incorporate time end?
                 },
             )
 
@@ -741,9 +741,6 @@ class Workflow:
                 dim='time'
             )
         )
-
-        # Ensure the 'time' coordinate has a datetime64 data type
-        output['time'] = output['time'].astype('datetime64[ns]')
 
         return output
 
