@@ -603,7 +603,7 @@ class Workflow:
                         step=geo_transform.y_pixel_size,
                         stop=geo_transform.y_min(y_size),
                     ),
-                    &#39;time&#39;: time.start,  # TODO: incorporate time end?
+                    &#39;time&#39;: np.datetime64(time.start, &#39;ms&#39;),  # TODO: incorporate time end?
                 },
             )
 
@@ -1884,7 +1884,7 @@ dict(one=1, two=2)</p></div>
                         step=geo_transform.y_pixel_size,
                         stop=geo_transform.y_min(y_size),
                     ),
-                    &#39;time&#39;: time.start,  # TODO: incorporate time end?
+                    &#39;time&#39;: np.datetime64(time.start, &#39;ms&#39;),  # TODO: incorporate time end?
                 },
             )
 
@@ -2631,7 +2631,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
                     step=geo_transform.y_pixel_size,
                     stop=geo_transform.y_min(y_size),
                 ),
-                &#39;time&#39;: time.start,  # TODO: incorporate time end?
+                &#39;time&#39;: np.datetime64(time.start, &#39;ms&#39;),  # TODO: incorporate time end?
             },
         )
 
