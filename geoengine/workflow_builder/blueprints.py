@@ -1,12 +1,12 @@
-'''This module contains blueprints for workflows that are not yet stable.'''
+'''This module contains blueprints for workflows.'''
 
-from . import workflow_operators
+from . import operators
 from .. import api
 
 
 def sentinel2_band(band_name, provider="5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5", utm_zone="UTM32N"):
     '''Creates a workflow for a band from Sentinel 2 data.'''
-    band_source = workflow_operators.GdalSource(
+    band_source = operators.GdalSource(
         dataset=api.ExternalDataId(
             type="external",
             providerId=provider,
@@ -21,6 +21,10 @@ def sentinel2_cloud_free_band(
         provider: str = "5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5",
         utm_zone: str = "UTM32N"):
     '''Creates a workflow for a cloud free band from Sentinel 2 data.'''
+
+    valid_sentinel_bands = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12"]
+    if band_name.upper() not in valid_sentinel_bands:
+        raise ValueError(f"Invalid band name {band_name}. Valid band names are: {valid_sentinel_bands}")
 
     band_id = api.ExternalDataId(
         type="external",
@@ -59,14 +63,14 @@ def sentinel2_cloud_free_ndvi(provider="5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5", u
 
 def sentinel2_cloud_free_band_custom_input(band_dataset: api.DataId, scl_dataset: api.DataId):
     '''Creates a workflow for a cloud free band from Sentinel 2 data provided by the inputs.'''
-    band_source = workflow_operators.GdalSource(
+    band_source = operators.GdalSource(
         dataset=band_dataset
     )
-    scl_source = workflow_operators.GdalSource(
+    scl_source = operators.GdalSource(
         dataset=scl_dataset
     )
     # [sen2_mask == 3 |sen2_mask == 7 |sen2_mask == 8 | sen2_mask == 9 |sen2_mask == 10 |sen2_mask == 11 ]
-    cloud_free = workflow_operators.Expression(
+    cloud_free = operators.Expression(
         expression=" if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { A }",
         output_type="U16",
         sources={
@@ -80,17 +84,17 @@ def sentinel2_cloud_free_band_custom_input(band_dataset: api.DataId, scl_dataset
 
 def sentinel2_cloud_free_ndvi_custom_input(nir_dataset: api.DataId, red_dataset: api.DataId, scl_dataset: api.DataId):
     '''Creates a workflow for a cloud free NDVI from Sentinel 2 data provided by the inputs.'''
-    nir_source = workflow_operators.GdalSource(
+    nir_source = operators.GdalSource(
         dataset=nir_dataset
     )
-    red_source = workflow_operators.GdalSource(
+    red_source = operators.GdalSource(
         dataset=red_dataset
     )
-    scl_source = workflow_operators.GdalSource(
+    scl_source = operators.GdalSource(
         dataset=scl_dataset
     )
     # [sen2_mask == 3 |sen2_mask == 7 |sen2_mask == 8 | sen2_mask == 9 |sen2_mask == 10 |sen2_mask == 11 ]
-    cloud_free = workflow_operators.Expression(
+    cloud_free = operators.Expression(
         expression=" if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { (A - B) / (A + B) }",
         output_type="F32",
         sources={
@@ -125,7 +129,7 @@ def s2_cloud_free_aggregated_band(
     else:
         s2_cloud_free_operator = sentinel2_cloud_free_band(band_upper, provider, utm_zone)
 
-    return workflow_operators.TemporalRasterAggregation(
+    return operators.TemporalRasterAggregation(
         source=s2_cloud_free_operator,
         aggregation_type=aggregation_type,
         granularity=granularity,
@@ -135,42 +139,57 @@ def s2_cloud_free_aggregated_band(
 
 
 def s2_cloud_free_aggregated_band_custom_input(
-        band,
-        band_data_id_map,
+        band_id: api.DataId,
+        scl_id: api.DataId,
         granularity="days",
         window_size=1,
         aggregation_type="mean"
 ):
-    '''Creates a workflow for a cloud free monthly band (or NDVI) from Sentinel 2 data provided by the inputs.'''
-    valid_sentinel_bands = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12"]
+    '''Creates a workflow for a cloud free monthly band from Sentinel 2 data provided by the inputs.'''
 
-    band_upper = band.upper()
+    s2_cloud_free_operator = sentinel2_cloud_free_band_custom_input(
+        band_id, scl_id
+    )
 
-    if band_upper not in valid_sentinel_bands and band_upper != "NDVI":
-        raise ValueError(f"Invalid band: {band_upper}")
+    # We could also leave out the scaling and use the I64 data directly
+    # s2_cloud_free_operator = geoengine.unstable.workflow_operators.RasterTypeConversion(
+    #    source=s2_cloud_free_operator,
+    #    output_data_type="F32"
+    # )
+    # s2_cloud_free_operator = geoengine.unstable.workflow_operators.RasterScaling(
+    #    source=s2_cloud_free_operator,
+    #    slope = 0.0001,
+    #    offset = -0.1, # this should be -0.1 but the values are too small?
+    #    scaling_mode="mulSlopeAddOffset"
+    # )
 
-    if band_upper == "NDVI":
-        s2_cloud_free_operator = sentinel2_cloud_free_ndvi_custom_input(
-            band_data_id_map["B08"], band_data_id_map["B04"], band_data_id_map["SCL"]
-        )
-    else:
-        s2_cloud_free_operator = sentinel2_cloud_free_band_custom_input(
-            band_data_id_map[band_upper], band_data_id_map["SCL"]
-        )
+    monthly_s2_cloud_free_operator = operators.TemporalRasterAggregation(
+        source=s2_cloud_free_operator,
+        aggregation_type=aggregation_type,
+        granularity=granularity,
+        window_size=window_size,
+        ignore_no_data=True,
+    )
 
-        # We could also leave out the scaling and use the I64 data directly
-        # s2_cloud_free_operator = geoengine.unstable.workflow_operators.RasterTypeConversion(
-        #    source=s2_cloud_free_operator,
-        #    output_data_type="F32"
-        # )
-        # s2_cloud_free_operator = geoengine.unstable.workflow_operators.RasterScaling(
-        #    source=s2_cloud_free_operator,
-        #    slope = 0.0001,
-        #    offset = -0.1, # this should be -0.1 but the values are too small?
-        #    scaling_mode="mulSlopeAddOffset"
-        # )
+    return monthly_s2_cloud_free_operator
 
-    monthly_s2_cloud_free_operator = workflow_operators.TemporalRasterAggregation(
+
+def s2_cloud_free_aggregated_ndvi_custom_input(
+        nir_dataset: api.DataId,
+        red_dataset: api.DataId,
+        scl_dataset: api.DataId,
+        granularity="days",
+        window_size=1,
+        aggregation_type="mean"
+):
+    # pylint: disable=too-many-arguments
+    '''Creates a workflow for a cloud free monthly NDVI from Sentinel 2 data provided by the inputs.'''
+
+    s2_cloud_free_operator = sentinel2_cloud_free_ndvi_custom_input(
+        nir_dataset, red_dataset, scl_dataset
+    )
+
+    monthly_s2_cloud_free_operator = operators.TemporalRasterAggregation(
         source=s2_cloud_free_operator,
         aggregation_type=aggregation_type,
         granularity=granularity,

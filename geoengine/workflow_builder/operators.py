@@ -1,4 +1,4 @@
-'''This module contains helpers to create operators for the GeoEngine API.'''
+'''This module contains helpers to create workflow operators for the Geo Engine API.'''
 
 from abc import abstractmethod
 from typing import Any, Dict, List, Optional, Union, cast

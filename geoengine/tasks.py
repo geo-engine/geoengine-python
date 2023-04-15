@@ -8,9 +8,12 @@ import time
 from enum import Enum
 from typing import Dict, List, Tuple
 from uuid import UUID
-
+import asyncio
 import datetime
+
 import requests as req
+import aiohttp
+
 
 from geoengine.types import DEFAULT_ISO_TIME_FORMAT
 from geoengine.auth import get_session
@@ -282,6 +285,54 @@ class Task:
 
     def __repr__(self) -> str:
         return repr(self.__task_id)
+
+    async def as_future(
+            self,
+            update: int = 5,
+            print_status=False,
+            conn_timeout: int = 3600,
+            read_timeout: int = 3600
+    ) -> TaskStatusInfo:
+        '''
+        Returns a future that will be resolved when the task is finished in the backend.
+        '''
+
+        async def fetch(client_session, url, headers):
+            async with client_session.get(url, headers=headers) as response:
+                # check if the response is valid
+                response.raise_for_status()
+                # try to parse the response as json
+                response_json = await response.json()
+
+                # if parsing was successful, but there is an error result, raise the appropriate exception
+                if 'error' in response_json:
+                    raise GeoEngineException(response_json)
+
+                return response_json
+
+        session = get_session()
+        task_id_str = str(self.__task_id)
+        url = f'{session.server_url}/tasks/{task_id_str}/status'
+        headers = session.auth_header
+
+        async with aiohttp.ClientSession(conn_timeout=conn_timeout, read_timeout=read_timeout) as client_session:
+            try:
+                last_status = None
+                while True:
+                    response = await fetch(client_session, url, headers)
+
+                    last_status = TaskStatusInfo.from_response(response)
+
+                    if print_status:
+                        print(last_status)
+
+                    if last_status.status != TaskStatus.RUNNING:
+                        return last_status
+
+                    await asyncio.sleep(update)
+            finally:
+                # Close client sessions
+                await client_session.close()
 
 
 def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
