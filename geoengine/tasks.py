@@ -288,7 +288,7 @@ class Task:
 
     async def as_future(
             self,
-            update: int = 5,
+            request_interval: int = 5,
             print_status=False,
             conn_timeout: int = 3600,
             read_timeout: int = 3600
@@ -329,7 +329,7 @@ class Task:
                     if last_status.status != TaskStatus.RUNNING:
                         return last_status
 
-                    await asyncio.sleep(update)
+                    await asyncio.sleep(request_interval)
             finally:
                 # Close client sessions
                 await client_session.close()
