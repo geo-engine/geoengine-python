@@ -212,7 +212,7 @@ class BlueprintsTests(unittest.TestCase):
                     "granularity": "days",
                     "step": 1
                 },
-                "outputType": "f32",
+                "outputType": "F32",
             },
             'sources': {
                 "raster": {
@@ -272,7 +272,7 @@ class BlueprintsTests(unittest.TestCase):
                     "granularity": "days",
                     "step": 1
                 },
-                "outputType": "f32",
+                "outputType": "F32",
             },
             'sources': {
                 "raster": {
@@ -335,7 +335,7 @@ class BlueprintsTests(unittest.TestCase):
                     "granularity": "days",
                     "step": 1
                 },
-                "outputType": "f32",
+                "outputType": "F32",
             },
             'sources': {
                 "raster": {
