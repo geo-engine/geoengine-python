@@ -16,6 +16,7 @@ import requests as req
 from geoengine.types import DEFAULT_ISO_TIME_FORMAT
 from geoengine.auth import get_session
 from geoengine.error import check_response_for_error, GeoEngineException
+from geoengine import backports
 
 
 class TaskId:
@@ -309,7 +310,7 @@ class Task:
 
         last_status = None
         while True:
-            response = await asyncio.to_thread(get_status_inner, headers, url)
+            response = await backports.to_thread(get_status_inner, headers, url)
 
             last_status = TaskStatusInfo.from_response(response)
 
