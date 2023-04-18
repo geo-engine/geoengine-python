@@ -12,8 +12,6 @@ import asyncio
 import datetime
 
 import requests as req
-import aiohttp
-
 
 from geoengine.types import DEFAULT_ISO_TIME_FORMAT
 from geoengine.auth import get_session
@@ -289,50 +287,39 @@ class Task:
     async def as_future(
             self,
             request_interval: int = 5,
-            print_status=False,
-            conn_timeout: int = 3600,
-            read_timeout: int = 3600
+            print_status=False
     ) -> TaskStatusInfo:
         '''
         Returns a future that will be resolved when the task is finished in the backend.
         '''
 
-        async def fetch(client_session, url, headers):
-            async with client_session.get(url, headers=headers) as response:
-                # check if the response is valid
-                response.raise_for_status()
-                # try to parse the response as json
-                response_json = await response.json()
-
-                # if parsing was successful, but there is an error result, raise the appropriate exception
-                if 'error' in response_json:
-                    raise GeoEngineException(response_json)
-
-                return response_json
+        def get_status_inner(auth_header, url: str, timeout: int = 3600):
+            response = req.get(
+                url=url,
+                headers=auth_header,
+                timeout=timeout
+            )
+            check_response_for_error(response)
+            return response.json()
 
         session = get_session()
         task_id_str = str(self.__task_id)
         url = f'{session.server_url}/tasks/{task_id_str}/status'
         headers = session.auth_header
 
-        async with aiohttp.ClientSession(conn_timeout=conn_timeout, read_timeout=read_timeout) as client_session:
-            try:
-                last_status = None
-                while True:
-                    response = await fetch(client_session, url, headers)
+        last_status = None
+        while True:
+            response = await asyncio.to_thread(get_status_inner, headers, url)
 
-                    last_status = TaskStatusInfo.from_response(response)
+            last_status = TaskStatusInfo.from_response(response)
 
-                    if print_status:
-                        print(last_status)
+            if print_status:
+                print(last_status)
 
-                    if last_status.status != TaskStatus.RUNNING:
-                        return last_status
+            if last_status.status != TaskStatus.RUNNING:
+                return last_status
 
-                    await asyncio.sleep(request_interval)
-            finally:
-                # Close client sessions
-                await client_session.close()
+            await asyncio.sleep(request_interval)
 
 
 def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
