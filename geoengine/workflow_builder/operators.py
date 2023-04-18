@@ -83,7 +83,7 @@ class GdalSource(RasterOperator):
 
 class OgrSource(VectorOperator):
     '''An OGR source operator.'''
-    dataset: str
+    dataset: str  # TODO: should be a DataId
     attribute_projection: Optional[str] = None
     attribute_filters: Optional[str] = None
 
@@ -124,6 +124,8 @@ class Interpolation(RasterOperator):
         self.source = source_operator
         self.interpolation = interpolation
         self.input_resolution = input_resolution
+        if input_resolution is not None:
+            raise NotImplementedError("Custom input resolution is not yet implemented")
 
     def name(self) -> str:
         return 'Interpolation'
@@ -246,6 +248,8 @@ class RasterScaling(RasterOperator):
         self.offset = offset
         self.scaling_mode = scaling_mode
         self.output_measurement = output_measurement
+        if output_measurement is not None:
+            raise NotImplementedError("Custom output measurement is not yet implemented")
 
     def name(self) -> str:
         return 'RasterScaling'
@@ -389,7 +393,7 @@ class TemporalRasterAggregation(RasterOperator):
     ignore_no_data: bool = False
     window_granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days"
     window_size: int = 1
-    output_type: Literal["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "f32", "f64"] = "f32"
+    output_type: Optional[Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]] = None
 
     # pylint: disable=too-many-arguments
     def __init__(self,
@@ -398,7 +402,8 @@ class TemporalRasterAggregation(RasterOperator):
                  ignore_no_data: bool = False,
                  granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days",
                  window_size: int = 1,
-                 output_type: Literal["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "f32", "f64"] = "f32",
+                 output_type:
+                 Optional[Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]] = None,
                  ):
         '''Creates a new TemporalRasterAggregation operator.'''
         self.source = source
@@ -407,6 +412,7 @@ class TemporalRasterAggregation(RasterOperator):
         self.window_granularity = granularity
         self.window_size = window_size
         self.output_type = output_type
+        # todo: add window reference
 
     def name(self) -> str:
         return 'TemporalRasterAggregation'
@@ -423,6 +429,7 @@ class TemporalRasterAggregation(RasterOperator):
                     "granularity": self.window_granularity,
                     "step": self.window_size
                 },
+                "outputType": self.output_type
             },
             "sources": {
                 "raster": self.source.to_dict()
