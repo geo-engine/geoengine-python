@@ -25,6 +25,8 @@ from .types import QueryRectangle,  \
 
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow, get_quota, update_quota
 
+from . import workflow_builder
+
 
 DEFAULT_USER_AGENT = f'geoengine-python/{get_distribution("geoengine").version}'
 

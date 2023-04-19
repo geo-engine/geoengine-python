@@ -8,13 +8,15 @@ import time
 from enum import Enum
 from typing import Dict, List, Tuple
 from uuid import UUID
-
+import asyncio
 import datetime
+
 import requests as req
 
 from geoengine.types import DEFAULT_ISO_TIME_FORMAT
 from geoengine.auth import get_session
 from geoengine.error import check_response_for_error, GeoEngineException
+from geoengine import backports
 
 
 class TaskId:
@@ -282,6 +284,43 @@ class Task:
 
     def __repr__(self) -> str:
         return repr(self.__task_id)
+
+    async def as_future(
+            self,
+            request_interval: int = 5,
+            print_status=False
+    ) -> TaskStatusInfo:
+        '''
+        Returns a future that will be resolved when the task is finished in the backend.
+        '''
+
+        def get_status_inner(auth_header, url: str, timeout: int = 3600):
+            response = req.get(
+                url=url,
+                headers=auth_header,
+                timeout=timeout
+            )
+            check_response_for_error(response)
+            return response.json()
+
+        session = get_session()
+        task_id_str = str(self.__task_id)
+        url = f'{session.server_url}/tasks/{task_id_str}/status'
+        headers = session.auth_header
+
+        last_status = None
+        while True:
+            response = await backports.to_thread(get_status_inner, headers, url)
+
+            last_status = TaskStatusInfo.from_response(response)
+
+            if print_status:
+                print(last_status)
+
+            if last_status.status != TaskStatus.RUNNING:
+                return last_status
+
+            await asyncio.sleep(request_interval)
 
 
 def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
