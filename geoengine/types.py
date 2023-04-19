@@ -521,14 +521,14 @@ class VectorResultDescriptor(ResultDescriptor):
     def __repr__(self) -> str:
         '''Display representation of the vector result descriptor'''
         r = ''
-        r += f'Data type:         {self.data_type}\n'
+        r += f'Data type:         {self.data_type.value}\n'
         r += f'Spatial Reference: {self.spatial_reference}\n'
 
         r += 'Columns:\n'
         for column_name in self.columns:
             column_info = self.columns[column_name]
             r += f'  {column_name}:\n'
-            r += f'    Column Type: {column_info.data_type}\n'
+            r += f'    Column Type: {column_info.data_type.value}\n'
             r += f'    Measurement: {column_info.measurement}\n'
 
         return r
