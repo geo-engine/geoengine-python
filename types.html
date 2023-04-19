@@ -550,14 +550,14 @@ class VectorResultDescriptor(ResultDescriptor):
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of the vector result descriptor&#39;&#39;&#39;
         r = &#39;&#39;
-        r += f&#39;Data type:         {self.data_type}\n&#39;
+        r += f&#39;Data type:         {self.data_type.value}\n&#39;
         r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
 
         r += &#39;Columns:\n&#39;
         for column_name in self.columns:
             column_info = self.columns[column_name]
             r += f&#39;  {column_name}:\n&#39;
-            r += f&#39;    Column Type: {column_info.data_type}\n&#39;
+            r += f&#39;    Column Type: {column_info.data_type.value}\n&#39;
             r += f&#39;    Measurement: {column_info.measurement}\n&#39;
 
         return r
@@ -4777,14 +4777,14 @@ def from_string(string: str) -&gt; VectorDataType:
     def __repr__(self) -&gt; str:
         &#39;&#39;&#39;Display representation of the vector result descriptor&#39;&#39;&#39;
         r = &#39;&#39;
-        r += f&#39;Data type:         {self.data_type}\n&#39;
+        r += f&#39;Data type:         {self.data_type.value}\n&#39;
         r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
 
         r += &#39;Columns:\n&#39;
         for column_name in self.columns:
             column_info = self.columns[column_name]
             r += f&#39;  {column_name}:\n&#39;
-            r += f&#39;    Column Type: {column_info.data_type}\n&#39;
+            r += f&#39;    Column Type: {column_info.data_type.value}\n&#39;
             r += f&#39;    Measurement: {column_info.measurement}\n&#39;
 
         return r
