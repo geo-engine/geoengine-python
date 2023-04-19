@@ -15,7 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        # use all supported versions from https://devguide.python.org/versions/
+        python-version: [3.7, 3.8, 3.9, 3.10, 3.11]
 
     steps:
       - uses: actions/checkout@v2
