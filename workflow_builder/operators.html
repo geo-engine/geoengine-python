@@ -1,0 +1,1847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>geoengine.workflow_builder.operators API documentation</title>
+<meta name="description" content="This module contains helpers to create workflow operators for the Geo Engine API." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>geoengine.workflow_builder.operators</code></h1>
+</header>
+<section id="section-intro">
+<p>This module contains helpers to create workflow operators for the Geo Engine API.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;This module contains helpers to create workflow operators for the Geo Engine API.&#39;&#39;&#39;
+
+from abc import abstractmethod
+from typing import Any, Dict, List, Optional, Union, cast
+from typing_extensions import Literal
+
+from geoengine import api
+
+
+class Operator():
+    &#39;&#39;&#39;Base class for all operators.&#39;&#39;&#39;
+
+    @abstractmethod
+    def name(self) -&gt; str:
+        &#39;&#39;&#39;Returns the name of the operator.&#39;&#39;&#39;
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Returns a dictionary representation of the operator that can be used to create a JSON request for the API.&#39;&#39;&#39;
+
+    @abstractmethod
+    def data_type(self) -&gt; Literal[&#39;Raster&#39;, &#39;Vector&#39;]:
+        &#39;&#39;&#39;Returns the type of the operator.&#39;&#39;&#39;
+
+    def to_workflow_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Returns a dictionary representation of a workflow that calls the operator&#34; \
+             &#34;that can be used to create a JSON request for the workflow API.&#39;&#39;&#39;
+
+        return {
+            &#39;type&#39;: self.data_type(),
+            &#39;operator&#39;: self.to_dict(),
+        }
+
+
+class RasterOperator(Operator):
+    &#39;&#39;&#39;Base class for all raster operators.&#39;&#39;&#39;
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass
+
+    def data_type(self) -&gt; Literal[&#39;Raster&#39;, &#39;Vector&#39;]:
+        return &#39;Raster&#39;
+
+
+class VectorOperator(Operator):
+    &#39;&#39;&#39;Base class for all vector operators.&#39;&#39;&#39;
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass
+
+    def data_type(self) -&gt; Literal[&#39;Raster&#39;, &#39;Vector&#39;]:
+        return &#39;Vector&#39;
+
+
+class GdalSource(RasterOperator):
+    &#39;&#39;&#39;A GDAL source operator.&#39;&#39;&#39;
+    dataset: api.DataId
+
+    def __init__(self, dataset: Union[api.DataId, str]):
+        &#39;&#39;&#39;Creates a new GDAL source operator.&#39;&#39;&#39;
+        if isinstance(dataset, str):
+            self.dataset = api.InternalDataId(
+                type=&#34;internal&#34;,
+                datasetId=dataset,
+            )
+
+        else:
+            self.dataset = dataset
+
+    def name(self) -&gt; str:
+        return &#39;GdalSource&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;type&#39;: self.name(),
+            &#39;params&#39;: {
+                &#34;data&#34;: self.dataset
+            }
+        }
+
+
+class OgrSource(VectorOperator):
+    &#39;&#39;&#39;An OGR source operator.&#39;&#39;&#39;
+    dataset: str  # TODO: should be a DataId
+    attribute_projection: Optional[str] = None
+    attribute_filters: Optional[str] = None
+
+    def __init__(self, dataset: str):
+        &#39;&#39;&#39;Creates a new OGR source operator.&#39;&#39;&#39;
+        self.dataset = dataset
+
+    def name(self) -&gt; str:
+        return &#39;OgrSource&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;type&#39;: self.name(),
+            &#39;params&#39;: {
+                &#34;data&#34;: {
+                    &#34;type&#34;: &#34;internal&#34;,
+                    &#34;datasetId&#34;: self.dataset,
+                },
+                &#39;attributeProjection&#39;: self.attribute_projection,
+                &#39;attributeFilters&#39;: self.attribute_filters,
+            }
+        }
+
+
+class Interpolation(RasterOperator):
+    &#39;&#39;&#39;An interpolation operator.&#39;&#39;&#39;
+    source: RasterOperator
+    interpolation: Literal[&#34;biLinear&#34;, &#34;nearestNeighbor&#34;] = &#34;biLinear&#34;
+    input_resolution: Optional[float] = None
+
+    def __init__(
+        self,
+            source_operator: RasterOperator,
+            interpolation: Literal[&#34;biLinear&#34;, &#34;nearestNeighbor&#34;] = &#34;biLinear&#34;,
+            input_resolution: Optional[float] = None
+    ):
+        &#39;&#39;&#39;Creates a new interpolation operator.&#39;&#39;&#39;
+        self.source = source_operator
+        self.interpolation = interpolation
+        self.input_resolution = input_resolution
+        if input_resolution is not None:
+            raise NotImplementedError(&#34;Custom input resolution is not yet implemented&#34;)
+
+    def name(self) -&gt; str:
+        return &#39;Interpolation&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;interpolation&#34;: self.interpolation,
+                &#34;inputResolution&#34;: {
+                    &#34;type&#34;: &#34;source&#34;
+                }
+            },
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }
+
+
+class RasterVectorJoin(VectorOperator):
+    &#39;&#39;&#39;A RasterVectorJoin operator.&#39;&#39;&#39;
+    raster_sources: List[RasterOperator]
+    vector_source: VectorOperator
+    new_column_names: List[str]
+    temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;
+    feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 raster_sources: List[RasterOperator],
+                 vector_source: VectorOperator,
+                 new_column_names: List[str],
+                 temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;,
+                 feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
+                 ):
+        &#39;&#39;&#39;Creates a new RasterVectorJoin operator.&#39;&#39;&#39;
+        self.raster_source = raster_sources
+        self.vector_source = vector_source
+        self.new_column_names = new_column_names
+        self.temporal_aggregation = temporal_aggregation
+        self.feature_aggregation = feature_aggregation
+        assert (len(self.raster_source) == len(self.new_column_names))
+
+    def name(self) -&gt; str:
+        return &#39;RasterVectorJoin&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;names&#34;: self.new_column_names,
+                &#34;temporalAggregation&#34;: self.temporal_aggregation,
+                &#34;featureAggregation&#34;: self.feature_aggregation,
+            },
+            &#34;sources&#34;: {
+                &#34;vector&#34;: self.vector_source.to_dict(),
+                &#34;rasters&#34;: [raster_source.to_dict() for raster_source in self.raster_source]
+            }
+        }
+
+
+class PointInPolygonFilter(VectorOperator):
+    &#39;&#39;&#39;A PointInPolygonFilter operator.&#39;&#39;&#39;
+
+    point_source: VectorOperator
+    polygon_source: VectorOperator
+
+    def __init__(self,
+                 point_source: VectorOperator,
+                 polygon_source: VectorOperator,
+                 ):
+        &#39;&#39;&#39;Creates a new PointInPolygonFilter filter operator.&#39;&#39;&#39;
+        self.point_source = point_source
+        self.polygon_source = polygon_source
+
+    def name(self) -&gt; str:
+        return &#39;PointInPolygonFilter&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {},
+            &#34;sources&#34;: {
+                &#34;points&#34;: self.point_source.to_dict(),
+                &#34;polygons&#34;: self.polygon_source.to_dict()
+            }
+        }
+
+
+class RasterScaling(RasterOperator):
+    &#39;&#39;&#39;A RasterScaling operator.
+
+    This operator scales the values of a raster by a given slope and offset.
+
+    The scaling is done as follows:
+    y = (x - offset) / slope
+
+    The unscale mode is the inverse of the scale mode:
+    x = y * slope + offset
+
+    &#39;&#39;&#39;
+
+    source: RasterOperator
+    slope: Optional[Union[float, str]] = None
+    offset: Optional[Union[float, str]] = None
+    scaling_mode: Literal[&#34;mulSlopeAddOffset&#34;, &#34;subOffsetDivSlope&#34;] = &#34;mulSlopeAddOffset&#34;
+    output_measurement: Optional[str] = None
+
+    def __init__(self,
+                 # pylint: disable=too-many-arguments
+                 source: RasterOperator,
+                 slope: Optional[Union[float, str]] = None,
+                 offset: Optional[Union[float, str]] = None,
+                 scaling_mode: Literal[&#34;mulSlopeAddOffset&#34;, &#34;subOffsetDivSlope&#34;] = &#34;mulSlopeAddOffset&#34;,
+                 output_measurement: Optional[str] = None
+                 ):
+        &#39;&#39;&#39;Creates a new RasterScaling operator.&#39;&#39;&#39;
+        self.source = source
+        self.slope = slope
+        self.offset = offset
+        self.scaling_mode = scaling_mode
+        self.output_measurement = output_measurement
+        if output_measurement is not None:
+            raise NotImplementedError(&#34;Custom output measurement is not yet implemented&#34;)
+
+    def name(self) -&gt; str:
+        return &#39;RasterScaling&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        def offset_scale_dict(key_or_value: Optional[Union[float, str]]) -&gt; Dict[str, Any]:
+            if key_or_value is None:
+                return {&#34;type&#34;: &#34;deriveFromData&#34;}
+            if isinstance(key_or_value, float):
+                return {&#34;type&#34;: &#34;constant&#34;, &#34;value&#34;: key_or_value}
+            return {&#34;type&#34;: &#34;metadataKey&#34;, &#34;key&#34;: key_or_value}
+
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;offset&#34;: offset_scale_dict(self.offset),
+                &#34;slope&#34;: offset_scale_dict(self.slope),
+                &#34;scalingMode&#34;: self.scaling_mode
+            },
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }
+
+
+class RasterTypeConversion(RasterOperator):
+    &#39;&#39;&#39;A RasterTypeConversion operator.&#39;&#39;&#39;
+
+    source: RasterOperator
+    output_data_type: Literal[&#34;u8&#34;, &#34;u16&#34;, &#34;u32&#34;, &#34;u64&#34;, &#34;i8&#34;, &#34;i16&#34;, &#34;i32&#34;, &#34;i64&#34;, &#34;f32&#34;, &#34;f64&#34;]
+
+    def __init__(self,
+                 source: RasterOperator,
+                 output_data_type: Literal[&#34;u8&#34;, &#34;u16&#34;, &#34;u32&#34;, &#34;u64&#34;, &#34;i8&#34;, &#34;i16&#34;, &#34;i32&#34;, &#34;i64&#34;, &#34;f32&#34;, &#34;f64&#34;]
+                 ):
+        &#39;&#39;&#39;Creates a new RasterTypeConversion operator.&#39;&#39;&#39;
+        self.source = source
+        self.output_data_type = output_data_type
+
+    def name(self) -&gt; str:
+        return &#39;RasterTypeConversion&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;outputDataType&#34;: self.output_data_type
+            },
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }
+
+
+class Reprojection(Operator):
+    &#39;&#39;&#39;A Reprojection operator.&#39;&#39;&#39;
+    source: Operator
+    target_spatial_reference: str
+
+    def __init__(self,
+                 source: Operator,
+                 target_spatial_reference: str
+                 ):
+        &#39;&#39;&#39;Creates a new Reprojection operator.&#39;&#39;&#39;
+        self.source = source
+        self.target_spatial_reference = target_spatial_reference
+
+    def data_type(self) -&gt; Literal[&#39;Raster&#39;, &#39;Vector&#39;]:
+        return self.source.data_type()
+
+    def name(self) -&gt; str:
+        return &#39;Reprojection&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;targetSpatialReference&#34;: self.target_spatial_reference
+            },
+            &#34;sources&#34;: {
+                &#34;source&#34;: self.source.to_dict()
+            }
+        }
+
+    def as_vector(self) -&gt; VectorOperator:
+        &#39;&#39;&#39;Casts this operator to a VectorOperator.&#39;&#39;&#39;
+        if self.data_type() != &#39;Vector&#39;:
+            raise TypeError(&#34;Cannot cast to VectorOperator&#34;)
+        return cast(VectorOperator, self)
+
+    def as_raster(self) -&gt; RasterOperator:
+        &#39;&#39;&#39;Casts this operator to a RasterOperator.&#39;&#39;&#39;
+        if self.data_type() != &#39;Raster&#39;:
+            raise TypeError(&#34;Cannot cast to RasterOperator&#34;)
+        return cast(RasterOperator, self)
+
+
+class Expression(RasterOperator):
+    &#39;&#39;&#39;An Expression operator.&#39;&#39;&#39;
+
+    expression: str
+    sources: Dict[str, RasterOperator]
+    output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;
+    map_no_data: bool = False
+
+    def __init__(self,
+                 expression: str,
+                 sources: Dict[str, RasterOperator],
+                 output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;,
+                 map_no_data: bool = False
+
+                 ):
+        &#39;&#39;&#39;Creates a new Expression operator.&#39;&#39;&#39;
+        self.expression = expression
+        self.sources = sources
+        self.output_type = output_type
+        self.map_no_data = map_no_data
+
+    def name(self) -&gt; str:
+        return &#39;Expression&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;expression&#34;: self.expression,
+                &#34;outputType&#34;: self.output_type,
+                &#34;mapNoData&#34;: self.map_no_data
+            },
+            &#34;sources&#34;:
+                {i: raster_source.to_dict() for i, raster_source in self.sources.items()}
+
+        }
+
+
+class TemporalRasterAggregation(RasterOperator):
+    &#39;&#39;&#39;A TemporalRasterAggregation operator.&#39;&#39;&#39;
+
+    source: RasterOperator
+    aggregation_type: Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;]
+    ignore_no_data: bool = False
+    window_granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;] = &#34;days&#34;
+    window_size: int = 1
+    output_type: Optional[Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]] = None
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 source: RasterOperator,
+                 aggregation_type: Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;],
+                 ignore_no_data: bool = False,
+                 granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;] = &#34;days&#34;,
+                 window_size: int = 1,
+                 output_type:
+                 Optional[Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]] = None,
+                 ):
+        &#39;&#39;&#39;Creates a new TemporalRasterAggregation operator.&#39;&#39;&#39;
+        self.source = source
+        self.aggregation_type = aggregation_type
+        self.ignore_no_data = ignore_no_data
+        self.window_granularity = granularity
+        self.window_size = window_size
+        self.output_type = output_type
+        # todo: add window reference
+
+    def name(self) -&gt; str:
+        return &#39;TemporalRasterAggregation&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;aggregation&#34;: {
+                    &#34;type&#34;: self.aggregation_type,
+                    &#34;ignoreNoData&#34;: self.ignore_no_data,
+                },
+                &#34;window&#34;: {
+                    &#34;granularity&#34;: self.window_granularity,
+                    &#34;step&#34;: self.window_size
+                },
+                &#34;outputType&#34;: self.output_type
+            },
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }
+
+
+class TimeShift(Operator):
+    &#39;&#39;&#39;A RasterTypeConversion operator.&#39;&#39;&#39;
+
+    source: Union[RasterOperator, VectorOperator]
+    shift_type: Literal[&#34;relative&#34;, &#34;absolute&#34;]
+    granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;]
+    value: int
+
+    def __init__(self,
+                 source: Union[RasterOperator, VectorOperator],
+                 shift_type: Literal[&#34;relative&#34;, &#34;absolute&#34;],
+                 granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;],
+                 value: int,
+                 ):
+        &#39;&#39;&#39;Creates a new RasterTypeConversion operator.&#39;&#39;&#39;
+        if shift_type == &#39;absolute&#39;:
+            raise NotImplementedError(&#34;Absolute time shifts are not supported yet&#34;)
+        self.source = source
+        self.shift_type = shift_type
+        self.granularity = granularity
+        self.value = value
+
+    def name(self) -&gt; str:
+        return &#39;TimeShift&#39;
+
+    def data_type(self) -&gt; Literal[&#39;Vector&#39;, &#39;Raster&#39;]:
+        return self.source.data_type()
+
+    def as_vector(self) -&gt; VectorOperator:
+        &#39;&#39;&#39;Casts this operator to a VectorOperator.&#39;&#39;&#39;
+        if self.data_type() != &#39;Vector&#39;:
+            raise TypeError(&#34;Cannot cast to VectorOperator&#34;)
+        return cast(VectorOperator, self)
+
+    def as_raster(self) -&gt; RasterOperator:
+        &#39;&#39;&#39;Casts this operator to a RasterOperator.&#39;&#39;&#39;
+        if self.data_type() != &#39;Raster&#39;:
+            raise TypeError(&#34;Cannot cast to RasterOperator&#34;)
+        return cast(RasterOperator, self)
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;type&#34;: self.shift_type,
+                &#34;granularity&#34;: self.granularity,
+                &#34;value&#34;: self.value
+            },
+            &#34;sources&#34;: {
+                &#34;source&#34;: self.source.to_dict()
+            }
+        }</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="geoengine.workflow_builder.operators.Expression"><code class="flex name class">
+<span>class <span class="ident">Expression</span></span>
+<span>(</span><span>expression: str, sources: Dict[str, <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>], output_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64'] = 'F32', map_no_data: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An Expression operator.</p>
+<p>Creates a new Expression operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Expression(RasterOperator):
+    &#39;&#39;&#39;An Expression operator.&#39;&#39;&#39;
+
+    expression: str
+    sources: Dict[str, RasterOperator]
+    output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;
+    map_no_data: bool = False
+
+    def __init__(self,
+                 expression: str,
+                 sources: Dict[str, RasterOperator],
+                 output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;,
+                 map_no_data: bool = False
+
+                 ):
+        &#39;&#39;&#39;Creates a new Expression operator.&#39;&#39;&#39;
+        self.expression = expression
+        self.sources = sources
+        self.output_type = output_type
+        self.map_no_data = map_no_data
+
+    def name(self) -&gt; str:
+        return &#39;Expression&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;expression&#34;: self.expression,
+                &#34;outputType&#34;: self.output_type,
+                &#34;mapNoData&#34;: self.map_no_data
+            },
+            &#34;sources&#34;:
+                {i: raster_source.to_dict() for i, raster_source in self.sources.items()}
+
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.Expression.expression"><code class="name">var <span class="ident">expression</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Expression.map_no_data"><code class="name">var <span class="ident">map_no_data</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Expression.output_type"><code class="name">var <span class="ident">output_type</span> : Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Expression.sources"><code class="name">var <span class="ident">sources</span> : Dict[str, <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.GdalSource"><code class="flex name class">
+<span>class <span class="ident">GdalSource</span></span>
+<span>(</span><span>dataset: Union[<a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>, str])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A GDAL source operator.</p>
+<p>Creates a new GDAL source operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GdalSource(RasterOperator):
+    &#39;&#39;&#39;A GDAL source operator.&#39;&#39;&#39;
+    dataset: api.DataId
+
+    def __init__(self, dataset: Union[api.DataId, str]):
+        &#39;&#39;&#39;Creates a new GDAL source operator.&#39;&#39;&#39;
+        if isinstance(dataset, str):
+            self.dataset = api.InternalDataId(
+                type=&#34;internal&#34;,
+                datasetId=dataset,
+            )
+
+        else:
+            self.dataset = dataset
+
+    def name(self) -&gt; str:
+        return &#39;GdalSource&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;type&#39;: self.name(),
+            &#39;params&#39;: {
+                &#34;data&#34;: self.dataset
+            }
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.GdalSource.dataset"><code class="name">var <span class="ident">dataset</span> : <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Interpolation"><code class="flex name class">
+<span>class <span class="ident">Interpolation</span></span>
+<span>(</span><span>source_operator: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, interpolation: Literal['biLinear', 'nearestNeighbor'] = 'biLinear', input_resolution: Optional[float] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An interpolation operator.</p>
+<p>Creates a new interpolation operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Interpolation(RasterOperator):
+    &#39;&#39;&#39;An interpolation operator.&#39;&#39;&#39;
+    source: RasterOperator
+    interpolation: Literal[&#34;biLinear&#34;, &#34;nearestNeighbor&#34;] = &#34;biLinear&#34;
+    input_resolution: Optional[float] = None
+
+    def __init__(
+        self,
+            source_operator: RasterOperator,
+            interpolation: Literal[&#34;biLinear&#34;, &#34;nearestNeighbor&#34;] = &#34;biLinear&#34;,
+            input_resolution: Optional[float] = None
+    ):
+        &#39;&#39;&#39;Creates a new interpolation operator.&#39;&#39;&#39;
+        self.source = source_operator
+        self.interpolation = interpolation
+        self.input_resolution = input_resolution
+        if input_resolution is not None:
+            raise NotImplementedError(&#34;Custom input resolution is not yet implemented&#34;)
+
+    def name(self) -&gt; str:
+        return &#39;Interpolation&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;interpolation&#34;: self.interpolation,
+                &#34;inputResolution&#34;: {
+                    &#34;type&#34;: &#34;source&#34;
+                }
+            },
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.Interpolation.input_resolution"><code class="name">var <span class="ident">input_resolution</span> : Optional[float]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Interpolation.interpolation"><code class="name">var <span class="ident">interpolation</span> : Literal['biLinear', 'nearestNeighbor']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Interpolation.source"><code class="name">var <span class="ident">source</span> : <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.OgrSource"><code class="flex name class">
+<span>class <span class="ident">OgrSource</span></span>
+<span>(</span><span>dataset: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An OGR source operator.</p>
+<p>Creates a new OGR source operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OgrSource(VectorOperator):
+    &#39;&#39;&#39;An OGR source operator.&#39;&#39;&#39;
+    dataset: str  # TODO: should be a DataId
+    attribute_projection: Optional[str] = None
+    attribute_filters: Optional[str] = None
+
+    def __init__(self, dataset: str):
+        &#39;&#39;&#39;Creates a new OGR source operator.&#39;&#39;&#39;
+        self.dataset = dataset
+
+    def name(self) -&gt; str:
+        return &#39;OgrSource&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#39;type&#39;: self.name(),
+            &#39;params&#39;: {
+                &#34;data&#34;: {
+                    &#34;type&#34;: &#34;internal&#34;,
+                    &#34;datasetId&#34;: self.dataset,
+                },
+                &#39;attributeProjection&#39;: self.attribute_projection,
+                &#39;attributeFilters&#39;: self.attribute_filters,
+            }
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.OgrSource.attribute_filters"><code class="name">var <span class="ident">attribute_filters</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.OgrSource.attribute_projection"><code class="name">var <span class="ident">attribute_projection</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.OgrSource.dataset"><code class="name">var <span class="ident">dataset</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Operator"><code class="flex name class">
+<span>class <span class="ident">Operator</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all operators.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Operator():
+    &#39;&#39;&#39;Base class for all operators.&#39;&#39;&#39;
+
+    @abstractmethod
+    def name(self) -&gt; str:
+        &#39;&#39;&#39;Returns the name of the operator.&#39;&#39;&#39;
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Returns a dictionary representation of the operator that can be used to create a JSON request for the API.&#39;&#39;&#39;
+
+    @abstractmethod
+    def data_type(self) -&gt; Literal[&#39;Raster&#39;, &#39;Vector&#39;]:
+        &#39;&#39;&#39;Returns the type of the operator.&#39;&#39;&#39;
+
+    def to_workflow_dict(self) -&gt; Dict[str, Any]:
+        &#39;&#39;&#39;Returns a dictionary representation of a workflow that calls the operator&#34; \
+             &#34;that can be used to create a JSON request for the workflow API.&#39;&#39;&#39;
+
+        return {
+            &#39;type&#39;: self.data_type(),
+            &#39;operator&#39;: self.to_dict(),
+        }</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Reprojection" href="#geoengine.workflow_builder.operators.Reprojection">Reprojection</a></li>
+<li><a title="geoengine.workflow_builder.operators.TimeShift" href="#geoengine.workflow_builder.operators.TimeShift">TimeShift</a></li>
+<li><a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.Operator.data_type"><code class="name flex">
+<span>def <span class="ident">data_type</span></span>(<span>self) ‑> Literal['Raster', 'Vector']</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the type of the operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def data_type(self) -&gt; Literal[&#39;Raster&#39;, &#39;Vector&#39;]:
+    &#39;&#39;&#39;Returns the type of the operator.&#39;&#39;&#39;</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Operator.name"><code class="name flex">
+<span>def <span class="ident">name</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the name of the operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def name(self) -&gt; str:
+    &#39;&#39;&#39;Returns the name of the operator.&#39;&#39;&#39;</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Operator.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a dictionary representation of the operator that can be used to create a JSON request for the API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def to_dict(self) -&gt; Dict[str, Any]:
+    &#39;&#39;&#39;Returns a dictionary representation of the operator that can be used to create a JSON request for the API.&#39;&#39;&#39;</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Operator.to_workflow_dict"><code class="name flex">
+<span>def <span class="ident">to_workflow_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a dictionary representation of a workflow that calls the operator"
+"that can be used to create a JSON request for the workflow API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_workflow_dict(self) -&gt; Dict[str, Any]:
+    &#39;&#39;&#39;Returns a dictionary representation of a workflow that calls the operator&#34; \
+         &#34;that can be used to create a JSON request for the workflow API.&#39;&#39;&#39;
+
+    return {
+        &#39;type&#39;: self.data_type(),
+        &#39;operator&#39;: self.to_dict(),
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow_builder.operators.PointInPolygonFilter"><code class="flex name class">
+<span>class <span class="ident">PointInPolygonFilter</span></span>
+<span>(</span><span>point_source: <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>, polygon_source: <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A PointInPolygonFilter operator.</p>
+<p>Creates a new PointInPolygonFilter filter operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PointInPolygonFilter(VectorOperator):
+    &#39;&#39;&#39;A PointInPolygonFilter operator.&#39;&#39;&#39;
+
+    point_source: VectorOperator
+    polygon_source: VectorOperator
+
+    def __init__(self,
+                 point_source: VectorOperator,
+                 polygon_source: VectorOperator,
+                 ):
+        &#39;&#39;&#39;Creates a new PointInPolygonFilter filter operator.&#39;&#39;&#39;
+        self.point_source = point_source
+        self.polygon_source = polygon_source
+
+    def name(self) -&gt; str:
+        return &#39;PointInPolygonFilter&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {},
+            &#34;sources&#34;: {
+                &#34;points&#34;: self.point_source.to_dict(),
+                &#34;polygons&#34;: self.polygon_source.to_dict()
+            }
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.PointInPolygonFilter.point_source"><code class="name">var <span class="ident">point_source</span> : <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.PointInPolygonFilter.polygon_source"><code class="name">var <span class="ident">polygon_source</span> : <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterOperator"><code class="flex name class">
+<span>class <span class="ident">RasterOperator</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all raster operators.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterOperator(Operator):
+    &#39;&#39;&#39;Base class for all raster operators.&#39;&#39;&#39;
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass
+
+    def data_type(self) -&gt; Literal[&#39;Raster&#39;, &#39;Vector&#39;]:
+        return &#39;Raster&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.Expression" href="#geoengine.workflow_builder.operators.Expression">Expression</a></li>
+<li><a title="geoengine.workflow_builder.operators.GdalSource" href="#geoengine.workflow_builder.operators.GdalSource">GdalSource</a></li>
+<li><a title="geoengine.workflow_builder.operators.Interpolation" href="#geoengine.workflow_builder.operators.Interpolation">Interpolation</a></li>
+<li><a title="geoengine.workflow_builder.operators.RasterScaling" href="#geoengine.workflow_builder.operators.RasterScaling">RasterScaling</a></li>
+<li><a title="geoengine.workflow_builder.operators.RasterTypeConversion" href="#geoengine.workflow_builder.operators.RasterTypeConversion">RasterTypeConversion</a></li>
+<li><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation">TemporalRasterAggregation</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.Operator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterScaling"><code class="flex name class">
+<span>class <span class="ident">RasterScaling</span></span>
+<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, slope: Union[float, str, ForwardRef(None)] = None, offset: Union[float, str, ForwardRef(None)] = None, scaling_mode: Literal['mulSlopeAddOffset', 'subOffsetDivSlope'] = 'mulSlopeAddOffset', output_measurement: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A RasterScaling operator.</p>
+<p>This operator scales the values of a raster by a given slope and offset.</p>
+<p>The scaling is done as follows:
+y = (x - offset) / slope</p>
+<p>The unscale mode is the inverse of the scale mode:
+x = y * slope + offset</p>
+<p>Creates a new RasterScaling operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterScaling(RasterOperator):
+    &#39;&#39;&#39;A RasterScaling operator.
+
+    This operator scales the values of a raster by a given slope and offset.
+
+    The scaling is done as follows:
+    y = (x - offset) / slope
+
+    The unscale mode is the inverse of the scale mode:
+    x = y * slope + offset
+
+    &#39;&#39;&#39;
+
+    source: RasterOperator
+    slope: Optional[Union[float, str]] = None
+    offset: Optional[Union[float, str]] = None
+    scaling_mode: Literal[&#34;mulSlopeAddOffset&#34;, &#34;subOffsetDivSlope&#34;] = &#34;mulSlopeAddOffset&#34;
+    output_measurement: Optional[str] = None
+
+    def __init__(self,
+                 # pylint: disable=too-many-arguments
+                 source: RasterOperator,
+                 slope: Optional[Union[float, str]] = None,
+                 offset: Optional[Union[float, str]] = None,
+                 scaling_mode: Literal[&#34;mulSlopeAddOffset&#34;, &#34;subOffsetDivSlope&#34;] = &#34;mulSlopeAddOffset&#34;,
+                 output_measurement: Optional[str] = None
+                 ):
+        &#39;&#39;&#39;Creates a new RasterScaling operator.&#39;&#39;&#39;
+        self.source = source
+        self.slope = slope
+        self.offset = offset
+        self.scaling_mode = scaling_mode
+        self.output_measurement = output_measurement
+        if output_measurement is not None:
+            raise NotImplementedError(&#34;Custom output measurement is not yet implemented&#34;)
+
+    def name(self) -&gt; str:
+        return &#39;RasterScaling&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        def offset_scale_dict(key_or_value: Optional[Union[float, str]]) -&gt; Dict[str, Any]:
+            if key_or_value is None:
+                return {&#34;type&#34;: &#34;deriveFromData&#34;}
+            if isinstance(key_or_value, float):
+                return {&#34;type&#34;: &#34;constant&#34;, &#34;value&#34;: key_or_value}
+            return {&#34;type&#34;: &#34;metadataKey&#34;, &#34;key&#34;: key_or_value}
+
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;offset&#34;: offset_scale_dict(self.offset),
+                &#34;slope&#34;: offset_scale_dict(self.slope),
+                &#34;scalingMode&#34;: self.scaling_mode
+            },
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.RasterScaling.offset"><code class="name">var <span class="ident">offset</span> : Union[float, str, ForwardRef(None)]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterScaling.output_measurement"><code class="name">var <span class="ident">output_measurement</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterScaling.scaling_mode"><code class="name">var <span class="ident">scaling_mode</span> : Literal['mulSlopeAddOffset', 'subOffsetDivSlope']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterScaling.slope"><code class="name">var <span class="ident">slope</span> : Union[float, str, ForwardRef(None)]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterScaling.source"><code class="name">var <span class="ident">source</span> : <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterTypeConversion"><code class="flex name class">
+<span>class <span class="ident">RasterTypeConversion</span></span>
+<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, output_data_type: Literal['u8', 'u16', 'u32', 'u64', 'i8', 'i16', 'i32', 'i64', 'f32', 'f64'])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A RasterTypeConversion operator.</p>
+<p>Creates a new RasterTypeConversion operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterTypeConversion(RasterOperator):
+    &#39;&#39;&#39;A RasterTypeConversion operator.&#39;&#39;&#39;
+
+    source: RasterOperator
+    output_data_type: Literal[&#34;u8&#34;, &#34;u16&#34;, &#34;u32&#34;, &#34;u64&#34;, &#34;i8&#34;, &#34;i16&#34;, &#34;i32&#34;, &#34;i64&#34;, &#34;f32&#34;, &#34;f64&#34;]
+
+    def __init__(self,
+                 source: RasterOperator,
+                 output_data_type: Literal[&#34;u8&#34;, &#34;u16&#34;, &#34;u32&#34;, &#34;u64&#34;, &#34;i8&#34;, &#34;i16&#34;, &#34;i32&#34;, &#34;i64&#34;, &#34;f32&#34;, &#34;f64&#34;]
+                 ):
+        &#39;&#39;&#39;Creates a new RasterTypeConversion operator.&#39;&#39;&#39;
+        self.source = source
+        self.output_data_type = output_data_type
+
+    def name(self) -&gt; str:
+        return &#39;RasterTypeConversion&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;outputDataType&#34;: self.output_data_type
+            },
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.RasterTypeConversion.output_data_type"><code class="name">var <span class="ident">output_data_type</span> : Literal['u8', 'u16', 'u32', 'u64', 'i8', 'i16', 'i32', 'i64', 'f32', 'f64']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterTypeConversion.source"><code class="name">var <span class="ident">source</span> : <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterVectorJoin"><code class="flex name class">
+<span>class <span class="ident">RasterVectorJoin</span></span>
+<span>(</span><span>raster_sources: List[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>], vector_source: <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>, new_column_names: List[str], temporal_aggregation: Literal['none', 'first', 'mean'] = 'none', feature_aggregation: Literal['first', 'mean'] = 'mean')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A RasterVectorJoin operator.</p>
+<p>Creates a new RasterVectorJoin operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterVectorJoin(VectorOperator):
+    &#39;&#39;&#39;A RasterVectorJoin operator.&#39;&#39;&#39;
+    raster_sources: List[RasterOperator]
+    vector_source: VectorOperator
+    new_column_names: List[str]
+    temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;
+    feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 raster_sources: List[RasterOperator],
+                 vector_source: VectorOperator,
+                 new_column_names: List[str],
+                 temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;,
+                 feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
+                 ):
+        &#39;&#39;&#39;Creates a new RasterVectorJoin operator.&#39;&#39;&#39;
+        self.raster_source = raster_sources
+        self.vector_source = vector_source
+        self.new_column_names = new_column_names
+        self.temporal_aggregation = temporal_aggregation
+        self.feature_aggregation = feature_aggregation
+        assert (len(self.raster_source) == len(self.new_column_names))
+
+    def name(self) -&gt; str:
+        return &#39;RasterVectorJoin&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;names&#34;: self.new_column_names,
+                &#34;temporalAggregation&#34;: self.temporal_aggregation,
+                &#34;featureAggregation&#34;: self.feature_aggregation,
+            },
+            &#34;sources&#34;: {
+                &#34;vector&#34;: self.vector_source.to_dict(),
+                &#34;rasters&#34;: [raster_source.to_dict() for raster_source in self.raster_source]
+            }
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation"><code class="name">var <span class="ident">feature_aggregation</span> : Literal['first', 'mean']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.new_column_names"><code class="name">var <span class="ident">new_column_names</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.raster_sources"><code class="name">var <span class="ident">raster_sources</span> : List[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation"><code class="name">var <span class="ident">temporal_aggregation</span> : Literal['none', 'first', 'mean']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.vector_source"><code class="name">var <span class="ident">vector_source</span> : <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Reprojection"><code class="flex name class">
+<span>class <span class="ident">Reprojection</span></span>
+<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a>, target_spatial_reference: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A Reprojection operator.</p>
+<p>Creates a new Reprojection operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Reprojection(Operator):
+    &#39;&#39;&#39;A Reprojection operator.&#39;&#39;&#39;
+    source: Operator
+    target_spatial_reference: str
+
+    def __init__(self,
+                 source: Operator,
+                 target_spatial_reference: str
+                 ):
+        &#39;&#39;&#39;Creates a new Reprojection operator.&#39;&#39;&#39;
+        self.source = source
+        self.target_spatial_reference = target_spatial_reference
+
+    def data_type(self) -&gt; Literal[&#39;Raster&#39;, &#39;Vector&#39;]:
+        return self.source.data_type()
+
+    def name(self) -&gt; str:
+        return &#39;Reprojection&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;targetSpatialReference&#34;: self.target_spatial_reference
+            },
+            &#34;sources&#34;: {
+                &#34;source&#34;: self.source.to_dict()
+            }
+        }
+
+    def as_vector(self) -&gt; VectorOperator:
+        &#39;&#39;&#39;Casts this operator to a VectorOperator.&#39;&#39;&#39;
+        if self.data_type() != &#39;Vector&#39;:
+            raise TypeError(&#34;Cannot cast to VectorOperator&#34;)
+        return cast(VectorOperator, self)
+
+    def as_raster(self) -&gt; RasterOperator:
+        &#39;&#39;&#39;Casts this operator to a RasterOperator.&#39;&#39;&#39;
+        if self.data_type() != &#39;Raster&#39;:
+            raise TypeError(&#34;Cannot cast to RasterOperator&#34;)
+        return cast(RasterOperator, self)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.Reprojection.source"><code class="name">var <span class="ident">source</span> : <a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Reprojection.target_spatial_reference"><code class="name">var <span class="ident">target_spatial_reference</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.Reprojection.as_raster"><code class="name flex">
+<span>def <span class="ident">as_raster</span></span>(<span>self) ‑> <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Casts this operator to a RasterOperator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def as_raster(self) -&gt; RasterOperator:
+    &#39;&#39;&#39;Casts this operator to a RasterOperator.&#39;&#39;&#39;
+    if self.data_type() != &#39;Raster&#39;:
+        raise TypeError(&#34;Cannot cast to RasterOperator&#34;)
+    return cast(RasterOperator, self)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Reprojection.as_vector"><code class="name flex">
+<span>def <span class="ident">as_vector</span></span>(<span>self) ‑> <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Casts this operator to a VectorOperator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def as_vector(self) -&gt; VectorOperator:
+    &#39;&#39;&#39;Casts this operator to a VectorOperator.&#39;&#39;&#39;
+    if self.data_type() != &#39;Vector&#39;:
+        raise TypeError(&#34;Cannot cast to VectorOperator&#34;)
+    return cast(VectorOperator, self)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.Operator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation"><code class="flex name class">
+<span>class <span class="ident">TemporalRasterAggregation</span></span>
+<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, aggregation_type: Literal['mean', 'min', 'max', 'median', 'count', 'sum', 'first', 'last'], ignore_no_data: bool = False, granularity: Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis'] = 'days', window_size: int = 1, output_type: Optional[Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A TemporalRasterAggregation operator.</p>
+<p>Creates a new TemporalRasterAggregation operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TemporalRasterAggregation(RasterOperator):
+    &#39;&#39;&#39;A TemporalRasterAggregation operator.&#39;&#39;&#39;
+
+    source: RasterOperator
+    aggregation_type: Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;]
+    ignore_no_data: bool = False
+    window_granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;] = &#34;days&#34;
+    window_size: int = 1
+    output_type: Optional[Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]] = None
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 source: RasterOperator,
+                 aggregation_type: Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;],
+                 ignore_no_data: bool = False,
+                 granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;] = &#34;days&#34;,
+                 window_size: int = 1,
+                 output_type:
+                 Optional[Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]] = None,
+                 ):
+        &#39;&#39;&#39;Creates a new TemporalRasterAggregation operator.&#39;&#39;&#39;
+        self.source = source
+        self.aggregation_type = aggregation_type
+        self.ignore_no_data = ignore_no_data
+        self.window_granularity = granularity
+        self.window_size = window_size
+        self.output_type = output_type
+        # todo: add window reference
+
+    def name(self) -&gt; str:
+        return &#39;TemporalRasterAggregation&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;aggregation&#34;: {
+                    &#34;type&#34;: self.aggregation_type,
+                    &#34;ignoreNoData&#34;: self.ignore_no_data,
+                },
+                &#34;window&#34;: {
+                    &#34;granularity&#34;: self.window_granularity,
+                    &#34;step&#34;: self.window_size
+                },
+                &#34;outputType&#34;: self.output_type
+            },
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.aggregation_type"><code class="name">var <span class="ident">aggregation_type</span> : Literal['mean', 'min', 'max', 'median', 'count', 'sum', 'first', 'last']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.ignore_no_data"><code class="name">var <span class="ident">ignore_no_data</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.output_type"><code class="name">var <span class="ident">output_type</span> : Optional[Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.source"><code class="name">var <span class="ident">source</span> : <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.window_granularity"><code class="name">var <span class="ident">window_granularity</span> : Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.window_size"><code class="name">var <span class="ident">window_size</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TimeShift"><code class="flex name class">
+<span>class <span class="ident">TimeShift</span></span>
+<span>(</span><span>source: Union[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>], shift_type: Literal['relative', 'absolute'], granularity: Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis'], value: int)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A RasterTypeConversion operator.</p>
+<p>Creates a new RasterTypeConversion operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TimeShift(Operator):
+    &#39;&#39;&#39;A RasterTypeConversion operator.&#39;&#39;&#39;
+
+    source: Union[RasterOperator, VectorOperator]
+    shift_type: Literal[&#34;relative&#34;, &#34;absolute&#34;]
+    granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;]
+    value: int
+
+    def __init__(self,
+                 source: Union[RasterOperator, VectorOperator],
+                 shift_type: Literal[&#34;relative&#34;, &#34;absolute&#34;],
+                 granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;],
+                 value: int,
+                 ):
+        &#39;&#39;&#39;Creates a new RasterTypeConversion operator.&#39;&#39;&#39;
+        if shift_type == &#39;absolute&#39;:
+            raise NotImplementedError(&#34;Absolute time shifts are not supported yet&#34;)
+        self.source = source
+        self.shift_type = shift_type
+        self.granularity = granularity
+        self.value = value
+
+    def name(self) -&gt; str:
+        return &#39;TimeShift&#39;
+
+    def data_type(self) -&gt; Literal[&#39;Vector&#39;, &#39;Raster&#39;]:
+        return self.source.data_type()
+
+    def as_vector(self) -&gt; VectorOperator:
+        &#39;&#39;&#39;Casts this operator to a VectorOperator.&#39;&#39;&#39;
+        if self.data_type() != &#39;Vector&#39;:
+            raise TypeError(&#34;Cannot cast to VectorOperator&#34;)
+        return cast(VectorOperator, self)
+
+    def as_raster(self) -&gt; RasterOperator:
+        &#39;&#39;&#39;Casts this operator to a RasterOperator.&#39;&#39;&#39;
+        if self.data_type() != &#39;Raster&#39;:
+            raise TypeError(&#34;Cannot cast to RasterOperator&#34;)
+        return cast(RasterOperator, self)
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;type&#34;: self.shift_type,
+                &#34;granularity&#34;: self.granularity,
+                &#34;value&#34;: self.value
+            },
+            &#34;sources&#34;: {
+                &#34;source&#34;: self.source.to_dict()
+            }
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.TimeShift.granularity"><code class="name">var <span class="ident">granularity</span> : Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TimeShift.shift_type"><code class="name">var <span class="ident">shift_type</span> : Literal['relative', 'absolute']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TimeShift.source"><code class="name">var <span class="ident">source</span> : Union[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TimeShift.value"><code class="name">var <span class="ident">value</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.TimeShift.as_raster"><code class="name flex">
+<span>def <span class="ident">as_raster</span></span>(<span>self) ‑> <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Casts this operator to a RasterOperator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def as_raster(self) -&gt; RasterOperator:
+    &#39;&#39;&#39;Casts this operator to a RasterOperator.&#39;&#39;&#39;
+    if self.data_type() != &#39;Raster&#39;:
+        raise TypeError(&#34;Cannot cast to RasterOperator&#34;)
+    return cast(RasterOperator, self)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TimeShift.as_vector"><code class="name flex">
+<span>def <span class="ident">as_vector</span></span>(<span>self) ‑> <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Casts this operator to a VectorOperator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def as_vector(self) -&gt; VectorOperator:
+    &#39;&#39;&#39;Casts this operator to a VectorOperator.&#39;&#39;&#39;
+    if self.data_type() != &#39;Vector&#39;:
+        raise TypeError(&#34;Cannot cast to VectorOperator&#34;)
+    return cast(VectorOperator, self)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.Operator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.VectorOperator"><code class="flex name class">
+<span>class <span class="ident">VectorOperator</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for all vector operators.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VectorOperator(Operator):
+    &#39;&#39;&#39;Base class for all vector operators.&#39;&#39;&#39;
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass
+
+    def data_type(self) -&gt; Literal[&#39;Raster&#39;, &#39;Vector&#39;]:
+        return &#39;Vector&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.OgrSource" href="#geoengine.workflow_builder.operators.OgrSource">OgrSource</a></li>
+<li><a title="geoengine.workflow_builder.operators.PointInPolygonFilter" href="#geoengine.workflow_builder.operators.PointInPolygonFilter">PointInPolygonFilter</a></li>
+<li><a title="geoengine.workflow_builder.operators.RasterVectorJoin" href="#geoengine.workflow_builder.operators.RasterVectorJoin">RasterVectorJoin</a></li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.Operator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="geoengine.workflow_builder" href="index.html">geoengine.workflow_builder</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.Expression" href="#geoengine.workflow_builder.operators.Expression">Expression</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.Expression.expression" href="#geoengine.workflow_builder.operators.Expression.expression">expression</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Expression.map_no_data" href="#geoengine.workflow_builder.operators.Expression.map_no_data">map_no_data</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Expression.output_type" href="#geoengine.workflow_builder.operators.Expression.output_type">output_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Expression.sources" href="#geoengine.workflow_builder.operators.Expression.sources">sources</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.GdalSource" href="#geoengine.workflow_builder.operators.GdalSource">GdalSource</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.GdalSource.dataset" href="#geoengine.workflow_builder.operators.GdalSource.dataset">dataset</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.Interpolation" href="#geoengine.workflow_builder.operators.Interpolation">Interpolation</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.Interpolation.input_resolution" href="#geoengine.workflow_builder.operators.Interpolation.input_resolution">input_resolution</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Interpolation.interpolation" href="#geoengine.workflow_builder.operators.Interpolation.interpolation">interpolation</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Interpolation.source" href="#geoengine.workflow_builder.operators.Interpolation.source">source</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.OgrSource" href="#geoengine.workflow_builder.operators.OgrSource">OgrSource</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.OgrSource.attribute_filters" href="#geoengine.workflow_builder.operators.OgrSource.attribute_filters">attribute_filters</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.OgrSource.attribute_projection" href="#geoengine.workflow_builder.operators.OgrSource.attribute_projection">attribute_projection</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.OgrSource.dataset" href="#geoengine.workflow_builder.operators.OgrSource.dataset">dataset</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.Operator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Operator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.PointInPolygonFilter" href="#geoengine.workflow_builder.operators.PointInPolygonFilter">PointInPolygonFilter</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.PointInPolygonFilter.point_source" href="#geoengine.workflow_builder.operators.PointInPolygonFilter.point_source">point_source</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.PointInPolygonFilter.polygon_source" href="#geoengine.workflow_builder.operators.PointInPolygonFilter.polygon_source">polygon_source</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></code></h4>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.RasterScaling" href="#geoengine.workflow_builder.operators.RasterScaling">RasterScaling</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.RasterScaling.offset" href="#geoengine.workflow_builder.operators.RasterScaling.offset">offset</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterScaling.output_measurement" href="#geoengine.workflow_builder.operators.RasterScaling.output_measurement">output_measurement</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterScaling.scaling_mode" href="#geoengine.workflow_builder.operators.RasterScaling.scaling_mode">scaling_mode</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterScaling.slope" href="#geoengine.workflow_builder.operators.RasterScaling.slope">slope</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterScaling.source" href="#geoengine.workflow_builder.operators.RasterScaling.source">source</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.RasterTypeConversion" href="#geoengine.workflow_builder.operators.RasterTypeConversion">RasterTypeConversion</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.RasterTypeConversion.output_data_type" href="#geoengine.workflow_builder.operators.RasterTypeConversion.output_data_type">output_data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterTypeConversion.source" href="#geoengine.workflow_builder.operators.RasterTypeConversion.source">source</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin" href="#geoengine.workflow_builder.operators.RasterVectorJoin">RasterVectorJoin</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation" href="#geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation">feature_aggregation</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.new_column_names" href="#geoengine.workflow_builder.operators.RasterVectorJoin.new_column_names">new_column_names</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.raster_sources" href="#geoengine.workflow_builder.operators.RasterVectorJoin.raster_sources">raster_sources</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation" href="#geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation">temporal_aggregation</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.vector_source" href="#geoengine.workflow_builder.operators.RasterVectorJoin.vector_source">vector_source</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.Reprojection" href="#geoengine.workflow_builder.operators.Reprojection">Reprojection</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.Reprojection.as_raster" href="#geoengine.workflow_builder.operators.Reprojection.as_raster">as_raster</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Reprojection.as_vector" href="#geoengine.workflow_builder.operators.Reprojection.as_vector">as_vector</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Reprojection.source" href="#geoengine.workflow_builder.operators.Reprojection.source">source</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Reprojection.target_spatial_reference" href="#geoengine.workflow_builder.operators.Reprojection.target_spatial_reference">target_spatial_reference</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation">TemporalRasterAggregation</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.aggregation_type" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.aggregation_type">aggregation_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.ignore_no_data" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.ignore_no_data">ignore_no_data</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.output_type" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.output_type">output_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.source" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.source">source</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.window_granularity" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.window_granularity">window_granularity</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.window_size" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.window_size">window_size</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.TimeShift" href="#geoengine.workflow_builder.operators.TimeShift">TimeShift</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.workflow_builder.operators.TimeShift.as_raster" href="#geoengine.workflow_builder.operators.TimeShift.as_raster">as_raster</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TimeShift.as_vector" href="#geoengine.workflow_builder.operators.TimeShift.as_vector">as_vector</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TimeShift.granularity" href="#geoengine.workflow_builder.operators.TimeShift.granularity">granularity</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TimeShift.shift_type" href="#geoengine.workflow_builder.operators.TimeShift.shift_type">shift_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TimeShift.source" href="#geoengine.workflow_builder.operators.TimeShift.source">source</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TimeShift.value" href="#geoengine.workflow_builder.operators.TimeShift.value">value</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

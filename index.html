@@ -54,6 +54,8 @@ from .types import QueryRectangle,  \
 
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow, get_quota, update_quota
 
+from . import workflow_builder
+
 
 DEFAULT_USER_AGENT = f&#39;geoengine-python/{get_distribution(&#34;geoengine&#34;).version}&#39;
 
@@ -112,6 +114,10 @@ utils.default_user_agent = default_user_agent</code></pre>
 <dd>
 <div class="desc"><p>A workflow representation and methods on workflows</p></div>
 </dd>
+<dt><code class="name"><a title="geoengine.workflow_builder" href="workflow_builder/index.html">geoengine.workflow_builder</a></code></dt>
+<dd>
+<div class="desc"><p>Entry point for workflow building blocks for the Geo Engine API</p></div>
+</dd>
 </dl>
 </section>
 <section>
@@ -156,6 +162,7 @@ utils.default_user_agent = default_user_agent</code></pre>
 <li><code><a title="geoengine.tasks" href="tasks.html">geoengine.tasks</a></code></li>
 <li><code><a title="geoengine.types" href="types.html">geoengine.types</a></code></li>
 <li><code><a title="geoengine.workflow" href="workflow.html">geoengine.workflow</a></code></li>
+<li><code><a title="geoengine.workflow_builder" href="workflow_builder/index.html">geoengine.workflow_builder</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
