@@ -331,8 +331,8 @@ class UploadId:
 
 class DatasetProperties():
     '''The properties of a dataset'''
-    id: Optional[DatasetId]
-    name: str
+    name: Optional[str]
+    display_name: str
     description: str
     source_operator: Literal['GdalSource', 'OgrSource']  # TODO: add more operators
     symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
@@ -341,16 +341,16 @@ class DatasetProperties():
     def __init__(
         # pylint: disable=too-many-arguments
         self,
-        name: str,
+        display_name: str,
         description: str,
         source_operator: Literal['GdalSource', 'OgrSource'] = "GdalSource",
         symbology: Optional[RasterSymbology] = None,
         provenance: Optional[List[Provenance]] = None,
-        dataset_id: Optional[DatasetId] = None
+        name: Optional[str] = None
     ):
         '''Creates a new `AddDatasetProperties` object'''
-        self.dataset_id = dataset_id
         self.name = name
+        self.display_name = display_name
         self.description = description
         self.source_operator = source_operator
         self.symbology = symbology
@@ -359,8 +359,8 @@ class DatasetProperties():
     def to_api_dict(self) -> api.DatasetProperties:
         '''Converts the properties to a dictionary'''
         return {
-            'id': str(self.dataset_id) if self.dataset_id is not None else None,
-            'name': self.name,
+            'name': str(self.name) if self.name is not None else None,
+            'displayName': self.display_name,
             'description': self.description,
             'sourceOperator': self.source_operator,
             'symbology': self.symbology.to_api_dict() if self.symbology is not None else None,
@@ -469,7 +469,7 @@ def upload_dataframe(
         }),
         'definition': api.DatasetDefinition({
             'properties': DatasetProperties(
-                name=name,
+                display_name=name,
                 description='Upload from Python',
                 source_operator='OgrSource',
             ).to_api_dict(),
