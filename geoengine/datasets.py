@@ -565,7 +565,9 @@ def volumes(timeout: int = 60) -> List[Volume]:
     return [Volume.from_response(v) for v in response]
 
 
-def add_dataset(data_store: Union[Volume, UploadId], properties: AddDatasetProperties, meta_data: api.MetaDataDefinition,
+def add_dataset(data_store: Union[Volume, UploadId],
+                properties: AddDatasetProperties,
+                meta_data: api.MetaDataDefinition,
                 timeout: int = 60) -> DatasetId:
     '''Adds a dataset to the Geo Engine'''
     dataset_path: api.DatasetStorage
