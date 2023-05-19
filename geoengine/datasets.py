@@ -329,8 +329,8 @@ class UploadId:
         }
 
 
-class DatasetProperties():
-    '''The properties of a dataset'''
+class AddDatasetProperties():
+    '''The properties for adding a dataset'''
     name: Optional[str]
     display_name: str
     description: str
@@ -356,7 +356,7 @@ class DatasetProperties():
         self.symbology = symbology
         self.provenance = provenance
 
-    def to_api_dict(self) -> api.DatasetProperties:
+    def to_api_dict(self) -> api.AddDatasetProperties:
         '''Converts the properties to a dictionary'''
         return {
             'name': str(self.name) if self.name is not None else None,
@@ -468,7 +468,7 @@ def upload_dataframe(
             'upload': str(upload_id)
         }),
         'definition': api.DatasetDefinition({
-            'properties': DatasetProperties(
+            'properties': AddDatasetProperties(
                 display_name=name,
                 description='Upload from Python',
                 source_operator='OgrSource',
@@ -565,7 +565,7 @@ def volumes(timeout: int = 60) -> List[Volume]:
     return [Volume.from_response(v) for v in response]
 
 
-def add_dataset(data_store: Union[Volume, UploadId], properties: DatasetProperties, meta_data: api.MetaDataDefinition,
+def add_dataset(data_store: Union[Volume, UploadId], properties: AddDatasetProperties, meta_data: api.MetaDataDefinition,
                 timeout: int = 60) -> DatasetId:
     '''Adds a dataset to the Geo Engine'''
     dataset_path: api.DatasetStorage

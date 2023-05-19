@@ -501,7 +501,7 @@ class OgrMetadata(MetaDataDefinition):  # pylint: disable=too-few-public-methods
     resultDescriptor: VectorResultDescriptor
 
 
-class DatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
+class AddDatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
     '''The properties of a dataset'''
     name: Optional[str]
     displayName: str
@@ -527,7 +527,7 @@ class DatasetVolume(DatasetStorage):
 
 class DatasetDefinition(TypedDict):
     '''The definition of a dataset'''
-    properties: DatasetProperties
+    properties: AddDatasetProperties
     metaData: MetaDataDefinition
 
 
