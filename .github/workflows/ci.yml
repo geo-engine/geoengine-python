@@ -1,10 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches: [main, trying, staging]
   pull_request:
-    branches: [main, trying, staging]
+  merge_group:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
