@@ -530,10 +530,10 @@ class OgrMetadata(MetaDataDefinition):  # pylint: disable=too-few-public-methods
     resultDescriptor: VectorResultDescriptor
 
 
-class DatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
+class AddDatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
     &#39;&#39;&#39;The properties of a dataset&#39;&#39;&#39;
-    id: Optional[str]
-    name: str
+    name: Optional[str]
+    displayName: str
     description: str
     sourceOperator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
     symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
@@ -556,7 +556,7 @@ class DatasetVolume(DatasetStorage):
 
 class DatasetDefinition(TypedDict):
     &#39;&#39;&#39;The definition of a dataset&#39;&#39;&#39;
-    properties: DatasetProperties
+    properties: AddDatasetProperties
     metaData: MetaDataDefinition
 
 
@@ -610,6 +610,57 @@ class AddRoleRequest(TypedDict):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="geoengine.api.AddDatasetProperties"><code class="flex name class">
+<span>class <span class="ident">AddDatasetProperties</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The properties of a dataset</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AddDatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;The properties of a dataset&#39;&#39;&#39;
+    name: Optional[str]
+    displayName: str
+    description: str
+    sourceOperator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
+    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
+    provenance: Optional[List[Provenance]]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.AddDatasetProperties.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.AddDatasetProperties.displayName"><code class="name">var <span class="ident">displayName</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.AddDatasetProperties.name"><code class="name">var <span class="ident">name</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.AddDatasetProperties.provenance"><code class="name">var <span class="ident">provenance</span> : Optional[List[<a title="geoengine.api.Provenance" href="#geoengine.api.Provenance">Provenance</a>]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.AddDatasetProperties.sourceOperator"><code class="name">var <span class="ident">sourceOperator</span> : typing_extensions.Literal['GdalSource', 'OgrSource']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.AddDatasetProperties.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[<a title="geoengine.api.RasterSymbology" href="#geoengine.api.RasterSymbology">RasterSymbology</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.api.AddRoleRequest"><code class="flex name class">
 <span>class <span class="ident">AddRoleRequest</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -696,7 +747,7 @@ class AddRoleRequest(TypedDict):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.ClassificationMeasurement.type"><code class="name">var <span class="ident">type</span> : Literal['continuous', 'classification', 'unitless']</code></dt>
+<dt id="geoengine.api.ClassificationMeasurement.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['continuous', 'classification', 'unitless']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -727,7 +778,7 @@ class AddRoleRequest(TypedDict):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.Colorizer.type"><code class="name">var <span class="ident">type</span> : Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
+<dt id="geoengine.api.Colorizer.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -789,7 +840,7 @@ class AddRoleRequest(TypedDict):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.ContinuousMeasurement.type"><code class="name">var <span class="ident">type</span> : Literal['continuous', 'classification', 'unitless']</code></dt>
+<dt id="geoengine.api.ContinuousMeasurement.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['continuous', 'classification', 'unitless']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -885,7 +936,7 @@ class AddRoleRequest(TypedDict):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.CustomOgrSourceTimeFormat.format"><code class="name">var <span class="ident">format</span> : Literal['unixTimeStamp', 'custom', 'auto']</code></dt>
+<dt id="geoengine.api.CustomOgrSourceTimeFormat.format"><code class="name">var <span class="ident">format</span> : typing_extensions.Literal['unixTimeStamp', 'custom', 'auto']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -911,7 +962,7 @@ class AddRoleRequest(TypedDict):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.DataId.type"><code class="name">var <span class="ident">type</span> : Literal['internal', 'external']</code></dt>
+<dt id="geoengine.api.DataId.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['internal', 'external']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -929,7 +980,7 @@ class AddRoleRequest(TypedDict):
 </summary>
 <pre><code class="python">class DatasetDefinition(TypedDict):
     &#39;&#39;&#39;The definition of a dataset&#39;&#39;&#39;
-    properties: DatasetProperties
+    properties: AddDatasetProperties
     metaData: MetaDataDefinition</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -942,7 +993,7 @@ class AddRoleRequest(TypedDict):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.DatasetDefinition.properties"><code class="name">var <span class="ident">properties</span> : <a title="geoengine.api.DatasetProperties" href="#geoengine.api.DatasetProperties">DatasetProperties</a></code></dt>
+<dt id="geoengine.api.DatasetDefinition.properties"><code class="name">var <span class="ident">properties</span> : <a title="geoengine.api.AddDatasetProperties" href="#geoengine.api.AddDatasetProperties">AddDatasetProperties</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -995,57 +1046,6 @@ class AddRoleRequest(TypedDict):
 <h3>Class variables</h3>
 <dl>
 <dt id="geoengine.api.DatasetPath.upload"><code class="name">var <span class="ident">upload</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
-<dt id="geoengine.api.DatasetProperties"><code class="flex name class">
-<span>class <span class="ident">DatasetProperties</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>The properties of a dataset</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
-    &#39;&#39;&#39;The properties of a dataset&#39;&#39;&#39;
-    id: Optional[str]
-    name: str
-    description: str
-    sourceOperator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
-    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
-    provenance: Optional[List[Provenance]]</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.dict</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="geoengine.api.DatasetProperties.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.api.DatasetProperties.id"><code class="name">var <span class="ident">id</span> : Optional[str]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.api.DatasetProperties.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.api.DatasetProperties.provenance"><code class="name">var <span class="ident">provenance</span> : Optional[List[<a title="geoengine.api.Provenance" href="#geoengine.api.Provenance">Provenance</a>]]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.api.DatasetProperties.sourceOperator"><code class="name">var <span class="ident">sourceOperator</span> : Literal['GdalSource', 'OgrSource']</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.api.DatasetProperties.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[<a title="geoengine.api.RasterSymbology" href="#geoengine.api.RasterSymbology">RasterSymbology</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1124,7 +1124,7 @@ class AddRoleRequest(TypedDict):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.ExternalDataId.type"><code class="name">var <span class="ident">type</span> : Literal['internal', 'external']</code></dt>
+<dt id="geoengine.api.ExternalDataId.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['internal', 'external']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1396,7 +1396,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.GdalMetaDataList.type"><code class="name">var <span class="ident">type</span> : Literal['<a title="geoengine.api.GdalMetaDataList" href="#geoengine.api.GdalMetaDataList">GdalMetaDataList</a>']</code></dt>
+<dt id="geoengine.api.GdalMetaDataList.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['<a title="geoengine.api.GdalMetaDataList" href="#geoengine.api.GdalMetaDataList">GdalMetaDataList</a>']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1447,7 +1447,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.GdalMetaDataRegular.type"><code class="name">var <span class="ident">type</span> : Literal['<a title="geoengine.api.GdalMetaDataRegular" href="#geoengine.api.GdalMetaDataRegular">GdalMetaDataRegular</a>']</code></dt>
+<dt id="geoengine.api.GdalMetaDataRegular.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['<a title="geoengine.api.GdalMetaDataRegular" href="#geoengine.api.GdalMetaDataRegular">GdalMetaDataRegular</a>']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1488,7 +1488,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.GdalMetaDataStatic.type"><code class="name">var <span class="ident">type</span> : Literal['GdalStatic']</code></dt>
+<dt id="geoengine.api.GdalMetaDataStatic.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['GdalStatic']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1581,7 +1581,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.GdalMetadataNetCdfCf.type"><code class="name">var <span class="ident">type</span> : Literal['<a title="geoengine.api.GdalMetadataNetCdfCf" href="#geoengine.api.GdalMetadataNetCdfCf">GdalMetadataNetCdfCf</a>']</code></dt>
+<dt id="geoengine.api.GdalMetadataNetCdfCf.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['<a title="geoengine.api.GdalMetadataNetCdfCf" href="#geoengine.api.GdalMetadataNetCdfCf">GdalMetadataNetCdfCf</a>']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1711,7 +1711,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.InternalDataId.type"><code class="name">var <span class="ident">type</span> : Literal['internal', 'external']</code></dt>
+<dt id="geoengine.api.InternalDataId.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['internal', 'external']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1974,7 +1974,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.LinearGradientColorizer.type"><code class="name">var <span class="ident">type</span> : Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
+<dt id="geoengine.api.LinearGradientColorizer.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2018,7 +2018,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.LogarithmicGradientColorizer.type"><code class="name">var <span class="ident">type</span> : Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
+<dt id="geoengine.api.LogarithmicGradientColorizer.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2048,7 +2048,7 @@ dict(one=1, two=2)</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.Measurement.type"><code class="name">var <span class="ident">type</span> : Literal['continuous', 'classification', 'unitless']</code></dt>
+<dt id="geoengine.api.Measurement.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['continuous', 'classification', 'unitless']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2199,7 +2199,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.OgrMetadata.type"><code class="name">var <span class="ident">type</span> : Literal['OgrMetaData']</code></dt>
+<dt id="geoengine.api.OgrMetadata.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['OgrMetaData']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2256,7 +2256,7 @@ dict(one=1, two=2)</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.OgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
+<dt id="geoengine.api.OgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2282,7 +2282,7 @@ dict(one=1, two=2)</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.OgrSourceDurationSpec.type"><code class="name">var <span class="ident">type</span> : Literal['zero', 'value', 'infinite']</code></dt>
+<dt id="geoengine.api.OgrSourceDurationSpec.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['zero', 'value', 'infinite']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2308,7 +2308,7 @@ dict(one=1, two=2)</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.OgrSourceTimeFormat.format"><code class="name">var <span class="ident">format</span> : Literal['unixTimeStamp', 'custom', 'auto']</code></dt>
+<dt id="geoengine.api.OgrSourceTimeFormat.format"><code class="name">var <span class="ident">format</span> : typing_extensions.Literal['unixTimeStamp', 'custom', 'auto']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2347,7 +2347,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.PaletteColorizer.type"><code class="name">var <span class="ident">type</span> : Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
+<dt id="geoengine.api.PaletteColorizer.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['linearGradient', 'palette', 'logarithmicGradient']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2481,7 +2481,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.PlotResultDescriptor.dataType"><code class="name">var <span class="ident">dataType</span> : Literal['Plot']</code></dt>
+<dt id="geoengine.api.PlotResultDescriptor.dataType"><code class="name">var <span class="ident">dataType</span> : typing_extensions.Literal['Plot']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2497,7 +2497,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.PlotResultDescriptor.type"><code class="name">var <span class="ident">type</span> : Literal['raster', 'vector', 'plot']</code></dt>
+<dt id="geoengine.api.PlotResultDescriptor.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['raster', 'vector', 'plot']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2755,7 +2755,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.RasterResultDescriptor.dataType"><code class="name">var <span class="ident">dataType</span> : Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']</code></dt>
+<dt id="geoengine.api.RasterResultDescriptor.dataType"><code class="name">var <span class="ident">dataType</span> : typing_extensions.Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2775,7 +2775,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.RasterResultDescriptor.type"><code class="name">var <span class="ident">type</span> : Literal['raster', 'vector', 'plot']</code></dt>
+<dt id="geoengine.api.RasterResultDescriptor.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['raster', 'vector', 'plot']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2810,7 +2810,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.RasterSymbology.type"><code class="name">var <span class="ident">type</span> : Literal['vector', 'raster']</code></dt>
+<dt id="geoengine.api.RasterSymbology.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['vector', 'raster']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2841,7 +2841,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.ResourceId.type"><code class="name">var <span class="ident">type</span> : Literal['<a title="geoengine.api.DatasetId" href="#geoengine.api.DatasetId">DatasetId</a>', 'Layer', 'LayerCollection', 'Project']</code></dt>
+<dt id="geoengine.api.ResourceId.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['<a title="geoengine.api.DatasetId" href="#geoengine.api.DatasetId">DatasetId</a>', 'Layer', 'LayerCollection', 'Project']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2878,7 +2878,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.ResultDescriptor.type"><code class="name">var <span class="ident">type</span> : Literal['raster', 'vector', 'plot']</code></dt>
+<dt id="geoengine.api.ResultDescriptor.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['raster', 'vector', 'plot']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2980,7 +2980,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.StartDurationOgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
+<dt id="geoengine.api.StartDurationOgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3025,7 +3025,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.StartEndOgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
+<dt id="geoengine.api.StartEndOgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3065,7 +3065,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.StartOgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
+<dt id="geoengine.api.StartOgrSourceDatasetTimeType.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['start', 'start+end', 'start+duration', 'none']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3122,7 +3122,7 @@ dict(one=1, two=2)</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.Symbology.type"><code class="name">var <span class="ident">type</span> : Literal['vector', 'raster']</code></dt>
+<dt id="geoengine.api.Symbology.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['vector', 'raster']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3298,7 +3298,7 @@ dict(one=1, two=2)</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.UnixTimeStampOgrSourceTimeFormat.format"><code class="name">var <span class="ident">format</span> : Literal['unixTimeStamp', 'custom', 'auto']</code></dt>
+<dt id="geoengine.api.UnixTimeStampOgrSourceTimeFormat.format"><code class="name">var <span class="ident">format</span> : typing_extensions.Literal['unixTimeStamp', 'custom', 'auto']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3420,7 +3420,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.ValueOgrSourceDurationSpec.type"><code class="name">var <span class="ident">type</span> : Literal['zero', 'value', 'infinite']</code></dt>
+<dt id="geoengine.api.ValueOgrSourceDurationSpec.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['zero', 'value', 'infinite']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3581,7 +3581,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.VectorResultDescriptor.type"><code class="name">var <span class="ident">type</span> : Literal['raster', 'vector', 'plot']</code></dt>
+<dt id="geoengine.api.VectorResultDescriptor.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['raster', 'vector', 'plot']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3687,6 +3687,17 @@ dict(one=1, two=2)</p></div>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="geoengine.api.AddDatasetProperties" href="#geoengine.api.AddDatasetProperties">AddDatasetProperties</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.AddDatasetProperties.description" href="#geoengine.api.AddDatasetProperties.description">description</a></code></li>
+<li><code><a title="geoengine.api.AddDatasetProperties.displayName" href="#geoengine.api.AddDatasetProperties.displayName">displayName</a></code></li>
+<li><code><a title="geoengine.api.AddDatasetProperties.name" href="#geoengine.api.AddDatasetProperties.name">name</a></code></li>
+<li><code><a title="geoengine.api.AddDatasetProperties.provenance" href="#geoengine.api.AddDatasetProperties.provenance">provenance</a></code></li>
+<li><code><a title="geoengine.api.AddDatasetProperties.sourceOperator" href="#geoengine.api.AddDatasetProperties.sourceOperator">sourceOperator</a></code></li>
+<li><code><a title="geoengine.api.AddDatasetProperties.symbology" href="#geoengine.api.AddDatasetProperties.symbology">symbology</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.api.AddRoleRequest" href="#geoengine.api.AddRoleRequest">AddRoleRequest</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.api.AddRoleRequest.name" href="#geoengine.api.AddRoleRequest.name">name</a></code></li>
@@ -3773,17 +3784,6 @@ dict(one=1, two=2)</p></div>
 <h4><code><a title="geoengine.api.DatasetPath" href="#geoengine.api.DatasetPath">DatasetPath</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.api.DatasetPath.upload" href="#geoengine.api.DatasetPath.upload">upload</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="geoengine.api.DatasetProperties" href="#geoengine.api.DatasetProperties">DatasetProperties</a></code></h4>
-<ul class="two-column">
-<li><code><a title="geoengine.api.DatasetProperties.description" href="#geoengine.api.DatasetProperties.description">description</a></code></li>
-<li><code><a title="geoengine.api.DatasetProperties.id" href="#geoengine.api.DatasetProperties.id">id</a></code></li>
-<li><code><a title="geoengine.api.DatasetProperties.name" href="#geoengine.api.DatasetProperties.name">name</a></code></li>
-<li><code><a title="geoengine.api.DatasetProperties.provenance" href="#geoengine.api.DatasetProperties.provenance">provenance</a></code></li>
-<li><code><a title="geoengine.api.DatasetProperties.sourceOperator" href="#geoengine.api.DatasetProperties.sourceOperator">sourceOperator</a></code></li>
-<li><code><a title="geoengine.api.DatasetProperties.symbology" href="#geoengine.api.DatasetProperties.symbology">symbology</a></code></li>
 </ul>
 </li>
 <li>

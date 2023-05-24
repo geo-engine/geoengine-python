@@ -531,7 +531,7 @@ class TimeShift(Operator):
 <dl>
 <dt id="geoengine.workflow_builder.operators.Expression"><code class="flex name class">
 <span>class <span class="ident">Expression</span></span>
-<span>(</span><span>expression: str, sources: Dict[str, <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>], output_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64'] = 'F32', map_no_data: bool = False)</span>
+<span>(</span><span>expression: str, sources: Dict[str, <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>], output_type: typing_extensions.Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64'] = 'F32', map_no_data: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An Expression operator.</p>
@@ -592,7 +592,7 @@ class TimeShift(Operator):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.workflow_builder.operators.Expression.output_type"><code class="name">var <span class="ident">output_type</span> : Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']</code></dt>
+<dt id="geoengine.workflow_builder.operators.Expression.output_type"><code class="name">var <span class="ident">output_type</span> : typing_extensions.Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -676,7 +676,7 @@ class TimeShift(Operator):
 </dd>
 <dt id="geoengine.workflow_builder.operators.Interpolation"><code class="flex name class">
 <span>class <span class="ident">Interpolation</span></span>
-<span>(</span><span>source_operator: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, interpolation: Literal['biLinear', 'nearestNeighbor'] = 'biLinear', input_resolution: Optional[float] = None)</span>
+<span>(</span><span>source_operator: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, interpolation: typing_extensions.Literal['biLinear', 'nearestNeighbor'] = 'biLinear', input_resolution: Optional[float] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An interpolation operator.</p>
@@ -732,7 +732,7 @@ class TimeShift(Operator):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.workflow_builder.operators.Interpolation.interpolation"><code class="name">var <span class="ident">interpolation</span> : Literal['biLinear', 'nearestNeighbor']</code></dt>
+<dt id="geoengine.workflow_builder.operators.Interpolation.interpolation"><code class="name">var <span class="ident">interpolation</span> : typing_extensions.Literal['biLinear', 'nearestNeighbor']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -865,7 +865,7 @@ class TimeShift(Operator):
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.workflow_builder.operators.Operator.data_type"><code class="name flex">
-<span>def <span class="ident">data_type</span></span>(<span>self) ‑> Literal['Raster', 'Vector']</span>
+<span>def <span class="ident">data_type</span></span>(<span>self) ‑> typing_extensions.Literal['Raster', 'Vector']</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the type of the operator.</p></div>
@@ -1040,7 +1040,7 @@ def to_dict(self) -&gt; Dict[str, Any]:
 </dd>
 <dt id="geoengine.workflow_builder.operators.RasterScaling"><code class="flex name class">
 <span>class <span class="ident">RasterScaling</span></span>
-<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, slope: Union[float, str, ForwardRef(None)] = None, offset: Union[float, str, ForwardRef(None)] = None, scaling_mode: Literal['mulSlopeAddOffset', 'subOffsetDivSlope'] = 'mulSlopeAddOffset', output_measurement: Optional[str] = None)</span>
+<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, slope: Union[float, str, ForwardRef(None)] = None, offset: Union[float, str, ForwardRef(None)] = None, scaling_mode: typing_extensions.Literal['mulSlopeAddOffset', 'subOffsetDivSlope'] = 'mulSlopeAddOffset', output_measurement: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A RasterScaling operator.</p>
@@ -1128,7 +1128,7 @@ x = y * slope + offset</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.workflow_builder.operators.RasterScaling.scaling_mode"><code class="name">var <span class="ident">scaling_mode</span> : Literal['mulSlopeAddOffset', 'subOffsetDivSlope']</code></dt>
+<dt id="geoengine.workflow_builder.operators.RasterScaling.scaling_mode"><code class="name">var <span class="ident">scaling_mode</span> : typing_extensions.Literal['mulSlopeAddOffset', 'subOffsetDivSlope']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1155,7 +1155,7 @@ x = y * slope + offset</p>
 </dd>
 <dt id="geoengine.workflow_builder.operators.RasterTypeConversion"><code class="flex name class">
 <span>class <span class="ident">RasterTypeConversion</span></span>
-<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, output_data_type: Literal['u8', 'u16', 'u32', 'u64', 'i8', 'i16', 'i32', 'i64', 'f32', 'f64'])</span>
+<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, output_data_type: typing_extensions.Literal['u8', 'u16', 'u32', 'u64', 'i8', 'i16', 'i32', 'i64', 'f32', 'f64'])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A RasterTypeConversion operator.</p>
@@ -1199,7 +1199,7 @@ x = y * slope + offset</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.workflow_builder.operators.RasterTypeConversion.output_data_type"><code class="name">var <span class="ident">output_data_type</span> : Literal['u8', 'u16', 'u32', 'u64', 'i8', 'i16', 'i32', 'i64', 'f32', 'f64']</code></dt>
+<dt id="geoengine.workflow_builder.operators.RasterTypeConversion.output_data_type"><code class="name">var <span class="ident">output_data_type</span> : typing_extensions.Literal['u8', 'u16', 'u32', 'u64', 'i8', 'i16', 'i32', 'i64', 'f32', 'f64']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1222,7 +1222,7 @@ x = y * slope + offset</p>
 </dd>
 <dt id="geoengine.workflow_builder.operators.RasterVectorJoin"><code class="flex name class">
 <span>class <span class="ident">RasterVectorJoin</span></span>
-<span>(</span><span>raster_sources: List[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>], vector_source: <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>, new_column_names: List[str], temporal_aggregation: Literal['none', 'first', 'mean'] = 'none', feature_aggregation: Literal['first', 'mean'] = 'mean')</span>
+<span>(</span><span>raster_sources: List[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>], vector_source: <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>, new_column_names: List[str], temporal_aggregation: typing_extensions.Literal['none', 'first', 'mean'] = 'none', feature_aggregation: typing_extensions.Literal['first', 'mean'] = 'mean')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A RasterVectorJoin operator.</p>
@@ -1279,7 +1279,7 @@ x = y * slope + offset</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation"><code class="name">var <span class="ident">feature_aggregation</span> : Literal['first', 'mean']</code></dt>
+<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation"><code class="name">var <span class="ident">feature_aggregation</span> : typing_extensions.Literal['first', 'mean']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1291,7 +1291,7 @@ x = y * slope + offset</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation"><code class="name">var <span class="ident">temporal_aggregation</span> : Literal['none', 'first', 'mean']</code></dt>
+<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation"><code class="name">var <span class="ident">temporal_aggregation</span> : typing_extensions.Literal['none', 'first', 'mean']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1429,7 +1429,7 @@ x = y * slope + offset</p>
 </dd>
 <dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation"><code class="flex name class">
 <span>class <span class="ident">TemporalRasterAggregation</span></span>
-<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, aggregation_type: Literal['mean', 'min', 'max', 'median', 'count', 'sum', 'first', 'last'], ignore_no_data: bool = False, granularity: Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis'] = 'days', window_size: int = 1, output_type: Optional[Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']] = None)</span>
+<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, aggregation_type: typing_extensions.Literal['mean', 'min', 'max', 'median', 'count', 'sum', 'first', 'last'], ignore_no_data: bool = False, granularity: typing_extensions.Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis'] = 'days', window_size: int = 1, output_type: Optional[typing_extensions.Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A TemporalRasterAggregation operator.</p>
@@ -1496,7 +1496,7 @@ x = y * slope + offset</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.aggregation_type"><code class="name">var <span class="ident">aggregation_type</span> : Literal['mean', 'min', 'max', 'median', 'count', 'sum', 'first', 'last']</code></dt>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.aggregation_type"><code class="name">var <span class="ident">aggregation_type</span> : typing_extensions.Literal['mean', 'min', 'max', 'median', 'count', 'sum', 'first', 'last']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1504,7 +1504,7 @@ x = y * slope + offset</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.output_type"><code class="name">var <span class="ident">output_type</span> : Optional[Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']]</code></dt>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.output_type"><code class="name">var <span class="ident">output_type</span> : Optional[typing_extensions.Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1512,7 +1512,7 @@ x = y * slope + offset</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.window_granularity"><code class="name">var <span class="ident">window_granularity</span> : Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis']</code></dt>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.window_granularity"><code class="name">var <span class="ident">window_granularity</span> : typing_extensions.Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1535,7 +1535,7 @@ x = y * slope + offset</p>
 </dd>
 <dt id="geoengine.workflow_builder.operators.TimeShift"><code class="flex name class">
 <span>class <span class="ident">TimeShift</span></span>
-<span>(</span><span>source: Union[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>], shift_type: Literal['relative', 'absolute'], granularity: Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis'], value: int)</span>
+<span>(</span><span>source: Union[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>], shift_type: typing_extensions.Literal['relative', 'absolute'], granularity: typing_extensions.Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis'], value: int)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A RasterTypeConversion operator.</p>
@@ -1603,11 +1603,11 @@ x = y * slope + offset</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.workflow_builder.operators.TimeShift.granularity"><code class="name">var <span class="ident">granularity</span> : Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis']</code></dt>
+<dt id="geoengine.workflow_builder.operators.TimeShift.granularity"><code class="name">var <span class="ident">granularity</span> : typing_extensions.Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.workflow_builder.operators.TimeShift.shift_type"><code class="name">var <span class="ident">shift_type</span> : Literal['relative', 'absolute']</code></dt>
+<dt id="geoengine.workflow_builder.operators.TimeShift.shift_type"><code class="name">var <span class="ident">shift_type</span> : typing_extensions.Literal['relative', 'absolute']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

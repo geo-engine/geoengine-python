@@ -358,10 +358,10 @@ class UploadId:
         }
 
 
-class DatasetProperties():
-    &#39;&#39;&#39;The properties of a dataset&#39;&#39;&#39;
-    id: Optional[DatasetId]
-    name: str
+class AddDatasetProperties():
+    &#39;&#39;&#39;The properties for adding a dataset&#39;&#39;&#39;
+    name: Optional[str]
+    display_name: str
     description: str
     source_operator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
     symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
@@ -370,26 +370,26 @@ class DatasetProperties():
     def __init__(
         # pylint: disable=too-many-arguments
         self,
-        name: str,
+        display_name: str,
         description: str,
         source_operator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;] = &#34;GdalSource&#34;,
         symbology: Optional[RasterSymbology] = None,
         provenance: Optional[List[Provenance]] = None,
-        dataset_id: Optional[DatasetId] = None
+        name: Optional[str] = None
     ):
         &#39;&#39;&#39;Creates a new `AddDatasetProperties` object&#39;&#39;&#39;
-        self.dataset_id = dataset_id
         self.name = name
+        self.display_name = display_name
         self.description = description
         self.source_operator = source_operator
         self.symbology = symbology
         self.provenance = provenance
 
-    def to_api_dict(self) -&gt; api.DatasetProperties:
+    def to_api_dict(self) -&gt; api.AddDatasetProperties:
         &#39;&#39;&#39;Converts the properties to a dictionary&#39;&#39;&#39;
         return {
-            &#39;id&#39;: str(self.dataset_id) if self.dataset_id is not None else None,
-            &#39;name&#39;: self.name,
+            &#39;name&#39;: str(self.name) if self.name is not None else None,
+            &#39;displayName&#39;: self.display_name,
             &#39;description&#39;: self.description,
             &#39;sourceOperator&#39;: self.source_operator,
             &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
@@ -497,8 +497,8 @@ def upload_dataframe(
             &#39;upload&#39;: str(upload_id)
         }),
         &#39;definition&#39;: api.DatasetDefinition({
-            &#39;properties&#39;: DatasetProperties(
-                name=name,
+            &#39;properties&#39;: AddDatasetProperties(
+                display_name=name,
                 description=&#39;Upload from Python&#39;,
                 source_operator=&#39;OgrSource&#39;,
             ).to_api_dict(),
@@ -594,7 +594,9 @@ def volumes(timeout: int = 60) -&gt; List[Volume]:
     return [Volume.from_response(v) for v in response]
 
 
-def add_dataset(data_store: Union[Volume, UploadId], properties: DatasetProperties, meta_data: api.MetaDataDefinition,
+def add_dataset(data_store: Union[Volume, UploadId],
+                properties: AddDatasetProperties,
+                meta_data: api.MetaDataDefinition,
                 timeout: int = 60) -&gt; DatasetId:
     &#39;&#39;&#39;Adds a dataset to the Geo Engine&#39;&#39;&#39;
     dataset_path: api.DatasetStorage
@@ -663,7 +665,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="geoengine.datasets.add_dataset"><code class="name flex">
-<span>def <span class="ident">add_dataset</span></span>(<span>data_store: Union[<a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a>, <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>], properties: <a title="geoengine.datasets.DatasetProperties" href="#geoengine.datasets.DatasetProperties">DatasetProperties</a>, meta_data: api.MetaDataDefinition, timeout: int = 60) ‑> <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></span>
+<span>def <span class="ident">add_dataset</span></span>(<span>data_store: Union[<a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a>, <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>], properties: <a title="geoengine.datasets.AddDatasetProperties" href="#geoengine.datasets.AddDatasetProperties">AddDatasetProperties</a>, meta_data: api.MetaDataDefinition, timeout: int = 60) ‑> <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds a dataset to the Geo Engine</p></div>
@@ -671,7 +673,9 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add_dataset(data_store: Union[Volume, UploadId], properties: DatasetProperties, meta_data: api.MetaDataDefinition,
+<pre><code class="python">def add_dataset(data_store: Union[Volume, UploadId],
+                properties: AddDatasetProperties,
+                meta_data: api.MetaDataDefinition,
                 timeout: int = 60) -&gt; DatasetId:
     &#39;&#39;&#39;Adds a dataset to the Geo Engine&#39;&#39;&#39;
     dataset_path: api.DatasetStorage
@@ -820,8 +824,8 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
             &#39;upload&#39;: str(upload_id)
         }),
         &#39;definition&#39;: api.DatasetDefinition({
-            &#39;properties&#39;: DatasetProperties(
-                name=name,
+            &#39;properties&#39;: AddDatasetProperties(
+                display_name=name,
                 description=&#39;Upload from Python&#39;,
                 source_operator=&#39;OgrSource&#39;,
             ).to_api_dict(),
@@ -889,6 +893,107 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="geoengine.datasets.AddDatasetProperties"><code class="flex name class">
+<span>class <span class="ident">AddDatasetProperties</span></span>
+<span>(</span><span>display_name: str, description: str, source_operator: "Literal['GdalSource', 'OgrSource']" = 'GdalSource', symbology: Optional[RasterSymbology] = None, provenance: Optional[List[Provenance]] = None, name: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The properties for adding a dataset</p>
+<p>Creates a new <code><a title="geoengine.datasets.AddDatasetProperties" href="#geoengine.datasets.AddDatasetProperties">AddDatasetProperties</a></code> object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AddDatasetProperties():
+    &#39;&#39;&#39;The properties for adding a dataset&#39;&#39;&#39;
+    name: Optional[str]
+    display_name: str
+    description: str
+    source_operator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
+    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
+    provenance: Optional[List[Provenance]]
+
+    def __init__(
+        # pylint: disable=too-many-arguments
+        self,
+        display_name: str,
+        description: str,
+        source_operator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;] = &#34;GdalSource&#34;,
+        symbology: Optional[RasterSymbology] = None,
+        provenance: Optional[List[Provenance]] = None,
+        name: Optional[str] = None
+    ):
+        &#39;&#39;&#39;Creates a new `AddDatasetProperties` object&#39;&#39;&#39;
+        self.name = name
+        self.display_name = display_name
+        self.description = description
+        self.source_operator = source_operator
+        self.symbology = symbology
+        self.provenance = provenance
+
+    def to_api_dict(self) -&gt; api.AddDatasetProperties:
+        &#39;&#39;&#39;Converts the properties to a dictionary&#39;&#39;&#39;
+        return {
+            &#39;name&#39;: str(self.name) if self.name is not None else None,
+            &#39;displayName&#39;: self.display_name,
+            &#39;description&#39;: self.description,
+            &#39;sourceOperator&#39;: self.source_operator,
+            &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
+            &#39;provenance&#39;: [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
+        }</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.datasets.AddDatasetProperties.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.AddDatasetProperties.display_name"><code class="name">var <span class="ident">display_name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.AddDatasetProperties.name"><code class="name">var <span class="ident">name</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.AddDatasetProperties.provenance"><code class="name">var <span class="ident">provenance</span> : Optional[List[<a title="geoengine.types.Provenance" href="types.html#geoengine.types.Provenance">Provenance</a>]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.AddDatasetProperties.source_operator"><code class="name">var <span class="ident">source_operator</span> : typing_extensions.Literal['GdalSource', 'OgrSource']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.AddDatasetProperties.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[<a title="geoengine.types.RasterSymbology" href="types.html#geoengine.types.RasterSymbology">RasterSymbology</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.datasets.AddDatasetProperties.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.AddDatasetProperties" href="api.html#geoengine.api.AddDatasetProperties">AddDatasetProperties</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts the properties to a dictionary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; api.AddDatasetProperties:
+    &#39;&#39;&#39;Converts the properties to a dictionary&#39;&#39;&#39;
+    return {
+        &#39;name&#39;: str(self.name) if self.name is not None else None,
+        &#39;displayName&#39;: self.display_name,
+        &#39;description&#39;: self.description,
+        &#39;sourceOperator&#39;: self.source_operator,
+        &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
+        &#39;provenance&#39;: [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.datasets.AutoOgrSourceTimeFormat"><code class="flex name class">
 <span>class <span class="ident">AutoOgrSourceTimeFormat</span></span>
 </code></dt>
@@ -1070,107 +1175,6 @@ def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
 <pre><code class="python">def to_api_dict(self) -&gt; api.DatasetId:
     return {
         &#39;id&#39;: str(self.__dataset_id)
-    }</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="geoengine.datasets.DatasetProperties"><code class="flex name class">
-<span>class <span class="ident">DatasetProperties</span></span>
-<span>(</span><span>name: str, description: str, source_operator: "Literal['GdalSource', 'OgrSource']" = 'GdalSource', symbology: Optional[RasterSymbology] = None, provenance: Optional[List[Provenance]] = None, dataset_id: Optional[<a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a>] = None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>The properties of a dataset</p>
-<p>Creates a new <code>AddDatasetProperties</code> object</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DatasetProperties():
-    &#39;&#39;&#39;The properties of a dataset&#39;&#39;&#39;
-    id: Optional[DatasetId]
-    name: str
-    description: str
-    source_operator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;]  # TODO: add more operators
-    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
-    provenance: Optional[List[Provenance]]
-
-    def __init__(
-        # pylint: disable=too-many-arguments
-        self,
-        name: str,
-        description: str,
-        source_operator: Literal[&#39;GdalSource&#39;, &#39;OgrSource&#39;] = &#34;GdalSource&#34;,
-        symbology: Optional[RasterSymbology] = None,
-        provenance: Optional[List[Provenance]] = None,
-        dataset_id: Optional[DatasetId] = None
-    ):
-        &#39;&#39;&#39;Creates a new `AddDatasetProperties` object&#39;&#39;&#39;
-        self.dataset_id = dataset_id
-        self.name = name
-        self.description = description
-        self.source_operator = source_operator
-        self.symbology = symbology
-        self.provenance = provenance
-
-    def to_api_dict(self) -&gt; api.DatasetProperties:
-        &#39;&#39;&#39;Converts the properties to a dictionary&#39;&#39;&#39;
-        return {
-            &#39;id&#39;: str(self.dataset_id) if self.dataset_id is not None else None,
-            &#39;name&#39;: self.name,
-            &#39;description&#39;: self.description,
-            &#39;sourceOperator&#39;: self.source_operator,
-            &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
-            &#39;provenance&#39;: [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
-        }</code></pre>
-</details>
-<h3>Class variables</h3>
-<dl>
-<dt id="geoengine.datasets.DatasetProperties.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.datasets.DatasetProperties.id"><code class="name">var <span class="ident">id</span> : Optional[<a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.datasets.DatasetProperties.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.datasets.DatasetProperties.provenance"><code class="name">var <span class="ident">provenance</span> : Optional[List[<a title="geoengine.types.Provenance" href="types.html#geoengine.types.Provenance">Provenance</a>]]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.datasets.DatasetProperties.source_operator"><code class="name">var <span class="ident">source_operator</span> : Literal['GdalSource', 'OgrSource']</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.datasets.DatasetProperties.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[<a title="geoengine.types.RasterSymbology" href="types.html#geoengine.types.RasterSymbology">RasterSymbology</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="geoengine.datasets.DatasetProperties.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.DatasetProperties" href="api.html#geoengine.api.DatasetProperties">DatasetProperties</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Converts the properties to a dictionary</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.DatasetProperties:
-    &#39;&#39;&#39;Converts the properties to a dictionary&#39;&#39;&#39;
-    return {
-        &#39;id&#39;: str(self.dataset_id) if self.dataset_id is not None else None,
-        &#39;name&#39;: self.name,
-        &#39;description&#39;: self.description,
-        &#39;sourceOperator&#39;: self.source_operator,
-        &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
-        &#39;provenance&#39;: [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
     }</code></pre>
 </details>
 </dd>
@@ -2505,6 +2509,18 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="geoengine.datasets.AddDatasetProperties" href="#geoengine.datasets.AddDatasetProperties">AddDatasetProperties</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.datasets.AddDatasetProperties.description" href="#geoengine.datasets.AddDatasetProperties.description">description</a></code></li>
+<li><code><a title="geoengine.datasets.AddDatasetProperties.display_name" href="#geoengine.datasets.AddDatasetProperties.display_name">display_name</a></code></li>
+<li><code><a title="geoengine.datasets.AddDatasetProperties.name" href="#geoengine.datasets.AddDatasetProperties.name">name</a></code></li>
+<li><code><a title="geoengine.datasets.AddDatasetProperties.provenance" href="#geoengine.datasets.AddDatasetProperties.provenance">provenance</a></code></li>
+<li><code><a title="geoengine.datasets.AddDatasetProperties.source_operator" href="#geoengine.datasets.AddDatasetProperties.source_operator">source_operator</a></code></li>
+<li><code><a title="geoengine.datasets.AddDatasetProperties.symbology" href="#geoengine.datasets.AddDatasetProperties.symbology">symbology</a></code></li>
+<li><code><a title="geoengine.datasets.AddDatasetProperties.to_api_dict" href="#geoengine.datasets.AddDatasetProperties.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.datasets.AutoOgrSourceTimeFormat" href="#geoengine.datasets.AutoOgrSourceTimeFormat">AutoOgrSourceTimeFormat</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.datasets.AutoOgrSourceTimeFormat.to_api_dict" href="#geoengine.datasets.AutoOgrSourceTimeFormat.to_api_dict">to_api_dict</a></code></li>
@@ -2522,18 +2538,6 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 <ul class="">
 <li><code><a title="geoengine.datasets.DatasetId.from_response" href="#geoengine.datasets.DatasetId.from_response">from_response</a></code></li>
 <li><code><a title="geoengine.datasets.DatasetId.to_api_dict" href="#geoengine.datasets.DatasetId.to_api_dict">to_api_dict</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="geoengine.datasets.DatasetProperties" href="#geoengine.datasets.DatasetProperties">DatasetProperties</a></code></h4>
-<ul class="two-column">
-<li><code><a title="geoengine.datasets.DatasetProperties.description" href="#geoengine.datasets.DatasetProperties.description">description</a></code></li>
-<li><code><a title="geoengine.datasets.DatasetProperties.id" href="#geoengine.datasets.DatasetProperties.id">id</a></code></li>
-<li><code><a title="geoengine.datasets.DatasetProperties.name" href="#geoengine.datasets.DatasetProperties.name">name</a></code></li>
-<li><code><a title="geoengine.datasets.DatasetProperties.provenance" href="#geoengine.datasets.DatasetProperties.provenance">provenance</a></code></li>
-<li><code><a title="geoengine.datasets.DatasetProperties.source_operator" href="#geoengine.datasets.DatasetProperties.source_operator">source_operator</a></code></li>
-<li><code><a title="geoengine.datasets.DatasetProperties.symbology" href="#geoengine.datasets.DatasetProperties.symbology">symbology</a></code></li>
-<li><code><a title="geoengine.datasets.DatasetProperties.to_api_dict" href="#geoengine.datasets.DatasetProperties.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>
 <li>
