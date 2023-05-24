@@ -501,10 +501,10 @@ class OgrMetadata(MetaDataDefinition):  # pylint: disable=too-few-public-methods
     resultDescriptor: VectorResultDescriptor
 
 
-class DatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
+class AddDatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
     '''The properties of a dataset'''
-    id: Optional[str]
-    name: str
+    name: Optional[str]
+    displayName: str
     description: str
     sourceOperator: Literal['GdalSource', 'OgrSource']  # TODO: add more operators
     symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
@@ -527,7 +527,7 @@ class DatasetVolume(DatasetStorage):
 
 class DatasetDefinition(TypedDict):
     '''The definition of a dataset'''
-    properties: DatasetProperties
+    properties: AddDatasetProperties
     metaData: MetaDataDefinition
 
 

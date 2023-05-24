@@ -197,9 +197,9 @@ class Colorizer():
             np.linspace(0, len(values), len(values)), bytes=True)
 
         # generate the dict with value: color mapping
-        color_mapping = dict(zip(
+        color_mapping: Dict[float, Rgba] = dict(zip(
             values,
-            [(color[0], color[1], color[2], color[3]) for color in list_of_rgba_colors])
+            [(int(color[0]), int(color[1]), int(color[2]), int(color[3])) for color in list_of_rgba_colors])
         )
 
         return PaletteColorizer(
