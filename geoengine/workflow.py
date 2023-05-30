@@ -342,20 +342,21 @@ class Workflow:
 
         [resx, resy] = bbox.resolution_ogc
 
-        no_data_value = ""
+        kwargs = {}
+
         if force_no_data_value is not None:
-            no_data_value = str(float(force_no_data_value))
+            kwargs["no_data_value"] = str(float(force_no_data_value))
 
         return wcs.getCoverage(
             identifier=f'{self.__workflow_id}',
             bbox=bbox.bbox_ogc,
-            time=[urllib.parse.quote_plus(bbox.time_str)],
+            time=[bbox.time_str],
             format=file_format,
             crs=crs,
             resx=resx,
             resy=resy,
             timeout=timeout,
-            nodatavalue=no_data_value,
+            **kwargs
         )
 
     def __get_wcs_tiff_as_memory_file(
