@@ -371,20 +371,21 @@ class Workflow:
 
         [resx, resy] = bbox.resolution_ogc
 
-        no_data_value = &#34;&#34;
+        kwargs = {}
+
         if force_no_data_value is not None:
-            no_data_value = str(float(force_no_data_value))
+            kwargs[&#34;nodatavalue&#34;] = str(float(force_no_data_value))
 
         return wcs.getCoverage(
             identifier=f&#39;{self.__workflow_id}&#39;,
             bbox=bbox.bbox_ogc,
-            time=[urllib.parse.quote_plus(bbox.time_str)],
+            time=[bbox.time_str],
             format=file_format,
             crs=crs,
             resx=resx,
             resy=resy,
             timeout=timeout,
-            nodatavalue=no_data_value,
+            **kwargs
         )
 
     def __get_wcs_tiff_as_memory_file(
@@ -1653,20 +1654,21 @@ dict(one=1, two=2)</p></div>
 
         [resx, resy] = bbox.resolution_ogc
 
-        no_data_value = &#34;&#34;
+        kwargs = {}
+
         if force_no_data_value is not None:
-            no_data_value = str(float(force_no_data_value))
+            kwargs[&#34;nodatavalue&#34;] = str(float(force_no_data_value))
 
         return wcs.getCoverage(
             identifier=f&#39;{self.__workflow_id}&#39;,
             bbox=bbox.bbox_ogc,
-            time=[urllib.parse.quote_plus(bbox.time_str)],
+            time=[bbox.time_str],
             format=file_format,
             crs=crs,
             resx=resx,
             resy=resy,
             timeout=timeout,
-            nodatavalue=no_data_value,
+            **kwargs
         )
 
     def __get_wcs_tiff_as_memory_file(
