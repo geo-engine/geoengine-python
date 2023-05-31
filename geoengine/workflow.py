@@ -345,7 +345,7 @@ class Workflow:
         kwargs = {}
 
         if force_no_data_value is not None:
-            kwargs["no_data_value"] = str(float(force_no_data_value))
+            kwargs["nodatavalue"] = str(float(force_no_data_value))
 
         return wcs.getCoverage(
             identifier=f'{self.__workflow_id}',
