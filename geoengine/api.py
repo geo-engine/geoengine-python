@@ -219,9 +219,9 @@ class GdalSourceTimePlaceholder(TypedDict):  # pylint: disable=too-few-public-me
     reference: TimeReference
 
 
-class DatasetId(TypedDict):  # pylint: disable=too-few-public-methods
-    '''A dataset id'''
-    id: str
+class DatasetName(TypedDict):  # pylint: disable=too-few-public-methods
+    '''A dataset name'''
+    datasetName: str
 
 
 class UploadId(TypedDict):  # pylint: disable=too-few-public-methods
@@ -550,7 +550,7 @@ class UpdateQuota(TypedDict):
 
 class ResourceId(TypedDict):
     '''A resource id'''
-    type: Literal['DatasetId', 'Layer', 'LayerCollection', 'Project']
+    type: Literal['DatasetName', 'Layer', 'LayerCollection', 'Project']
     id: str
 
 

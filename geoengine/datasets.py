@@ -252,27 +252,27 @@ class OgrOnError(Enum):
         return api.OgrOnError(self.value)
 
 
-class DatasetId:
+class DatasetName:
     '''A wrapper for a dataset id'''
 
-    __dataset_id: UUID
+    __dataset_name: str
 
-    def __init__(self, dataset_id: UUID) -> None:
-        self.__dataset_id = dataset_id
+    def __init__(self, dataset_name: str) -> None:
+        self.__dataset_name = dataset_name
 
     @classmethod
-    def from_response(cls, response: api.DatasetId) -> DatasetId:
+    def from_response(cls, response: api.DatasetName) -> DatasetName:
         '''Parse a http response to an `DatasetId`'''
         if 'error' in response:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
-        if 'id' not in response:
-            raise MissingFieldInResponseException('id', response)
+        if 'datasetName' not in response:
+            raise MissingFieldInResponseException('datasetName', response)
 
-        return DatasetId(UUID(response['id']))
+        return DatasetName(response['datasetName'])
 
     def __str__(self) -> str:
-        return str(self.__dataset_id)
+        return self.__dataset_name
 
     def __repr__(self) -> str:
         return str(self)
@@ -282,11 +282,11 @@ class DatasetId:
         if not isinstance(other, self.__class__):
             return False
 
-        return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
+        return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
 
-    def to_api_dict(self) -> api.DatasetId:
+    def to_api_dict(self) -> api.DatasetName:
         return {
-            'id': str(self.__dataset_id)
+            'datasetName': str(self.__dataset_name)
         }
 
 
@@ -428,7 +428,7 @@ def upload_dataframe(
         name: str = "Upload from Python",
         time: OgrSourceDatasetTimeType = OgrSourceDatasetTimeType.none(),
         on_error: OgrOnError = OgrOnError.ABORT,
-        timeout: int = 3600) -> DatasetId:
+        timeout: int = 3600) -> DatasetName:
     '''
     Uploads a given dataframe to Geo Engine and returns the id of the created dataset
     '''
@@ -507,13 +507,13 @@ def upload_dataframe(
     if 'error' in response:
         raise GeoEngineException(response)
 
-    return DatasetId(response["id"])
+    return DatasetName(response["id"])
 
 
 class StoredDataset(NamedTuple):
-    '''The result of a store dataset request is a combination of `upload_id` and `dataset_id`'''
+    '''The result of a store dataset request is a combination of `upload_id` and `dataset_name`'''
 
-    dataset_id: DatasetId
+    dataset_name: DatasetName
     upload_id: UploadId
 
     @classmethod
@@ -528,12 +528,12 @@ class StoredDataset(NamedTuple):
             raise MissingFieldInResponseException('upload', response)
 
         return StoredDataset(
-            dataset_id=DatasetId(UUID(response['dataset'])),
+            dataset_name=DatasetName(response['dataset']),
             upload_id=UploadId(UUID(response['upload']))
         )
 
     def to_api_dict(self) -> api.StoredDataset:
-        return api.StoredDataset(dataset=str(self.dataset_id), upload=str(self.upload_id))
+        return api.StoredDataset(dataset=str(self.dataset_name), upload=str(self.upload_id))
 
 
 @dataclass
@@ -568,7 +568,7 @@ def volumes(timeout: int = 60) -> List[Volume]:
 def add_dataset(data_store: Union[Volume, UploadId],
                 properties: AddDatasetProperties,
                 meta_data: api.MetaDataDefinition,
-                timeout: int = 60) -> DatasetId:
+                timeout: int = 60) -> DatasetName:
     '''Adds a dataset to the Geo Engine'''
     dataset_path: api.DatasetStorage
     headers: Dict[str, str]
@@ -611,15 +611,15 @@ def add_dataset(data_store: Union[Volume, UploadId],
     if 'error' in response:
         raise GeoEngineException(response)
 
-    return DatasetId.from_response(response)
+    return DatasetName.from_response(response)
 
 
-def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -> None:
+def delete_dataset(dataset_name: DatasetName, timeout: int = 60) -> None:
     '''Delete a dataset. The dataset must be owned by the caller.'''
 
     session = get_session()
 
-    response = req.delete(f'{session.server_url}/dataset/{dataset_id}',
+    response = req.delete(f'{session.server_url}/dataset/{dataset_name}',
                           headers=session.auth_header,
                           timeout=timeout)
 

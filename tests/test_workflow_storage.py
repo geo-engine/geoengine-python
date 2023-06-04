@@ -3,7 +3,7 @@
 import unittest
 from uuid import UUID
 import requests_mock
-from geoengine.datasets import DatasetId, UploadId, StoredDataset
+from geoengine.datasets import DatasetName, UploadId, StoredDataset
 import geoengine as ge
 
 
@@ -70,7 +70,7 @@ class WorkflowStorageTests(unittest.TestCase):
 
             m.get('http://mock-instance/tasks/9ec828ef-c3da-4016-8cc7-79e5556267fc/status',
                   json={'status': 'completed',
-                        'info': {'dataset': '94230f0b-4e8a-4cba-9adc-3ace837fe5d4',
+                        'info': {'dataset': 'my_new_dataset',
                                  'upload': '3086f494-d5a4-4b51-a14b-3b29f8bf7bb0'},
                         'timeTotal': '00:00:00'}, )
 
@@ -81,10 +81,7 @@ class WorkflowStorageTests(unittest.TestCase):
                 "operator": {
                     "type": "GdalSource",
                     "params": {
-                        "data": {
-                            "type": "internal",
-                            "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
-                        }
+                        "data": "ndvi"
                     }
                 }
             }
@@ -117,5 +114,5 @@ class WorkflowStorageTests(unittest.TestCase):
             task_status = task.get_status()
             stored_dataset = StoredDataset.from_response(task_status.info)
 
-            self.assertEqual(stored_dataset.dataset_id, DatasetId(UUID("94230f0b-4e8a-4cba-9adc-3ace837fe5d4")))
+            self.assertEqual(stored_dataset.dataset_name, DatasetName("my_new_dataset"))
             self.assertEqual(stored_dataset.upload_id, UploadId(UUID("3086f494-d5a4-4b51-a14b-3b29f8bf7bb0")))

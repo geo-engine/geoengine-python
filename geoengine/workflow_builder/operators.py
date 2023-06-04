@@ -4,8 +4,6 @@ from abc import abstractmethod
 from typing import Any, Dict, List, Optional, Union, cast
 from typing_extensions import Literal
 
-from geoengine import api
-
 
 class Operator():
     '''Base class for all operators.'''
@@ -56,18 +54,11 @@ class VectorOperator(Operator):
 
 class GdalSource(RasterOperator):
     '''A GDAL source operator.'''
-    dataset: api.DataId
+    dataset: str
 
-    def __init__(self, dataset: Union[api.DataId, str]):
+    def __init__(self, dataset: str):
         '''Creates a new GDAL source operator.'''
-        if isinstance(dataset, str):
-            self.dataset = api.InternalDataId(
-                type="internal",
-                datasetId=dataset,
-            )
-
-        else:
-            self.dataset = dataset
+        self.dataset = dataset
 
     def name(self) -> str:
         return 'GdalSource'
@@ -98,10 +89,7 @@ class OgrSource(VectorOperator):
         return {
             'type': self.name(),
             'params': {
-                "data": {
-                    "type": "internal",
-                    "datasetId": self.dataset,
-                },
+                "data": self.dataset,
                 'attributeProjection': self.attribute_projection,
                 'attributeFilters': self.attribute_filters,
             }

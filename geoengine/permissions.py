@@ -14,7 +14,7 @@ import requests as req
 from geoengine import api
 
 from geoengine.auth import get_session
-from geoengine.datasets import DatasetId
+from geoengine.datasets import DatasetName
 from geoengine.error import GeoEngineException
 from geoengine.layers import LayerCollectionId, LayerId
 
@@ -84,7 +84,7 @@ class UserId:
 class ResourceId:
     '''A wrapper for a resource id'''
 
-    def __init__(self, resource_type: Literal['DatasetId', 'Layer', 'LayerCollection'],
+    def __init__(self, resource_type: Literal['DatasetName', 'Layer', 'LayerCollection'],
                  resource_id: str) -> None:
         '''Create a resource id'''
         self.__type = resource_type
@@ -101,9 +101,9 @@ class ResourceId:
         return ResourceId('LayerCollection', str(layer_collection_id))
 
     @classmethod
-    def from_dataset_id(cls, dataset_id: DatasetId) -> ResourceId:
+    def from_dataset_name(cls, dataset_name: DatasetName) -> ResourceId:
         '''Create a resource id from a dataset id'''
-        return ResourceId('DatasetId', str(dataset_id))
+        return ResourceId('DatasetName', str(dataset_name))
 
     def to_api_dict(self) -> api.ResourceId:
         '''Convert to a dict for the API'''
