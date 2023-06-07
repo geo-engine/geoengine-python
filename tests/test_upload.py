@@ -56,7 +56,10 @@ class UploadTests(unittest.TestCase):
 
             dataset_name = ge.upload_dataframe(gdf)
 
-            self.assertEqual(dataset_name, DatasetName("41a72999-35eb-415a-b009-c3ead647fdfb:fc5f9e0f-ac97-421f-a5be-d701915ceb6f"))
+            self.assertEqual(
+                dataset_name,
+                DatasetName("41a72999-35eb-415a-b009-c3ead647fdfb:fc5f9e0f-ac97-421f-a5be-d701915ceb6f")
+            )
 
     def test_time_specification(self):
         time = OgrSourceDatasetTimeType.start(
