@@ -507,7 +507,7 @@ def upload_dataframe(
     if 'error' in response:
         raise GeoEngineException(response)
 
-    return DatasetName(response["id"])
+    return DatasetName.from_response(response)
 
 
 class StoredDataset(NamedTuple):
