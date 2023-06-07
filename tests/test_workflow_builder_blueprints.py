@@ -13,7 +13,7 @@ class BlueprintsTests(unittest.TestCase):
         self.assertEqual(source_operator.to_dict(), {
             "type": "GdalSource",
             "params": {
-                "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:UTM32N:B02"
+                "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B02`"
             }
         })
 
@@ -31,13 +31,13 @@ class BlueprintsTests(unittest.TestCase):
                 'a': {
                     "type": "GdalSource",
                     "params": {
-                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:UTM32N:B02"
+                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B02`"
                     }
                 },
                 'b': {
                     "type": "GdalSource",
                     "params": {
-                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:UTM32N:SCL"
+                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
                     }
                 }
             }
@@ -57,19 +57,19 @@ class BlueprintsTests(unittest.TestCase):
                 'a': {
                     "type": "GdalSource",
                     "params": {
-                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:UTM32N:B08"
+                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B08`"
                     }
                 },
                 'b': {
                     "type": "GdalSource",
                     "params": {
-                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:UTM32N:B04"
+                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B04`"
                     }
                 },
                 'c': {
                     "type": "GdalSource",
                     "params": {
-                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:UTM32N:SCL"
+                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
                     }
                 }
             }
@@ -161,13 +161,13 @@ class BlueprintsTests(unittest.TestCase):
                         'a': {
                             "type": "GdalSource",
                             "params": {
-                                "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:UTM32N:B04"
+                                "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B04`"
                             }
                         },
                         'b': {
                             "type": "GdalSource",
                             "params": {
-                                "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:UTM32N:SCL"
+                                "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
                             }
                         }
                     }

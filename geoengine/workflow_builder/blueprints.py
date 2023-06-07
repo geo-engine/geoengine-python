@@ -5,7 +5,7 @@ from . import operators
 
 def sentinel2_band(band_name, provider="5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5", utm_zone="UTM32N"):
     '''Creates a workflow for a band from Sentinel 2 data.'''
-    band_source = operators.GdalSource(f"_:{provider}:{utm_zone}:{band_name}")
+    band_source = operators.GdalSource(f"_:{provider}:`{utm_zone}:{band_name}`")
     return band_source
 
 
@@ -19,17 +19,17 @@ def sentinel2_cloud_free_band(
     if band_name.upper() not in valid_sentinel_bands:
         raise ValueError(f"Invalid band name {band_name}. Valid band names are: {valid_sentinel_bands}")
 
-    band_id = f"_:{provider}:{utm_zone}:{band_name.upper()}"
-    scl_id = f"_:{provider}:{utm_zone}:SCL"
+    band_id = f"_:{provider}:`{utm_zone}:{band_name.upper()}`"
+    scl_id = f"_:{provider}:`{utm_zone}:SCL`"
     return sentinel2_cloud_free_band_custom_input(band_id, scl_id)
 
 
 def sentinel2_cloud_free_ndvi(provider="5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5", utm_zone="UTM32N"):
     '''Creates a workflow for a cloud free NDVI from Sentinel 2 data.'''
 
-    nir_id = f"_:{provider}:{utm_zone}:B08"
-    red_id = f"_:{provider}:{utm_zone}:B04"
-    scl_id = f"_:{provider}:{utm_zone}:SCL"
+    nir_id = f"_:{provider}:`{utm_zone}:B08`"
+    red_id = f"_:{provider}:`{utm_zone}:B04`"
+    scl_id = f"_:{provider}:`{utm_zone}:SCL`"
 
     return sentinel2_cloud_free_ndvi_custom_input(nir_id, red_id, scl_id)
 
