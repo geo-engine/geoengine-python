@@ -16,7 +16,7 @@ from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing
     LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer
 from .permissions import add_permission, remove_permission, add_role, remove_role, assign_role, revoke_role, \
-    ADMIN_ROLE_ID, REGISTERED_USER_ROLE_ID, ANONYMOUS_USER_ROLE_ID, Permission, ResourceId, UserId, RoleId
+    ADMIN_ROLE_ID, REGISTERED_USER_ROLE_ID, ANONYMOUS_USER_ROLE_ID, Permission, Resource, UserId, RoleId
 from .types import QueryRectangle,  \
     RasterResultDescriptor, Provenance, UnitlessMeasurement, ContinuousMeasurement, \
     ClassificationMeasurement, BoundingBox2D, TimeInterval, SpatialResolution, SpatialPartition2D, \

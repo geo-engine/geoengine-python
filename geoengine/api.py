@@ -548,9 +548,9 @@ class UpdateQuota(TypedDict):
     available: int
 
 
-class ResourceId(TypedDict):
+class Resource(TypedDict):
     '''A resource id'''
-    type: Literal['DatasetName', 'Layer', 'LayerCollection', 'Project']
+    type: Literal['dataset', 'layer', 'layerCollection', 'project']
     id: str
 
 
@@ -563,7 +563,7 @@ class Permission(str, Enum):
 class PermissionRequest(TypedDict):
     '''A permission request'''
     roleId: str  # should be UUID, but UUID is not json serializable
-    resourceId: ResourceId
+    resource: Resource
     permission: Permission
 
 
