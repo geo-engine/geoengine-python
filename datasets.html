@@ -281,27 +281,27 @@ class OgrOnError(Enum):
         return api.OgrOnError(self.value)
 
 
-class DatasetId:
+class DatasetName:
     &#39;&#39;&#39;A wrapper for a dataset id&#39;&#39;&#39;
 
-    __dataset_id: UUID
+    __dataset_name: str
 
-    def __init__(self, dataset_id: UUID) -&gt; None:
-        self.__dataset_id = dataset_id
+    def __init__(self, dataset_name: str) -&gt; None:
+        self.__dataset_name = dataset_name
 
     @classmethod
-    def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
+    def from_response(cls, response: api.DatasetName) -&gt; DatasetName:
         &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
         if &#39;error&#39; in response:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
-        if &#39;id&#39; not in response:
-            raise MissingFieldInResponseException(&#39;id&#39;, response)
+        if &#39;datasetName&#39; not in response:
+            raise MissingFieldInResponseException(&#39;datasetName&#39;, response)
 
-        return DatasetId(UUID(response[&#39;id&#39;]))
+        return DatasetName(response[&#39;datasetName&#39;])
 
     def __str__(self) -&gt; str:
-        return str(self.__dataset_id)
+        return self.__dataset_name
 
     def __repr__(self) -&gt; str:
         return str(self)
@@ -311,11 +311,11 @@ class DatasetId:
         if not isinstance(other, self.__class__):
             return False
 
-        return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
+        return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
 
-    def to_api_dict(self) -&gt; api.DatasetId:
+    def to_api_dict(self) -&gt; api.DatasetName:
         return {
-            &#39;id&#39;: str(self.__dataset_id)
+            &#39;datasetName&#39;: str(self.__dataset_name)
         }
 
 
@@ -457,7 +457,7 @@ def upload_dataframe(
         name: str = &#34;Upload from Python&#34;,
         time: OgrSourceDatasetTimeType = OgrSourceDatasetTimeType.none(),
         on_error: OgrOnError = OgrOnError.ABORT,
-        timeout: int = 3600) -&gt; DatasetId:
+        timeout: int = 3600) -&gt; DatasetName:
     &#39;&#39;&#39;
     Uploads a given dataframe to Geo Engine and returns the id of the created dataset
     &#39;&#39;&#39;
@@ -536,13 +536,13 @@ def upload_dataframe(
     if &#39;error&#39; in response:
         raise GeoEngineException(response)
 
-    return DatasetId(response[&#34;id&#34;])
+    return DatasetName.from_response(response)
 
 
 class StoredDataset(NamedTuple):
-    &#39;&#39;&#39;The result of a store dataset request is a combination of `upload_id` and `dataset_id`&#39;&#39;&#39;
+    &#39;&#39;&#39;The result of a store dataset request is a combination of `upload_id` and `dataset_name`&#39;&#39;&#39;
 
-    dataset_id: DatasetId
+    dataset_name: DatasetName
     upload_id: UploadId
 
     @classmethod
@@ -557,12 +557,12 @@ class StoredDataset(NamedTuple):
             raise MissingFieldInResponseException(&#39;upload&#39;, response)
 
         return StoredDataset(
-            dataset_id=DatasetId(UUID(response[&#39;dataset&#39;])),
+            dataset_name=DatasetName(response[&#39;dataset&#39;]),
             upload_id=UploadId(UUID(response[&#39;upload&#39;]))
         )
 
     def to_api_dict(self) -&gt; api.StoredDataset:
-        return api.StoredDataset(dataset=str(self.dataset_id), upload=str(self.upload_id))
+        return api.StoredDataset(dataset=str(self.dataset_name), upload=str(self.upload_id))
 
 
 @dataclass
@@ -597,7 +597,7 @@ def volumes(timeout: int = 60) -&gt; List[Volume]:
 def add_dataset(data_store: Union[Volume, UploadId],
                 properties: AddDatasetProperties,
                 meta_data: api.MetaDataDefinition,
-                timeout: int = 60) -&gt; DatasetId:
+                timeout: int = 60) -&gt; DatasetName:
     &#39;&#39;&#39;Adds a dataset to the Geo Engine&#39;&#39;&#39;
     dataset_path: api.DatasetStorage
     headers: Dict[str, str]
@@ -640,15 +640,15 @@ def add_dataset(data_store: Union[Volume, UploadId],
     if &#39;error&#39; in response:
         raise GeoEngineException(response)
 
-    return DatasetId.from_response(response)
+    return DatasetName.from_response(response)
 
 
-def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
+def delete_dataset(dataset_name: DatasetName, timeout: int = 60) -&gt; None:
     &#39;&#39;&#39;Delete a dataset. The dataset must be owned by the caller.&#39;&#39;&#39;
 
     session = get_session()
 
-    response = req.delete(f&#39;{session.server_url}/dataset/{dataset_id}&#39;,
+    response = req.delete(f&#39;{session.server_url}/dataset/{dataset_name}&#39;,
                           headers=session.auth_header,
                           timeout=timeout)
 
@@ -665,7 +665,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="geoengine.datasets.add_dataset"><code class="name flex">
-<span>def <span class="ident">add_dataset</span></span>(<span>data_store: Union[<a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a>, <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>], properties: <a title="geoengine.datasets.AddDatasetProperties" href="#geoengine.datasets.AddDatasetProperties">AddDatasetProperties</a>, meta_data: api.MetaDataDefinition, timeout: int = 60) ‑> <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></span>
+<span>def <span class="ident">add_dataset</span></span>(<span>data_store: Union[<a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a>, <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>], properties: <a title="geoengine.datasets.AddDatasetProperties" href="#geoengine.datasets.AddDatasetProperties">AddDatasetProperties</a>, meta_data: api.MetaDataDefinition, timeout: int = 60) ‑> <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds a dataset to the Geo Engine</p></div>
@@ -676,7 +676,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 <pre><code class="python">def add_dataset(data_store: Union[Volume, UploadId],
                 properties: AddDatasetProperties,
                 meta_data: api.MetaDataDefinition,
-                timeout: int = 60) -&gt; DatasetId:
+                timeout: int = 60) -&gt; DatasetName:
     &#39;&#39;&#39;Adds a dataset to the Geo Engine&#39;&#39;&#39;
     dataset_path: api.DatasetStorage
     headers: Dict[str, str]
@@ -719,11 +719,11 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
     if &#39;error&#39; in response:
         raise GeoEngineException(response)
 
-    return DatasetId.from_response(response)</code></pre>
+    return DatasetName.from_response(response)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.datasets.delete_dataset"><code class="name flex">
-<span>def <span class="ident">delete_dataset</span></span>(<span>dataset_id: <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a>, timeout: int = 60) ‑> None</span>
+<span>def <span class="ident">delete_dataset</span></span>(<span>dataset_name: <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a>, timeout: int = 60) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Delete a dataset. The dataset must be owned by the caller.</p></div>
@@ -731,12 +731,12 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
+<pre><code class="python">def delete_dataset(dataset_name: DatasetName, timeout: int = 60) -&gt; None:
     &#39;&#39;&#39;Delete a dataset. The dataset must be owned by the caller.&#39;&#39;&#39;
 
     session = get_session()
 
-    response = req.delete(f&#39;{session.server_url}/dataset/{dataset_id}&#39;,
+    response = req.delete(f&#39;{session.server_url}/dataset/{dataset_name}&#39;,
                           headers=session.auth_header,
                           timeout=timeout)
 
@@ -771,7 +771,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
 </details>
 </dd>
 <dt id="geoengine.datasets.upload_dataframe"><code class="name flex">
-<span>def <span class="ident">upload_dataframe</span></span>(<span>df: gpd.GeoDataFrame, name: str = 'Upload from Python', time: <a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a> = NoneOgrSourceDatasetTimeType(), on_error: <a title="geoengine.datasets.OgrOnError" href="#geoengine.datasets.OgrOnError">OgrOnError</a> = OgrOnError.ABORT, timeout: int = 3600) ‑> <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></span>
+<span>def <span class="ident">upload_dataframe</span></span>(<span>df: gpd.GeoDataFrame, name: str = 'Upload from Python', time: <a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a> = NoneOgrSourceDatasetTimeType(), on_error: <a title="geoengine.datasets.OgrOnError" href="#geoengine.datasets.OgrOnError">OgrOnError</a> = OgrOnError.ABORT, timeout: int = 3600) ‑> <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Uploads a given dataframe to Geo Engine and returns the id of the created dataset</p></div>
@@ -784,7 +784,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
         name: str = &#34;Upload from Python&#34;,
         time: OgrSourceDatasetTimeType = OgrSourceDatasetTimeType.none(),
         on_error: OgrOnError = OgrOnError.ABORT,
-        timeout: int = 3600) -&gt; DatasetId:
+        timeout: int = 3600) -&gt; DatasetName:
     &#39;&#39;&#39;
     Uploads a given dataframe to Geo Engine and returns the id of the created dataset
     &#39;&#39;&#39;
@@ -863,7 +863,7 @@ def delete_dataset(dataset_id: DatasetId, timeout: int = 60) -&gt; None:
     if &#39;error&#39; in response:
         raise GeoEngineException(response)
 
-    return DatasetId(response[&#34;id&#34;])</code></pre>
+    return DatasetName.from_response(response)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.datasets.volumes"><code class="name flex">
@@ -1090,9 +1090,9 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.datasets.DatasetId"><code class="flex name class">
-<span>class <span class="ident">DatasetId</span></span>
-<span>(</span><span>dataset_id: UUID)</span>
+<dt id="geoengine.datasets.DatasetName"><code class="flex name class">
+<span>class <span class="ident">DatasetName</span></span>
+<span>(</span><span>dataset_name: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A wrapper for a dataset id</p></div>
@@ -1100,27 +1100,27 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DatasetId:
+<pre><code class="python">class DatasetName:
     &#39;&#39;&#39;A wrapper for a dataset id&#39;&#39;&#39;
 
-    __dataset_id: UUID
+    __dataset_name: str
 
-    def __init__(self, dataset_id: UUID) -&gt; None:
-        self.__dataset_id = dataset_id
+    def __init__(self, dataset_name: str) -&gt; None:
+        self.__dataset_name = dataset_name
 
     @classmethod
-    def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
+    def from_response(cls, response: api.DatasetName) -&gt; DatasetName:
         &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
         if &#39;error&#39; in response:
             raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
-        if &#39;id&#39; not in response:
-            raise MissingFieldInResponseException(&#39;id&#39;, response)
+        if &#39;datasetName&#39; not in response:
+            raise MissingFieldInResponseException(&#39;datasetName&#39;, response)
 
-        return DatasetId(UUID(response[&#39;id&#39;]))
+        return DatasetName(response[&#39;datasetName&#39;])
 
     def __str__(self) -&gt; str:
-        return str(self.__dataset_id)
+        return self.__dataset_name
 
     def __repr__(self) -&gt; str:
         return str(self)
@@ -1130,41 +1130,41 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
         if not isinstance(other, self.__class__):
             return False
 
-        return self.__dataset_id == other.__dataset_id  # pylint: disable=protected-access
+        return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
 
-    def to_api_dict(self) -&gt; api.DatasetId:
+    def to_api_dict(self) -&gt; api.DatasetName:
         return {
-            &#39;id&#39;: str(self.__dataset_id)
+            &#39;datasetName&#39;: str(self.__dataset_name)
         }</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
-<dt id="geoengine.datasets.DatasetId.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: api.DatasetId) ‑> <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></span>
+<dt id="geoengine.datasets.DatasetName.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: api.DatasetName) ‑> <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Parse a http response to an <code><a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></code></p></div>
+<div class="desc"><p>Parse a http response to an <code>DatasetId</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
+def from_response(cls, response: api.DatasetName) -&gt; DatasetName:
     &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
     if &#39;error&#39; in response:
         raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
-    if &#39;id&#39; not in response:
-        raise MissingFieldInResponseException(&#39;id&#39;, response)
+    if &#39;datasetName&#39; not in response:
+        raise MissingFieldInResponseException(&#39;datasetName&#39;, response)
 
-    return DatasetId(UUID(response[&#39;id&#39;]))</code></pre>
+    return DatasetName(response[&#39;datasetName&#39;])</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="geoengine.datasets.DatasetId.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.DatasetId" href="api.html#geoengine.api.DatasetId">DatasetId</a></span>
+<dt id="geoengine.datasets.DatasetName.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.DatasetName" href="api.html#geoengine.api.DatasetName">DatasetName</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1172,9 +1172,9 @@ def from_response(cls, response: api.DatasetId) -&gt; DatasetId:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.DatasetId:
+<pre><code class="python">def to_api_dict(self) -&gt; api.DatasetName:
     return {
-        &#39;id&#39;: str(self.__dataset_id)
+        &#39;datasetName&#39;: str(self.__dataset_name)
     }</code></pre>
 </details>
 </dd>
@@ -1917,18 +1917,18 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 </dd>
 <dt id="geoengine.datasets.StoredDataset"><code class="flex name class">
 <span>class <span class="ident">StoredDataset</span></span>
-<span>(</span><span>dataset_id: ForwardRef('<a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a>'), upload_id: ForwardRef('<a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>'))</span>
+<span>(</span><span>dataset_name: ForwardRef('<a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a>'), upload_id: ForwardRef('<a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>'))</span>
 </code></dt>
 <dd>
-<div class="desc"><p>The result of a store dataset request is a combination of <code>upload_id</code> and <code>dataset_id</code></p></div>
+<div class="desc"><p>The result of a store dataset request is a combination of <code>upload_id</code> and <code>dataset_name</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class StoredDataset(NamedTuple):
-    &#39;&#39;&#39;The result of a store dataset request is a combination of `upload_id` and `dataset_id`&#39;&#39;&#39;
+    &#39;&#39;&#39;The result of a store dataset request is a combination of `upload_id` and `dataset_name`&#39;&#39;&#39;
 
-    dataset_id: DatasetId
+    dataset_name: DatasetName
     upload_id: UploadId
 
     @classmethod
@@ -1943,12 +1943,12 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
             raise MissingFieldInResponseException(&#39;upload&#39;, response)
 
         return StoredDataset(
-            dataset_id=DatasetId(UUID(response[&#39;dataset&#39;])),
+            dataset_name=DatasetName(response[&#39;dataset&#39;]),
             upload_id=UploadId(UUID(response[&#39;upload&#39;]))
         )
 
     def to_api_dict(self) -&gt; api.StoredDataset:
-        return api.StoredDataset(dataset=str(self.dataset_id), upload=str(self.upload_id))</code></pre>
+        return api.StoredDataset(dataset=str(self.dataset_name), upload=str(self.upload_id))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1977,7 +1977,7 @@ def from_response(cls, response: api.StoredDataset) -&gt; StoredDataset:
         raise MissingFieldInResponseException(&#39;upload&#39;, response)
 
     return StoredDataset(
-        dataset_id=DatasetId(UUID(response[&#39;dataset&#39;])),
+        dataset_name=DatasetName(response[&#39;dataset&#39;]),
         upload_id=UploadId(UUID(response[&#39;upload&#39;]))
     )</code></pre>
 </details>
@@ -1985,7 +1985,7 @@ def from_response(cls, response: api.StoredDataset) -&gt; StoredDataset:
 </dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="geoengine.datasets.StoredDataset.dataset_id"><code class="name">var <span class="ident">dataset_id</span> : <a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></code></dt>
+<dt id="geoengine.datasets.StoredDataset.dataset_name"><code class="name">var <span class="ident">dataset_name</span> : <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
@@ -2006,7 +2006,7 @@ def from_response(cls, response: api.StoredDataset) -&gt; StoredDataset:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_api_dict(self) -&gt; api.StoredDataset:
-    return api.StoredDataset(dataset=str(self.dataset_id), upload=str(self.upload_id))</code></pre>
+    return api.StoredDataset(dataset=str(self.dataset_name), upload=str(self.upload_id))</code></pre>
 </details>
 </dd>
 </dl>
@@ -2534,10 +2534,10 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 </ul>
 </li>
 <li>
-<h4><code><a title="geoengine.datasets.DatasetId" href="#geoengine.datasets.DatasetId">DatasetId</a></code></h4>
+<h4><code><a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.datasets.DatasetId.from_response" href="#geoengine.datasets.DatasetId.from_response">from_response</a></code></li>
-<li><code><a title="geoengine.datasets.DatasetId.to_api_dict" href="#geoengine.datasets.DatasetId.to_api_dict">to_api_dict</a></code></li>
+<li><code><a title="geoengine.datasets.DatasetName.from_response" href="#geoengine.datasets.DatasetName.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.datasets.DatasetName.to_api_dict" href="#geoengine.datasets.DatasetName.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>
 <li>
@@ -2619,7 +2619,7 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 <li>
 <h4><code><a title="geoengine.datasets.StoredDataset" href="#geoengine.datasets.StoredDataset">StoredDataset</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.datasets.StoredDataset.dataset_id" href="#geoengine.datasets.StoredDataset.dataset_id">dataset_id</a></code></li>
+<li><code><a title="geoengine.datasets.StoredDataset.dataset_name" href="#geoengine.datasets.StoredDataset.dataset_name">dataset_name</a></code></li>
 <li><code><a title="geoengine.datasets.StoredDataset.from_response" href="#geoengine.datasets.StoredDataset.from_response">from_response</a></code></li>
 <li><code><a title="geoengine.datasets.StoredDataset.to_api_dict" href="#geoengine.datasets.StoredDataset.to_api_dict">to_api_dict</a></code></li>
 <li><code><a title="geoengine.datasets.StoredDataset.upload_id" href="#geoengine.datasets.StoredDataset.upload_id">upload_id</a></code></li>

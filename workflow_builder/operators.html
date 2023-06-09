@@ -33,8 +33,6 @@ from abc import abstractmethod
 from typing import Any, Dict, List, Optional, Union, cast
 from typing_extensions import Literal
 
-from geoengine import api
-
 
 class Operator():
     &#39;&#39;&#39;Base class for all operators.&#39;&#39;&#39;
@@ -85,18 +83,11 @@ class VectorOperator(Operator):
 
 class GdalSource(RasterOperator):
     &#39;&#39;&#39;A GDAL source operator.&#39;&#39;&#39;
-    dataset: api.DataId
+    dataset: str
 
-    def __init__(self, dataset: Union[api.DataId, str]):
+    def __init__(self, dataset: str):
         &#39;&#39;&#39;Creates a new GDAL source operator.&#39;&#39;&#39;
-        if isinstance(dataset, str):
-            self.dataset = api.InternalDataId(
-                type=&#34;internal&#34;,
-                datasetId=dataset,
-            )
-
-        else:
-            self.dataset = dataset
+        self.dataset = dataset
 
     def name(self) -&gt; str:
         return &#39;GdalSource&#39;
@@ -127,10 +118,7 @@ class OgrSource(VectorOperator):
         return {
             &#39;type&#39;: self.name(),
             &#39;params&#39;: {
-                &#34;data&#34;: {
-                    &#34;type&#34;: &#34;internal&#34;,
-                    &#34;datasetId&#34;: self.dataset,
-                },
+                &#34;data&#34;: self.dataset,
                 &#39;attributeProjection&#39;: self.attribute_projection,
                 &#39;attributeFilters&#39;: self.attribute_filters,
             }
@@ -615,7 +603,7 @@ class TimeShift(Operator):
 </dd>
 <dt id="geoengine.workflow_builder.operators.GdalSource"><code class="flex name class">
 <span>class <span class="ident">GdalSource</span></span>
-<span>(</span><span>dataset: Union[<a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>, str])</span>
+<span>(</span><span>dataset: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A GDAL source operator.</p>
@@ -626,18 +614,11 @@ class TimeShift(Operator):
 </summary>
 <pre><code class="python">class GdalSource(RasterOperator):
     &#39;&#39;&#39;A GDAL source operator.&#39;&#39;&#39;
-    dataset: api.DataId
+    dataset: str
 
-    def __init__(self, dataset: Union[api.DataId, str]):
+    def __init__(self, dataset: str):
         &#39;&#39;&#39;Creates a new GDAL source operator.&#39;&#39;&#39;
-        if isinstance(dataset, str):
-            self.dataset = api.InternalDataId(
-                type=&#34;internal&#34;,
-                datasetId=dataset,
-            )
-
-        else:
-            self.dataset = dataset
+        self.dataset = dataset
 
     def name(self) -&gt; str:
         return &#39;GdalSource&#39;
@@ -657,7 +638,7 @@ class TimeShift(Operator):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.workflow_builder.operators.GdalSource.dataset"><code class="name">var <span class="ident">dataset</span> : <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a></code></dt>
+<dt id="geoengine.workflow_builder.operators.GdalSource.dataset"><code class="name">var <span class="ident">dataset</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -781,10 +762,7 @@ class TimeShift(Operator):
         return {
             &#39;type&#39;: self.name(),
             &#39;params&#39;: {
-                &#34;data&#34;: {
-                    &#34;type&#34;: &#34;internal&#34;,
-                    &#34;datasetId&#34;: self.dataset,
-                },
+                &#34;data&#34;: self.dataset,
                 &#39;attributeProjection&#39;: self.attribute_projection,
                 &#39;attributeFilters&#39;: self.attribute_filters,
             }

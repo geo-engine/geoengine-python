@@ -248,9 +248,9 @@ class GdalSourceTimePlaceholder(TypedDict):  # pylint: disable=too-few-public-me
     reference: TimeReference
 
 
-class DatasetId(TypedDict):  # pylint: disable=too-few-public-methods
-    &#39;&#39;&#39;A dataset id&#39;&#39;&#39;
-    id: str
+class DatasetName(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A dataset name&#39;&#39;&#39;
+    datasetName: str
 
 
 class UploadId(TypedDict):  # pylint: disable=too-few-public-methods
@@ -577,9 +577,9 @@ class UpdateQuota(TypedDict):
     available: int
 
 
-class ResourceId(TypedDict):
+class Resource(TypedDict):
     &#39;&#39;&#39;A resource id&#39;&#39;&#39;
-    type: Literal[&#39;DatasetId&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;, &#39;Project&#39;]
+    type: Literal[&#39;dataset&#39;, &#39;layer&#39;, &#39;layerCollection&#39;, &#39;project&#39;]
     id: str
 
 
@@ -592,7 +592,7 @@ class Permission(str, Enum):
 class PermissionRequest(TypedDict):
     &#39;&#39;&#39;A permission request&#39;&#39;&#39;
     roleId: str  # should be UUID, but UUID is not json serializable
-    resourceId: ResourceId
+    resource: Resource
     permission: Permission
 
 
@@ -999,19 +999,19 @@ class AddRoleRequest(TypedDict):
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.api.DatasetId"><code class="flex name class">
-<span>class <span class="ident">DatasetId</span></span>
+<dt id="geoengine.api.DatasetName"><code class="flex name class">
+<span>class <span class="ident">DatasetName</span></span>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A dataset id</p></div>
+<div class="desc"><p>A dataset name</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DatasetId(TypedDict):  # pylint: disable=too-few-public-methods
-    &#39;&#39;&#39;A dataset id&#39;&#39;&#39;
-    id: str</code></pre>
+<pre><code class="python">class DatasetName(TypedDict):  # pylint: disable=too-few-public-methods
+    &#39;&#39;&#39;A dataset name&#39;&#39;&#39;
+    datasetName: str</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1019,7 +1019,7 @@ class AddRoleRequest(TypedDict):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.DatasetId.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
+<dt id="geoengine.api.DatasetName.datasetName"><code class="name">var <span class="ident">datasetName</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2398,7 +2398,7 @@ dict(one=1, two=2)</p></div>
 <pre><code class="python">class PermissionRequest(TypedDict):
     &#39;&#39;&#39;A permission request&#39;&#39;&#39;
     roleId: str  # should be UUID, but UUID is not json serializable
-    resourceId: ResourceId
+    resource: Resource
     permission: Permission</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2411,7 +2411,7 @@ dict(one=1, two=2)</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.PermissionRequest.resourceId"><code class="name">var <span class="ident">resourceId</span> : <a title="geoengine.api.ResourceId" href="#geoengine.api.ResourceId">ResourceId</a></code></dt>
+<dt id="geoengine.api.PermissionRequest.resource"><code class="name">var <span class="ident">resource</span> : <a title="geoengine.api.Resource" href="#geoengine.api.Resource">Resource</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2816,8 +2816,8 @@ dict(one=1, two=2)</p></div>
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.api.ResourceId"><code class="flex name class">
-<span>class <span class="ident">ResourceId</span></span>
+<dt id="geoengine.api.Resource"><code class="flex name class">
+<span>class <span class="ident">Resource</span></span>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -2826,9 +2826,9 @@ dict(one=1, two=2)</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ResourceId(TypedDict):
+<pre><code class="python">class Resource(TypedDict):
     &#39;&#39;&#39;A resource id&#39;&#39;&#39;
-    type: Literal[&#39;DatasetId&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;, &#39;Project&#39;]
+    type: Literal[&#39;dataset&#39;, &#39;layer&#39;, &#39;layerCollection&#39;, &#39;project&#39;]
     id: str</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2837,11 +2837,11 @@ dict(one=1, two=2)</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.api.ResourceId.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
+<dt id="geoengine.api.Resource.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.api.ResourceId.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['<a title="geoengine.api.DatasetId" href="#geoengine.api.DatasetId">DatasetId</a>', 'Layer', 'LayerCollection', 'Project']</code></dt>
+<dt id="geoengine.api.Resource.type"><code class="name">var <span class="ident">type</span> : typing_extensions.Literal['dataset', 'layer', 'layerCollection', 'project']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3775,9 +3775,9 @@ dict(one=1, two=2)</p></div>
 </ul>
 </li>
 <li>
-<h4><code><a title="geoengine.api.DatasetId" href="#geoengine.api.DatasetId">DatasetId</a></code></h4>
+<h4><code><a title="geoengine.api.DatasetName" href="#geoengine.api.DatasetName">DatasetName</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.api.DatasetId.id" href="#geoengine.api.DatasetId.id">id</a></code></li>
+<li><code><a title="geoengine.api.DatasetName.datasetName" href="#geoengine.api.DatasetName.datasetName">datasetName</a></code></li>
 </ul>
 </li>
 <li>
@@ -4076,7 +4076,7 @@ dict(one=1, two=2)</p></div>
 <h4><code><a title="geoengine.api.PermissionRequest" href="#geoengine.api.PermissionRequest">PermissionRequest</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.api.PermissionRequest.permission" href="#geoengine.api.PermissionRequest.permission">permission</a></code></li>
-<li><code><a title="geoengine.api.PermissionRequest.resourceId" href="#geoengine.api.PermissionRequest.resourceId">resourceId</a></code></li>
+<li><code><a title="geoengine.api.PermissionRequest.resource" href="#geoengine.api.PermissionRequest.resource">resource</a></code></li>
 <li><code><a title="geoengine.api.PermissionRequest.roleId" href="#geoengine.api.PermissionRequest.roleId">roleId</a></code></li>
 </ul>
 </li>
@@ -4171,10 +4171,10 @@ dict(one=1, two=2)</p></div>
 </ul>
 </li>
 <li>
-<h4><code><a title="geoengine.api.ResourceId" href="#geoengine.api.ResourceId">ResourceId</a></code></h4>
+<h4><code><a title="geoengine.api.Resource" href="#geoengine.api.Resource">Resource</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.api.ResourceId.id" href="#geoengine.api.ResourceId.id">id</a></code></li>
-<li><code><a title="geoengine.api.ResourceId.type" href="#geoengine.api.ResourceId.type">type</a></code></li>
+<li><code><a title="geoengine.api.Resource.id" href="#geoengine.api.Resource.id">id</a></code></li>
+<li><code><a title="geoengine.api.Resource.type" href="#geoengine.api.Resource.type">type</a></code></li>
 </ul>
 </li>
 <li>

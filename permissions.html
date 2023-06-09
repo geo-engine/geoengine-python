@@ -43,7 +43,7 @@ import requests as req
 from geoengine import api
 
 from geoengine.auth import get_session
-from geoengine.datasets import DatasetId
+from geoengine.datasets import DatasetName
 from geoengine.error import GeoEngineException
 from geoengine.layers import LayerCollectionId, LayerId
 
@@ -110,33 +110,33 @@ class UserId:
         return repr(self.__user_id)
 
 
-class ResourceId:
+class Resource:
     &#39;&#39;&#39;A wrapper for a resource id&#39;&#39;&#39;
 
-    def __init__(self, resource_type: Literal[&#39;DatasetId&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;],
+    def __init__(self, resource_type: Literal[&#39;dataset&#39;, &#39;layer&#39;, &#39;layerCollection&#39;],
                  resource_id: str) -&gt; None:
         &#39;&#39;&#39;Create a resource id&#39;&#39;&#39;
         self.__type = resource_type
         self.__id = resource_id
 
     @classmethod
-    def from_layer_id(cls, layer_id: LayerId) -&gt; ResourceId:
+    def from_layer_id(cls, layer_id: LayerId) -&gt; Resource:
         &#39;&#39;&#39;Create a resource id from a layer id&#39;&#39;&#39;
-        return ResourceId(&#39;Layer&#39;, str(layer_id))
+        return Resource(&#39;layer&#39;, str(layer_id))
 
     @classmethod
-    def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -&gt; ResourceId:
+    def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -&gt; Resource:
         &#39;&#39;&#39;Create a resource id from a layer collection id&#39;&#39;&#39;
-        return ResourceId(&#39;LayerCollection&#39;, str(layer_collection_id))
+        return Resource(&#39;layerCollection&#39;, str(layer_collection_id))
 
     @classmethod
-    def from_dataset_id(cls, dataset_id: DatasetId) -&gt; ResourceId:
+    def from_dataset_name(cls, dataset_name: DatasetName) -&gt; Resource:
         &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
-        return ResourceId(&#39;DatasetId&#39;, str(dataset_id))
+        return Resource(&#39;dataset&#39;, str(dataset_name))
 
-    def to_api_dict(self) -&gt; api.ResourceId:
+    def to_api_dict(self) -&gt; api.Resource:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
-        return api.ResourceId({
+        return api.Resource({
             &#34;type&#34;: self.__type,
             &#34;id&#34;: self.__id
         })
@@ -157,14 +157,14 @@ REGISTERED_USER_ROLE_ID: RoleId = RoleId(UUID(&#34;4e8081b6-8aa6-4275-af0c-2fa2d
 ANONYMOUS_USER_ROLE_ID: RoleId = RoleId(UUID(&#34;fd8e87bf-515c-4f36-8da6-1a53702ff102&#34;))
 
 
-def add_permission(role: RoleId, resource: ResourceId, permission: Permission, timeout: int = 60):
+def add_permission(role: RoleId, resource: Resource, permission: Permission, timeout: int = 60):
     &#34;&#34;&#34;Add a permission to a resource for a role. Requires admin role.&#34;&#34;&#34;
 
     session = get_session()
 
     payload = json.dumps(api.PermissionRequest({
         &#34;roleId&#34;: str(role),
-        &#34;resourceId&#34;: resource.to_api_dict(),
+        &#34;resource&#34;: resource.to_api_dict(),
         &#34;permission&#34;: permission.to_api_dict()
     }), default=str)
 
@@ -184,14 +184,14 @@ def add_permission(role: RoleId, resource: ResourceId, permission: Permission, t
         raise GeoEngineException(response.json())
 
 
-def remove_permission(role: RoleId, resource: ResourceId, permission: Permission, timeout: int = 60):
+def remove_permission(role: RoleId, resource: Resource, permission: Permission, timeout: int = 60):
     &#34;&#34;&#34;Removes a permission to a resource from a role. Requires admin role.&#34;&#34;&#34;
 
     session = get_session()
 
     payload = json.dumps(api.PermissionRequest({
         &#34;roleId&#34;: str(role),
-        &#34;resourceId&#34;: resource.to_api_dict(),
+        &#34;resource&#34;: resource.to_api_dict(),
         &#34;permission&#34;: permission.to_api_dict()
     }), default=str)
 
@@ -290,7 +290,7 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="geoengine.permissions.add_permission"><code class="name flex">
-<span>def <span class="ident">add_permission</span></span>(<span>role: <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a>, resource: <a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a>, permission: <a title="geoengine.permissions.Permission" href="#geoengine.permissions.Permission">Permission</a>, timeout: int = 60)</span>
+<span>def <span class="ident">add_permission</span></span>(<span>role: <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a>, resource: <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a>, permission: <a title="geoengine.permissions.Permission" href="#geoengine.permissions.Permission">Permission</a>, timeout: int = 60)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Add a permission to a resource for a role. Requires admin role.</p></div>
@@ -298,14 +298,14 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add_permission(role: RoleId, resource: ResourceId, permission: Permission, timeout: int = 60):
+<pre><code class="python">def add_permission(role: RoleId, resource: Resource, permission: Permission, timeout: int = 60):
     &#34;&#34;&#34;Add a permission to a resource for a role. Requires admin role.&#34;&#34;&#34;
 
     session = get_session()
 
     payload = json.dumps(api.PermissionRequest({
         &#34;roleId&#34;: str(role),
-        &#34;resourceId&#34;: resource.to_api_dict(),
+        &#34;resource&#34;: resource.to_api_dict(),
         &#34;permission&#34;: permission.to_api_dict()
     }), default=str)
 
@@ -383,7 +383,7 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 </details>
 </dd>
 <dt id="geoengine.permissions.remove_permission"><code class="name flex">
-<span>def <span class="ident">remove_permission</span></span>(<span>role: <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a>, resource: <a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a>, permission: <a title="geoengine.permissions.Permission" href="#geoengine.permissions.Permission">Permission</a>, timeout: int = 60)</span>
+<span>def <span class="ident">remove_permission</span></span>(<span>role: <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a>, resource: <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a>, permission: <a title="geoengine.permissions.Permission" href="#geoengine.permissions.Permission">Permission</a>, timeout: int = 60)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Removes a permission to a resource from a role. Requires admin role.</p></div>
@@ -391,14 +391,14 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def remove_permission(role: RoleId, resource: ResourceId, permission: Permission, timeout: int = 60):
+<pre><code class="python">def remove_permission(role: RoleId, resource: Resource, permission: Permission, timeout: int = 60):
     &#34;&#34;&#34;Removes a permission to a resource from a role. Requires admin role.&#34;&#34;&#34;
 
     session = get_session()
 
     payload = json.dumps(api.PermissionRequest({
         &#34;roleId&#34;: str(role),
-        &#34;resourceId&#34;: resource.to_api_dict(),
+        &#34;resource&#34;: resource.to_api_dict(),
         &#34;permission&#34;: permission.to_api_dict()
     }), default=str)
 
@@ -526,9 +526,9 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.permissions.ResourceId"><code class="flex name class">
-<span>class <span class="ident">ResourceId</span></span>
-<span>(</span><span>resource_type: "Literal['DatasetId', 'Layer', 'LayerCollection']", resource_id: str)</span>
+<dt id="geoengine.permissions.Resource"><code class="flex name class">
+<span>class <span class="ident">Resource</span></span>
+<span>(</span><span>resource_type: "Literal['dataset', 'layer', 'layerCollection']", resource_id: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A wrapper for a resource id</p>
@@ -537,41 +537,41 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ResourceId:
+<pre><code class="python">class Resource:
     &#39;&#39;&#39;A wrapper for a resource id&#39;&#39;&#39;
 
-    def __init__(self, resource_type: Literal[&#39;DatasetId&#39;, &#39;Layer&#39;, &#39;LayerCollection&#39;],
+    def __init__(self, resource_type: Literal[&#39;dataset&#39;, &#39;layer&#39;, &#39;layerCollection&#39;],
                  resource_id: str) -&gt; None:
         &#39;&#39;&#39;Create a resource id&#39;&#39;&#39;
         self.__type = resource_type
         self.__id = resource_id
 
     @classmethod
-    def from_layer_id(cls, layer_id: LayerId) -&gt; ResourceId:
+    def from_layer_id(cls, layer_id: LayerId) -&gt; Resource:
         &#39;&#39;&#39;Create a resource id from a layer id&#39;&#39;&#39;
-        return ResourceId(&#39;Layer&#39;, str(layer_id))
+        return Resource(&#39;layer&#39;, str(layer_id))
 
     @classmethod
-    def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -&gt; ResourceId:
+    def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -&gt; Resource:
         &#39;&#39;&#39;Create a resource id from a layer collection id&#39;&#39;&#39;
-        return ResourceId(&#39;LayerCollection&#39;, str(layer_collection_id))
+        return Resource(&#39;layerCollection&#39;, str(layer_collection_id))
 
     @classmethod
-    def from_dataset_id(cls, dataset_id: DatasetId) -&gt; ResourceId:
+    def from_dataset_name(cls, dataset_name: DatasetName) -&gt; Resource:
         &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
-        return ResourceId(&#39;DatasetId&#39;, str(dataset_id))
+        return Resource(&#39;dataset&#39;, str(dataset_name))
 
-    def to_api_dict(self) -&gt; api.ResourceId:
+    def to_api_dict(self) -&gt; api.Resource:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
-        return api.ResourceId({
+        return api.Resource({
             &#34;type&#34;: self.__type,
             &#34;id&#34;: self.__id
         })</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
-<dt id="geoengine.permissions.ResourceId.from_dataset_id"><code class="name flex">
-<span>def <span class="ident">from_dataset_id</span></span>(<span>dataset_id: DatasetId) ‑> <a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a></span>
+<dt id="geoengine.permissions.Resource.from_dataset_name"><code class="name flex">
+<span>def <span class="ident">from_dataset_name</span></span>(<span>dataset_name: DatasetName) ‑> <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Create a resource id from a dataset id</p></div>
@@ -580,13 +580,13 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_dataset_id(cls, dataset_id: DatasetId) -&gt; ResourceId:
+def from_dataset_name(cls, dataset_name: DatasetName) -&gt; Resource:
     &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
-    return ResourceId(&#39;DatasetId&#39;, str(dataset_id))</code></pre>
+    return Resource(&#39;dataset&#39;, str(dataset_name))</code></pre>
 </details>
 </dd>
-<dt id="geoengine.permissions.ResourceId.from_layer_collection_id"><code class="name flex">
-<span>def <span class="ident">from_layer_collection_id</span></span>(<span>layer_collection_id: LayerCollectionId) ‑> <a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a></span>
+<dt id="geoengine.permissions.Resource.from_layer_collection_id"><code class="name flex">
+<span>def <span class="ident">from_layer_collection_id</span></span>(<span>layer_collection_id: LayerCollectionId) ‑> <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Create a resource id from a layer collection id</p></div>
@@ -595,13 +595,13 @@ def from_dataset_id(cls, dataset_id: DatasetId) -&gt; ResourceId:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -&gt; ResourceId:
+def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -&gt; Resource:
     &#39;&#39;&#39;Create a resource id from a layer collection id&#39;&#39;&#39;
-    return ResourceId(&#39;LayerCollection&#39;, str(layer_collection_id))</code></pre>
+    return Resource(&#39;layerCollection&#39;, str(layer_collection_id))</code></pre>
 </details>
 </dd>
-<dt id="geoengine.permissions.ResourceId.from_layer_id"><code class="name flex">
-<span>def <span class="ident">from_layer_id</span></span>(<span>layer_id: LayerId) ‑> <a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a></span>
+<dt id="geoengine.permissions.Resource.from_layer_id"><code class="name flex">
+<span>def <span class="ident">from_layer_id</span></span>(<span>layer_id: LayerId) ‑> <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Create a resource id from a layer id</p></div>
@@ -610,16 +610,16 @@ def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -&gt; 
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_layer_id(cls, layer_id: LayerId) -&gt; ResourceId:
+def from_layer_id(cls, layer_id: LayerId) -&gt; Resource:
     &#39;&#39;&#39;Create a resource id from a layer id&#39;&#39;&#39;
-    return ResourceId(&#39;Layer&#39;, str(layer_id))</code></pre>
+    return Resource(&#39;layer&#39;, str(layer_id))</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="geoengine.permissions.ResourceId.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.ResourceId" href="api.html#geoengine.api.ResourceId">ResourceId</a></span>
+<dt id="geoengine.permissions.Resource.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.Resource" href="api.html#geoengine.api.Resource">Resource</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert to a dict for the API</p></div>
@@ -627,9 +627,9 @@ def from_layer_id(cls, layer_id: LayerId) -&gt; ResourceId:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.ResourceId:
+<pre><code class="python">def to_api_dict(self) -&gt; api.Resource:
     &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
-    return api.ResourceId({
+    return api.Resource({
         &#34;type&#34;: self.__type,
         &#34;id&#34;: self.__id
     })</code></pre>
@@ -802,12 +802,12 @@ def from_response(cls, response: Dict[str, str]) -&gt; UserId:
 </ul>
 </li>
 <li>
-<h4><code><a title="geoengine.permissions.ResourceId" href="#geoengine.permissions.ResourceId">ResourceId</a></code></h4>
+<h4><code><a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a></code></h4>
 <ul class="">
-<li><code><a title="geoengine.permissions.ResourceId.from_dataset_id" href="#geoengine.permissions.ResourceId.from_dataset_id">from_dataset_id</a></code></li>
-<li><code><a title="geoengine.permissions.ResourceId.from_layer_collection_id" href="#geoengine.permissions.ResourceId.from_layer_collection_id">from_layer_collection_id</a></code></li>
-<li><code><a title="geoengine.permissions.ResourceId.from_layer_id" href="#geoengine.permissions.ResourceId.from_layer_id">from_layer_id</a></code></li>
-<li><code><a title="geoengine.permissions.ResourceId.to_api_dict" href="#geoengine.permissions.ResourceId.to_api_dict">to_api_dict</a></code></li>
+<li><code><a title="geoengine.permissions.Resource.from_dataset_name" href="#geoengine.permissions.Resource.from_dataset_name">from_dataset_name</a></code></li>
+<li><code><a title="geoengine.permissions.Resource.from_layer_collection_id" href="#geoengine.permissions.Resource.from_layer_collection_id">from_layer_collection_id</a></code></li>
+<li><code><a title="geoengine.permissions.Resource.from_layer_id" href="#geoengine.permissions.Resource.from_layer_id">from_layer_id</a></code></li>
+<li><code><a title="geoengine.permissions.Resource.to_api_dict" href="#geoengine.permissions.Resource.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>
 <li>

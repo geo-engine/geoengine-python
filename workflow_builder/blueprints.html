@@ -30,18 +30,11 @@
 <pre><code class="python">&#39;&#39;&#39;This module contains blueprints for workflows.&#39;&#39;&#39;
 
 from . import operators
-from .. import api
 
 
 def sentinel2_band(band_name, provider=&#34;5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5&#34;, utm_zone=&#34;UTM32N&#34;):
     &#39;&#39;&#39;Creates a workflow for a band from Sentinel 2 data.&#39;&#39;&#39;
-    band_source = operators.GdalSource(
-        dataset=api.ExternalDataId(
-            type=&#34;external&#34;,
-            providerId=provider,
-            layerId=f&#34;{utm_zone}:{band_name}&#34;
-        )
-    )
+    band_source = operators.GdalSource(f&#34;_:{provider}:`{utm_zone}:{band_name}`&#34;)
     return band_source
 
 
@@ -55,42 +48,22 @@ def sentinel2_cloud_free_band(
     if band_name.upper() not in valid_sentinel_bands:
         raise ValueError(f&#34;Invalid band name {band_name}. Valid band names are: {valid_sentinel_bands}&#34;)
 
-    band_id = api.ExternalDataId(
-        type=&#34;external&#34;,
-        providerId=provider,
-        layerId=f&#34;{utm_zone}:{band_name.upper()}&#34;
-    )
-    scl_id = api.ExternalDataId(
-        type=&#34;external&#34;,
-        providerId=provider,
-        layerId=f&#34;{utm_zone}:SCL&#34;
-    )
+    band_id = f&#34;_:{provider}:`{utm_zone}:{band_name.upper()}`&#34;
+    scl_id = f&#34;_:{provider}:`{utm_zone}:SCL`&#34;
     return sentinel2_cloud_free_band_custom_input(band_id, scl_id)
 
 
 def sentinel2_cloud_free_ndvi(provider=&#34;5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5&#34;, utm_zone=&#34;UTM32N&#34;):
     &#39;&#39;&#39;Creates a workflow for a cloud free NDVI from Sentinel 2 data.&#39;&#39;&#39;
 
-    nir_id = api.ExternalDataId(
-        type=&#34;external&#34;,
-        providerId=provider,
-        layerId=f&#34;{utm_zone}:B08&#34;
-    )
-    red_id = api.ExternalDataId(
-        type=&#34;external&#34;,
-        providerId=provider,
-        layerId=f&#34;{utm_zone}:B04&#34;
-    )
-    scl_id = api.ExternalDataId(
-        type=&#34;external&#34;,
-        providerId=provider,
-        layerId=f&#34;{utm_zone}:SCL&#34;
-    )
+    nir_id = f&#34;_:{provider}:`{utm_zone}:B08`&#34;
+    red_id = f&#34;_:{provider}:`{utm_zone}:B04`&#34;
+    scl_id = f&#34;_:{provider}:`{utm_zone}:SCL`&#34;
 
     return sentinel2_cloud_free_ndvi_custom_input(nir_id, red_id, scl_id)
 
 
-def sentinel2_cloud_free_band_custom_input(band_dataset: api.DataId, scl_dataset: api.DataId):
+def sentinel2_cloud_free_band_custom_input(band_dataset: str, scl_dataset: str):
     &#39;&#39;&#39;Creates a workflow for a cloud free band from Sentinel 2 data provided by the inputs.&#39;&#39;&#39;
     band_source = operators.GdalSource(
         dataset=band_dataset
@@ -111,7 +84,7 @@ def sentinel2_cloud_free_band_custom_input(band_dataset: api.DataId, scl_dataset
     return cloud_free
 
 
-def sentinel2_cloud_free_ndvi_custom_input(nir_dataset: api.DataId, red_dataset: api.DataId, scl_dataset: api.DataId):
+def sentinel2_cloud_free_ndvi_custom_input(nir_dataset: str, red_dataset: str, scl_dataset: str):
     &#39;&#39;&#39;Creates a workflow for a cloud free NDVI from Sentinel 2 data provided by the inputs.&#39;&#39;&#39;
     nir_source = operators.GdalSource(
         dataset=nir_dataset
@@ -169,8 +142,8 @@ def s2_cloud_free_aggregated_band(
 
 
 def s2_cloud_free_aggregated_band_custom_input(
-        band_id: api.DataId,
-        scl_id: api.DataId,
+        band_id: str,
+        scl_id: str,
         granularity=&#34;days&#34;,
         window_size=1,
         aggregation_type=&#34;mean&#34;
@@ -206,9 +179,9 @@ def s2_cloud_free_aggregated_band_custom_input(
 
 
 def s2_cloud_free_aggregated_ndvi_custom_input(
-        nir_dataset: api.DataId,
-        red_dataset: api.DataId,
-        scl_dataset: api.DataId,
+        nir_dataset: str,
+        red_dataset: str,
+        scl_dataset: str,
         granularity=&#34;days&#34;,
         window_size=1,
         aggregation_type=&#34;mean&#34;
@@ -281,7 +254,7 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
 </details>
 </dd>
 <dt id="geoengine.workflow_builder.blueprints.s2_cloud_free_aggregated_band_custom_input"><code class="name flex">
-<span>def <span class="ident">s2_cloud_free_aggregated_band_custom_input</span></span>(<span>band_id: <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>, scl_id: <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>, granularity='days', window_size=1, aggregation_type='mean')</span>
+<span>def <span class="ident">s2_cloud_free_aggregated_band_custom_input</span></span>(<span>band_id: str, scl_id: str, granularity='days', window_size=1, aggregation_type='mean')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a workflow for a cloud free monthly band from Sentinel 2 data provided by the inputs.</p></div>
@@ -290,8 +263,8 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def s2_cloud_free_aggregated_band_custom_input(
-        band_id: api.DataId,
-        scl_id: api.DataId,
+        band_id: str,
+        scl_id: str,
         granularity=&#34;days&#34;,
         window_size=1,
         aggregation_type=&#34;mean&#34;
@@ -327,7 +300,7 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
 </details>
 </dd>
 <dt id="geoengine.workflow_builder.blueprints.s2_cloud_free_aggregated_ndvi_custom_input"><code class="name flex">
-<span>def <span class="ident">s2_cloud_free_aggregated_ndvi_custom_input</span></span>(<span>nir_dataset: <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>, red_dataset: <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>, scl_dataset: <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>, granularity='days', window_size=1, aggregation_type='mean')</span>
+<span>def <span class="ident">s2_cloud_free_aggregated_ndvi_custom_input</span></span>(<span>nir_dataset: str, red_dataset: str, scl_dataset: str, granularity='days', window_size=1, aggregation_type='mean')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a workflow for a cloud free monthly NDVI from Sentinel 2 data provided by the inputs.</p></div>
@@ -336,9 +309,9 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def s2_cloud_free_aggregated_ndvi_custom_input(
-        nir_dataset: api.DataId,
-        red_dataset: api.DataId,
-        scl_dataset: api.DataId,
+        nir_dataset: str,
+        red_dataset: str,
+        scl_dataset: str,
         granularity=&#34;days&#34;,
         window_size=1,
         aggregation_type=&#34;mean&#34;
@@ -373,13 +346,7 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
 </summary>
 <pre><code class="python">def sentinel2_band(band_name, provider=&#34;5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5&#34;, utm_zone=&#34;UTM32N&#34;):
     &#39;&#39;&#39;Creates a workflow for a band from Sentinel 2 data.&#39;&#39;&#39;
-    band_source = operators.GdalSource(
-        dataset=api.ExternalDataId(
-            type=&#34;external&#34;,
-            providerId=provider,
-            layerId=f&#34;{utm_zone}:{band_name}&#34;
-        )
-    )
+    band_source = operators.GdalSource(f&#34;_:{provider}:`{utm_zone}:{band_name}`&#34;)
     return band_source</code></pre>
 </details>
 </dd>
@@ -402,21 +369,13 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
     if band_name.upper() not in valid_sentinel_bands:
         raise ValueError(f&#34;Invalid band name {band_name}. Valid band names are: {valid_sentinel_bands}&#34;)
 
-    band_id = api.ExternalDataId(
-        type=&#34;external&#34;,
-        providerId=provider,
-        layerId=f&#34;{utm_zone}:{band_name.upper()}&#34;
-    )
-    scl_id = api.ExternalDataId(
-        type=&#34;external&#34;,
-        providerId=provider,
-        layerId=f&#34;{utm_zone}:SCL&#34;
-    )
+    band_id = f&#34;_:{provider}:`{utm_zone}:{band_name.upper()}`&#34;
+    scl_id = f&#34;_:{provider}:`{utm_zone}:SCL`&#34;
     return sentinel2_cloud_free_band_custom_input(band_id, scl_id)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.workflow_builder.blueprints.sentinel2_cloud_free_band_custom_input"><code class="name flex">
-<span>def <span class="ident">sentinel2_cloud_free_band_custom_input</span></span>(<span>band_dataset: <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>, scl_dataset: <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>)</span>
+<span>def <span class="ident">sentinel2_cloud_free_band_custom_input</span></span>(<span>band_dataset: str, scl_dataset: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a workflow for a cloud free band from Sentinel 2 data provided by the inputs.</p></div>
@@ -424,7 +383,7 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def sentinel2_cloud_free_band_custom_input(band_dataset: api.DataId, scl_dataset: api.DataId):
+<pre><code class="python">def sentinel2_cloud_free_band_custom_input(band_dataset: str, scl_dataset: str):
     &#39;&#39;&#39;Creates a workflow for a cloud free band from Sentinel 2 data provided by the inputs.&#39;&#39;&#39;
     band_source = operators.GdalSource(
         dataset=band_dataset
@@ -457,27 +416,15 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
 <pre><code class="python">def sentinel2_cloud_free_ndvi(provider=&#34;5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5&#34;, utm_zone=&#34;UTM32N&#34;):
     &#39;&#39;&#39;Creates a workflow for a cloud free NDVI from Sentinel 2 data.&#39;&#39;&#39;
 
-    nir_id = api.ExternalDataId(
-        type=&#34;external&#34;,
-        providerId=provider,
-        layerId=f&#34;{utm_zone}:B08&#34;
-    )
-    red_id = api.ExternalDataId(
-        type=&#34;external&#34;,
-        providerId=provider,
-        layerId=f&#34;{utm_zone}:B04&#34;
-    )
-    scl_id = api.ExternalDataId(
-        type=&#34;external&#34;,
-        providerId=provider,
-        layerId=f&#34;{utm_zone}:SCL&#34;
-    )
+    nir_id = f&#34;_:{provider}:`{utm_zone}:B08`&#34;
+    red_id = f&#34;_:{provider}:`{utm_zone}:B04`&#34;
+    scl_id = f&#34;_:{provider}:`{utm_zone}:SCL`&#34;
 
     return sentinel2_cloud_free_ndvi_custom_input(nir_id, red_id, scl_id)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.workflow_builder.blueprints.sentinel2_cloud_free_ndvi_custom_input"><code class="name flex">
-<span>def <span class="ident">sentinel2_cloud_free_ndvi_custom_input</span></span>(<span>nir_dataset: <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>, red_dataset: <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>, scl_dataset: <a title="geoengine.api.DataId" href="../api.html#geoengine.api.DataId">DataId</a>)</span>
+<span>def <span class="ident">sentinel2_cloud_free_ndvi_custom_input</span></span>(<span>nir_dataset: str, red_dataset: str, scl_dataset: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Creates a workflow for a cloud free NDVI from Sentinel 2 data provided by the inputs.</p></div>
@@ -485,7 +432,7 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def sentinel2_cloud_free_ndvi_custom_input(nir_dataset: api.DataId, red_dataset: api.DataId, scl_dataset: api.DataId):
+<pre><code class="python">def sentinel2_cloud_free_ndvi_custom_input(nir_dataset: str, red_dataset: str, scl_dataset: str):
     &#39;&#39;&#39;Creates a workflow for a cloud free NDVI from Sentinel 2 data provided by the inputs.&#39;&#39;&#39;
     nir_source = operators.GdalSource(
         dataset=nir_dataset
