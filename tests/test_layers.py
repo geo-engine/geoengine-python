@@ -6,7 +6,7 @@ import requests_mock
 import geoengine as ge
 from geoengine import StoredDataset, GeoEngineException
 from geoengine import api
-from geoengine.datasets import DatasetId, UploadId
+from geoengine.datasets import DatasetName, UploadId
 from geoengine.layers import Layer, LayerId, LayerProviderId
 from geoengine.types import RasterSymbology
 
@@ -71,10 +71,7 @@ class LayerTests(unittest.TestCase):
                     "workflow": {
                         "operator": {
                             "params": {
-                                "data": {
-                                    "datasetId": "9ee3619e-d0f9-4ced-9c44-3d407c3aed69",
-                                    "type": "internal"
-                                }
+                                "data": "ndvi"
                             },
                             "type": "GdalSource"
                         },
@@ -128,10 +125,7 @@ class LayerTests(unittest.TestCase):
                     "workflow": {
                         "operator": {
                             "params": {
-                                "data": {
-                                    "datasetId": "9ee3619e-d0f9-4ced-9c44-3d407c3aed69",
-                                    "type": "internal"
-                                }
+                                "data": "ndvi"
                             },
                             "type": "GdalSource"
                         },
@@ -292,10 +286,7 @@ class LayerTests(unittest.TestCase):
                                 'points': {
                                     'type': 'OgrSource',
                                     'params': {
-                                        'data': {
-                                            'type': 'internal',
-                                            'datasetId': 'a9623a5b-b6c5-404b-bc5a-313ff72e4e75'
-                                        },
+                                        'data': "ne_10m_ports",
                                         'attributeProjection': None,
                                         'attributeFilters': None
                                     }
@@ -303,10 +294,7 @@ class LayerTests(unittest.TestCase):
                                 'polygons': {
                                     'type': 'OgrSource',
                                     'params': {
-                                        'data': {
-                                            'type': 'internal',
-                                            'datasetId': 'b6191257-6d61-4c6b-90a4-ebfb1b23899d'
-                                        },
+                                        'data': "germany_outline",
                                         'attributeProjection': None,
                                         'attributeFilters': None
                                     }
@@ -363,10 +351,7 @@ class LayerTests(unittest.TestCase):
                                 'points': {
                                     'type': 'OgrSource',
                                     'params': {
-                                        'data': {
-                                            'type': 'internal',
-                                            'datasetId': 'a9623a5b-b6c5-404b-bc5a-313ff72e4e75'
-                                        },
+                                        'data': "ne_10m_ports",
                                         'attributeProjection': None,
                                         'attributeFilters': None
                                     }
@@ -374,10 +359,7 @@ class LayerTests(unittest.TestCase):
                                 'polygons': {
                                     'type': 'OgrSource',
                                     'params': {
-                                        'data': {
-                                            'type': 'internal',
-                                            'datasetId': 'b6191257-6d61-4c6b-90a4-ebfb1b23899d'
-                                        },
+                                        'data': "germany_outline",
                                         'attributeProjection': None,
                                         'attributeFilters': None
                                     }
@@ -471,10 +453,7 @@ class LayerTests(unittest.TestCase):
                             "points": {
                                 "type": "OgrSource",
                                 "params": {
-                                    "data": {
-                                        "type": "internal",
-                                        "datasetId": "a9623a5b-b6c5-404b-bc5a-313ff72e4e75"
-                                    },
+                                    "data": "ne_10m_ports",
                                     "attributeProjection": None,
                                     "attributeFilters": None
                                 }
@@ -482,10 +461,7 @@ class LayerTests(unittest.TestCase):
                             "polygons": {
                                 "type": "OgrSource",
                                 "params": {
-                                    "data": {
-                                        "type": "internal",
-                                        "datasetId": "b6191257-6d61-4c6b-90a4-ebfb1b23899d"
-                                    },
+                                    "data": "germany_outline",
                                     "attributeProjection": None,
                                     "attributeFilters": None
                                 }
@@ -555,10 +531,7 @@ class LayerTests(unittest.TestCase):
                 workflow={
                     "operator": {
                         "params": {
-                            "data": {
-                                "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093",
-                                "type": "internal"
-                            }
+                            "data": "ndvi"
                         },
                         "type": "GdalSource"
                     },
@@ -573,7 +546,7 @@ class LayerTests(unittest.TestCase):
             task_status = task.get_status()
             stored_dataset = StoredDataset.from_response(task_status.info)
 
-            self.assertEqual(stored_dataset.dataset_id, DatasetId(UUID("94230f0b-4e8a-4cba-9adc-3ace837fe5d4")))
+            self.assertEqual(stored_dataset.dataset_name, DatasetName("94230f0b-4e8a-4cba-9adc-3ace837fe5d4"))
             self.assertEqual(stored_dataset.upload_id, UploadId(UUID("3086f494-d5a4-4b51-a14b-3b29f8bf7bb0")))
 
             # Some processing error occurred (e.g., layer does not exist)
@@ -585,10 +558,7 @@ class LayerTests(unittest.TestCase):
                 workflow={
                     "operator": {
                         "params": {
-                            "data": {
-                                "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093",
-                                "type": "internal"
-                            }
+                            "data": "ndvi"
                         },
                         "type": "GdalSource"
                     },
@@ -613,10 +583,7 @@ class LayerTests(unittest.TestCase):
             workflow={
                 "operator": {
                         "params": {
-                            "data": {
-                                "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093",
-                                "type": "internal"
-                            }
+                            "data": "ndvi"
                         },
                     "type": "GdalSource"
                 },

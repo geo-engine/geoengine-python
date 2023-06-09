@@ -2,54 +2,35 @@
 
 import unittest
 from geoengine import workflow_builder as wb
-from geoengine import api
 
 
 class OperatorsTests(unittest.TestCase):
     """Tests for the workflow builder operators."""
 
     def test_gdal_source(self):
-        dataset_id = api.InternalDataId(
-            type="internal",
-            datasetId="c314ff6d-3e37-41b4-b9b2-3669f13f7369",
-        )
-
-        workflow = wb.operators.GdalSource(dataset_id)
+        workflow = wb.operators.GdalSource("ndvi")
 
         self.assertEqual(workflow.to_dict(), {
             'type': 'GdalSource',
             'params': {
-                "data": {
-                    "type": "internal",
-                    "datasetId": "c314ff6d-3e37-41b4-b9b2-3669f13f7369"
-                }
+                "data": "ndvi"
             }
         })
 
     def test_ogr_source(self):
-        dataset_id_str = "c314ff6d-3e37-41b4-b9b2-3669f13f7369"
-
-        workflow = wb.operators.OgrSource(dataset_id_str)
+        workflow = wb.operators.OgrSource("ne_10m_ports")
 
         self.assertEqual(workflow.to_dict(), {
             'type': 'OgrSource',
             'params': {
-                "data": {
-                    "type": "internal",
-                    "datasetId": "c314ff6d-3e37-41b4-b9b2-3669f13f7369"
-                },
+                "data": "ne_10m_ports",
                 'attributeProjection': None,
                 'attributeFilters': None
             }
         })
 
     def test_interpolation(self):
-        source_operator = wb.operators.GdalSource(
-            api.InternalDataId(
-                type="internal",
-                datasetId="c314ff6d-3e37-41b4-b9b2-3669f13f7369",
-            )
-        )
+        source_operator = wb.operators.GdalSource("ndvi")
 
         workflow = wb.operators.Interpolation(
             source_operator=source_operator,
@@ -68,26 +49,16 @@ class OperatorsTests(unittest.TestCase):
                 "raster": {
                     'type': 'GdalSource',
                     'params': {
-                        'data': {
-                            'type': 'internal',
-                            'datasetId': 'c314ff6d-3e37-41b4-b9b2-3669f13f7369'
-                        }
+                        'data': "ndvi"
                     }
                 },
             },
         })
 
     def test_raster_vector_join(self):
-        raster_source_operator = wb.operators.GdalSource(
-            api.InternalDataId(
-                type="internal",
-                datasetId="c314ff6d-3e37-41b4-b9b2-3669f13f7369",
-            )
-        )
+        raster_source_operator = wb.operators.GdalSource("ndvi")
 
-        vector_source_operator = wb.operators.OgrSource(
-            "c314ff6d-3e37-41b4-b9b2-3669f13f7369"
-        )
+        vector_source_operator = wb.operators.OgrSource("ne_10m_ports")
 
         workflow = wb.operators.RasterVectorJoin(
             raster_sources=[raster_source_operator],
@@ -108,10 +79,7 @@ class OperatorsTests(unittest.TestCase):
                 "vector": {
                     'type': 'OgrSource',
                     'params': {
-                        'data': {
-                            'type': 'internal',
-                            'datasetId': 'c314ff6d-3e37-41b4-b9b2-3669f13f7369'
-                        },
+                        'data': "ne_10m_ports",
                         'attributeProjection': None,
                         'attributeFilters': None
                     }
@@ -120,10 +88,7 @@ class OperatorsTests(unittest.TestCase):
                     {
                         'type': 'GdalSource',
                         'params': {
-                            'data': {
-                                'type': 'internal',
-                                'datasetId': 'c314ff6d-3e37-41b4-b9b2-3669f13f7369'
-                            }
+                            'data': "ndvi"
                         }
                     }
                 ]
@@ -131,28 +96,19 @@ class OperatorsTests(unittest.TestCase):
         })
 
     def test_point_in_polygon_filter(self):
-        vector_source_operator = wb.operators.OgrSource(
-            "c314ff6d-3e37-41b4-b9b2-3669f13f7369"
-        )
-
         workflow = wb.operators.PointInPolygonFilter(
-            point_source=vector_source_operator,
-            polygon_source=vector_source_operator,
+            point_source=wb.operators.OgrSource("ne_10m_ports"),
+            polygon_source=wb.operators.OgrSource("germany_outline"),
         )
 
         self.assertEqual(workflow.to_dict(), {
             'type': 'PointInPolygonFilter',
-            'params': {
-
-            },
+            'params': {},
             'sources': {
                 "points": {
                     'type': 'OgrSource',
                     'params': {
-                        'data': {
-                            'type': 'internal',
-                            'datasetId': 'c314ff6d-3e37-41b4-b9b2-3669f13f7369'
-                        },
+                        'data': "ne_10m_ports",
                         'attributeProjection': None,
                         'attributeFilters': None
                     }
@@ -160,10 +116,7 @@ class OperatorsTests(unittest.TestCase):
                 "polygons": {
                     'type': 'OgrSource',
                     'params': {
-                        'data': {
-                            'type': 'internal',
-                            'datasetId': 'c314ff6d-3e37-41b4-b9b2-3669f13f7369'
-                        },
+                        'data': "germany_outline",
                         'attributeProjection': None,
                         'attributeFilters': None
                     }
@@ -172,12 +125,7 @@ class OperatorsTests(unittest.TestCase):
         })
 
     def test_raster_scaling(self):
-        source_operator = wb.operators.GdalSource(
-            api.InternalDataId(
-                type="internal",
-                datasetId="c314ff6d-3e37-41b4-b9b2-3669f13f7369",
-            )
-        )
+        source_operator = wb.operators.GdalSource("ndvi")
 
         workflow = wb.operators.RasterScaling(
             source=source_operator,
@@ -203,22 +151,14 @@ class OperatorsTests(unittest.TestCase):
                 "raster": {
                     'type': 'GdalSource',
                     'params': {
-                        'data': {
-                            'type': 'internal',
-                            'datasetId': 'c314ff6d-3e37-41b4-b9b2-3669f13f7369'
-                        }
+                        'data': "ndvi"
                     }
                 }
             }
         })
 
     def test_raster_type_conversion(self):
-        source_operator = wb.operators.GdalSource(
-            api.InternalDataId(
-                type="internal",
-                datasetId="c314ff6d-3e37-41b4-b9b2-3669f13f7369",
-            )
-        )
+        source_operator = wb.operators.GdalSource("ndvi")
 
         workflow = wb.operators.RasterTypeConversion(
             source=source_operator,
@@ -234,22 +174,14 @@ class OperatorsTests(unittest.TestCase):
                 "raster": {
                     'type': 'GdalSource',
                     'params': {
-                        'data': {
-                            'type': 'internal',
-                            'datasetId': 'c314ff6d-3e37-41b4-b9b2-3669f13f7369'
-                        }
+                        'data': "ndvi"
                     }
                 }
             }
         })
 
     def test_reprojection(self):
-        source_operator = wb.operators.GdalSource(
-            api.InternalDataId(
-                type="internal",
-                datasetId="c314ff6d-3e37-41b4-b9b2-3669f13f7369",
-            )
-        )
+        source_operator = wb.operators.GdalSource("ndvi")
 
         workflow = wb.operators.Reprojection(
             source=source_operator,
@@ -265,22 +197,14 @@ class OperatorsTests(unittest.TestCase):
                 "source": {
                     'type': 'GdalSource',
                     'params': {
-                        'data': {
-                            'type': 'internal',
-                            'datasetId': 'c314ff6d-3e37-41b4-b9b2-3669f13f7369'
-                        }
+                        'data': "ndvi"
                     }
                 }
             }
         })
 
     def test_expression(self):
-        source_operator = wb.operators.GdalSource(
-            api.InternalDataId(
-                type="internal",
-                datasetId="c314ff6d-3e37-41b4-b9b2-3669f13f7369",
-            )
-        )
+        source_operator = wb.operators.GdalSource("ndvi")
 
         workflow = wb.operators.Expression(
             sources={'a': source_operator},
@@ -300,10 +224,7 @@ class OperatorsTests(unittest.TestCase):
                 'a': {
                     'type': 'GdalSource',
                     'params': {
-                        'data': {
-                            'type': 'internal',
-                            'datasetId': 'c314ff6d-3e37-41b4-b9b2-3669f13f7369'
-                        }
+                        'data': "ndvi"
                     }
                 }
             }
@@ -311,12 +232,7 @@ class OperatorsTests(unittest.TestCase):
         })
 
     def test_temporal_raster_aggregation(self):
-        source_operator = wb.operators.GdalSource(
-            api.InternalDataId(
-                type="internal",
-                datasetId="c314ff6d-3e37-41b4-b9b2-3669f13f7369",
-            )
-        )
+        source_operator = wb.operators.GdalSource("ndvi")
 
         workflow = wb.operators.TemporalRasterAggregation(
             source=source_operator,
@@ -344,22 +260,14 @@ class OperatorsTests(unittest.TestCase):
                 "raster": {
                     'type': 'GdalSource',
                     'params': {
-                        'data': {
-                            'type': 'internal',
-                            'datasetId': 'c314ff6d-3e37-41b4-b9b2-3669f13f7369'
-                        }
+                        'data': "ndvi"
                     }
                 }
             }
         })
 
     def test_time_shift_operator(self):
-        source_operator = wb.operators.GdalSource(
-            api.InternalDataId(
-                type="internal",
-                datasetId="c314ff6d-3e37-41b4-b9b2-3669f13f7369",
-            )
-        )
+        source_operator = wb.operators.GdalSource("ndvi")
 
         workflow = wb.operators.TimeShift(
             source=source_operator,
@@ -380,10 +288,7 @@ class OperatorsTests(unittest.TestCase):
                 "source": {
                     'type': 'GdalSource',
                     'params': {
-                        'data': {
-                            'type': 'internal',
-                            'datasetId': 'c314ff6d-3e37-41b4-b9b2-3669f13f7369'
-                        }
+                        'data': "ndvi"
                     }
                 }
             }
