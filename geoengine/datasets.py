@@ -433,6 +433,7 @@ def upload_dataframe(
     '''
     Uploads a given dataframe to Geo Engine and returns the id of the created dataset
     '''
+    # pylint: disable=too-many-arguments,too-many-locals
 
     if len(df) == 0:
         raise InputException("Cannot upload empty dataframe")
