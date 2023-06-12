@@ -168,7 +168,9 @@ class RasterVectorJoin(VectorOperator):
     vector_source: VectorOperator
     new_column_names: List[str]
     temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;
+    temporal_aggregation_ignore_nodata: bool = False
     feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
+    feature_aggregation_ignore_nodata: bool = False
 
     # pylint: disable=too-many-arguments
     def __init__(self,
@@ -176,14 +178,18 @@ class RasterVectorJoin(VectorOperator):
                  vector_source: VectorOperator,
                  new_column_names: List[str],
                  temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;,
-                 feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
+                 temporal_aggregation_ignore_nodata: bool = False,
+                 feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;,
+                 feature_aggregation_ignore_nodata: bool = False,
                  ):
         &#39;&#39;&#39;Creates a new RasterVectorJoin operator.&#39;&#39;&#39;
         self.raster_source = raster_sources
         self.vector_source = vector_source
         self.new_column_names = new_column_names
         self.temporal_aggregation = temporal_aggregation
+        self.temporal_aggregation_ignore_nodata = temporal_aggregation_ignore_nodata
         self.feature_aggregation = feature_aggregation
+        self.feature_aggregation_ignore_nodata = feature_aggregation_ignore_nodata
         assert (len(self.raster_source) == len(self.new_column_names))
 
     def name(self) -&gt; str:
@@ -195,7 +201,9 @@ class RasterVectorJoin(VectorOperator):
             &#34;params&#34;: {
                 &#34;names&#34;: self.new_column_names,
                 &#34;temporalAggregation&#34;: self.temporal_aggregation,
+                &#34;temporalAggregationIgnoreNoData&#34;: self.temporal_aggregation_ignore_nodata,
                 &#34;featureAggregation&#34;: self.feature_aggregation,
+                &#34;featureAggregationIgnoreNoData&#34;: self.feature_aggregation_ignore_nodata,
             },
             &#34;sources&#34;: {
                 &#34;vector&#34;: self.vector_source.to_dict(),
@@ -1200,7 +1208,7 @@ x = y * slope + offset</p>
 </dd>
 <dt id="geoengine.workflow_builder.operators.RasterVectorJoin"><code class="flex name class">
 <span>class <span class="ident">RasterVectorJoin</span></span>
-<span>(</span><span>raster_sources: List[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>], vector_source: <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>, new_column_names: List[str], temporal_aggregation: typing_extensions.Literal['none', 'first', 'mean'] = 'none', feature_aggregation: typing_extensions.Literal['first', 'mean'] = 'mean')</span>
+<span>(</span><span>raster_sources: List[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>], vector_source: <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>, new_column_names: List[str], temporal_aggregation: typing_extensions.Literal['none', 'first', 'mean'] = 'none', temporal_aggregation_ignore_nodata: bool = False, feature_aggregation: typing_extensions.Literal['first', 'mean'] = 'mean', feature_aggregation_ignore_nodata: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A RasterVectorJoin operator.</p>
@@ -1215,7 +1223,9 @@ x = y * slope + offset</p>
     vector_source: VectorOperator
     new_column_names: List[str]
     temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;
+    temporal_aggregation_ignore_nodata: bool = False
     feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
+    feature_aggregation_ignore_nodata: bool = False
 
     # pylint: disable=too-many-arguments
     def __init__(self,
@@ -1223,14 +1233,18 @@ x = y * slope + offset</p>
                  vector_source: VectorOperator,
                  new_column_names: List[str],
                  temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;,
-                 feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
+                 temporal_aggregation_ignore_nodata: bool = False,
+                 feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;,
+                 feature_aggregation_ignore_nodata: bool = False,
                  ):
         &#39;&#39;&#39;Creates a new RasterVectorJoin operator.&#39;&#39;&#39;
         self.raster_source = raster_sources
         self.vector_source = vector_source
         self.new_column_names = new_column_names
         self.temporal_aggregation = temporal_aggregation
+        self.temporal_aggregation_ignore_nodata = temporal_aggregation_ignore_nodata
         self.feature_aggregation = feature_aggregation
+        self.feature_aggregation_ignore_nodata = feature_aggregation_ignore_nodata
         assert (len(self.raster_source) == len(self.new_column_names))
 
     def name(self) -&gt; str:
@@ -1242,7 +1256,9 @@ x = y * slope + offset</p>
             &#34;params&#34;: {
                 &#34;names&#34;: self.new_column_names,
                 &#34;temporalAggregation&#34;: self.temporal_aggregation,
+                &#34;temporalAggregationIgnoreNoData&#34;: self.temporal_aggregation_ignore_nodata,
                 &#34;featureAggregation&#34;: self.feature_aggregation,
+                &#34;featureAggregationIgnoreNoData&#34;: self.feature_aggregation_ignore_nodata,
             },
             &#34;sources&#34;: {
                 &#34;vector&#34;: self.vector_source.to_dict(),
@@ -1261,6 +1277,10 @@ x = y * slope + offset</p>
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation_ignore_nodata"><code class="name">var <span class="ident">feature_aggregation_ignore_nodata</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="geoengine.workflow_builder.operators.RasterVectorJoin.new_column_names"><code class="name">var <span class="ident">new_column_names</span> : List[str]</code></dt>
 <dd>
 <div class="desc"></div>
@@ -1270,6 +1290,10 @@ x = y * slope + offset</p>
 <div class="desc"></div>
 </dd>
 <dt id="geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation"><code class="name">var <span class="ident">temporal_aggregation</span> : typing_extensions.Literal['none', 'first', 'mean']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation_ignore_nodata"><code class="name">var <span class="ident">temporal_aggregation_ignore_nodata</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1773,9 +1797,11 @@ x = y * slope + offset</p>
 <h4><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin" href="#geoengine.workflow_builder.operators.RasterVectorJoin">RasterVectorJoin</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation" href="#geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation">feature_aggregation</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation_ignore_nodata" href="#geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation_ignore_nodata">feature_aggregation_ignore_nodata</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.new_column_names" href="#geoengine.workflow_builder.operators.RasterVectorJoin.new_column_names">new_column_names</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.raster_sources" href="#geoengine.workflow_builder.operators.RasterVectorJoin.raster_sources">raster_sources</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation" href="#geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation">temporal_aggregation</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation_ignore_nodata" href="#geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation_ignore_nodata">temporal_aggregation_ignore_nodata</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.vector_source" href="#geoengine.workflow_builder.operators.RasterVectorJoin.vector_source">vector_source</a></code></li>
 </ul>
 </li>
