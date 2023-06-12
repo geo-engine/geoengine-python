@@ -4,6 +4,8 @@ from abc import abstractmethod
 from typing import Any, Dict, List, Optional, Union, cast
 from typing_extensions import Literal
 
+from geoengine.datasets import DatasetName
+
 
 class Operator():
     '''Base class for all operators.'''
@@ -56,8 +58,10 @@ class GdalSource(RasterOperator):
     '''A GDAL source operator.'''
     dataset: str
 
-    def __init__(self, dataset: str):
+    def __init__(self, dataset: Union[str, DatasetName]):
         '''Creates a new GDAL source operator.'''
+        if isinstance(dataset, DatasetName):
+            dataset = str(dataset)
         self.dataset = dataset
 
     def name(self) -> str:
@@ -74,12 +78,14 @@ class GdalSource(RasterOperator):
 
 class OgrSource(VectorOperator):
     '''An OGR source operator.'''
-    dataset: str  # TODO: should be a DataId
+    dataset: str
     attribute_projection: Optional[str] = None
     attribute_filters: Optional[str] = None
 
-    def __init__(self, dataset: str):
+    def __init__(self, dataset: Union[str, DatasetName]):
         '''Creates a new OGR source operator.'''
+        if isinstance(dataset, DatasetName):
+            dataset = str(dataset)
         self.dataset = dataset
 
     def name(self) -> str:
