@@ -425,7 +425,8 @@ def pandas_dtype_to_column_type(dtype: np.dtype) -> FeatureDataType:
 
 def upload_dataframe(
         df: gpd.GeoDataFrame,
-        name: str = "Upload from Python",
+        display_name: str = "Upload from Python",
+        name: Optional[str] = None,
         time: OgrSourceDatasetTimeType = OgrSourceDatasetTimeType.none(),
         on_error: OgrOnError = OgrOnError.ABORT,
         timeout: int = 3600) -> DatasetName:
@@ -469,7 +470,8 @@ def upload_dataframe(
         }),
         'definition': api.DatasetDefinition({
             'properties': AddDatasetProperties(
-                display_name=name,
+                display_name=display_name,
+                name=name,
                 description='Upload from Python',
                 source_operator='OgrSource',
             ).to_api_dict(),
