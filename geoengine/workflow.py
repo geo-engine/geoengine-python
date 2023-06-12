@@ -41,6 +41,7 @@ from geoengine.error import GeoEngineException, InputException, MethodNotCalledO
 from geoengine import backports
 from geoengine.types import GeoTransform, ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
 from geoengine.tasks import Task, TaskId
+from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
@@ -941,10 +942,13 @@ class Workflow:
         return f'{ws_prefix}{url_part}'
 
 
-def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -> Workflow:
+def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], timeout: int = 60) -> Workflow:
     '''
     Register a workflow in Geo Engine and receive a `WorkflowId`
     '''
+
+    if isinstance(workflow, WorkflowBuilderOperator):
+        workflow = workflow.to_workflow_dict()
 
     session = get_session()
 
