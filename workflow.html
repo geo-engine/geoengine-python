@@ -70,6 +70,7 @@ from geoengine.error import GeoEngineException, InputException, MethodNotCalledO
 from geoengine import backports
 from geoengine.types import GeoTransform, ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
 from geoengine.tasks import Task, TaskId
+from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
@@ -970,10 +971,13 @@ class Workflow:
         return f&#39;{ws_prefix}{url_part}&#39;
 
 
-def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -&gt; Workflow:
+def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], timeout: int = 60) -&gt; Workflow:
     &#39;&#39;&#39;
     Register a workflow in Geo Engine and receive a `WorkflowId`
     &#39;&#39;&#39;
+
+    if isinstance(workflow, WorkflowBuilderOperator):
+        workflow = workflow.to_workflow_dict()
 
     session = get_session()
 
@@ -1079,7 +1083,7 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -&g
 </details>
 </dd>
 <dt id="geoengine.workflow.register_workflow"><code class="name flex">
-<span>def <span class="ident">register_workflow</span></span>(<span>workflow: Dict[str, Any], timeout: int = 60) ‑> <a title="geoengine.workflow.Workflow" href="#geoengine.workflow.Workflow">Workflow</a></span>
+<span>def <span class="ident">register_workflow</span></span>(<span>workflow: Union[Dict[str, Any], WorkflowBuilderOperator], timeout: int = 60) ‑> <a title="geoengine.workflow.Workflow" href="#geoengine.workflow.Workflow">Workflow</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Register a workflow in Geo Engine and receive a <code><a title="geoengine.workflow.WorkflowId" href="#geoengine.workflow.WorkflowId">WorkflowId</a></code></p></div>
@@ -1087,10 +1091,13 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -&g
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def register_workflow(workflow: Dict[str, Any], timeout: int = 60) -&gt; Workflow:
+<pre><code class="python">def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], timeout: int = 60) -&gt; Workflow:
     &#39;&#39;&#39;
     Register a workflow in Geo Engine and receive a `WorkflowId`
     &#39;&#39;&#39;
+
+    if isinstance(workflow, WorkflowBuilderOperator):
+        workflow = workflow.to_workflow_dict()
 
     session = get_session()
 

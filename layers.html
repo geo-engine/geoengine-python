@@ -48,6 +48,7 @@ from geoengine.error import GeoEngineException, ModificationNotOnLayerDbExceptio
 from geoengine.tasks import Task, TaskId
 from geoengine.types import Symbology
 from geoengine.workflow import Workflow, WorkflowId
+from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 
 LayerId = NewType(&#39;LayerId&#39;, str)
 LayerCollectionId = NewType(&#39;LayerCollectionId&#39;, str)
@@ -325,8 +326,8 @@ class LayerCollection:
     def add_layer(self,
                   name: str,
                   description: str,
-                  workflow: Dict[str, Any],  # TODO: improve type
-                  symbology: Optional[Dict[str, Any]],  # TODO: improve type
+                  workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
+                  symbology: Optional[Symbology],
                   timeout: int = 60) -&gt; LayerId:
         &#39;&#39;&#39;Add a layer to this collection&#39;&#39;&#39;
         # pylint: disable=too-many-arguments
@@ -746,12 +747,18 @@ def _add_existing_layer_collection_to_collection(collection_id: LayerCollectionI
 
 def _add_layer_to_collection(name: str,
                              description: str,
-                             workflow: Dict[str, Any],  # TODO: improve type
-                             symbology: Optional[Dict[str, Any]],  # TODO: improve type
+                             workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
+                             symbology: Optional[Symbology],
                              collection_id: LayerCollectionId,
                              timeout: int = 60) -&gt; LayerId:
     &#39;&#39;&#39;Add a new layer&#39;&#39;&#39;
     # pylint: disable=too-many-arguments
+
+    # convert workflow to dict if necessary
+    if isinstance(workflow, WorkflowBuilderOperator):
+        workflow = workflow.to_workflow_dict()
+
+    symbology_dict = symbology.to_api_dict() if symbology is not None and isinstance(symbology, Symbology) else None
 
     session = get_session()
 
@@ -762,7 +769,7 @@ def _add_layer_to_collection(name: str,
             &#34;name&#34;: name,
             &#34;description&#34;: description,
             &#34;workflow&#34;: workflow,
-            &#34;symbology&#34;: symbology,
+            &#34;symbology&#34;: symbology_dict,
         },
         timeout=timeout,
     )
@@ -1378,8 +1385,8 @@ def from_response(cls, response: api.LayerResponse) -&gt; Layer:
     def add_layer(self,
                   name: str,
                   description: str,
-                  workflow: Dict[str, Any],  # TODO: improve type
-                  symbology: Optional[Dict[str, Any]],  # TODO: improve type
+                  workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
+                  symbology: Optional[Symbology],
                   timeout: int = 60) -&gt; LayerId:
         &#39;&#39;&#39;Add a layer to this collection&#39;&#39;&#39;
         # pylint: disable=too-many-arguments
@@ -1672,7 +1679,7 @@ def from_response(cls, response_pages: List[api.LayerCollectionResponse]) -&gt; 
 </details>
 </dd>
 <dt id="geoengine.layers.LayerCollection.add_layer"><code class="name flex">
-<span>def <span class="ident">add_layer</span></span>(<span>self, name: str, description: str, workflow: Dict[str, Any], symbology: Optional[Dict[str, Any]], timeout: int = 60) ‑> LayerId</span>
+<span>def <span class="ident">add_layer</span></span>(<span>self, name: str, description: str, workflow: Union[Dict[str, Any], WorkflowBuilderOperator], symbology: Optional[Symbology], timeout: int = 60) ‑> LayerId</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Add a layer to this collection</p></div>
@@ -1683,8 +1690,8 @@ def from_response(cls, response_pages: List[api.LayerCollectionResponse]) -&gt; 
 <pre><code class="python">def add_layer(self,
               name: str,
               description: str,
-              workflow: Dict[str, Any],  # TODO: improve type
-              symbology: Optional[Dict[str, Any]],  # TODO: improve type
+              workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
+              symbology: Optional[Symbology],
               timeout: int = 60) -&gt; LayerId:
     &#39;&#39;&#39;Add a layer to this collection&#39;&#39;&#39;
     # pylint: disable=too-many-arguments

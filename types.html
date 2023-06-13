@@ -38,7 +38,7 @@ from abc import abstractmethod
 from datetime import datetime, timezone
 from uuid import UUID
 from enum import Enum
-from typing import Dict, Optional, Tuple, cast, List
+from typing import Dict, Optional, Tuple, Union, cast, List
 from typing_extensions import Literal
 from attr import dataclass
 from geoengine.colorizer import Colorizer
@@ -285,11 +285,33 @@ class QueryRectangle:
     __srs: str
 
     def __init__(self,
-                 spatial_bounds: BoundingBox2D,
-                 time_interval: TimeInterval,
-                 resolution: SpatialResolution,
+                 spatial_bounds: Union[BoundingBox2D, Tuple[float, float, float, float]],
+                 time_interval: Union[TimeInterval, Tuple[datetime, Optional[datetime]]],
+                 resolution: Union[SpatialResolution, Tuple[float, float]],
                  srs=&#39;EPSG:4326&#39;) -&gt; None:
-        &#39;&#39;&#39;Initialize a new `QueryRectangle` object&#39;&#39;&#39;
+        &#34;&#34;&#34;
+        Initialize a new `QueryRectangle` object
+
+        Parameters
+        ----------
+        spatial_bounds
+            The spatial bounds of the query rectangle.
+            Either a `BoundingBox2D` or a tuple of floats (xmin, ymin, xmax, ymax)
+        time_interval
+            The time interval of the query rectangle.
+            Either a `TimeInterval` or a tuple of `datetime.datetime` objects (start, end)
+        resolution
+            The spatial resolution of the query rectangle.
+            Either a `SpatialResolution` or a tuple of floats (x_resolution, y_resolution)
+        &#34;&#34;&#34;
+
+        if not isinstance(spatial_bounds, BoundingBox2D):
+            spatial_bounds = BoundingBox2D(*spatial_bounds)
+        if not isinstance(time_interval, TimeInterval):
+            time_interval = TimeInterval(*time_interval)
+        if not isinstance(resolution, SpatialResolution):
+            resolution = SpatialResolution(*resolution)
+
         self.__spatial_bounds = spatial_bounds
         self.__time_interval = time_interval
         self.__resolution = resolution
@@ -2693,11 +2715,23 @@ def from_response(cls, response: api.ProvenanceEntry) -&gt; ProvenanceEntry:
 </dd>
 <dt id="geoengine.types.QueryRectangle"><code class="flex name class">
 <span>class <span class="ident">QueryRectangle</span></span>
-<span>(</span><span>spatial_bounds: <a title="geoengine.types.BoundingBox2D" href="#geoengine.types.BoundingBox2D">BoundingBox2D</a>, time_interval: <a title="geoengine.types.TimeInterval" href="#geoengine.types.TimeInterval">TimeInterval</a>, resolution: <a title="geoengine.types.SpatialResolution" href="#geoengine.types.SpatialResolution">SpatialResolution</a>, srs='EPSG:4326')</span>
+<span>(</span><span>spatial_bounds: Union[<a title="geoengine.types.BoundingBox2D" href="#geoengine.types.BoundingBox2D">BoundingBox2D</a>, Tuple[float, float, float, float]], time_interval: Union[<a title="geoengine.types.TimeInterval" href="#geoengine.types.TimeInterval">TimeInterval</a>, Tuple[datetime, Optional[datetime]]], resolution: Union[<a title="geoengine.types.SpatialResolution" href="#geoengine.types.SpatialResolution">SpatialResolution</a>, Tuple[float, float]], srs='EPSG:4326')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A multi-dimensional query rectangle, consisting of spatial and temporal information.</p>
-<p>Initialize a new <code><a title="geoengine.types.QueryRectangle" href="#geoengine.types.QueryRectangle">QueryRectangle</a></code> object</p></div>
+<p>Initialize a new <code><a title="geoengine.types.QueryRectangle" href="#geoengine.types.QueryRectangle">QueryRectangle</a></code> object</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>spatial_bounds</code></strong></dt>
+<dd>The spatial bounds of the query rectangle.
+Either a <code><a title="geoengine.types.BoundingBox2D" href="#geoengine.types.BoundingBox2D">BoundingBox2D</a></code> or a tuple of floats (xmin, ymin, xmax, ymax)</dd>
+<dt><strong><code>time_interval</code></strong></dt>
+<dd>The time interval of the query rectangle.
+Either a <code><a title="geoengine.types.TimeInterval" href="#geoengine.types.TimeInterval">TimeInterval</a></code> or a tuple of <code>datetime.datetime</code> objects (start, end)</dd>
+<dt><strong><code>resolution</code></strong></dt>
+<dd>The spatial resolution of the query rectangle.
+Either a <code><a title="geoengine.types.SpatialResolution" href="#geoengine.types.SpatialResolution">SpatialResolution</a></code> or a tuple of floats (x_resolution, y_resolution)</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2713,11 +2747,33 @@ def from_response(cls, response: api.ProvenanceEntry) -&gt; ProvenanceEntry:
     __srs: str
 
     def __init__(self,
-                 spatial_bounds: BoundingBox2D,
-                 time_interval: TimeInterval,
-                 resolution: SpatialResolution,
+                 spatial_bounds: Union[BoundingBox2D, Tuple[float, float, float, float]],
+                 time_interval: Union[TimeInterval, Tuple[datetime, Optional[datetime]]],
+                 resolution: Union[SpatialResolution, Tuple[float, float]],
                  srs=&#39;EPSG:4326&#39;) -&gt; None:
-        &#39;&#39;&#39;Initialize a new `QueryRectangle` object&#39;&#39;&#39;
+        &#34;&#34;&#34;
+        Initialize a new `QueryRectangle` object
+
+        Parameters
+        ----------
+        spatial_bounds
+            The spatial bounds of the query rectangle.
+            Either a `BoundingBox2D` or a tuple of floats (xmin, ymin, xmax, ymax)
+        time_interval
+            The time interval of the query rectangle.
+            Either a `TimeInterval` or a tuple of `datetime.datetime` objects (start, end)
+        resolution
+            The spatial resolution of the query rectangle.
+            Either a `SpatialResolution` or a tuple of floats (x_resolution, y_resolution)
+        &#34;&#34;&#34;
+
+        if not isinstance(spatial_bounds, BoundingBox2D):
+            spatial_bounds = BoundingBox2D(*spatial_bounds)
+        if not isinstance(time_interval, TimeInterval):
+            time_interval = TimeInterval(*time_interval)
+        if not isinstance(resolution, SpatialResolution):
+            resolution = SpatialResolution(*resolution)
+
         self.__spatial_bounds = spatial_bounds
         self.__time_interval = time_interval
         self.__resolution = resolution
