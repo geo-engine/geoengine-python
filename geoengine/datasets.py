@@ -425,13 +425,40 @@ def pandas_dtype_to_column_type(dtype: np.dtype) -> FeatureDataType:
 
 def upload_dataframe(
         df: gpd.GeoDataFrame,
-        name: str = "Upload from Python",
+        display_name: str = "Upload from Python",
+        name: Optional[str] = None,
         time: OgrSourceDatasetTimeType = OgrSourceDatasetTimeType.none(),
         on_error: OgrOnError = OgrOnError.ABORT,
         timeout: int = 3600) -> DatasetName:
-    '''
-    Uploads a given dataframe to Geo Engine and returns the id of the created dataset
-    '''
+    """
+    Uploads a given dataframe to Geo Engine.
+
+    Parameters
+    ----------
+    df
+        The dataframe to upload.
+    display_name
+        The display name of the dataset. Defaults to "Upload from Python".
+    name
+        The name the dataset should have. If not given, a random name (UUID) will be generated.
+    time
+        A time configuration for the dataset. Defaults to `OgrSourceDatasetTimeType.none()`.
+    on_error
+        The error handling strategy. Defaults to `OgrOnError.ABORT`.
+    timeout
+        The upload timeout in seconds. Defaults to 3600.
+
+    Returns
+    -------
+    DatasetName
+        The name of the uploaded dataset
+
+    Raises
+    ------
+    GeoEngineException
+        If the dataset could not be uploaded or the name is already taken.
+    """
+    # pylint: disable=too-many-arguments,too-many-locals
 
     if len(df) == 0:
         raise InputException("Cannot upload empty dataframe")
@@ -469,7 +496,8 @@ def upload_dataframe(
         }),
         'definition': api.DatasetDefinition({
             'properties': AddDatasetProperties(
-                display_name=name,
+                display_name=display_name,
+                name=name,
                 description='Upload from Python',
                 source_operator='OgrSource',
             ).to_api_dict(),

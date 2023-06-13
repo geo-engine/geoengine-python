@@ -19,6 +19,7 @@ from geoengine.error import GeoEngineException, ModificationNotOnLayerDbExceptio
 from geoengine.tasks import Task, TaskId
 from geoengine.types import Symbology
 from geoengine.workflow import Workflow, WorkflowId
+from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 
 LayerId = NewType('LayerId', str)
 LayerCollectionId = NewType('LayerCollectionId', str)
@@ -296,8 +297,8 @@ class LayerCollection:
     def add_layer(self,
                   name: str,
                   description: str,
-                  workflow: Dict[str, Any],  # TODO: improve type
-                  symbology: Optional[Dict[str, Any]],  # TODO: improve type
+                  workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
+                  symbology: Optional[Symbology],
                   timeout: int = 60) -> LayerId:
         '''Add a layer to this collection'''
         # pylint: disable=too-many-arguments
@@ -717,12 +718,18 @@ def _add_existing_layer_collection_to_collection(collection_id: LayerCollectionI
 
 def _add_layer_to_collection(name: str,
                              description: str,
-                             workflow: Dict[str, Any],  # TODO: improve type
-                             symbology: Optional[Dict[str, Any]],  # TODO: improve type
+                             workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
+                             symbology: Optional[Symbology],
                              collection_id: LayerCollectionId,
                              timeout: int = 60) -> LayerId:
     '''Add a new layer'''
     # pylint: disable=too-many-arguments
+
+    # convert workflow to dict if necessary
+    if isinstance(workflow, WorkflowBuilderOperator):
+        workflow = workflow.to_workflow_dict()
+
+    symbology_dict = symbology.to_api_dict() if symbology is not None and isinstance(symbology, Symbology) else None
 
     session = get_session()
 
@@ -733,7 +740,7 @@ def _add_layer_to_collection(name: str,
             "name": name,
             "description": description,
             "workflow": workflow,
-            "symbology": symbology,
+            "symbology": symbology_dict,
         },
         timeout=timeout,
     )

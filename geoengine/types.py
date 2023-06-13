@@ -9,7 +9,7 @@ from abc import abstractmethod
 from datetime import datetime, timezone
 from uuid import UUID
 from enum import Enum
-from typing import Dict, Optional, Tuple, cast, List
+from typing import Dict, Optional, Tuple, Union, cast, List
 from typing_extensions import Literal
 from attr import dataclass
 from geoengine.colorizer import Colorizer
@@ -256,11 +256,33 @@ class QueryRectangle:
     __srs: str
 
     def __init__(self,
-                 spatial_bounds: BoundingBox2D,
-                 time_interval: TimeInterval,
-                 resolution: SpatialResolution,
+                 spatial_bounds: Union[BoundingBox2D, Tuple[float, float, float, float]],
+                 time_interval: Union[TimeInterval, Tuple[datetime, Optional[datetime]]],
+                 resolution: Union[SpatialResolution, Tuple[float, float]],
                  srs='EPSG:4326') -> None:
-        '''Initialize a new `QueryRectangle` object'''
+        """
+        Initialize a new `QueryRectangle` object
+
+        Parameters
+        ----------
+        spatial_bounds
+            The spatial bounds of the query rectangle.
+            Either a `BoundingBox2D` or a tuple of floats (xmin, ymin, xmax, ymax)
+        time_interval
+            The time interval of the query rectangle.
+            Either a `TimeInterval` or a tuple of `datetime.datetime` objects (start, end)
+        resolution
+            The spatial resolution of the query rectangle.
+            Either a `SpatialResolution` or a tuple of floats (x_resolution, y_resolution)
+        """
+
+        if not isinstance(spatial_bounds, BoundingBox2D):
+            spatial_bounds = BoundingBox2D(*spatial_bounds)
+        if not isinstance(time_interval, TimeInterval):
+            time_interval = TimeInterval(*time_interval)
+        if not isinstance(resolution, SpatialResolution):
+            resolution = SpatialResolution(*resolution)
+
         self.__spatial_bounds = spatial_bounds
         self.__time_interval = time_interval
         self.__resolution = resolution
