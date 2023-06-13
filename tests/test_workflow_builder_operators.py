@@ -73,7 +73,9 @@ class OperatorsTests(unittest.TestCase):
             'params': {
                 "names": ["test"],
                 "temporalAggregation": "none",
-                "featureAggregation": "mean"
+                "temporalAggregationIgnoreNoData": False,
+                "featureAggregation": "mean",
+                "featureAggregationIgnoreNoData": False,
             },
             'sources': {
                 "vector": {

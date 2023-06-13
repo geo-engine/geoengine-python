@@ -145,7 +145,9 @@ class RasterVectorJoin(VectorOperator):
     vector_source: VectorOperator
     new_column_names: List[str]
     temporal_aggregation: Literal["none", "first", "mean"] = "none"
+    temporal_aggregation_ignore_nodata: bool = False
     feature_aggregation: Literal["first", "mean"] = "mean"
+    feature_aggregation_ignore_nodata: bool = False
 
     # pylint: disable=too-many-arguments
     def __init__(self,
@@ -153,14 +155,18 @@ class RasterVectorJoin(VectorOperator):
                  vector_source: VectorOperator,
                  new_column_names: List[str],
                  temporal_aggregation: Literal["none", "first", "mean"] = "none",
-                 feature_aggregation: Literal["first", "mean"] = "mean"
+                 temporal_aggregation_ignore_nodata: bool = False,
+                 feature_aggregation: Literal["first", "mean"] = "mean",
+                 feature_aggregation_ignore_nodata: bool = False,
                  ):
         '''Creates a new RasterVectorJoin operator.'''
         self.raster_source = raster_sources
         self.vector_source = vector_source
         self.new_column_names = new_column_names
         self.temporal_aggregation = temporal_aggregation
+        self.temporal_aggregation_ignore_nodata = temporal_aggregation_ignore_nodata
         self.feature_aggregation = feature_aggregation
+        self.feature_aggregation_ignore_nodata = feature_aggregation_ignore_nodata
         assert (len(self.raster_source) == len(self.new_column_names))
 
     def name(self) -> str:
@@ -172,7 +178,9 @@ class RasterVectorJoin(VectorOperator):
             "params": {
                 "names": self.new_column_names,
                 "temporalAggregation": self.temporal_aggregation,
+                "temporalAggregationIgnoreNoData": self.temporal_aggregation_ignore_nodata,
                 "featureAggregation": self.feature_aggregation,
+                "featureAggregationIgnoreNoData": self.feature_aggregation_ignore_nodata,
             },
             "sources": {
                 "vector": self.vector_source.to_dict(),
