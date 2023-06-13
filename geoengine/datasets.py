@@ -430,9 +430,34 @@ def upload_dataframe(
         time: OgrSourceDatasetTimeType = OgrSourceDatasetTimeType.none(),
         on_error: OgrOnError = OgrOnError.ABORT,
         timeout: int = 3600) -> DatasetName:
-    '''
-    Uploads a given dataframe to Geo Engine and returns the id of the created dataset
-    '''
+    """
+    Uploads a given dataframe to Geo Engine.
+
+    Parameters
+    ----------
+    df
+        The dataframe to upload.
+    display_name
+        The display name of the dataset. Defaults to "Upload from Python".
+    name
+        The name the dataset should have. If not given, a random name (UUID) will be generated.
+    time
+        A time configuration for the dataset. Defaults to `OgrSourceDatasetTimeType.none()`.
+    on_error
+        The error handling strategy. Defaults to `OgrOnError.ABORT`.
+    timeout
+        The upload timeout in seconds. Defaults to 3600.
+
+    Returns
+    -------
+    DatasetName
+        The name of the uploaded dataset
+
+    Raises
+    ------
+    GeoEngineException
+        If the dataset could not be uploaded or the name is already taken.
+    """
     # pylint: disable=too-many-arguments,too-many-locals
 
     if len(df) == 0:
