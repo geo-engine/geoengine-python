@@ -266,11 +266,14 @@ class QueryRectangle:
         Parameters
         ----------
         spatial_bounds
-            The spatial bounds of the query rectangle. Either a `BoundingBox2D` or a tuple of floats (xmin, ymin, xmax, ymax)
+            The spatial bounds of the query rectangle.
+            Either a `BoundingBox2D` or a tuple of floats (xmin, ymin, xmax, ymax)
         time_interval
-            The time interval of the query rectangle. Either a `TimeInterval` or a tuple of `datetime.datetime` objects (start, end)
+            The time interval of the query rectangle.
+            Either a `TimeInterval` or a tuple of `datetime.datetime` objects (start, end)
         resolution
-            The spatial resolution of the query rectangle. Either a `SpatialResolution` or a tuple of floats (x_resolution, y_resolution)
+            The spatial resolution of the query rectangle.
+            Either a `SpatialResolution` or a tuple of floats (x_resolution, y_resolution)
         """
 
         if not isinstance(spatial_bounds, BoundingBox2D):
