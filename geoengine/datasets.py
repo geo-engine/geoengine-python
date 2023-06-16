@@ -654,3 +654,34 @@ def delete_dataset(dataset_name: DatasetName, timeout: int = 60) -> None:
     if response.status_code != 200:
         error_json = response.json()
         raise GeoEngineException(error_json)
+
+
+class DatasetListOrder(Enum):
+    NAME_ASC = 'NameAsc'
+    NAME_DESC = 'NameDesc'
+
+
+def list_datasets(offset: int = 0,
+                  limit: int = 20,
+                  order: DatasetListOrder = DatasetListOrder.NAME_ASC,
+                  name_filter: Optional[str] = None,
+                  timeout: int = 60) -> List[api.DatasetListing]:
+    '''List datasets'''
+
+    session = get_session()
+
+    response = req.get(f'{session.server_url}/datasets',
+                       params={
+                           'offset': offset,
+                           'limit': limit,
+                           'order': order.value,
+                           'filter': name_filter,
+                       },
+                       headers=session.auth_header,
+                       timeout=timeout)
+
+    if response.status_code != 200:
+        error_json = response.json()
+        raise GeoEngineException(error_json)
+
+    return response.json()
