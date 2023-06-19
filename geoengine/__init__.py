@@ -7,7 +7,7 @@ from .auth import Session, get_session, initialize, reset
 from .colorizer import Colorizer, ColorBreakpoint, LinearGradientColorizer, PaletteColorizer, \
     LogarithmicGradientColorizer
 from .datasets import upload_dataframe, StoredDataset, add_dataset, volumes, AddDatasetProperties, \
-    delete_dataset
+    delete_dataset, list_datasets, DatasetListOrder
 from .error import GeoEngineException, InputException, UninitializedException, TypeException, \
     MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, \
     SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \

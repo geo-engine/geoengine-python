@@ -537,6 +537,17 @@ class CreateDataset(TypedDict):
     definition: DatasetDefinition
 
 
+class DatasetListing(TypedDict):
+    '''A dataset listing'''
+    name: DatasetName
+    display_name: str
+    description: str
+    tags: List[str]
+    source_operator: str
+    result_descriptor: ResultDescriptor
+    symbology: Optional[Symbology]
+
+
 class Quota(TypedDict):
     '''Quota of a user'''
     available: int
