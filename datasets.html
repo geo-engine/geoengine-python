@@ -682,7 +682,38 @@ def delete_dataset(dataset_name: DatasetName, timeout: int = 60) -&gt; None:
 
     if response.status_code != 200:
         error_json = response.json()
-        raise GeoEngineException(error_json)</code></pre>
+        raise GeoEngineException(error_json)
+
+
+class DatasetListOrder(Enum):
+    NAME_ASC = &#39;NameAsc&#39;
+    NAME_DESC = &#39;NameDesc&#39;
+
+
+def list_datasets(offset: int = 0,
+                  limit: int = 20,
+                  order: DatasetListOrder = DatasetListOrder.NAME_ASC,
+                  name_filter: Optional[str] = None,
+                  timeout: int = 60) -&gt; List[api.DatasetListing]:
+    &#39;&#39;&#39;List datasets&#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.get(f&#39;{session.server_url}/datasets&#39;,
+                       params={
+                           &#39;offset&#39;: offset,
+                           &#39;limit&#39;: limit,
+                           &#39;order&#39;: order.value,
+                           &#39;filter&#39;: name_filter,
+                       },
+                       headers=session.auth_header,
+                       timeout=timeout)
+
+    if response.status_code != 200:
+        error_json = response.json()
+        raise GeoEngineException(error_json)
+
+    return response.json()</code></pre>
 </details>
 </section>
 <section>
@@ -771,6 +802,41 @@ def delete_dataset(dataset_name: DatasetName, timeout: int = 60) -&gt; None:
     if response.status_code != 200:
         error_json = response.json()
         raise GeoEngineException(error_json)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.datasets.list_datasets"><code class="name flex">
+<span>def <span class="ident">list_datasets</span></span>(<span>offset: int = 0, limit: int = 20, order: <a title="geoengine.datasets.DatasetListOrder" href="#geoengine.datasets.DatasetListOrder">DatasetListOrder</a> = DatasetListOrder.NAME_ASC, name_filter: Optional[str] = None, timeout: int = 60) ‑> List[<a title="geoengine.api.DatasetListing" href="api.html#geoengine.api.DatasetListing">DatasetListing</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>List datasets</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def list_datasets(offset: int = 0,
+                  limit: int = 20,
+                  order: DatasetListOrder = DatasetListOrder.NAME_ASC,
+                  name_filter: Optional[str] = None,
+                  timeout: int = 60) -&gt; List[api.DatasetListing]:
+    &#39;&#39;&#39;List datasets&#39;&#39;&#39;
+
+    session = get_session()
+
+    response = req.get(f&#39;{session.server_url}/datasets&#39;,
+                       params={
+                           &#39;offset&#39;: offset,
+                           &#39;limit&#39;: limit,
+                           &#39;order&#39;: order.value,
+                           &#39;filter&#39;: name_filter,
+                       },
+                       headers=session.auth_header,
+                       timeout=timeout)
+
+    if response.status_code != 200:
+        error_json = response.json()
+        raise GeoEngineException(error_json)
+
+    return response.json()</code></pre>
 </details>
 </dd>
 <dt id="geoengine.datasets.pandas_dtype_to_column_type"><code class="name flex">
@@ -1168,6 +1234,36 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
         &#34;customFormat&#34;: self.custom_format
     })</code></pre>
 </details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.datasets.DatasetListOrder"><code class="flex name class">
+<span>class <span class="ident">DatasetListOrder</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatasetListOrder(Enum):
+    NAME_ASC = &#39;NameAsc&#39;
+    NAME_DESC = &#39;NameDesc&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.datasets.DatasetListOrder.NAME_ASC"><code class="name">var <span class="ident">NAME_ASC</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.datasets.DatasetListOrder.NAME_DESC"><code class="name">var <span class="ident">NAME_DESC</span></code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 </dl>
 </dd>
@@ -2582,6 +2678,7 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 <ul class="">
 <li><code><a title="geoengine.datasets.add_dataset" href="#geoengine.datasets.add_dataset">add_dataset</a></code></li>
 <li><code><a title="geoengine.datasets.delete_dataset" href="#geoengine.datasets.delete_dataset">delete_dataset</a></code></li>
+<li><code><a title="geoengine.datasets.list_datasets" href="#geoengine.datasets.list_datasets">list_datasets</a></code></li>
 <li><code><a title="geoengine.datasets.pandas_dtype_to_column_type" href="#geoengine.datasets.pandas_dtype_to_column_type">pandas_dtype_to_column_type</a></code></li>
 <li><code><a title="geoengine.datasets.upload_dataframe" href="#geoengine.datasets.upload_dataframe">upload_dataframe</a></code></li>
 <li><code><a title="geoengine.datasets.volumes" href="#geoengine.datasets.volumes">volumes</a></code></li>
@@ -2612,6 +2709,13 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 <ul class="">
 <li><code><a title="geoengine.datasets.CustomOgrSourceTimeFormat.custom_format" href="#geoengine.datasets.CustomOgrSourceTimeFormat.custom_format">custom_format</a></code></li>
 <li><code><a title="geoengine.datasets.CustomOgrSourceTimeFormat.to_api_dict" href="#geoengine.datasets.CustomOgrSourceTimeFormat.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.datasets.DatasetListOrder" href="#geoengine.datasets.DatasetListOrder">DatasetListOrder</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.datasets.DatasetListOrder.NAME_ASC" href="#geoengine.datasets.DatasetListOrder.NAME_ASC">NAME_ASC</a></code></li>
+<li><code><a title="geoengine.datasets.DatasetListOrder.NAME_DESC" href="#geoengine.datasets.DatasetListOrder.NAME_DESC">NAME_DESC</a></code></li>
 </ul>
 </li>
 <li>

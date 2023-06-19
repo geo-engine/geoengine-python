@@ -566,6 +566,17 @@ class CreateDataset(TypedDict):
     definition: DatasetDefinition
 
 
+class DatasetListing(TypedDict):
+    &#39;&#39;&#39;A dataset listing&#39;&#39;&#39;
+    name: DatasetName
+    display_name: str
+    description: str
+    tags: List[str]
+    source_operator: str
+    result_descriptor: ResultDescriptor
+    symbology: Optional[Symbology]
+
+
 class Quota(TypedDict):
     &#39;&#39;&#39;Quota of a user&#39;&#39;&#39;
     available: int
@@ -994,6 +1005,62 @@ class AddRoleRequest(TypedDict):
 <div class="desc"></div>
 </dd>
 <dt id="geoengine.api.DatasetDefinition.properties"><code class="name">var <span class="ident">properties</span> : <a title="geoengine.api.AddDatasetProperties" href="#geoengine.api.AddDatasetProperties">AddDatasetProperties</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.api.DatasetListing"><code class="flex name class">
+<span>class <span class="ident">DatasetListing</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A dataset listing</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatasetListing(TypedDict):
+    &#39;&#39;&#39;A dataset listing&#39;&#39;&#39;
+    name: DatasetName
+    display_name: str
+    description: str
+    tags: List[str]
+    source_operator: str
+    result_descriptor: ResultDescriptor
+    symbology: Optional[Symbology]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.api.DatasetListing.description"><code class="name">var <span class="ident">description</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetListing.display_name"><code class="name">var <span class="ident">display_name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetListing.name"><code class="name">var <span class="ident">name</span> : <a title="geoengine.api.DatasetName" href="#geoengine.api.DatasetName">DatasetName</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetListing.result_descriptor"><code class="name">var <span class="ident">result_descriptor</span> : <a title="geoengine.api.ResultDescriptor" href="#geoengine.api.ResultDescriptor">ResultDescriptor</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetListing.source_operator"><code class="name">var <span class="ident">source_operator</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetListing.symbology"><code class="name">var <span class="ident">symbology</span> : Optional[<a title="geoengine.api.Symbology" href="#geoengine.api.Symbology">Symbology</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.api.DatasetListing.tags"><code class="name">var <span class="ident">tags</span> : List[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3772,6 +3839,18 @@ dict(one=1, two=2)</p></div>
 <ul class="">
 <li><code><a title="geoengine.api.DatasetDefinition.metaData" href="#geoengine.api.DatasetDefinition.metaData">metaData</a></code></li>
 <li><code><a title="geoengine.api.DatasetDefinition.properties" href="#geoengine.api.DatasetDefinition.properties">properties</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.api.DatasetListing" href="#geoengine.api.DatasetListing">DatasetListing</a></code></h4>
+<ul class="two-column">
+<li><code><a title="geoengine.api.DatasetListing.description" href="#geoengine.api.DatasetListing.description">description</a></code></li>
+<li><code><a title="geoengine.api.DatasetListing.display_name" href="#geoengine.api.DatasetListing.display_name">display_name</a></code></li>
+<li><code><a title="geoengine.api.DatasetListing.name" href="#geoengine.api.DatasetListing.name">name</a></code></li>
+<li><code><a title="geoengine.api.DatasetListing.result_descriptor" href="#geoengine.api.DatasetListing.result_descriptor">result_descriptor</a></code></li>
+<li><code><a title="geoengine.api.DatasetListing.source_operator" href="#geoengine.api.DatasetListing.source_operator">source_operator</a></code></li>
+<li><code><a title="geoengine.api.DatasetListing.symbology" href="#geoengine.api.DatasetListing.symbology">symbology</a></code></li>
+<li><code><a title="geoengine.api.DatasetListing.tags" href="#geoengine.api.DatasetListing.tags">tags</a></code></li>
 </ul>
 </li>
 <li>
