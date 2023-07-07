@@ -108,6 +108,7 @@ class WorkflowStorageTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
             task = workflow.save_as_dataset(
                 query,
+                None,
                 "Foo",
                 "Bar",
             )
