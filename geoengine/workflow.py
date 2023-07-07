@@ -508,7 +508,8 @@ class Workflow:
     def save_as_dataset(
             self,
             query_rectangle: api.RasterQueryRectangle,
-            name: str,
+            name: Optional[str],
+            display_name: str,
             description: str = '',
             timeout: int = 3600) -> Task:
         '''Init task to store the workflow result as a layer'''
@@ -521,9 +522,13 @@ class Workflow:
 
         request_body = {
             'name': name,
+            'displayName': display_name,
             'description': description,
             'query': query_rectangle,
         }
+
+        if len(display_name) == 0 and name is not None:
+            request_body['displayName'] = name
 
         response = req.post(
             url=f'{session.server_url}/datasetFromWorkflow/{self.__workflow_id}',
