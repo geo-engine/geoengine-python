@@ -332,7 +332,7 @@ class GdalLoadingInfoTemporalSlice(TypedDict):  # pylint: disable=too-few-public
     params: Optional[GdalDatasetParameters]
 
 
-class GdalMetaDataList(MetaDataDefinition):
+class GdalMetaDataList(MetaDataDefinition):  # pylint: disable=too-few-public-methods
     '''Metadata for a list of GDAL datasets'''
     type: Literal["GdalMetaDataList"]
     resultDescriptor: RasterResultDescriptor
@@ -430,7 +430,7 @@ class OgrOnError(str, Enum):  # pylint: disable=too-few-public-methods
     ABORT = "abort"
 
 
-class GeoEngineExceptionResponse(TypedDict):
+class GeoEngineExceptionResponse(TypedDict):  # pylint: disable=too-few-public-methods
     '''
     The error response from the Geo Engine
     '''
@@ -438,17 +438,17 @@ class GeoEngineExceptionResponse(TypedDict):
     message: str
 
 
-class LayerCollectionAndProviderIdResponse(TypedDict):
+class LayerCollectionAndProviderIdResponse(TypedDict):  # pylint: disable=too-few-public-methods
     collectionId: str
     providerId: str
 
 
-class LayerAndProviderIdResponse(TypedDict):
+class LayerAndProviderIdResponse(TypedDict):  # pylint: disable=too-few-public-methods
     layerId: str
     providerId: str
 
 
-class LayerCollectionListingResponse(TypedDict):
+class LayerCollectionListingResponse(TypedDict):  # pylint: disable=too-few-public-methods
     '''A layer collection listing response JSON from a HTTP request'''
     id: Union[LayerCollectionAndProviderIdResponse, LayerAndProviderIdResponse]
     name: str
@@ -456,7 +456,7 @@ class LayerCollectionListingResponse(TypedDict):
     type: str
 
 
-class LayerCollectionResponse(TypedDict):
+class LayerCollectionResponse(TypedDict):  # pylint: disable=too-few-public-methods
     '''A layer collection response JSON from a HTTP request'''
     id: LayerCollectionAndProviderIdResponse
     name: str
@@ -464,7 +464,7 @@ class LayerCollectionResponse(TypedDict):
     items: List[LayerCollectionListingResponse]
 
 
-class LayerResponse(TypedDict):
+class LayerResponse(TypedDict):  # pylint: disable=too-few-public-methods
     '''A layer response JSON from a HTTP request'''
     id: LayerAndProviderIdResponse
     name: str
@@ -511,33 +511,33 @@ class AddDatasetProperties(TypedDict):  # pylint: disable=too-few-public-methods
     provenance: Optional[List[Provenance]]
 
 
-class DatasetStorage(TypedDict):
+class DatasetStorage(TypedDict):  # pylint: disable=too-few-public-methods
     '''were the dataset is stored'''
 
 
-class DatasetPath(DatasetStorage):
+class DatasetPath(DatasetStorage):  # pylint: disable=too-few-public-methods
     '''were the dataset is stored'''
     upload: str
 
 
-class DatasetVolume(DatasetStorage):
+class DatasetVolume(DatasetStorage):  # pylint: disable=too-few-public-methods
     '''were the dataset is stored'''
     volume: str
 
 
-class DatasetDefinition(TypedDict):
+class DatasetDefinition(TypedDict):  # pylint: disable=too-few-public-methods
     '''The definition of a dataset'''
     properties: AddDatasetProperties
     metaData: MetaDataDefinition
 
 
-class CreateDataset(TypedDict):
+class CreateDataset(TypedDict):  # pylint: disable=too-few-public-methods
     '''A dataset to create'''
     dataPath: DatasetStorage
     definition: DatasetDefinition
 
 
-class DatasetListing(TypedDict):
+class DatasetListing(TypedDict):  # pylint: disable=too-few-public-methods
     '''A dataset listing'''
     name: DatasetName
     display_name: str
@@ -548,18 +548,18 @@ class DatasetListing(TypedDict):
     symbology: Optional[Symbology]
 
 
-class Quota(TypedDict):
+class Quota(TypedDict):  # pylint: disable=too-few-public-methods
     '''Quota of a user'''
     available: int
     used: int
 
 
-class UpdateQuota(TypedDict):
+class UpdateQuota(TypedDict):  # pylint: disable=too-few-public-methods
     '''Update request for quota'''
     available: int
 
 
-class Resource(TypedDict):
+class Resource(TypedDict):  # pylint: disable=too-few-public-methods
     '''A resource id'''
     type: Literal['dataset', 'layer', 'layerCollection', 'project']
     id: str
@@ -571,13 +571,13 @@ class Permission(str, Enum):
     OWNER = 'Owner'
 
 
-class PermissionRequest(TypedDict):
+class PermissionRequest(TypedDict):  # pylint: disable=too-few-public-methods
     '''A permission request'''
     roleId: str  # should be UUID, but UUID is not json serializable
     resource: Resource
     permission: Permission
 
 
-class AddRoleRequest(TypedDict):
+class AddRoleRequest(TypedDict):  # pylint: disable=too-few-public-methods
     '''An add role request'''
     name: str
