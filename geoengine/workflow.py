@@ -521,11 +521,13 @@ class Workflow:
         session = get_session()
 
         request_body = {
-            'name': name,
             'displayName': display_name,
             'description': description,
             'query': query_rectangle,
         }
+
+        if name is not None:
+            request_body['name'] = name
 
         if len(display_name) == 0 and name is not None:
             request_body['displayName'] = name
