@@ -16,7 +16,7 @@ class WorkflowStorageTests(unittest.TestCase):
     def test_storing_workflow(self):
 
         expected_request_text = ({
-            'display_name': 'Foo',
+            'displayName': 'Foo',
             'description': 'Bar',
             'query': {
                            'spatialBounds': {
