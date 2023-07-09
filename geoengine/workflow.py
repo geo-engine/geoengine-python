@@ -529,9 +529,6 @@ class Workflow:
         if name is not None:
             request_body['name'] = name
 
-        if len(display_name) == 0 and name is not None:
-            request_body['displayName'] = name
-
         response = req.post(
             url=f'{session.server_url}/datasetFromWorkflow/{self.__workflow_id}',
             json=request_body,
