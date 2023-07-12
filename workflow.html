@@ -537,7 +537,8 @@ class Workflow:
     def save_as_dataset(
             self,
             query_rectangle: api.RasterQueryRectangle,
-            name: str,
+            name: Optional[str],
+            display_name: str,
             description: str = &#39;&#39;,
             timeout: int = 3600) -&gt; Task:
         &#39;&#39;&#39;Init task to store the workflow result as a layer&#39;&#39;&#39;
@@ -550,6 +551,7 @@ class Workflow:
 
         request_body = {
             &#39;name&#39;: name,
+            &#39;displayName&#39;: display_name,
             &#39;description&#39;: description,
             &#39;query&#39;: query_rectangle,
         }
@@ -1826,7 +1828,8 @@ dict(one=1, two=2)</p></div>
     def save_as_dataset(
             self,
             query_rectangle: api.RasterQueryRectangle,
-            name: str,
+            name: Optional[str],
+            display_name: str,
             description: str = &#39;&#39;,
             timeout: int = 3600) -&gt; Task:
         &#39;&#39;&#39;Init task to store the workflow result as a layer&#39;&#39;&#39;
@@ -1839,6 +1842,7 @@ dict(one=1, two=2)</p></div>
 
         request_body = {
             &#39;name&#39;: name,
+            &#39;displayName&#39;: display_name,
             &#39;description&#39;: description,
             &#39;query&#39;: query_rectangle,
         }
@@ -2826,7 +2830,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.save_as_dataset"><code class="name flex">
-<span>def <span class="ident">save_as_dataset</span></span>(<span>self, query_rectangle: api.RasterQueryRectangle, name: str, description: str = '', timeout: int = 3600) ‑> <a title="geoengine.tasks.Task" href="tasks.html#geoengine.tasks.Task">Task</a></span>
+<span>def <span class="ident">save_as_dataset</span></span>(<span>self, query_rectangle: api.RasterQueryRectangle, name: Optional[str], display_name: str, description: str = '', timeout: int = 3600) ‑> <a title="geoengine.tasks.Task" href="tasks.html#geoengine.tasks.Task">Task</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Init task to store the workflow result as a layer</p></div>
@@ -2837,7 +2841,8 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <pre><code class="python">def save_as_dataset(
         self,
         query_rectangle: api.RasterQueryRectangle,
-        name: str,
+        name: Optional[str],
+        display_name: str,
         description: str = &#39;&#39;,
         timeout: int = 3600) -&gt; Task:
     &#39;&#39;&#39;Init task to store the workflow result as a layer&#39;&#39;&#39;
@@ -2850,6 +2855,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 
     request_body = {
         &#39;name&#39;: name,
+        &#39;displayName&#39;: display_name,
         &#39;description&#39;: description,
         &#39;query&#39;: query_rectangle,
     }
