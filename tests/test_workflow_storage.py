@@ -16,7 +16,8 @@ class WorkflowStorageTests(unittest.TestCase):
     def test_storing_workflow(self):
 
         expected_request_text = ({
-            'name': 'Foo',
+            'name': None,
+            'displayName': 'Foo',
             'description': 'Bar',
             'query': {
                            'spatialBounds': {
@@ -108,6 +109,7 @@ class WorkflowStorageTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
             task = workflow.save_as_dataset(
                 query,
+                None,
                 "Foo",
                 "Bar",
             )
