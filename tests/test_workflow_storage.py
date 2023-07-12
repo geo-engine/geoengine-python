@@ -16,6 +16,7 @@ class WorkflowStorageTests(unittest.TestCase):
     def test_storing_workflow(self):
 
         expected_request_text = ({
+            'name': None,
             'displayName': 'Foo',
             'description': 'Bar',
             'query': {

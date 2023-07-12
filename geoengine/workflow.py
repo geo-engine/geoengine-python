@@ -521,13 +521,11 @@ class Workflow:
         session = get_session()
 
         request_body = {
+            'name': name,
             'displayName': display_name,
             'description': description,
             'query': query_rectangle,
         }
-
-        if name is not None:
-            request_body['name'] = name
 
         response = req.post(
             url=f'{session.server_url}/datasetFromWorkflow/{self.__workflow_id}',
