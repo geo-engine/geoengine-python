@@ -2,9 +2,8 @@
 
 from enum import Enum
 from typing import Any, Dict, Optional, Tuple, List, Union, TypedDict, Literal
-from typing_extensions import TypeAlias
 
-Rgba: TypeAlias = Tuple[int, int, int, int]
+Rgba = Tuple[int, int, int, int]
 
 GEOMETRY_COLUMN_NAME = '__geometry'
 TIME_COLUMN_NAME = '__time'
