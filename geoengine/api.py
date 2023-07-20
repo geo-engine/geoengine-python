@@ -1,8 +1,8 @@
 '''These types represent Geo Engine's backend API types before/after JSON (de)serialization.'''
 
 from enum import Enum
-from typing import Any, Dict, Optional, Tuple, List, Union
-from typing_extensions import Literal, TypedDict, TypeAlias
+from typing import Any, Dict, Optional, Tuple, List, Union, TypedDict, Literal
+from typing_extensions import TypeAlias
 
 Rgba: TypeAlias = Tuple[int, int, int, int]
 

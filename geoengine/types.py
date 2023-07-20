@@ -9,8 +9,7 @@ from abc import abstractmethod
 from datetime import datetime, timezone
 from uuid import UUID
 from enum import Enum
-from typing import Dict, Optional, Tuple, Union, cast, List
-from typing_extensions import Literal
+from typing import Dict, Optional, Tuple, Union, cast, List, Literal
 from attr import dataclass
 from geoengine.colorizer import Colorizer
 from geoengine import api

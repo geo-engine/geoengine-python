@@ -4,11 +4,10 @@ Module for working with datasets and source definitions
 
 from __future__ import annotations
 from abc import abstractmethod
-from typing import Dict, List, NamedTuple, Optional, Union, cast
+from typing import Dict, List, NamedTuple, Optional, Union, cast, Literal
 from enum import Enum
 from uuid import UUID
 import json
-from typing_extensions import Literal
 from attr import dataclass
 import numpy as np
 import geopandas as gpd

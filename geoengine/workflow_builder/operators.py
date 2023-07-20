@@ -1,8 +1,7 @@
 '''This module contains helpers to create workflow operators for the Geo Engine API.'''
 
 from abc import abstractmethod
-from typing import Any, Dict, List, Optional, Union, cast
-from typing_extensions import Literal
+from typing import Any, Dict, List, Optional, Union, cast, Literal
 
 from geoengine.datasets import DatasetName
 

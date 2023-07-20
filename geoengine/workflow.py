@@ -12,7 +12,7 @@ import urllib.parse
 from io import BytesIO
 from logging import debug
 from os import PathLike
-from typing import Any, AsyncIterator, Dict, List, Optional, Union, Type, cast
+from typing import Any, AsyncIterator, Dict, List, Optional, Union, Type, cast, TypedDict
 from uuid import UUID
 
 import geopandas as gpd
@@ -25,7 +25,6 @@ from PIL import Image
 from owslib.util import Authentication, ResponseWrapper
 from owslib.wcs import WebCoverageService
 # TODO: can be imported directly from `typing` with python >= 3.8
-from typing_extensions import TypedDict
 from vega import VegaLite
 import websockets
 import websockets.client
