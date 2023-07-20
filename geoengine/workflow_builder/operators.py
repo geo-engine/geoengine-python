@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, Union, cast
 from typing_extensions import Literal
 
 from geoengine.datasets import DatasetName
+from geoengine.types import Measurement
 
 
 class Operator():
@@ -359,31 +360,37 @@ class Expression(RasterOperator):
     sources: Dict[str, RasterOperator]
     output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32"
     map_no_data: bool = False
+    output_measurement: Optional[Measurement] = None
 
     def __init__(self,
                  expression: str,
                  sources: Dict[str, RasterOperator],
                  output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
-                 map_no_data: bool = False
-
+                 map_no_data: bool = False,
+                 output_measurement: Optional[Measurement] = None,
                  ):
         '''Creates a new Expression operator.'''
         self.expression = expression
         self.sources = sources
         self.output_type = output_type
         self.map_no_data = map_no_data
+        self.output_measurement = output_measurement
 
     def name(self) -> str:
         return 'Expression'
 
     def to_dict(self) -> Dict[str, Any]:
+        params = {
+            "expression": self.expression,
+            "outputType": self.output_type,
+            "mapNoData": self.map_no_data,
+        }
+        if self.output_measurement:
+            params["outputMeasurement"] = self.output_measurement.to_api_dict()
+
         return {
             "type": self.name(),
-            "params": {
-                "expression": self.expression,
-                "outputType": self.output_type,
-                "mapNoData": self.map_no_data
-            },
+            "params": params,
             "sources":
                 {i: raster_source.to_dict() for i, raster_source in self.sources.items()}
 
