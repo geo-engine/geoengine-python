@@ -259,9 +259,12 @@ class RasterScaling(RasterOperator):
     def to_dict(self) -> Dict[str, Any]:
         def offset_scale_dict(key_or_value: Optional[Union[float, str]]) -> Dict[str, Any]:
             if key_or_value is None:
-                return {"type": "deriveFromData"}
+                return {"type": "auto"}
+
             if isinstance(key_or_value, float):
                 return {"type": "constant", "value": key_or_value}
+
+            # TODO: incorporate `domain` field
             return {"type": "metadataKey", "key": key_or_value}
 
         return {
