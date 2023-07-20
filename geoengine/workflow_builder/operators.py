@@ -362,6 +362,7 @@ class Expression(RasterOperator):
     map_no_data: bool = False
     output_measurement: Optional[Measurement] = None
 
+    # pylint: disable=too-many-arguments
     def __init__(self,
                  expression: str,
                  sources: Dict[str, RasterOperator],
