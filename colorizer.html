@@ -35,14 +35,13 @@ from dataclasses import dataclass
 import json
 import warnings
 from typing import Dict, List, Tuple, Union, cast
-from typing_extensions import TypeAlias
 import numpy as np
 import numpy.typing as npt
 from matplotlib.colors import Colormap
 from matplotlib.cm import ScalarMappable
 from geoengine import api
 
-Rgba: TypeAlias = Tuple[int, int, int, int]
+Rgba = Tuple[int, int, int, int]
 
 
 @dataclass
