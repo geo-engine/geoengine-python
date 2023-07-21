@@ -1,10 +1,9 @@
 '''These types represent Geo Engine's backend API types before/after JSON (de)serialization.'''
 
 from enum import Enum
-from typing import Any, Dict, Optional, Tuple, List, Union
-from typing_extensions import Literal, TypedDict, TypeAlias
+from typing import Any, Dict, Optional, Tuple, List, Union, TypedDict, Literal
 
-Rgba: TypeAlias = Tuple[int, int, int, int]
+Rgba = Tuple[int, int, int, int]
 
 GEOMETRY_COLUMN_NAME = '__geometry'
 TIME_COLUMN_NAME = '__time'
