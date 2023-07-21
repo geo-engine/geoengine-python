@@ -24,7 +24,6 @@ import rioxarray
 from PIL import Image
 from owslib.util import Authentication, ResponseWrapper
 from owslib.wcs import WebCoverageService
-# TODO: can be imported directly from `typing` with python >= 3.8
 from vega import VegaLite
 import websockets
 import websockets.client
