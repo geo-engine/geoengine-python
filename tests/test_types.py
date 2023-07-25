@@ -2,8 +2,8 @@
 
 from datetime import datetime
 import unittest
-import geoengine as ge
 import numpy as np
+import geoengine as ge
 
 
 class TypesTests(unittest.TestCase):

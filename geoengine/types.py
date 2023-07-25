@@ -11,10 +11,11 @@ from uuid import UUID
 from enum import Enum
 from typing import Dict, Optional, Tuple, Union, cast, List, Literal
 from attr import dataclass
+import numpy as np
 from geoengine.colorizer import Colorizer
 from geoengine import api
 from geoengine.error import GeoEngineException, InputException, TypeException
-import numpy as np
+
 
 DEFAULT_ISO_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
 
@@ -139,7 +140,9 @@ class TimeInterval:
     start: np.datetime64
     end: Optional[np.datetime64]
 
-    def __init__(self, start: Union[datetime, np.datetime64], end: Optional[Union[datetime, np.datetime64]] = None) -> None:
+    def __init__(self,
+                 start: Union[datetime, np.datetime64],
+                 end: Optional[Union[datetime, np.datetime64]] = None) -> None:
         '''Initialize a new `TimeInterval` object'''
 
         if isinstance(start, np.datetime64):
@@ -175,13 +178,13 @@ class TimeInterval:
         '''convert to a dict that can be used in the API'''
         if as_millis:
             return api.TimeInterval({
-                'start': self.start.astype('datetime64[ms]').astype('int'),
-                'end': self.end.astype('datetime64[ms]').astype('int') if self.end is not None else None,
+                'start': TimeInterval.__datetime_to_unix(self.start),
+                'end': TimeInterval.__datetime_to_unix(self.end) if self.end is not None else None,
             })
 
         return api.TimeInterval({
-            'start': str(np.datetime_as_string(self.start, unit='ms', timezone='UTC')).replace('Z', '+00:00'),
-            'end': str(np.datetime_as_string(self.end, unit='ms', timezone='UTC')).replace('Z', '+00:00') if self.end is not None else None,
+            'start': TimeInterval.__datetime_to_iso_str(self.start),
+            'end': TimeInterval.__datetime_to_iso_str(self.end) if self.end is not None else None,
         })
 
     @property
@@ -190,12 +193,12 @@ class TimeInterval:
         Return the time instance or interval as a string representation
         '''
 
-        start_iso = str(np.datetime_as_string(self.start, unit='ms', timezone='UTC')).replace('Z', '+00:00')
+        start_iso = TimeInterval.__datetime_to_iso_str(self.start)
 
         if self.end is None or self.start == self.end:
             return start_iso
 
-        end_iso = str(np.datetime_as_string(self.end, unit='ms', timezone='UTC')).replace('Z', '+00:00')
+        end_iso = TimeInterval.__datetime_to_iso_str(self.end)
 
         return start_iso + '/' + end_iso
 
@@ -225,6 +228,14 @@ class TimeInterval:
 
     def __repr__(self) -> str:
         return f"TimeInterval(start={self.start}, end={self.end})"
+
+    @staticmethod
+    def __datetime_to_iso_str(timestamp: np.datetime64) -> str:
+        return str(np.datetime_as_string(timestamp, unit='ms', timezone='UTC')).replace('Z', '+00:00')
+
+    @staticmethod
+    def __datetime_to_unix(timestamp: np.datetime64) -> int:
+        return timestamp.astype('datetime64[ms]').astype('int')
 
 
 class SpatialResolution:
