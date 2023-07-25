@@ -141,7 +141,7 @@ class OperatorsTests(unittest.TestCase):
             'type': 'RasterScaling',
             'params': {
                 "offset": {
-                    "type": "deriveFromData",
+                    "type": "auto",
                 },
                 "slope": {
                     "type": "constant",
