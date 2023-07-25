@@ -3,6 +3,7 @@
 from datetime import datetime
 import unittest
 import geoengine as ge
+import numpy as np
 
 
 class TypesTests(unittest.TestCase):
@@ -31,6 +32,11 @@ class TypesTests(unittest.TestCase):
 
         self.assertEqual(time_interval_without_tz.to_api_dict(), {
             "start": "2014-05-01T12:00:00.000+00:00",
+            "end": None,
+        })
+
+        self.assertEqual(ge.TimeInterval(np.datetime64('-10000-01-01T00:00:00.000')).to_api_dict(), {
+            "start": "-10000-01-01T00:00:00.000+00:00",
             "end": None,
         })
 

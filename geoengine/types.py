@@ -14,6 +14,7 @@ from attr import dataclass
 from geoengine.colorizer import Colorizer
 from geoengine import api
 from geoengine.error import GeoEngineException, InputException, TypeException
+import numpy as np
 
 DEFAULT_ISO_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
 
@@ -135,27 +136,37 @@ class SpatialPartition2D(SpatialBounds):
 
 class TimeInterval:
     ''''A time interval.'''
-    start: datetime
-    end: Optional[datetime]
+    start: np.datetime64
+    end: Optional[np.datetime64]
 
-    def __init__(self, start: datetime, end: Optional[datetime] = None) -> None:
+    def __init__(self, start: Union[datetime, np.datetime64], end: Optional[Union[datetime, np.datetime64]] = None) -> None:
         '''Initialize a new `TimeInterval` object'''
 
-        if not isinstance(start, datetime) or not isinstance(end, (datetime, type(None))):
-            raise InputException("`start` and `end` must be of type `datetime.datetime`")
+        if isinstance(start, np.datetime64):
+            self.start = start
+        elif isinstance(start, datetime):
+            # We assume that a datetime without a timezone means UTC
+            if start.tzinfo is not None:
+                start = start.astimezone(tz=timezone.utc).replace(tzinfo=None)
+            self.start = np.datetime64(start)
+        else:
+            raise InputException("`start` must be of type `datetime.datetime` or `numpy.datetime64`")
 
-        # We assume that a datetime without a timezone means UTC
-        if start.tzinfo is None:
-            start = start.replace(tzinfo=timezone.utc)
-        if end is not None and end.tzinfo is None:
-            end = end.replace(tzinfo=timezone.utc)
+        if end is None:
+            self.end = None
+        elif isinstance(end, np.datetime64):
+            self.end = end
+        elif isinstance(end, datetime):
+            # We assume that a datetime without a timezone means UTC
+            if end.tzinfo is not None:
+                end = end.astimezone(tz=timezone.utc).replace(tzinfo=None)
+            self.end = np.datetime64(end)
+        else:
+            raise InputException("`end` must be of type `datetime.datetime` or `numpy.datetime64`")
 
         # Check validity of time interval if an `end` exists
         if end is not None and start > end:
             raise InputException("Time inverval: Start must be <= End")
-
-        self.start = start
-        self.end = end
 
     def is_instant(self) -> bool:
         return self.end is None
@@ -164,13 +175,13 @@ class TimeInterval:
         '''convert to a dict that can be used in the API'''
         if as_millis:
             return api.TimeInterval({
-                'start': int(self.start.timestamp() * 1000),
-                'end': int(self.end.timestamp() * 1000) if self.end is not None else None,
+                'start': self.start.astype('datetime64[ms]').astype('int'),
+                'end': self.end.astype('datetime64[ms]').astype('int') if self.end is not None else None,
             })
 
         return api.TimeInterval({
-            'start': self.start.isoformat(timespec='milliseconds'),
-            'end': self.end.isoformat(timespec='milliseconds') if self.end is not None else None,
+            'start': str(np.datetime_as_string(self.start, unit='ms', timezone='UTC')).replace('Z', '+00:00'),
+            'end': str(np.datetime_as_string(self.end, unit='ms', timezone='UTC')).replace('Z', '+00:00') if self.end is not None else None,
         })
 
     @property
@@ -178,9 +189,15 @@ class TimeInterval:
         '''
         Return the time instance or interval as a string representation
         '''
+
+        start_iso = str(np.datetime_as_string(self.start, unit='ms', timezone='UTC')).replace('Z', '+00:00')
+
         if self.end is None or self.start == self.end:
-            return self.start.isoformat(timespec='milliseconds')
-        return self.start.isoformat(timespec='milliseconds') + '/' + self.end.isoformat(timespec='milliseconds')
+            return start_iso
+
+        end_iso = str(np.datetime_as_string(self.end, unit='ms', timezone='UTC')).replace('Z', '+00:00')
+
+        return start_iso + '/' + end_iso
 
     @staticmethod
     def from_response(response: api.TimeInterval) -> TimeInterval:
