@@ -89,16 +89,22 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         if status == TaskStatus.RUNNING:
             if 'pctComplete' not in response  \
                     or 'estimatedTimeRemaining' not in response \
-                    or 'info' not in response:
+                    or 'info' not in response \
+                    or 'taskType' not in response \
+                    or 'description' not in response:
                 raise GeoEngineException(response)
             pct_complete = response['pctComplete']
             estimated_time_remaining = response['estimatedTimeRemaining']
+            task_type = response['taskType']
 
-            return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, response['info'])
+            return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, response['info'],
+                                         task_type, response['description'])
         if status == TaskStatus.COMPLETED:
-            if 'info' not in response or 'timeTotal' not in response:
+            if 'info' not in response or 'timeTotal' not in response \
+                    or 'taskType' not in response or 'description' not in response:
                 raise GeoEngineException(response)
-            return CompletedTaskStatusInfo(status, time_started, response['info'], response['timeTotal'])
+            return CompletedTaskStatusInfo(status, time_started, response['info'], response['timeTotal'],
+                                           response['taskType'], response['description'])
         if status == TaskStatus.ABORTED:
             if 'cleanUp' not in response:
                 raise GeoEngineException(response)
@@ -113,11 +119,13 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
 class RunningTaskStatusInfo(TaskStatusInfo):
     '''A wrapper for a running task status with information about completion progress'''
 
-    def __init__(self, status, start_time, pct_complete, estimated_time_remaining, info) -> None:  # pylint: disable=too-many-arguments
+    def __init__(self, status, start_time, pct_complete, estimated_time_remaining, info, task_type, description) -> None:  # pylint: disable=too-many-arguments,line-too-long
         super().__init__(status, start_time)
         self.pct_complete = pct_complete
         self.estimated_time_remaining = estimated_time_remaining
         self.info = info
+        self.task_type = task_type
+        self.description = description
 
     def __eq__(self, other):
         '''Check if two task statuses are equal'''
@@ -125,40 +133,47 @@ class RunningTaskStatusInfo(TaskStatusInfo):
             return False
 
         return self.status == other.status and self.pct_complete == other.pct_complete \
-            and self.estimated_time_remaining == other.estimated_time_remaining and self.info == other.info
+            and self.estimated_time_remaining == other.estimated_time_remaining and self.info == other.info \
+            and self.task_type == other.task_type and self.description == other.description
 
     def __str__(self) -> str:
         return f"status={self.status.value}, time_started={self.time_started}, " \
             f"pct_complete={self.pct_complete}, " \
-            f"estimated_time_remaining={self.estimated_time_remaining}, info={self.info}"
+            f"estimated_time_remaining={self.estimated_time_remaining}, info={self.info}, " \
+            f"task_type={self.task_type}, description={self.description}"
 
     def __repr__(self) -> str:
         return f"TaskStatusInfo(status={self.status.value!r}, pct_complete={self.pct_complete!r}, " \
-               f"estimated_time_remaining={self.estimated_time_remaining!r}, info={self.info!r})"
+               f"estimated_time_remaining={self.estimated_time_remaining!r}, info={self.info!r}, " \
+               f"task_type={self.task_type!r}, description={self.description!r})"
 
 
 class CompletedTaskStatusInfo(TaskStatusInfo):
     '''A wrapper for a completed task status with information about the completion'''
 
-    def __init__(self, status, time_started, info, time_total) -> None:
+    def __init__(self, status, time_started, info, time_total, task_type, description) -> None:  # pylint: disable=too-many-arguments
         super().__init__(status, time_started)
         self.info = info
         self.time_total = time_total
+        self.task_type = task_type
+        self.description = description
 
     def __eq__(self, other):
         '''Check if two task statuses are equal'''
         if not isinstance(other, self.__class__):
             return False
 
-        return self.status == other.status and self.info == other.info and self.time_total == other.time_total
+        return self.status == other.status and self.info == other.info and self.time_total == other.time_total \
+            and self.task_type == other.task_type and self.description == other.description
 
     def __str__(self) -> str:
         return f"status={self.status.value}, time_started={self.time_started}, info={self.info}, " \
-            f"time_total={self.time_total}"
+            f"time_total={self.time_total}, task_type={self.task_type}, description={self.description}"
 
     def __repr__(self) -> str:
-        return f"TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r}," \
-            f"info = {self.info!r}, time_total = {self.time_total!r})"
+        return f"TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r}, " \
+            f"info = {self.info!r}, time_total = {self.time_total!r}, task_type={self.task_type!r}, " \
+            f"description={self.description!r})"
 
 
 class AbortedTaskStatusInfo(TaskStatusInfo):

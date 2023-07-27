@@ -506,10 +506,13 @@ class LayerTests(unittest.TestCase):
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             m.get('http://mock-instance/tasks/7f210984-8f2d-44f6-b211-ededada17598/status',
+                  # pylint: disable=line-too-long
                   json={'status': 'completed',
                         'info': {'dataset': '94230f0b-4e8a-4cba-9adc-3ace837fe5d4',
                                  'upload': '3086f494-d5a4-4b51-a14b-3b29f8bf7bb0'},
-                        'timeTotal': '00:00:00'}, )
+                        'timeTotal': '00:00:00',
+                        'taskType': 'create-dataset',
+                        'description': 'Creating dataset Test Raster Layer from layer 86c81654-e572-42ed-96ee-8b38ebcd84ab'}, )
 
             # Some processing error occurred
             m.post(
