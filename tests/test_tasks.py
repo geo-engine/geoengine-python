@@ -48,6 +48,8 @@ class TaskTests(unittest.TestCase):
             m.get('http://mock-instance/tasks/list', json=[
                 {
                     'taskId': 'e07aec1e-387a-4d24-8041-fbfba37eae2b',
+                    'taskType': 'dummy',
+                    'description': 'No operation',
                     'status': 'completed',
                     'info': 'generic info',
                     'timeTotal': '00:00:05',
@@ -55,6 +57,8 @@ class TaskTests(unittest.TestCase):
                 },
                 {
                     'taskId': 'a04d2e1b-db24-42cb-a620-1d7803df3abe',
+                    'taskType': 'dummy',
+                    'description': 'No operation',
                     'status': 'running',
                     'pctComplete': '0.00%',
                     'estimatedTimeRemaining': '? (± ?)',
@@ -81,10 +85,12 @@ class TaskTests(unittest.TestCase):
             expected_start_time = datetime.datetime.strptime('2023-02-16T15:25:45.390Z', DEFAULT_ISO_TIME_FORMAT)
             expected_result = [
                 (Task(TaskId(UUID('e07aec1e-387a-4d24-8041-fbfba37eae2b'))),
-                 CompletedTaskStatusInfo(TaskStatus.COMPLETED, expected_start_time, 'generic info', '00:00:05')),
+                 CompletedTaskStatusInfo(TaskStatus.COMPLETED, expected_start_time, 'generic info', '00:00:05',
+                                         'dummy', 'No operation')),
                 (Task(TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe'))),
                  RunningTaskStatusInfo(TaskStatus.RUNNING, expected_start_time,
-                                       '0.00%', '? (± ?)', 'generic running info')),
+                                       '0.00%', '? (± ?)', 'generic running info',
+                                       'dummy', 'No operation')),
                 (Task(TaskId(UUID('01d68e7b-c69f-4132-b758-538f2f05acf0'))),
                  AbortedTaskStatusInfo(TaskStatus.ABORTED, expected_start_time, {'status': 'noCleanUp'})),
                 (Task(TaskId(UUID('1ccba900-167d-4dcf-9001-5ce3c0b20844'))),
@@ -108,6 +114,8 @@ class TaskTests(unittest.TestCase):
             m.get('http://mock-instance/tasks/list', json=[
                 {
                     'taskId': 'e07aec1e-387a-4d24-8041-fbfba37eae2b',
+                    'taskType': 'dummy',
+                    'description': 'No operation',
                     'status': 'completed',
                     'info': 'generic info',
                     'timeTotal': '00:00:05',
@@ -169,12 +177,16 @@ class TaskTests(unittest.TestCase):
             m.get('http://mock-instance/tasks/e07aec1e-387a-4d24-8041-fbfba37eae2b/status',
                   json={
                       'status': 'completed',
+                      'taskType': 'dummy',
+                      'description': 'No operation',
                       'info': 'generic info',
                       'timeTotal': '00:00:05',
                       'timeStarted': '2023-02-16T15:25:45.390Z'})
             m.get('http://mock-instance/tasks/a04d2e1b-db24-42cb-a620-1d7803df3abe/status',
                   json={
                       'status': 'running',
+                      'taskType': 'dummy',
+                      'description': 'No operation',
                       'pctComplete': '0.00%',
                       'estimatedTimeRemaining': '? (± ?)',
                       'info': 'generic running info',
@@ -201,6 +213,8 @@ class TaskTests(unittest.TestCase):
             m.get('http://mock-instance/tasks/ee4f1ed9-fd06-40be-90f5-d6289c154fcd/status',
                   json={
                       'status': 'running',
+                      'taskType': 'dummy',
+                      'description': 'No operation',
                       # Missing pct_complete field
                       'estimatedTimeRemaining': '? (± ?)',
                       'info': 'generic running info',
@@ -211,9 +225,11 @@ class TaskTests(unittest.TestCase):
             # Correct results
             expected_start_time = datetime.datetime.strptime('2023-02-16T15:25:45.390Z', DEFAULT_ISO_TIME_FORMAT)
             expected_results = [
-                CompletedTaskStatusInfo(TaskStatus.COMPLETED, expected_start_time, 'generic info', '00:00:05'),
+                CompletedTaskStatusInfo(TaskStatus.COMPLETED, expected_start_time, 'generic info', '00:00:05',
+                                        'dummy', 'No operation'),
                 RunningTaskStatusInfo(TaskStatus.RUNNING, expected_start_time,
-                                      '0.00%', '? (± ?)', 'generic running info'),
+                                      '0.00%', '? (± ?)', 'generic running info',
+                                      'dummy', 'No operation'),
                 AbortedTaskStatusInfo(TaskStatus.ABORTED, expected_start_time, {'status': 'noCleanUp'}),
                 FailedTaskStatusInfo(TaskStatus.FAILED, expected_start_time, 'TileLimitExceeded',
                                      {'status': 'completed', 'info': None}),
