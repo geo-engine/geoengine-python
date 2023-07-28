@@ -40,9 +40,11 @@ from uuid import UUID
 from enum import Enum
 from typing import Dict, Optional, Tuple, Union, cast, List, Literal
 from attr import dataclass
+import numpy as np
 from geoengine.colorizer import Colorizer
 from geoengine import api
 from geoengine.error import GeoEngineException, InputException, TypeException
+
 
 DEFAULT_ISO_TIME_FORMAT = &#34;%Y-%m-%dT%H:%M:%S.%f%z&#34;
 
@@ -164,27 +166,39 @@ class SpatialPartition2D(SpatialBounds):
 
 class TimeInterval:
     &#39;&#39;&#39;&#39;A time interval.&#39;&#39;&#39;
-    start: datetime
-    end: Optional[datetime]
+    start: np.datetime64
+    end: Optional[np.datetime64]
 
-    def __init__(self, start: datetime, end: Optional[datetime] = None) -&gt; None:
+    def __init__(self,
+                 start: Union[datetime, np.datetime64],
+                 end: Optional[Union[datetime, np.datetime64]] = None) -&gt; None:
         &#39;&#39;&#39;Initialize a new `TimeInterval` object&#39;&#39;&#39;
 
-        if not isinstance(start, datetime) or not isinstance(end, (datetime, type(None))):
-            raise InputException(&#34;`start` and `end` must be of type `datetime.datetime`&#34;)
+        if isinstance(start, np.datetime64):
+            self.start = start
+        elif isinstance(start, datetime):
+            # We assume that a datetime without a timezone means UTC
+            if start.tzinfo is not None:
+                start = start.astimezone(tz=timezone.utc).replace(tzinfo=None)
+            self.start = np.datetime64(start)
+        else:
+            raise InputException(&#34;`start` must be of type `datetime.datetime` or `numpy.datetime64`&#34;)
 
-        # We assume that a datetime without a timezone means UTC
-        if start.tzinfo is None:
-            start = start.replace(tzinfo=timezone.utc)
-        if end is not None and end.tzinfo is None:
-            end = end.replace(tzinfo=timezone.utc)
+        if end is None:
+            self.end = None
+        elif isinstance(end, np.datetime64):
+            self.end = end
+        elif isinstance(end, datetime):
+            # We assume that a datetime without a timezone means UTC
+            if end.tzinfo is not None:
+                end = end.astimezone(tz=timezone.utc).replace(tzinfo=None)
+            self.end = np.datetime64(end)
+        else:
+            raise InputException(&#34;`end` must be of type `datetime.datetime` or `numpy.datetime64`&#34;)
 
         # Check validity of time interval if an `end` exists
         if end is not None and start &gt; end:
             raise InputException(&#34;Time inverval: Start must be &lt;= End&#34;)
-
-        self.start = start
-        self.end = end
 
     def is_instant(self) -&gt; bool:
         return self.end is None
@@ -193,13 +207,13 @@ class TimeInterval:
         &#39;&#39;&#39;convert to a dict that can be used in the API&#39;&#39;&#39;
         if as_millis:
             return api.TimeInterval({
-                &#39;start&#39;: int(self.start.timestamp() * 1000),
-                &#39;end&#39;: int(self.end.timestamp() * 1000) if self.end is not None else None,
+                &#39;start&#39;: TimeInterval.__datetime_to_unix(self.start),
+                &#39;end&#39;: TimeInterval.__datetime_to_unix(self.end) if self.end is not None else None,
             })
 
         return api.TimeInterval({
-            &#39;start&#39;: self.start.isoformat(timespec=&#39;milliseconds&#39;),
-            &#39;end&#39;: self.end.isoformat(timespec=&#39;milliseconds&#39;) if self.end is not None else None,
+            &#39;start&#39;: TimeInterval.__datetime_to_iso_str(self.start),
+            &#39;end&#39;: TimeInterval.__datetime_to_iso_str(self.end) if self.end is not None else None,
         })
 
     @property
@@ -207,9 +221,15 @@ class TimeInterval:
         &#39;&#39;&#39;
         Return the time instance or interval as a string representation
         &#39;&#39;&#39;
+
+        start_iso = TimeInterval.__datetime_to_iso_str(self.start)
+
         if self.end is None or self.start == self.end:
-            return self.start.isoformat(timespec=&#39;milliseconds&#39;)
-        return self.start.isoformat(timespec=&#39;milliseconds&#39;) + &#39;/&#39; + self.end.isoformat(timespec=&#39;milliseconds&#39;)
+            return start_iso
+
+        end_iso = TimeInterval.__datetime_to_iso_str(self.end)
+
+        return start_iso + &#39;/&#39; + end_iso
 
     @staticmethod
     def from_response(response: api.TimeInterval) -&gt; TimeInterval:
@@ -237,6 +257,14 @@ class TimeInterval:
 
     def __repr__(self) -&gt; str:
         return f&#34;TimeInterval(start={self.start}, end={self.end})&#34;
+
+    @staticmethod
+    def __datetime_to_iso_str(timestamp: np.datetime64) -&gt; str:
+        return str(np.datetime_as_string(timestamp, unit=&#39;ms&#39;, timezone=&#39;UTC&#39;)).replace(&#39;Z&#39;, &#39;+00:00&#39;)
+
+    @staticmethod
+    def __datetime_to_unix(timestamp: np.datetime64) -&gt; int:
+        return timestamp.astype(&#39;datetime64[ms]&#39;).astype(&#39;int&#39;)
 
 
 class SpatialResolution:
@@ -4105,7 +4133,7 @@ def to_api_dict(self) -&gt; api.Symbology:
 </dd>
 <dt id="geoengine.types.TimeInterval"><code class="flex name class">
 <span>class <span class="ident">TimeInterval</span></span>
-<span>(</span><span>start: datetime, end: Optional[datetime] = None)</span>
+<span>(</span><span>start: Union[datetime, np.datetime64], end: Optional[Union[datetime, np.datetime64]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>'A time interval.</p>
@@ -4116,27 +4144,39 @@ def to_api_dict(self) -&gt; api.Symbology:
 </summary>
 <pre><code class="python">class TimeInterval:
     &#39;&#39;&#39;&#39;A time interval.&#39;&#39;&#39;
-    start: datetime
-    end: Optional[datetime]
+    start: np.datetime64
+    end: Optional[np.datetime64]
 
-    def __init__(self, start: datetime, end: Optional[datetime] = None) -&gt; None:
+    def __init__(self,
+                 start: Union[datetime, np.datetime64],
+                 end: Optional[Union[datetime, np.datetime64]] = None) -&gt; None:
         &#39;&#39;&#39;Initialize a new `TimeInterval` object&#39;&#39;&#39;
 
-        if not isinstance(start, datetime) or not isinstance(end, (datetime, type(None))):
-            raise InputException(&#34;`start` and `end` must be of type `datetime.datetime`&#34;)
+        if isinstance(start, np.datetime64):
+            self.start = start
+        elif isinstance(start, datetime):
+            # We assume that a datetime without a timezone means UTC
+            if start.tzinfo is not None:
+                start = start.astimezone(tz=timezone.utc).replace(tzinfo=None)
+            self.start = np.datetime64(start)
+        else:
+            raise InputException(&#34;`start` must be of type `datetime.datetime` or `numpy.datetime64`&#34;)
 
-        # We assume that a datetime without a timezone means UTC
-        if start.tzinfo is None:
-            start = start.replace(tzinfo=timezone.utc)
-        if end is not None and end.tzinfo is None:
-            end = end.replace(tzinfo=timezone.utc)
+        if end is None:
+            self.end = None
+        elif isinstance(end, np.datetime64):
+            self.end = end
+        elif isinstance(end, datetime):
+            # We assume that a datetime without a timezone means UTC
+            if end.tzinfo is not None:
+                end = end.astimezone(tz=timezone.utc).replace(tzinfo=None)
+            self.end = np.datetime64(end)
+        else:
+            raise InputException(&#34;`end` must be of type `datetime.datetime` or `numpy.datetime64`&#34;)
 
         # Check validity of time interval if an `end` exists
         if end is not None and start &gt; end:
             raise InputException(&#34;Time inverval: Start must be &lt;= End&#34;)
-
-        self.start = start
-        self.end = end
 
     def is_instant(self) -&gt; bool:
         return self.end is None
@@ -4145,13 +4185,13 @@ def to_api_dict(self) -&gt; api.Symbology:
         &#39;&#39;&#39;convert to a dict that can be used in the API&#39;&#39;&#39;
         if as_millis:
             return api.TimeInterval({
-                &#39;start&#39;: int(self.start.timestamp() * 1000),
-                &#39;end&#39;: int(self.end.timestamp() * 1000) if self.end is not None else None,
+                &#39;start&#39;: TimeInterval.__datetime_to_unix(self.start),
+                &#39;end&#39;: TimeInterval.__datetime_to_unix(self.end) if self.end is not None else None,
             })
 
         return api.TimeInterval({
-            &#39;start&#39;: self.start.isoformat(timespec=&#39;milliseconds&#39;),
-            &#39;end&#39;: self.end.isoformat(timespec=&#39;milliseconds&#39;) if self.end is not None else None,
+            &#39;start&#39;: TimeInterval.__datetime_to_iso_str(self.start),
+            &#39;end&#39;: TimeInterval.__datetime_to_iso_str(self.end) if self.end is not None else None,
         })
 
     @property
@@ -4159,9 +4199,15 @@ def to_api_dict(self) -&gt; api.Symbology:
         &#39;&#39;&#39;
         Return the time instance or interval as a string representation
         &#39;&#39;&#39;
+
+        start_iso = TimeInterval.__datetime_to_iso_str(self.start)
+
         if self.end is None or self.start == self.end:
-            return self.start.isoformat(timespec=&#39;milliseconds&#39;)
-        return self.start.isoformat(timespec=&#39;milliseconds&#39;) + &#39;/&#39; + self.end.isoformat(timespec=&#39;milliseconds&#39;)
+            return start_iso
+
+        end_iso = TimeInterval.__datetime_to_iso_str(self.end)
+
+        return start_iso + &#39;/&#39; + end_iso
 
     @staticmethod
     def from_response(response: api.TimeInterval) -&gt; TimeInterval:
@@ -4188,15 +4234,23 @@ def to_api_dict(self) -&gt; api.Symbology:
         )
 
     def __repr__(self) -&gt; str:
-        return f&#34;TimeInterval(start={self.start}, end={self.end})&#34;</code></pre>
+        return f&#34;TimeInterval(start={self.start}, end={self.end})&#34;
+
+    @staticmethod
+    def __datetime_to_iso_str(timestamp: np.datetime64) -&gt; str:
+        return str(np.datetime_as_string(timestamp, unit=&#39;ms&#39;, timezone=&#39;UTC&#39;)).replace(&#39;Z&#39;, &#39;+00:00&#39;)
+
+    @staticmethod
+    def __datetime_to_unix(timestamp: np.datetime64) -&gt; int:
+        return timestamp.astype(&#39;datetime64[ms]&#39;).astype(&#39;int&#39;)</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.types.TimeInterval.end"><code class="name">var <span class="ident">end</span> : Optional[datetime.datetime]</code></dt>
+<dt id="geoengine.types.TimeInterval.end"><code class="name">var <span class="ident">end</span> : Optional[numpy.datetime64]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.types.TimeInterval.start"><code class="name">var <span class="ident">start</span> : datetime.datetime</code></dt>
+<dt id="geoengine.types.TimeInterval.start"><code class="name">var <span class="ident">start</span> : numpy.datetime64</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -4252,9 +4306,15 @@ def time_str(self) -&gt; str:
     &#39;&#39;&#39;
     Return the time instance or interval as a string representation
     &#39;&#39;&#39;
+
+    start_iso = TimeInterval.__datetime_to_iso_str(self.start)
+
     if self.end is None or self.start == self.end:
-        return self.start.isoformat(timespec=&#39;milliseconds&#39;)
-    return self.start.isoformat(timespec=&#39;milliseconds&#39;) + &#39;/&#39; + self.end.isoformat(timespec=&#39;milliseconds&#39;)</code></pre>
+        return start_iso
+
+    end_iso = TimeInterval.__datetime_to_iso_str(self.end)
+
+    return start_iso + &#39;/&#39; + end_iso</code></pre>
 </details>
 </dd>
 </dl>
@@ -4286,13 +4346,13 @@ def time_str(self) -&gt; str:
     &#39;&#39;&#39;convert to a dict that can be used in the API&#39;&#39;&#39;
     if as_millis:
         return api.TimeInterval({
-            &#39;start&#39;: int(self.start.timestamp() * 1000),
-            &#39;end&#39;: int(self.end.timestamp() * 1000) if self.end is not None else None,
+            &#39;start&#39;: TimeInterval.__datetime_to_unix(self.start),
+            &#39;end&#39;: TimeInterval.__datetime_to_unix(self.end) if self.end is not None else None,
         })
 
     return api.TimeInterval({
-        &#39;start&#39;: self.start.isoformat(timespec=&#39;milliseconds&#39;),
-        &#39;end&#39;: self.end.isoformat(timespec=&#39;milliseconds&#39;) if self.end is not None else None,
+        &#39;start&#39;: TimeInterval.__datetime_to_iso_str(self.start),
+        &#39;end&#39;: TimeInterval.__datetime_to_iso_str(self.end) if self.end is not None else None,
     })</code></pre>
 </details>
 </dd>
