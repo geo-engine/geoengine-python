@@ -1,4 +1,5 @@
 '''This module contains helpers to create workflow operators for the Geo Engine API.'''
+from __future__ import annotations
 
 from abc import abstractmethod
 from typing import Any, Dict, List, Optional, Union, cast, Literal
@@ -32,7 +33,7 @@ class Operator():
         }
 
     @classmethod
-    def from_workflow_dict(cls, workflow) -> 'Operator':
+    def from_workflow_dict(cls, workflow) -> Operator:
         '''Returns an operator from a workflow dictionary.'''
         if workflow['type'] == 'Raster':
             return RasterOperator.from_operator_dict(workflow['operator'])
@@ -53,7 +54,7 @@ class RasterOperator(Operator):
         return 'Raster'
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterOperator':  # pylint: disable=too-many-return-statements
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> RasterOperator:  # pylint: disable=too-many-return-statements
         '''Returns an operator from a dictionary.'''
         if operator_dict['type'] == 'GdalSource':
             return GdalSource.from_operator_dict(operator_dict)
@@ -86,7 +87,7 @@ class VectorOperator(Operator):
         return 'Vector'
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'VectorOperator':
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> VectorOperator:
         '''Returns an operator from a dictionary.'''
         if operator_dict['type'] == 'OgrSource':
             return OgrSource.from_operator_dict(operator_dict)
@@ -123,7 +124,7 @@ class GdalSource(RasterOperator):
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'GdalSource':
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> GdalSource:
         '''Returns an operator from a dictionary.'''
         if operator_dict["type"] != "GdalSource":
             raise ValueError("Invalid operator type")
@@ -164,7 +165,7 @@ class OgrSource(VectorOperator):
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'OgrSource':
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> OgrSource:
         '''Returns an operator from a dictionary.'''
         if operator_dict["type"] != "OgrSource":
             raise ValueError("Invalid operator type")
@@ -214,7 +215,7 @@ class Interpolation(RasterOperator):
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'Interpolation':
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> Interpolation:
         '''Returns an operator from a dictionary.'''
         if operator_dict["type"] != "Interpolation":
             raise ValueError("Invalid operator type")
@@ -331,7 +332,7 @@ class PointInPolygonFilter(VectorOperator):
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'PointInPolygonFilter':
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> PointInPolygonFilter:
         '''Returns an operator from a dictionary.'''
         if operator_dict["type"] != "PointInPolygonFilter":
             raise ValueError("Invalid operator type")
