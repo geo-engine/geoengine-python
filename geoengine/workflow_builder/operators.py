@@ -31,6 +31,16 @@ class Operator():
             'operator': self.to_dict(),
         }
 
+    @classmethod
+    def from_workflow_dict(cls, workflow) -> 'Operator':
+        '''Returns an operator from a workflow dictionary.'''
+        if workflow['type'] == 'Raster':
+            return RasterOperator.from_operator_dict(workflow['operator'])
+        if workflow['type'] == 'Vector':
+            return VectorOperator.from_operator_dict(workflow['operator'])
+
+        raise NotImplementedError(f"Unknown workflow type {workflow['type']}")
+
 
 class RasterOperator(Operator):
     '''Base class for all raster operators.'''
@@ -42,6 +52,28 @@ class RasterOperator(Operator):
     def data_type(self) -> Literal['Raster', 'Vector']:
         return 'Raster'
 
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterOperator':
+        '''Returns an operator from a dictionary.'''
+        if operator_dict['type'] == 'GdalSource':
+            return GdalSource.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'RasterScaling':
+            return RasterScaling.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'RasterTypeConversion':
+            return RasterTypeConversion.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'Reprojection':
+            return Reprojection.from_operator_dict(operator_dict).as_raster()
+        if operator_dict['type'] == 'Interpolation':
+            return Interpolation.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'Expression':
+            return Expression.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'TimeShift':
+            return TimeShift.from_operator_dict(operator_dict).as_raster()
+        if operator_dict['type'] == 'TemporalRasterAggregation':
+            return TemporalRasterAggregation.from_operator_dict(operator_dict)
+
+        raise NotImplementedError(f"Unknown operator type {operator_dict['type']}")
+
 
 class VectorOperator(Operator):
     '''Base class for all vector operators.'''
@@ -52,6 +84,21 @@ class VectorOperator(Operator):
 
     def data_type(self) -> Literal['Raster', 'Vector']:
         return 'Vector'
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'VectorOperator':
+        '''Returns an operator from a dictionary.'''
+        if operator_dict['type'] == 'OgrSource':
+            return OgrSource.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'Reprojection':
+            return Reprojection.from_operator_dict(operator_dict).as_vector()
+        if operator_dict['type'] == 'RasterVectorJoin':
+            return RasterVectorJoin.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'PointInPolygonFilter':
+            return PointInPolygonFilter.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'TimeShift':
+            return TimeShift.from_operator_dict(operator_dict).as_vector()
+        raise NotImplementedError(f"Unknown operator type {operator_dict['type']}")
 
 
 class GdalSource(RasterOperator):
@@ -75,6 +122,14 @@ class GdalSource(RasterOperator):
             }
         }
 
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'GdalSource':
+        '''Returns an operator from a dictionary.'''
+        if operator_dict["type"] != "GdalSource":
+            raise ValueError("Invalid operator type")
+
+        return GdalSource(cast(str, operator_dict['params']['data']))
+
 
 class OgrSource(VectorOperator):
     '''An OGR source operator.'''
@@ -82,11 +137,18 @@ class OgrSource(VectorOperator):
     attribute_projection: Optional[str] = None
     attribute_filters: Optional[str] = None
 
-    def __init__(self, dataset: Union[str, DatasetName]):
+    def __init__(
+            self,
+            dataset: Union[str, DatasetName],
+            attribute_projection: Optional[str] = None,
+            attribute_filters: Optional[str] = None
+    ):
         '''Creates a new OGR source operator.'''
         if isinstance(dataset, DatasetName):
             dataset = str(dataset)
         self.dataset = dataset
+        self.attribute_projection = attribute_projection
+        self.attribute_filters = attribute_filters
 
     def name(self) -> str:
         return 'OgrSource'
@@ -100,6 +162,19 @@ class OgrSource(VectorOperator):
                 'attributeFilters': self.attribute_filters,
             }
         }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'OgrSource':
+        '''Returns an operator from a dictionary.'''
+        if operator_dict["type"] != "OgrSource":
+            raise ValueError("Invalid operator type")
+
+        params = operator_dict['params']
+        return OgrSource(
+            cast(str, params['data']),
+            attribute_projection=cast(Optional[str], params.get('attributeProjection')),
+            attribute_filters=cast(Optional[str], params.get('attributeFilters')),
+        )
 
 
 class Interpolation(RasterOperator):
@@ -137,6 +212,21 @@ class Interpolation(RasterOperator):
                 "raster": self.source.to_dict()
             }
         }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'Interpolation':
+        '''Returns an operator from a dictionary.'''
+        if operator_dict["type"] != "Interpolation":
+            raise ValueError("Invalid operator type")
+
+        source = RasterOperator.from_operator_dict(cast(Dict[str, Any], operator_dict['sources']['raster']))
+
+        params = operator_dict['params']
+        return Interpolation(
+            source_operator=source,
+            interpolation=cast(Literal["biLinear", "nearestNeighbor"], params['interpolation']),
+            # input_resolution=cast(Optional[float], params.get('inputResolution')), #TODO: implement
+        )
 
 
 class RasterVectorJoin(VectorOperator):
@@ -188,6 +278,30 @@ class RasterVectorJoin(VectorOperator):
             }
         }
 
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterVectorJoin':
+        '''Returns an operator from a dictionary.'''
+        if operator_dict["type"] != "RasterVectorJoin":
+            raise ValueError("Invalid operator type")
+
+        vector_source = VectorOperator.from_operator_dict(cast(Dict[str, Any], operator_dict['sources']['vector']))
+        raster_sources = [
+            RasterOperator.from_operator_dict(raster_source) for raster_source in cast(
+                List[Dict[str, Any]], operator_dict['sources']['rasters']
+            )
+        ]
+
+        params = operator_dict['params']
+        return RasterVectorJoin(
+            raster_sources=raster_sources,
+            vector_source=vector_source,
+            new_column_names=cast(List[str], params['names']),
+            temporal_aggregation=cast(Literal["none", "first", "mean"], params['temporalAggregation']),
+            temporal_aggregation_ignore_nodata=cast(bool, params['temporalAggregationIgnoreNoData']),
+            feature_aggregation=cast(Literal["first", "mean"], params['featureAggregation']),
+            feature_aggregation_ignore_nodata=cast(bool, params['featureAggregationIgnoreNoData']),
+        )
+
 
 class PointInPolygonFilter(VectorOperator):
     '''A PointInPolygonFilter operator.'''
@@ -215,6 +329,20 @@ class PointInPolygonFilter(VectorOperator):
                 "polygons": self.polygon_source.to_dict()
             }
         }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'PointInPolygonFilter':
+        '''Returns an operator from a dictionary.'''
+        if operator_dict["type"] != "PointInPolygonFilter":
+            raise ValueError("Invalid operator type")
+
+        point_source = VectorOperator.from_operator_dict(cast(Dict[str, Any], operator_dict['sources']['points']))
+        polygon_source = VectorOperator.from_operator_dict(cast(Dict[str, Any], operator_dict['sources']['polygons']))
+
+        return PointInPolygonFilter(
+            point_source=point_source,
+            polygon_source=polygon_source,
+        )
 
 
 class RasterScaling(RasterOperator):
@@ -279,6 +407,31 @@ class RasterScaling(RasterOperator):
             }
         }
 
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterScaling':
+        if operator_dict["type"] != "RasterScaling":
+            raise ValueError("Invalid operator type")
+
+        source_operator = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
+        params = operator_dict["params"]
+
+        def offset_slope_reverse(key_or_value: Optional[Dict[str, Any]]) -> Optional[Union[float, str]]:
+            if key_or_value is None:
+                return None
+            if key_or_value["type"] == "constant":
+                return key_or_value["value"]
+            if key_or_value["type"] == "metadataKey":
+                return key_or_value["key"]
+            return None
+
+        return RasterScaling(
+            source_operator,
+            slope=offset_slope_reverse(params["slope"]),
+            offset=offset_slope_reverse(params["offset"]),
+            scaling_mode=params["scalingMode"],
+            output_measurement=params.get("outputMeasurement", None)
+        )
+
 
 class RasterTypeConversion(RasterOperator):
     '''A RasterTypeConversion operator.'''
@@ -307,6 +460,18 @@ class RasterTypeConversion(RasterOperator):
                 "raster": self.source.to_dict()
             }
         }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterTypeConversion':
+        if operator_dict["type"] != "RasterTypeConversion":
+            raise ValueError("Invalid operator type")
+
+        source_operator = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
+
+        return RasterTypeConversion(
+            source_operator,
+            output_data_type=operator_dict["params"]["outputDataType"]
+        )
 
 
 class Reprojection(Operator):
@@ -350,6 +515,23 @@ class Reprojection(Operator):
         if self.data_type() != 'Raster':
             raise TypeError("Cannot cast to RasterOperator")
         return cast(RasterOperator, self)
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'Reprojection':
+        '''Constructs the operator from the given dictionary.'''
+        if operator_dict["type"] != "Reprojection":
+            raise ValueError("Invalid operator type")
+
+        source_operator: RasterOperator | VectorOperator
+        try:
+            source_operator = RasterOperator.from_operator_dict(operator_dict["sources"]["source"])
+        except ValueError:
+            source_operator = VectorOperator.from_operator_dict(operator_dict["sources"]["source"])
+
+        return Reprojection(
+            source=cast(Operator, source_operator),
+            target_spatial_reference=operator_dict["params"]["targetSpatialReference"]
+        )
 
 
 class Expression(RasterOperator):
@@ -395,6 +577,27 @@ class Expression(RasterOperator):
                 {i: raster_source.to_dict() for i, raster_source in self.sources.items()}
 
         }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'Expression':
+        if operator_dict["type"] != "Expression":
+            raise ValueError("Invalid operator type")
+
+        sources = {}
+        for key, source in operator_dict["sources"].items():
+            sources[key] = RasterOperator.from_operator_dict(source)
+
+        output_measurement = None
+        if "outputMeasurement" in operator_dict["params"]:
+            output_measurement = Measurement.from_response(operator_dict["params"]["outputMeasurement"])
+
+        return Expression(
+            expression=operator_dict["params"]["expression"],
+            sources=sources,
+            output_type=operator_dict["params"]["outputType"],
+            map_no_data=operator_dict["params"]["mapNoData"],
+            output_measurement=output_measurement
+        )
 
 
 class TemporalRasterAggregation(RasterOperator):
@@ -447,6 +650,20 @@ class TemporalRasterAggregation(RasterOperator):
                 "raster": self.source.to_dict()
             }
         }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'TemporalRasterAggregation':
+        if operator_dict["type"] != "TemporalRasterAggregation":
+            raise ValueError("Invalid operator type")
+
+        return TemporalRasterAggregation(
+            source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
+            aggregation_type=operator_dict["params"]["aggregation"]["type"],
+            ignore_no_data=operator_dict["params"]["aggregation"]["ignoreNoData"],
+            granularity=operator_dict["params"]["window"]["granularity"],
+            window_size=operator_dict["params"]["window"]["step"],
+            output_type=operator_dict["params"]["outputType"]
+        )
 
 
 class TimeShift(Operator):
@@ -501,3 +718,21 @@ class TimeShift(Operator):
                 "source": self.source.to_dict()
             }
         }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'TimeShift':
+        '''Constructs the operator from the given dictionary.'''
+        if operator_dict["type"] != "TimeShift":
+            raise ValueError("Invalid operator type")
+        source: RasterOperator | VectorOperator
+        try:
+            source = VectorOperator.from_operator_dict(operator_dict["sources"]["source"])
+        except ValueError:
+            source = RasterOperator.from_operator_dict(operator_dict["sources"]["source"])
+
+        return TimeShift(
+            source=source,
+            shift_type=operator_dict["params"]["type"],
+            granularity=operator_dict["params"]["granularity"],
+            value=operator_dict["params"]["value"]
+        )
