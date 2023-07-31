@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import Any, Dict, List, Optional, Union, cast, Literal
+from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
 
 from geoengine.datasets import DatasetName
 from geoengine.types import Measurement
@@ -182,32 +182,41 @@ class Interpolation(RasterOperator):
     '''An interpolation operator.'''
     source: RasterOperator
     interpolation: Literal["biLinear", "nearestNeighbor"] = "biLinear"
-    input_resolution: Optional[float] = None
+    input_resolution: Optional[Tuple[float, float]] = None
 
     def __init__(
         self,
             source_operator: RasterOperator,
             interpolation: Literal["biLinear", "nearestNeighbor"] = "biLinear",
-            input_resolution: Optional[float] = None
+            input_resolution: Optional[Tuple[float, float]] = None
     ):
         '''Creates a new interpolation operator.'''
         self.source = source_operator
         self.interpolation = interpolation
         self.input_resolution = input_resolution
-        if input_resolution is not None:
-            raise NotImplementedError("Custom input resolution is not yet implemented")
 
     def name(self) -> str:
         return 'Interpolation'
 
     def to_dict(self) -> Dict[str, Any]:
+
+        input_res: Dict[str, Union[str, float]]
+        if self.input_resolution is None:
+            input_res = {
+                "type": "source"
+            }
+        else:
+            input_res = {
+                "type": "value",
+                "x": self.input_resolution[0],
+                "y": self.input_resolution[1]
+            }
+
         return {
             "type": self.name(),
             "params": {
                 "interpolation": self.interpolation,
-                "inputResolution": {
-                    "type": "source"
-                }
+                "inputResolution": input_res
             },
             "sources": {
                 "raster": self.source.to_dict()
@@ -222,11 +231,21 @@ class Interpolation(RasterOperator):
 
         source = RasterOperator.from_operator_dict(cast(Dict[str, Any], operator_dict['sources']['raster']))
 
-        params = operator_dict['params']
+        def parse_input_params(params: Dict[str, Any]) -> Optional[Tuple[float, float]]:
+            if 'type' not in params:
+                return None
+            if params['type'] == 'source':
+                return None
+            if params['type'] == 'value':
+                return (float(params['x']), float(params['y']))
+            raise ValueError(f"Invalid input resolution type {params['type']}")
+
+        input_resolution = parse_input_params(cast(Dict[str, Any], operator_dict['params']['inputResolution']))
+
         return Interpolation(
             source_operator=source,
-            interpolation=cast(Literal["biLinear", "nearestNeighbor"], params['interpolation']),
-            # input_resolution=cast(Optional[float], params.get('inputResolution')), #TODO: implement
+            interpolation=cast(Literal["biLinear", "nearestNeighbor"], operator_dict['params']['interpolation']),
+            input_resolution=input_resolution
         )
 
 
