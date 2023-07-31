@@ -53,7 +53,7 @@ class RasterOperator(Operator):
         return 'Raster'
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterOperator':
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterOperator':  # pylint: disable=too-many-return-statements
         '''Returns an operator from a dictionary.'''
         if operator_dict['type'] == 'GdalSource':
             return GdalSource.from_operator_dict(operator_dict)
@@ -522,7 +522,7 @@ class Reprojection(Operator):
         if operator_dict["type"] != "Reprojection":
             raise ValueError("Invalid operator type")
 
-        source_operator: RasterOperator | VectorOperator
+        source_operator: Union[RasterOperator, VectorOperator]
         try:
             source_operator = RasterOperator.from_operator_dict(operator_dict["sources"]["source"])
         except ValueError:
@@ -724,7 +724,7 @@ class TimeShift(Operator):
         '''Constructs the operator from the given dictionary.'''
         if operator_dict["type"] != "TimeShift":
             raise ValueError("Invalid operator type")
-        source: RasterOperator | VectorOperator
+        source: Union[RasterOperator, VectorOperator]
         try:
             source = VectorOperator.from_operator_dict(operator_dict["sources"]["source"])
         except ValueError:
