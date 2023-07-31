@@ -19,8 +19,8 @@ class WmsTests(unittest.TestCase):
         ge.reset(False)
 
     def test_ndvi_image(self):
-        with requests_mock.Mocker() as m,\
-                open("tests/responses/wms-ndvi.png", "rb") as ndvi_png,\
+        with requests_mock.Mocker() as m, \
+                open("tests/responses/wms-ndvi.png", "rb") as ndvi_png, \
                 open("tests/responses/4326.gml", "rb") as epsg4326_gml:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
@@ -92,7 +92,7 @@ class WmsTests(unittest.TestCase):
             self.assertEqual(img, Image.open("tests/responses/wms-ndvi.png"))
 
     def test_image_error(self):
-        with requests_mock.Mocker() as m,\
+        with requests_mock.Mocker() as m, \
                 open("tests/responses/4326.gml", "rb") as epsg4326_gml:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",

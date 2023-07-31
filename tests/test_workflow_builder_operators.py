@@ -17,6 +17,11 @@ class OperatorsTests(unittest.TestCase):
             }
         })
 
+        self.assertEqual(
+            wb.operators.GdalSource.from_operator_dict(workflow.to_dict()).to_dict(),
+            workflow.to_dict()
+        )
+
     def test_ogr_source(self):
         workflow = wb.operators.OgrSource("ne_10m_ports")
 
@@ -28,6 +33,11 @@ class OperatorsTests(unittest.TestCase):
                 'attributeFilters': None
             }
         })
+
+        self.assertEqual(
+            wb.operators.OgrSource.from_operator_dict(workflow.to_dict()).to_dict(),
+            workflow.to_dict()
+        )
 
     def test_interpolation(self):
         source_operator = wb.operators.GdalSource("ndvi")
@@ -54,6 +64,11 @@ class OperatorsTests(unittest.TestCase):
                 },
             },
         })
+
+        self.assertEqual(
+            wb.operators.Interpolation.from_operator_dict(workflow.to_dict()).to_dict(),
+            workflow.to_dict()
+        )
 
     def test_raster_vector_join(self):
         raster_source_operator = wb.operators.GdalSource("ndvi")
@@ -97,6 +112,11 @@ class OperatorsTests(unittest.TestCase):
             }
         })
 
+        self.assertEqual(
+            wb.operators.RasterVectorJoin.from_operator_dict(workflow.to_dict()).to_dict(),
+            workflow.to_dict()
+        )
+
     def test_point_in_polygon_filter(self):
         workflow = wb.operators.PointInPolygonFilter(
             point_source=wb.operators.OgrSource("ne_10m_ports"),
@@ -125,6 +145,11 @@ class OperatorsTests(unittest.TestCase):
                 }
             }
         })
+
+        self.assertEqual(
+            wb.operators.PointInPolygonFilter.from_operator_dict(workflow.to_dict()).to_dict(),
+            workflow.to_dict()
+        )
 
     def test_raster_scaling(self):
         source_operator = wb.operators.GdalSource("ndvi")
@@ -159,6 +184,11 @@ class OperatorsTests(unittest.TestCase):
             }
         })
 
+        self.assertEqual(
+            wb.operators.RasterScaling.from_operator_dict(workflow.to_dict()).to_dict(),
+            workflow.to_dict()
+        )
+
     def test_raster_type_conversion(self):
         source_operator = wb.operators.GdalSource("ndvi")
 
@@ -182,6 +212,11 @@ class OperatorsTests(unittest.TestCase):
             }
         })
 
+        self.assertEqual(
+            wb.operators.RasterTypeConversion.from_operator_dict(workflow.to_dict()).to_dict(),
+            workflow.to_dict()
+        )
+
     def test_reprojection(self):
         source_operator = wb.operators.GdalSource("ndvi")
 
@@ -204,6 +239,11 @@ class OperatorsTests(unittest.TestCase):
                 }
             }
         })
+
+        self.assertEqual(
+            wb.operators.Reprojection.from_operator_dict(workflow.to_dict()).to_dict(),
+            workflow.to_dict()
+        )
 
     def test_expression(self):
         source_operator = wb.operators.GdalSource("ndvi")
@@ -232,6 +272,11 @@ class OperatorsTests(unittest.TestCase):
             }
 
         })
+
+        self.assertEqual(
+            wb.operators.Expression.from_operator_dict(workflow.to_dict()).to_dict(),
+            workflow.to_dict()
+        )
 
     def test_temporal_raster_aggregation(self):
         source_operator = wb.operators.GdalSource("ndvi")
@@ -268,6 +313,11 @@ class OperatorsTests(unittest.TestCase):
             }
         })
 
+        self.assertEqual(
+            wb.operators.TemporalRasterAggregation.from_operator_dict(workflow.to_dict()).to_dict(),
+            workflow.to_dict()
+        )
+
     def test_time_shift_operator(self):
         source_operator = wb.operators.GdalSource("ndvi")
 
@@ -295,6 +345,18 @@ class OperatorsTests(unittest.TestCase):
                 }
             }
         })
+
+    def test_workflow_to_operator(self):
+        operator = wb.operators.GdalSource("ndvi")
+        operator = wb.operators.RasterTypeConversion(source=operator, output_data_type="u8")
+        operator = wb.operators.RasterScaling(
+            source=operator, slope=1.0, offset=None, scaling_mode="mulSlopeAddOffset", output_measurement=None
+        )
+
+        workflow_dict = operator.to_workflow_dict()
+        other_workflow_dict = wb.operators.Operator.from_workflow_dict(operator.to_workflow_dict()).to_workflow_dict()
+
+        self.assertEqual(workflow_dict, other_workflow_dict)
 
 
 if __name__ == '__main__':
