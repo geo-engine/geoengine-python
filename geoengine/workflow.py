@@ -136,6 +136,9 @@ class Workflow:
             timeout=timeout
         ).json()
 
+        if 'error' in response:
+            raise GeoEngineException(response)
+
         return response
 
     def __get_wfs_url(self, bbox: QueryRectangle) -> str:
@@ -483,6 +486,9 @@ class Workflow:
         provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/provenance'
 
         response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).json()
+
+        if 'error' in response:
+            raise GeoEngineException(response)
 
         return [ProvenanceEntry.from_response(item) for item in response]
 
@@ -959,6 +965,9 @@ def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], 
         timeout=timeout
     ).json()
 
+    if 'error' in workflow_response:
+        raise GeoEngineException(workflow_response)
+
     return Workflow(WorkflowId.from_response(workflow_response))
 
 
@@ -989,6 +998,9 @@ def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> api.Quota:
         headers=session.auth_header,
         timeout=timeout
     ).json()
+
+    if 'error' in quota_response:
+        raise GeoEngineException(quota_response)
 
     return api.Quota({
         "available": quota_response["available"],
