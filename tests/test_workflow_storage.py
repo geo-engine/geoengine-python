@@ -73,7 +73,9 @@ class WorkflowStorageTests(unittest.TestCase):
                   json={'status': 'completed',
                         'info': {'dataset': 'my_new_dataset',
                                  'upload': '3086f494-d5a4-4b51-a14b-3b29f8bf7bb0'},
-                        'timeTotal': '00:00:00'}, )
+                        'timeTotal': '00:00:00',
+                        'taskType': 'create-dataset',
+                        'description': 'Creating dataset Foo from workflow 5b9508a8-bd34-5a1c-acd6-75bb832d2d38'}, )
 
             ge.initialize("http://mock-instance")
 
