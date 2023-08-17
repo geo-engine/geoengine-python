@@ -118,16 +118,22 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         if status == TaskStatus.RUNNING:
             if &#39;pctComplete&#39; not in response  \
                     or &#39;estimatedTimeRemaining&#39; not in response \
-                    or &#39;info&#39; not in response:
+                    or &#39;info&#39; not in response \
+                    or &#39;taskType&#39; not in response \
+                    or &#39;description&#39; not in response:
                 raise GeoEngineException(response)
             pct_complete = response[&#39;pctComplete&#39;]
             estimated_time_remaining = response[&#39;estimatedTimeRemaining&#39;]
+            task_type = response[&#39;taskType&#39;]
 
-            return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, response[&#39;info&#39;])
+            return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, response[&#39;info&#39;],
+                                         task_type, response[&#39;description&#39;])
         if status == TaskStatus.COMPLETED:
-            if &#39;info&#39; not in response or &#39;timeTotal&#39; not in response:
+            if &#39;info&#39; not in response or &#39;timeTotal&#39; not in response \
+                    or &#39;taskType&#39; not in response or &#39;description&#39; not in response:
                 raise GeoEngineException(response)
-            return CompletedTaskStatusInfo(status, time_started, response[&#39;info&#39;], response[&#39;timeTotal&#39;])
+            return CompletedTaskStatusInfo(status, time_started, response[&#39;info&#39;], response[&#39;timeTotal&#39;],
+                                           response[&#39;taskType&#39;], response[&#39;description&#39;])
         if status == TaskStatus.ABORTED:
             if &#39;cleanUp&#39; not in response:
                 raise GeoEngineException(response)
@@ -142,11 +148,13 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
 class RunningTaskStatusInfo(TaskStatusInfo):
     &#39;&#39;&#39;A wrapper for a running task status with information about completion progress&#39;&#39;&#39;
 
-    def __init__(self, status, start_time, pct_complete, estimated_time_remaining, info) -&gt; None:  # pylint: disable=too-many-arguments
+    def __init__(self, status, start_time, pct_complete, estimated_time_remaining, info, task_type, description) -&gt; None:  # pylint: disable=too-many-arguments,line-too-long
         super().__init__(status, start_time)
         self.pct_complete = pct_complete
         self.estimated_time_remaining = estimated_time_remaining
         self.info = info
+        self.task_type = task_type
+        self.description = description
 
     def __eq__(self, other):
         &#39;&#39;&#39;Check if two task statuses are equal&#39;&#39;&#39;
@@ -154,40 +162,47 @@ class RunningTaskStatusInfo(TaskStatusInfo):
             return False
 
         return self.status == other.status and self.pct_complete == other.pct_complete \
-            and self.estimated_time_remaining == other.estimated_time_remaining and self.info == other.info
+            and self.estimated_time_remaining == other.estimated_time_remaining and self.info == other.info \
+            and self.task_type == other.task_type and self.description == other.description
 
     def __str__(self) -&gt; str:
         return f&#34;status={self.status.value}, time_started={self.time_started}, &#34; \
             f&#34;pct_complete={self.pct_complete}, &#34; \
-            f&#34;estimated_time_remaining={self.estimated_time_remaining}, info={self.info}&#34;
+            f&#34;estimated_time_remaining={self.estimated_time_remaining}, info={self.info}, &#34; \
+            f&#34;task_type={self.task_type}, description={self.description}&#34;
 
     def __repr__(self) -&gt; str:
         return f&#34;TaskStatusInfo(status={self.status.value!r}, pct_complete={self.pct_complete!r}, &#34; \
-               f&#34;estimated_time_remaining={self.estimated_time_remaining!r}, info={self.info!r})&#34;
+               f&#34;estimated_time_remaining={self.estimated_time_remaining!r}, info={self.info!r}, &#34; \
+               f&#34;task_type={self.task_type!r}, description={self.description!r})&#34;
 
 
 class CompletedTaskStatusInfo(TaskStatusInfo):
     &#39;&#39;&#39;A wrapper for a completed task status with information about the completion&#39;&#39;&#39;
 
-    def __init__(self, status, time_started, info, time_total) -&gt; None:
+    def __init__(self, status, time_started, info, time_total, task_type, description) -&gt; None:  # pylint: disable=too-many-arguments
         super().__init__(status, time_started)
         self.info = info
         self.time_total = time_total
+        self.task_type = task_type
+        self.description = description
 
     def __eq__(self, other):
         &#39;&#39;&#39;Check if two task statuses are equal&#39;&#39;&#39;
         if not isinstance(other, self.__class__):
             return False
 
-        return self.status == other.status and self.info == other.info and self.time_total == other.time_total
+        return self.status == other.status and self.info == other.info and self.time_total == other.time_total \
+            and self.task_type == other.task_type and self.description == other.description
 
     def __str__(self) -&gt; str:
         return f&#34;status={self.status.value}, time_started={self.time_started}, info={self.info}, &#34; \
-            f&#34;time_total={self.time_total}&#34;
+            f&#34;time_total={self.time_total}, task_type={self.task_type}, description={self.description}&#34;
 
     def __repr__(self) -&gt; str:
-        return f&#34;TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r},&#34; \
-            f&#34;info = {self.info!r}, time_total = {self.time_total!r})&#34;
+        return f&#34;TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r}, &#34; \
+            f&#34;info = {self.info!r}, time_total = {self.time_total!r}, task_type={self.task_type!r}, &#34; \
+            f&#34;description={self.description!r})&#34;
 
 
 class AbortedTaskStatusInfo(TaskStatusInfo):
@@ -486,7 +501,7 @@ def get_task_list(timeout: int = 3600) -&gt; List[Tuple[Task, TaskStatusInfo]]:
 </dd>
 <dt id="geoengine.tasks.CompletedTaskStatusInfo"><code class="flex name class">
 <span>class <span class="ident">CompletedTaskStatusInfo</span></span>
-<span>(</span><span>status, time_started, info, time_total)</span>
+<span>(</span><span>status, time_started, info, time_total, task_type, description)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A wrapper for a completed task status with information about the completion</p></div>
@@ -497,25 +512,29 @@ def get_task_list(timeout: int = 3600) -&gt; List[Tuple[Task, TaskStatusInfo]]:
 <pre><code class="python">class CompletedTaskStatusInfo(TaskStatusInfo):
     &#39;&#39;&#39;A wrapper for a completed task status with information about the completion&#39;&#39;&#39;
 
-    def __init__(self, status, time_started, info, time_total) -&gt; None:
+    def __init__(self, status, time_started, info, time_total, task_type, description) -&gt; None:  # pylint: disable=too-many-arguments
         super().__init__(status, time_started)
         self.info = info
         self.time_total = time_total
+        self.task_type = task_type
+        self.description = description
 
     def __eq__(self, other):
         &#39;&#39;&#39;Check if two task statuses are equal&#39;&#39;&#39;
         if not isinstance(other, self.__class__):
             return False
 
-        return self.status == other.status and self.info == other.info and self.time_total == other.time_total
+        return self.status == other.status and self.info == other.info and self.time_total == other.time_total \
+            and self.task_type == other.task_type and self.description == other.description
 
     def __str__(self) -&gt; str:
         return f&#34;status={self.status.value}, time_started={self.time_started}, info={self.info}, &#34; \
-            f&#34;time_total={self.time_total}&#34;
+            f&#34;time_total={self.time_total}, task_type={self.task_type}, description={self.description}&#34;
 
     def __repr__(self) -&gt; str:
-        return f&#34;TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r},&#34; \
-            f&#34;info = {self.info!r}, time_total = {self.time_total!r})&#34;</code></pre>
+        return f&#34;TaskStatusInfo(status={self.status.value!r}, time_started={self.time_started!r}, &#34; \
+            f&#34;info = {self.info!r}, time_total = {self.time_total!r}, task_type={self.task_type!r}, &#34; \
+            f&#34;description={self.description!r})&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -600,7 +619,7 @@ def get_task_list(timeout: int = 3600) -&gt; List[Tuple[Task, TaskStatusInfo]]:
 </dd>
 <dt id="geoengine.tasks.RunningTaskStatusInfo"><code class="flex name class">
 <span>class <span class="ident">RunningTaskStatusInfo</span></span>
-<span>(</span><span>status, start_time, pct_complete, estimated_time_remaining, info)</span>
+<span>(</span><span>status, start_time, pct_complete, estimated_time_remaining, info, task_type, description)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A wrapper for a running task status with information about completion progress</p></div>
@@ -611,11 +630,13 @@ def get_task_list(timeout: int = 3600) -&gt; List[Tuple[Task, TaskStatusInfo]]:
 <pre><code class="python">class RunningTaskStatusInfo(TaskStatusInfo):
     &#39;&#39;&#39;A wrapper for a running task status with information about completion progress&#39;&#39;&#39;
 
-    def __init__(self, status, start_time, pct_complete, estimated_time_remaining, info) -&gt; None:  # pylint: disable=too-many-arguments
+    def __init__(self, status, start_time, pct_complete, estimated_time_remaining, info, task_type, description) -&gt; None:  # pylint: disable=too-many-arguments,line-too-long
         super().__init__(status, start_time)
         self.pct_complete = pct_complete
         self.estimated_time_remaining = estimated_time_remaining
         self.info = info
+        self.task_type = task_type
+        self.description = description
 
     def __eq__(self, other):
         &#39;&#39;&#39;Check if two task statuses are equal&#39;&#39;&#39;
@@ -623,16 +644,19 @@ def get_task_list(timeout: int = 3600) -&gt; List[Tuple[Task, TaskStatusInfo]]:
             return False
 
         return self.status == other.status and self.pct_complete == other.pct_complete \
-            and self.estimated_time_remaining == other.estimated_time_remaining and self.info == other.info
+            and self.estimated_time_remaining == other.estimated_time_remaining and self.info == other.info \
+            and self.task_type == other.task_type and self.description == other.description
 
     def __str__(self) -&gt; str:
         return f&#34;status={self.status.value}, time_started={self.time_started}, &#34; \
             f&#34;pct_complete={self.pct_complete}, &#34; \
-            f&#34;estimated_time_remaining={self.estimated_time_remaining}, info={self.info}&#34;
+            f&#34;estimated_time_remaining={self.estimated_time_remaining}, info={self.info}, &#34; \
+            f&#34;task_type={self.task_type}, description={self.description}&#34;
 
     def __repr__(self) -&gt; str:
         return f&#34;TaskStatusInfo(status={self.status.value!r}, pct_complete={self.pct_complete!r}, &#34; \
-               f&#34;estimated_time_remaining={self.estimated_time_remaining!r}, info={self.info!r})&#34;</code></pre>
+               f&#34;estimated_time_remaining={self.estimated_time_remaining!r}, info={self.info!r}, &#34; \
+               f&#34;task_type={self.task_type!r}, description={self.description!r})&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1069,16 +1093,22 @@ def from_response(cls, response: Dict[str, str]) -&gt; TaskId:
         if status == TaskStatus.RUNNING:
             if &#39;pctComplete&#39; not in response  \
                     or &#39;estimatedTimeRemaining&#39; not in response \
-                    or &#39;info&#39; not in response:
+                    or &#39;info&#39; not in response \
+                    or &#39;taskType&#39; not in response \
+                    or &#39;description&#39; not in response:
                 raise GeoEngineException(response)
             pct_complete = response[&#39;pctComplete&#39;]
             estimated_time_remaining = response[&#39;estimatedTimeRemaining&#39;]
+            task_type = response[&#39;taskType&#39;]
 
-            return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, response[&#39;info&#39;])
+            return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, response[&#39;info&#39;],
+                                         task_type, response[&#39;description&#39;])
         if status == TaskStatus.COMPLETED:
-            if &#39;info&#39; not in response or &#39;timeTotal&#39; not in response:
+            if &#39;info&#39; not in response or &#39;timeTotal&#39; not in response \
+                    or &#39;taskType&#39; not in response or &#39;description&#39; not in response:
                 raise GeoEngineException(response)
-            return CompletedTaskStatusInfo(status, time_started, response[&#39;info&#39;], response[&#39;timeTotal&#39;])
+            return CompletedTaskStatusInfo(status, time_started, response[&#39;info&#39;], response[&#39;timeTotal&#39;],
+                                           response[&#39;taskType&#39;], response[&#39;description&#39;])
         if status == TaskStatus.ABORTED:
             if &#39;cleanUp&#39; not in response:
                 raise GeoEngineException(response)
@@ -1140,16 +1170,22 @@ def from_response(cls, response: Dict[str, str]) -&gt; TaskStatusInfo:
     if status == TaskStatus.RUNNING:
         if &#39;pctComplete&#39; not in response  \
                 or &#39;estimatedTimeRemaining&#39; not in response \
-                or &#39;info&#39; not in response:
+                or &#39;info&#39; not in response \
+                or &#39;taskType&#39; not in response \
+                or &#39;description&#39; not in response:
             raise GeoEngineException(response)
         pct_complete = response[&#39;pctComplete&#39;]
         estimated_time_remaining = response[&#39;estimatedTimeRemaining&#39;]
+        task_type = response[&#39;taskType&#39;]
 
-        return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, response[&#39;info&#39;])
+        return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, response[&#39;info&#39;],
+                                     task_type, response[&#39;description&#39;])
     if status == TaskStatus.COMPLETED:
-        if &#39;info&#39; not in response or &#39;timeTotal&#39; not in response:
+        if &#39;info&#39; not in response or &#39;timeTotal&#39; not in response \
+                or &#39;taskType&#39; not in response or &#39;description&#39; not in response:
             raise GeoEngineException(response)
-        return CompletedTaskStatusInfo(status, time_started, response[&#39;info&#39;], response[&#39;timeTotal&#39;])
+        return CompletedTaskStatusInfo(status, time_started, response[&#39;info&#39;], response[&#39;timeTotal&#39;],
+                                       response[&#39;taskType&#39;], response[&#39;description&#39;])
     if status == TaskStatus.ABORTED:
         if &#39;cleanUp&#39; not in response:
             raise GeoEngineException(response)
