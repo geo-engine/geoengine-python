@@ -566,10 +566,19 @@ class Workflow:
 
             time = TimeInterval.from_response(json.loads(metadata[b'time']))
 
+            numpy_data = arrow_array.to_numpy(
+                zero_copy_only=False,  # cannot zero-copy as soon as we have nodata values
+            )
+            numpy_mask = arrow_array.is_null(
+                nan_is_null=False  # nan is not no data
+            ).to_numpy(
+                zero_copy_only=False  # cannot zero-copy with bools
+            )
+
+            numpy_masked_data = np.ma.masked_array(numpy_data, mask=numpy_mask).reshape(x_size, y_size)
+
             array = xr.DataArray(
-                arrow_array.to_numpy(
-                    zero_copy_only=False,  # cannot zero-copy as soon as we have nodata values
-                ).reshape(x_size, y_size),
+                numpy_masked_data,
                 dims=["y", "x"],
                 coords={
                     'x': np.arange(
