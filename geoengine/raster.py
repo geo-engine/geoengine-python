@@ -1,5 +1,6 @@
 '''Raster data types'''
 from __future__ import annotations
+import json
 from typing import Optional, Tuple, Union, cast
 import numpy as np
 import pyarrow as pa
@@ -168,4 +169,25 @@ class RasterTile2D:
             self.geo_transform.y_min(self.size_y),
             self.geo_transform.x_max(self.size_x),
             self.geo_transform.y_max,
+        )
+
+    @staticmethod
+    def from_ge_record_batch(record_batch: pa.RecordBatch) -> RasterTile2D:
+        '''Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine'''
+        metadata = record_batch.schema.metadata
+        geo_transform = gety.GeoTransform.from_response(json.loads(metadata[b'geoTransform']))
+        x_size = int(metadata[b'xSize'])
+        y_size = int(metadata[b'ySize'])
+        spatial_reference = metadata[b'spatialReference'].decode('utf-8')
+        # We know from the backend that there is only one array a.k.a. one column
+        arrow_array = record_batch.column(0)
+
+        time = gety.TimeInterval.from_response(json.loads(metadata[b'time']))
+
+        return RasterTile2D(
+            (y_size, x_size),
+            arrow_array,
+            geo_transform,
+            spatial_reference,
+            time
         )

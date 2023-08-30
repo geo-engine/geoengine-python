@@ -1,5 +1,6 @@
 '''Tests regarding raster tiles'''
 
+import json
 import unittest
 from datetime import datetime
 import numpy as np
@@ -92,3 +93,47 @@ class RasterTests(unittest.TestCase):
         origin_y = xarray.y.values[0]
         self.assertEqual(origin_x, self.test_data.geo_transform.x_min + self.test_data.geo_transform.x_pixel_size / 2)
         self.assertEqual(origin_y, self.test_data.geo_transform.y_max + self.test_data.geo_transform.y_pixel_size / 2)
+
+    def test_from_ge_record_batch(self) -> None:
+        time = datetime(2020, 1, 1, 0, 0, 0, 0).isoformat()
+        raster_data = rio.open("tests/responses/ndvi.tiff")
+        bounds = raster_data.bounds
+        no_data_value = 255  # raster_data.nodata is 0 which is propably wrong)
+        numpy_array = raster_data.read(1)
+        numpy_masked = np.ma.masked_equal(numpy_array, no_data_value)
+        array = pa.array(numpy_masked.reshape(-1))
+        print(type(array))
+
+        metadata = {
+            "geoTransform": json.dumps({
+                "originCoordinate": {
+                    "x": bounds[0],
+                    "y": bounds[3],
+                },
+                "xPixelSize": 45.0,
+                "yPixelSize": -22.5,
+            }),
+            "xSize": str(raster_data.shape[1]),
+            "ySize": str(raster_data.shape[0]),
+            "spatialReference": "EPSG:4326",
+            "time": json.dumps({
+                "start": time
+            }),
+        }
+
+        batch = pa.RecordBatch.from_arrays([array], names=['data'], metadata=metadata)
+
+        raster_tile = ge.RasterTile2D.from_ge_record_batch(batch)
+
+        self.assertEqual(raster_tile.time_start_ms, self.test_data.time_start_ms)
+        self.assertEqual(raster_tile.shape, self.test_data.shape)
+        self.assertAlmostEqual(raster_tile.geo_transform.x_min, self.test_data.geo_transform.x_min)
+        self.assertAlmostEqual(raster_tile.geo_transform.y_max, self.test_data.geo_transform.y_max)
+        self.assertAlmostEqual(raster_tile.geo_transform.x_pixel_size, self.test_data.geo_transform.x_pixel_size)
+        self.assertAlmostEqual(raster_tile.geo_transform.y_pixel_size, self.test_data.geo_transform.y_pixel_size)
+        self.assertEqual(raster_tile.crs, self.test_data.crs)
+        self.assertEqual(raster_tile.data_type, self.test_data.data_type)
+        self.assertEqual(raster_tile.numpy_data_type, self.test_data.numpy_data_type)
+        self.assertEqual(raster_tile.has_null_values, self.test_data.has_null_values)
+        self.assertEqual(raster_tile.pixel_size, self.test_data.pixel_size)
+        self.assertEqual(raster_tile.data, self.test_data.data)

@@ -37,7 +37,7 @@ from geoengine.error import GeoEngineException, InputException, MethodNotCalledO
     MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException, check_response_for_error, \
     InvalidUrlException
 from geoengine import backports
-from geoengine.types import GeoTransform, ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
+from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
 from geoengine.tasks import Task, TaskId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 from geoengine.raster import RasterTile2D
@@ -555,32 +555,13 @@ class Workflow:
             record_batch = reader.get_record_batch(0)
             return record_batch
 
-        def create_raster_tile(record_batch: pa.RecordBatch) -> RasterTile2D:
-            metadata = record_batch.schema.metadata
-            geo_transform: GeoTransform = GeoTransform.from_response(json.loads(metadata[b'geoTransform']))
-            x_size = int(metadata[b'xSize'])
-            y_size = int(metadata[b'ySize'])
-            spatial_reference = metadata[b'spatialReference'].decode('utf-8')
-            # We know from the backend that there is only one array a.k.a. one column
-            arrow_array = record_batch.column(0)
-
-            time = TimeInterval.from_response(json.loads(metadata[b'time']))
-
-            return RasterTile2D(
-                (y_size, x_size),
-                arrow_array,
-                geo_transform,
-                spatial_reference,
-                time
-            )
-
         def process_bytes(tile_bytes: Optional[bytes]) -> Optional[RasterTile2D]:
             if tile_bytes is None:
                 return None
 
             # process the received data
             record_batch = read_arrow_ipc(tile_bytes)
-            tile = create_raster_tile(record_batch)
+            tile = RasterTile2D.from_ge_record_batch(record_batch)
 
             return tile
 
