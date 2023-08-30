@@ -24,6 +24,7 @@ from .types import QueryRectangle,  \
     FeatureDataType, DEFAULT_ISO_TIME_FORMAT
 
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow, get_quota, update_quota
+from .raster import RasterTile2D
 
 from . import workflow_builder
 
