@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>geoengine.raster API documentation</title>
+<meta name="description" content="Raster data types" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>geoengine.raster</code></h1>
+</header>
+<section id="section-intro">
+<p>Raster data types</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#39;&#39;&#39;Raster data types&#39;&#39;&#39;
+from __future__ import annotations
+import json
+from typing import Optional, Tuple, Union, cast
+import numpy as np
+import pyarrow as pa
+import xarray as xr
+import geoengine.types as gety
+
+
+class RasterTile2D:
+    &#39;&#39;&#39;A 2D raster tile as produced by the Geo Engine&#39;&#39;&#39;
+    size_x: int
+    size_y: int
+    data: pa.Array
+    geo_transform: gety.GeoTransform
+    crs: str
+    time: gety.TimeInterval
+
+    # pylint: disable=too-many-arguments
+    def __init__(
+            self,
+            shape: Tuple[int, int],
+            data: pa.Array,
+            geo_transform: gety.GeoTransform,
+            crs: str,
+            time: gety.TimeInterval
+    ):
+        &#39;&#39;&#39;Create a RasterTile2D object&#39;&#39;&#39;
+        self.size_y, self.size_x = shape
+        self.data = data
+        self.geo_transform = geo_transform
+        self.crs = crs
+        self.time = time
+
+    @property
+    def shape(self) -&gt; Tuple[int, int]:
+        &#39;&#39;&#39;Return the shape of the raster tile in numpy order (y_size, x_size)&#39;&#39;&#39;
+        return (self.size_y, self.size_x)
+
+    @property
+    def data_type(self) -&gt; pa.DataType:
+        &#39;&#39;&#39;Return the arrow data type of the raster tile&#39;&#39;&#39;
+        return self.data.type
+
+    @property
+    def numpy_data_type(self) -&gt; np.dtype:
+        &#39;&#39;&#39;Return the numpy dtype of the raster tile&#39;&#39;&#39;
+        return self.data_type.to_pandas_dtype()
+
+    @property
+    def has_null_values(self) -&gt; bool:
+        &#39;&#39;&#39;Return whether the raster tile has null values&#39;&#39;&#39;
+        return self.data.null_count &gt; 0
+
+    @property
+    def time_start_ms(self) -&gt; np.datetime64:
+        return np.datetime64(self.time.start, &#39;ms&#39;)
+
+    @property
+    def time_end_ms(self) -&gt; np.datetime64:
+        return np.datetime64(self.time.end, &#39;ms&#39;)
+
+    @property
+    def pixel_size(self) -&gt; Tuple[float, float]:
+        return (self.geo_transform.x_pixel_size, self.geo_transform.y_pixel_size)
+
+    def to_numpy_data_array(self, fill_null_value=0) -&gt; np.ndarray:
+        &#39;&#39;&#39;
+        Return the raster tile as a numpy array.
+        Caution: this will not mask nodata values but replace them with the provided value !
+        &#39;&#39;&#39;
+        nulled_array = self.data.fill_null(fill_null_value)
+        return nulled_array.to_numpy(
+            zero_copy_only=True,  # data was already copied when creating the &#34;null filled&#34; array
+        ).reshape(self.shape)
+
+    def to_numpy_mask_array(self, nan_is_null=False) -&gt; Optional[np.ndarray]:
+        &#39;&#39;&#39;
+        Return the raster tiles mask as a numpy array.
+        True means no data, False means data.
+        If the raster tile has no null values, None is returned.
+        It is possible to specify whether NaN values should be considered as no data when creating the mask.
+        &#39;&#39;&#39;
+        numpy_mask = None
+        if self.has_null_values:
+            numpy_mask = self.data.is_null(
+                nan_is_null=nan_is_null  # nan is not no data
+            ).to_numpy(
+                zero_copy_only=False  # cannot zero-copy with bools
+            ).reshape(self.shape)
+        return numpy_mask
+
+    def to_numpy_masked_array(self, nan_is_null=False) -&gt; np.ma.MaskedArray:
+        &#39;&#39;&#39;Return the raster tile as a masked numpy array&#39;&#39;&#39;
+        numpy_data = self.to_numpy_data_array()
+        maybe_numpy_mask = self.to_numpy_mask_array(nan_is_null=nan_is_null)
+
+        assert maybe_numpy_mask is None or maybe_numpy_mask.shape == numpy_data.shape
+
+        numpy_mask: Union[np.ndarray, np.ma.MaskType] = np.ma.nomask if maybe_numpy_mask is None else maybe_numpy_mask
+
+        numpy_masked_data: np.ma.MaskedArray = np.ma.masked_array(numpy_data, mask=numpy_mask)
+
+        return numpy_masked_data
+
+    def coords_x(self, pixel_center=False) -&gt; np.ndarray:
+        &#39;&#39;&#39;
+        Return the x coordinates of the raster tile
+        If pixel_center is True, the coordinates will be the center of the pixels.
+        Otherwise they will be the upper left edges.
+        &#39;&#39;&#39;
+        start = self.geo_transform.x_min
+
+        if pixel_center:
+            start += self.geo_transform.x_half_pixel_size
+
+        return np.arange(
+            start=start,
+            stop=self.geo_transform.x_max(self.size_x),
+            step=self.geo_transform.x_pixel_size,
+        )
+
+    def coords_y(self, pixel_center=False) -&gt; np.ndarray:
+        &#39;&#39;&#39;
+        Return the y coordinates of the raster tile
+        If pixel_center is True, the coordinates will be the center of the pixels.
+        Otherwise they will be the upper left edges.
+        &#39;&#39;&#39;
+        start = self.geo_transform.y_max
+
+        if pixel_center:
+            start += self.geo_transform.y_half_pixel_size
+
+        return np.arange(
+            start=start,
+            stop=self.geo_transform.y_min(self.size_y),
+            step=self.geo_transform.y_pixel_size,
+        )
+
+    def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -&gt; xr.DataArray:
+        &#39;&#39;&#39;
+        Return the raster tile as an xarray.DataArray.
+        Xarray does not support masked arrays.
+        Masked pixels are converted to NaNs and the nodata value is set to NaN as well.
+        &#39;&#39;&#39;
+        array = xr.DataArray(
+            self.to_numpy_masked_array(),
+            dims=[&#34;y&#34;, &#34;x&#34;],
+            coords={
+                &#39;x&#39;: self.coords_x(pixel_center=True),
+                &#39;y&#39;: self.coords_y(pixel_center=True),
+                &#39;time&#39;: self.time_start_ms,  # TODO: incorporate time end?
+            }
+        )
+        array.rio.write_crs(self.crs, inplace=True)
+
+        if clip_with_bounds is not None:
+            array = array.rio.clip_box(*clip_with_bounds.as_bbox_tuple())
+            array = cast(xr.DataArray, array)
+
+        return array
+
+    def spatial_partition(self) -&gt; gety.SpatialPartition2D:
+        &#39;&#39;&#39;Return the spatial partition of the raster tile&#39;&#39;&#39;
+        return gety.SpatialPartition2D(
+            self.geo_transform.x_min,
+            self.geo_transform.y_min(self.size_y),
+            self.geo_transform.x_max(self.size_x),
+            self.geo_transform.y_max,
+        )
+
+    def spatial_resolution(self) -&gt; gety.SpatialResolution:
+        return self.geo_transform.spatial_resolution()
+
+    @staticmethod
+    def from_ge_record_batch(record_batch: pa.RecordBatch) -&gt; RasterTile2D:
+        &#39;&#39;&#39;Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine&#39;&#39;&#39;
+        metadata = record_batch.schema.metadata
+        geo_transform = gety.GeoTransform.from_response(json.loads(metadata[b&#39;geoTransform&#39;]))
+        x_size = int(metadata[b&#39;xSize&#39;])
+        y_size = int(metadata[b&#39;ySize&#39;])
+        spatial_reference = metadata[b&#39;spatialReference&#39;].decode(&#39;utf-8&#39;)
+        # We know from the backend that there is only one array a.k.a. one column
+        arrow_array = record_batch.column(0)
+
+        time = gety.TimeInterval.from_response(json.loads(metadata[b&#39;time&#39;]))
+
+        return RasterTile2D(
+            (y_size, x_size),
+            arrow_array,
+            geo_transform,
+            spatial_reference,
+            time
+        )</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="geoengine.raster.RasterTile2D"><code class="flex name class">
+<span>class <span class="ident">RasterTile2D</span></span>
+<span>(</span><span>shape: Tuple[int, int], data: pa.Array, geo_transform: gety.GeoTransform, crs: str, time: gety.TimeInterval)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A 2D raster tile as produced by the Geo Engine</p>
+<p>Create a RasterTile2D object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterTile2D:
+    &#39;&#39;&#39;A 2D raster tile as produced by the Geo Engine&#39;&#39;&#39;
+    size_x: int
+    size_y: int
+    data: pa.Array
+    geo_transform: gety.GeoTransform
+    crs: str
+    time: gety.TimeInterval
+
+    # pylint: disable=too-many-arguments
+    def __init__(
+            self,
+            shape: Tuple[int, int],
+            data: pa.Array,
+            geo_transform: gety.GeoTransform,
+            crs: str,
+            time: gety.TimeInterval
+    ):
+        &#39;&#39;&#39;Create a RasterTile2D object&#39;&#39;&#39;
+        self.size_y, self.size_x = shape
+        self.data = data
+        self.geo_transform = geo_transform
+        self.crs = crs
+        self.time = time
+
+    @property
+    def shape(self) -&gt; Tuple[int, int]:
+        &#39;&#39;&#39;Return the shape of the raster tile in numpy order (y_size, x_size)&#39;&#39;&#39;
+        return (self.size_y, self.size_x)
+
+    @property
+    def data_type(self) -&gt; pa.DataType:
+        &#39;&#39;&#39;Return the arrow data type of the raster tile&#39;&#39;&#39;
+        return self.data.type
+
+    @property
+    def numpy_data_type(self) -&gt; np.dtype:
+        &#39;&#39;&#39;Return the numpy dtype of the raster tile&#39;&#39;&#39;
+        return self.data_type.to_pandas_dtype()
+
+    @property
+    def has_null_values(self) -&gt; bool:
+        &#39;&#39;&#39;Return whether the raster tile has null values&#39;&#39;&#39;
+        return self.data.null_count &gt; 0
+
+    @property
+    def time_start_ms(self) -&gt; np.datetime64:
+        return np.datetime64(self.time.start, &#39;ms&#39;)
+
+    @property
+    def time_end_ms(self) -&gt; np.datetime64:
+        return np.datetime64(self.time.end, &#39;ms&#39;)
+
+    @property
+    def pixel_size(self) -&gt; Tuple[float, float]:
+        return (self.geo_transform.x_pixel_size, self.geo_transform.y_pixel_size)
+
+    def to_numpy_data_array(self, fill_null_value=0) -&gt; np.ndarray:
+        &#39;&#39;&#39;
+        Return the raster tile as a numpy array.
+        Caution: this will not mask nodata values but replace them with the provided value !
+        &#39;&#39;&#39;
+        nulled_array = self.data.fill_null(fill_null_value)
+        return nulled_array.to_numpy(
+            zero_copy_only=True,  # data was already copied when creating the &#34;null filled&#34; array
+        ).reshape(self.shape)
+
+    def to_numpy_mask_array(self, nan_is_null=False) -&gt; Optional[np.ndarray]:
+        &#39;&#39;&#39;
+        Return the raster tiles mask as a numpy array.
+        True means no data, False means data.
+        If the raster tile has no null values, None is returned.
+        It is possible to specify whether NaN values should be considered as no data when creating the mask.
+        &#39;&#39;&#39;
+        numpy_mask = None
+        if self.has_null_values:
+            numpy_mask = self.data.is_null(
+                nan_is_null=nan_is_null  # nan is not no data
+            ).to_numpy(
+                zero_copy_only=False  # cannot zero-copy with bools
+            ).reshape(self.shape)
+        return numpy_mask
+
+    def to_numpy_masked_array(self, nan_is_null=False) -&gt; np.ma.MaskedArray:
+        &#39;&#39;&#39;Return the raster tile as a masked numpy array&#39;&#39;&#39;
+        numpy_data = self.to_numpy_data_array()
+        maybe_numpy_mask = self.to_numpy_mask_array(nan_is_null=nan_is_null)
+
+        assert maybe_numpy_mask is None or maybe_numpy_mask.shape == numpy_data.shape
+
+        numpy_mask: Union[np.ndarray, np.ma.MaskType] = np.ma.nomask if maybe_numpy_mask is None else maybe_numpy_mask
+
+        numpy_masked_data: np.ma.MaskedArray = np.ma.masked_array(numpy_data, mask=numpy_mask)
+
+        return numpy_masked_data
+
+    def coords_x(self, pixel_center=False) -&gt; np.ndarray:
+        &#39;&#39;&#39;
+        Return the x coordinates of the raster tile
+        If pixel_center is True, the coordinates will be the center of the pixels.
+        Otherwise they will be the upper left edges.
+        &#39;&#39;&#39;
+        start = self.geo_transform.x_min
+
+        if pixel_center:
+            start += self.geo_transform.x_half_pixel_size
+
+        return np.arange(
+            start=start,
+            stop=self.geo_transform.x_max(self.size_x),
+            step=self.geo_transform.x_pixel_size,
+        )
+
+    def coords_y(self, pixel_center=False) -&gt; np.ndarray:
+        &#39;&#39;&#39;
+        Return the y coordinates of the raster tile
+        If pixel_center is True, the coordinates will be the center of the pixels.
+        Otherwise they will be the upper left edges.
+        &#39;&#39;&#39;
+        start = self.geo_transform.y_max
+
+        if pixel_center:
+            start += self.geo_transform.y_half_pixel_size
+
+        return np.arange(
+            start=start,
+            stop=self.geo_transform.y_min(self.size_y),
+            step=self.geo_transform.y_pixel_size,
+        )
+
+    def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -&gt; xr.DataArray:
+        &#39;&#39;&#39;
+        Return the raster tile as an xarray.DataArray.
+        Xarray does not support masked arrays.
+        Masked pixels are converted to NaNs and the nodata value is set to NaN as well.
+        &#39;&#39;&#39;
+        array = xr.DataArray(
+            self.to_numpy_masked_array(),
+            dims=[&#34;y&#34;, &#34;x&#34;],
+            coords={
+                &#39;x&#39;: self.coords_x(pixel_center=True),
+                &#39;y&#39;: self.coords_y(pixel_center=True),
+                &#39;time&#39;: self.time_start_ms,  # TODO: incorporate time end?
+            }
+        )
+        array.rio.write_crs(self.crs, inplace=True)
+
+        if clip_with_bounds is not None:
+            array = array.rio.clip_box(*clip_with_bounds.as_bbox_tuple())
+            array = cast(xr.DataArray, array)
+
+        return array
+
+    def spatial_partition(self) -&gt; gety.SpatialPartition2D:
+        &#39;&#39;&#39;Return the spatial partition of the raster tile&#39;&#39;&#39;
+        return gety.SpatialPartition2D(
+            self.geo_transform.x_min,
+            self.geo_transform.y_min(self.size_y),
+            self.geo_transform.x_max(self.size_x),
+            self.geo_transform.y_max,
+        )
+
+    def spatial_resolution(self) -&gt; gety.SpatialResolution:
+        return self.geo_transform.spatial_resolution()
+
+    @staticmethod
+    def from_ge_record_batch(record_batch: pa.RecordBatch) -&gt; RasterTile2D:
+        &#39;&#39;&#39;Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine&#39;&#39;&#39;
+        metadata = record_batch.schema.metadata
+        geo_transform = gety.GeoTransform.from_response(json.loads(metadata[b&#39;geoTransform&#39;]))
+        x_size = int(metadata[b&#39;xSize&#39;])
+        y_size = int(metadata[b&#39;ySize&#39;])
+        spatial_reference = metadata[b&#39;spatialReference&#39;].decode(&#39;utf-8&#39;)
+        # We know from the backend that there is only one array a.k.a. one column
+        arrow_array = record_batch.column(0)
+
+        time = gety.TimeInterval.from_response(json.loads(metadata[b&#39;time&#39;]))
+
+        return RasterTile2D(
+            (y_size, x_size),
+            arrow_array,
+            geo_transform,
+            spatial_reference,
+            time
+        )</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.raster.RasterTile2D.crs"><code class="name">var <span class="ident">crs</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.data"><code class="name">var <span class="ident">data</span> : pyarrow.lib.Array</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.geo_transform"><code class="name">var <span class="ident">geo_transform</span> : <a title="geoengine.types.GeoTransform" href="types.html#geoengine.types.GeoTransform">GeoTransform</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.size_x"><code class="name">var <span class="ident">size_x</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.size_y"><code class="name">var <span class="ident">size_y</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.time"><code class="name">var <span class="ident">time</span> : <a title="geoengine.types.TimeInterval" href="types.html#geoengine.types.TimeInterval">TimeInterval</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.raster.RasterTile2D.from_ge_record_batch"><code class="name flex">
+<span>def <span class="ident">from_ge_record_batch</span></span>(<span>record_batch: pa.RecordBatch) ‑> <a title="geoengine.raster.RasterTile2D" href="#geoengine.raster.RasterTile2D">RasterTile2D</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_ge_record_batch(record_batch: pa.RecordBatch) -&gt; RasterTile2D:
+    &#39;&#39;&#39;Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine&#39;&#39;&#39;
+    metadata = record_batch.schema.metadata
+    geo_transform = gety.GeoTransform.from_response(json.loads(metadata[b&#39;geoTransform&#39;]))
+    x_size = int(metadata[b&#39;xSize&#39;])
+    y_size = int(metadata[b&#39;ySize&#39;])
+    spatial_reference = metadata[b&#39;spatialReference&#39;].decode(&#39;utf-8&#39;)
+    # We know from the backend that there is only one array a.k.a. one column
+    arrow_array = record_batch.column(0)
+
+    time = gety.TimeInterval.from_response(json.loads(metadata[b&#39;time&#39;]))
+
+    return RasterTile2D(
+        (y_size, x_size),
+        arrow_array,
+        geo_transform,
+        spatial_reference,
+        time
+    )</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="geoengine.raster.RasterTile2D.data_type"><code class="name">var <span class="ident">data_type</span> : pyarrow.lib.DataType</code></dt>
+<dd>
+<div class="desc"><p>Return the arrow data type of the raster tile</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def data_type(self) -&gt; pa.DataType:
+    &#39;&#39;&#39;Return the arrow data type of the raster tile&#39;&#39;&#39;
+    return self.data.type</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.has_null_values"><code class="name">var <span class="ident">has_null_values</span> : bool</code></dt>
+<dd>
+<div class="desc"><p>Return whether the raster tile has null values</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def has_null_values(self) -&gt; bool:
+    &#39;&#39;&#39;Return whether the raster tile has null values&#39;&#39;&#39;
+    return self.data.null_count &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.numpy_data_type"><code class="name">var <span class="ident">numpy_data_type</span> : numpy.dtype</code></dt>
+<dd>
+<div class="desc"><p>Return the numpy dtype of the raster tile</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def numpy_data_type(self) -&gt; np.dtype:
+    &#39;&#39;&#39;Return the numpy dtype of the raster tile&#39;&#39;&#39;
+    return self.data_type.to_pandas_dtype()</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.pixel_size"><code class="name">var <span class="ident">pixel_size</span> : Tuple[float, float]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def pixel_size(self) -&gt; Tuple[float, float]:
+    return (self.geo_transform.x_pixel_size, self.geo_transform.y_pixel_size)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.shape"><code class="name">var <span class="ident">shape</span> : Tuple[int, int]</code></dt>
+<dd>
+<div class="desc"><p>Return the shape of the raster tile in numpy order (y_size, x_size)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def shape(self) -&gt; Tuple[int, int]:
+    &#39;&#39;&#39;Return the shape of the raster tile in numpy order (y_size, x_size)&#39;&#39;&#39;
+    return (self.size_y, self.size_x)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.time_end_ms"><code class="name">var <span class="ident">time_end_ms</span> : numpy.datetime64</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def time_end_ms(self) -&gt; np.datetime64:
+    return np.datetime64(self.time.end, &#39;ms&#39;)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.time_start_ms"><code class="name">var <span class="ident">time_start_ms</span> : numpy.datetime64</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def time_start_ms(self) -&gt; np.datetime64:
+    return np.datetime64(self.time.start, &#39;ms&#39;)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.raster.RasterTile2D.coords_x"><code class="name flex">
+<span>def <span class="ident">coords_x</span></span>(<span>self, pixel_center=False) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the x coordinates of the raster tile
+If pixel_center is True, the coordinates will be the center of the pixels.
+Otherwise they will be the upper left edges.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def coords_x(self, pixel_center=False) -&gt; np.ndarray:
+    &#39;&#39;&#39;
+    Return the x coordinates of the raster tile
+    If pixel_center is True, the coordinates will be the center of the pixels.
+    Otherwise they will be the upper left edges.
+    &#39;&#39;&#39;
+    start = self.geo_transform.x_min
+
+    if pixel_center:
+        start += self.geo_transform.x_half_pixel_size
+
+    return np.arange(
+        start=start,
+        stop=self.geo_transform.x_max(self.size_x),
+        step=self.geo_transform.x_pixel_size,
+    )</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.coords_y"><code class="name flex">
+<span>def <span class="ident">coords_y</span></span>(<span>self, pixel_center=False) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the y coordinates of the raster tile
+If pixel_center is True, the coordinates will be the center of the pixels.
+Otherwise they will be the upper left edges.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def coords_y(self, pixel_center=False) -&gt; np.ndarray:
+    &#39;&#39;&#39;
+    Return the y coordinates of the raster tile
+    If pixel_center is True, the coordinates will be the center of the pixels.
+    Otherwise they will be the upper left edges.
+    &#39;&#39;&#39;
+    start = self.geo_transform.y_max
+
+    if pixel_center:
+        start += self.geo_transform.y_half_pixel_size
+
+    return np.arange(
+        start=start,
+        stop=self.geo_transform.y_min(self.size_y),
+        step=self.geo_transform.y_pixel_size,
+    )</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.spatial_partition"><code class="name flex">
+<span>def <span class="ident">spatial_partition</span></span>(<span>self) ‑> <a title="geoengine.types.SpatialPartition2D" href="types.html#geoengine.types.SpatialPartition2D">SpatialPartition2D</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the spatial partition of the raster tile</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def spatial_partition(self) -&gt; gety.SpatialPartition2D:
+    &#39;&#39;&#39;Return the spatial partition of the raster tile&#39;&#39;&#39;
+    return gety.SpatialPartition2D(
+        self.geo_transform.x_min,
+        self.geo_transform.y_min(self.size_y),
+        self.geo_transform.x_max(self.size_x),
+        self.geo_transform.y_max,
+    )</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.spatial_resolution"><code class="name flex">
+<span>def <span class="ident">spatial_resolution</span></span>(<span>self) ‑> <a title="geoengine.types.SpatialResolution" href="types.html#geoengine.types.SpatialResolution">SpatialResolution</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def spatial_resolution(self) -&gt; gety.SpatialResolution:
+    return self.geo_transform.spatial_resolution()</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.to_numpy_data_array"><code class="name flex">
+<span>def <span class="ident">to_numpy_data_array</span></span>(<span>self, fill_null_value=0) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the raster tile as a numpy array.
+Caution: this will not mask nodata values but replace them with the provided value !</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_numpy_data_array(self, fill_null_value=0) -&gt; np.ndarray:
+    &#39;&#39;&#39;
+    Return the raster tile as a numpy array.
+    Caution: this will not mask nodata values but replace them with the provided value !
+    &#39;&#39;&#39;
+    nulled_array = self.data.fill_null(fill_null_value)
+    return nulled_array.to_numpy(
+        zero_copy_only=True,  # data was already copied when creating the &#34;null filled&#34; array
+    ).reshape(self.shape)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.to_numpy_mask_array"><code class="name flex">
+<span>def <span class="ident">to_numpy_mask_array</span></span>(<span>self, nan_is_null=False) ‑> Optional[numpy.ndarray]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the raster tiles mask as a numpy array.
+True means no data, False means data.
+If the raster tile has no null values, None is returned.
+It is possible to specify whether NaN values should be considered as no data when creating the mask.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_numpy_mask_array(self, nan_is_null=False) -&gt; Optional[np.ndarray]:
+    &#39;&#39;&#39;
+    Return the raster tiles mask as a numpy array.
+    True means no data, False means data.
+    If the raster tile has no null values, None is returned.
+    It is possible to specify whether NaN values should be considered as no data when creating the mask.
+    &#39;&#39;&#39;
+    numpy_mask = None
+    if self.has_null_values:
+        numpy_mask = self.data.is_null(
+            nan_is_null=nan_is_null  # nan is not no data
+        ).to_numpy(
+            zero_copy_only=False  # cannot zero-copy with bools
+        ).reshape(self.shape)
+    return numpy_mask</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.to_numpy_masked_array"><code class="name flex">
+<span>def <span class="ident">to_numpy_masked_array</span></span>(<span>self, nan_is_null=False) ‑> numpy.ma.core.MaskedArray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the raster tile as a masked numpy array</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_numpy_masked_array(self, nan_is_null=False) -&gt; np.ma.MaskedArray:
+    &#39;&#39;&#39;Return the raster tile as a masked numpy array&#39;&#39;&#39;
+    numpy_data = self.to_numpy_data_array()
+    maybe_numpy_mask = self.to_numpy_mask_array(nan_is_null=nan_is_null)
+
+    assert maybe_numpy_mask is None or maybe_numpy_mask.shape == numpy_data.shape
+
+    numpy_mask: Union[np.ndarray, np.ma.MaskType] = np.ma.nomask if maybe_numpy_mask is None else maybe_numpy_mask
+
+    numpy_masked_data: np.ma.MaskedArray = np.ma.masked_array(numpy_data, mask=numpy_mask)
+
+    return numpy_masked_data</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.to_xarray"><code class="name flex">
+<span>def <span class="ident">to_xarray</span></span>(<span>self, clip_with_bounds: Optional[gety.SpatialBounds] = None) ‑> xarray.core.dataarray.DataArray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the raster tile as an xarray.DataArray.
+Xarray does not support masked arrays.
+Masked pixels are converted to NaNs and the nodata value is set to NaN as well.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -&gt; xr.DataArray:
+    &#39;&#39;&#39;
+    Return the raster tile as an xarray.DataArray.
+    Xarray does not support masked arrays.
+    Masked pixels are converted to NaNs and the nodata value is set to NaN as well.
+    &#39;&#39;&#39;
+    array = xr.DataArray(
+        self.to_numpy_masked_array(),
+        dims=[&#34;y&#34;, &#34;x&#34;],
+        coords={
+            &#39;x&#39;: self.coords_x(pixel_center=True),
+            &#39;y&#39;: self.coords_y(pixel_center=True),
+            &#39;time&#39;: self.time_start_ms,  # TODO: incorporate time end?
+        }
+    )
+    array.rio.write_crs(self.crs, inplace=True)
+
+    if clip_with_bounds is not None:
+        array = array.rio.clip_box(*clip_with_bounds.as_bbox_tuple())
+        array = cast(xr.DataArray, array)
+
+    return array</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="geoengine" href="index.html">geoengine</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="geoengine.raster.RasterTile2D" href="#geoengine.raster.RasterTile2D">RasterTile2D</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.raster.RasterTile2D.coords_x" href="#geoengine.raster.RasterTile2D.coords_x">coords_x</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.coords_y" href="#geoengine.raster.RasterTile2D.coords_y">coords_y</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.crs" href="#geoengine.raster.RasterTile2D.crs">crs</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.data" href="#geoengine.raster.RasterTile2D.data">data</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.data_type" href="#geoengine.raster.RasterTile2D.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.from_ge_record_batch" href="#geoengine.raster.RasterTile2D.from_ge_record_batch">from_ge_record_batch</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.geo_transform" href="#geoengine.raster.RasterTile2D.geo_transform">geo_transform</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.has_null_values" href="#geoengine.raster.RasterTile2D.has_null_values">has_null_values</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.numpy_data_type" href="#geoengine.raster.RasterTile2D.numpy_data_type">numpy_data_type</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.pixel_size" href="#geoengine.raster.RasterTile2D.pixel_size">pixel_size</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.shape" href="#geoengine.raster.RasterTile2D.shape">shape</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.size_x" href="#geoengine.raster.RasterTile2D.size_x">size_x</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.size_y" href="#geoengine.raster.RasterTile2D.size_y">size_y</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.spatial_partition" href="#geoengine.raster.RasterTile2D.spatial_partition">spatial_partition</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.spatial_resolution" href="#geoengine.raster.RasterTile2D.spatial_resolution">spatial_resolution</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.time" href="#geoengine.raster.RasterTile2D.time">time</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.time_end_ms" href="#geoengine.raster.RasterTile2D.time_end_ms">time_end_ms</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.time_start_ms" href="#geoengine.raster.RasterTile2D.time_start_ms">time_start_ms</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.to_numpy_data_array" href="#geoengine.raster.RasterTile2D.to_numpy_data_array">to_numpy_data_array</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.to_numpy_mask_array" href="#geoengine.raster.RasterTile2D.to_numpy_mask_array">to_numpy_mask_array</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.to_numpy_masked_array" href="#geoengine.raster.RasterTile2D.to_numpy_masked_array">to_numpy_masked_array</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.to_xarray" href="#geoengine.raster.RasterTile2D.to_xarray">to_xarray</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

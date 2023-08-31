@@ -1303,6 +1303,10 @@ class GeoTransform:
             &#39;yPixelSize&#39;: self.y_pixel_size
         })
 
+    def to_gdal(self) -&gt; Tuple[float, float, float, float, float, float]:
+        &#39;&#39;&#39;Convert to a GDAL geotransform&#39;&#39;&#39;
+        return (self.x_min, self.x_pixel_size, 0, self.y_max, 0, self.y_pixel_size)
+
     def __str__(self) -&gt; str:
         return f&#39;Origin: ({self.x_min}, {self.y_max}), &#39; \
             f&#39;X Pixel Size: {self.x_pixel_size}, &#39; \
@@ -1323,7 +1327,23 @@ class GeoTransform:
         return self.x_min + number_of_pixels * self.x_pixel_size
 
     def y_min(self, number_of_pixels: int) -&gt; float:
-        return self.y_max + number_of_pixels * self.y_pixel_size</code></pre>
+        return self.y_max + number_of_pixels * self.y_pixel_size
+
+    def coord_to_pixel_ul(self, x_cord: float, y_coord: float) -&gt; Tuple[int, int]:
+        &#39;&#39;&#39;Convert a coordinate to a pixel index rould towards top left&#39;&#39;&#39;
+        return (int(np.floor((x_cord - self.x_min) / self.x_pixel_size)),
+                int(np.ceil((y_coord - self.y_max) / self.y_pixel_size)))
+
+    def coord_to_pixel_lr(self, x_cord: float, y_coord: float) -&gt; Tuple[int, int]:
+        &#39;&#39;&#39;Convert a coordinate to a pixel index ound towards lower right&#39;&#39;&#39;
+        return (int(np.ceil((x_cord - self.x_min) / self.x_pixel_size)),
+                int(np.floor((y_coord - self.y_max) / self.y_pixel_size)))
+
+    def spatial_resolution(self) -&gt; SpatialResolution:
+        return SpatialResolution(
+            x_resolution=abs(self.x_pixel_size),
+            y_resolution=abs(self.y_pixel_size)
+        )</code></pre>
 </details>
 </section>
 <section>
@@ -2080,6 +2100,10 @@ def from_string(data_type: str) -&gt; FeatureDataType:
             &#39;yPixelSize&#39;: self.y_pixel_size
         })
 
+    def to_gdal(self) -&gt; Tuple[float, float, float, float, float, float]:
+        &#39;&#39;&#39;Convert to a GDAL geotransform&#39;&#39;&#39;
+        return (self.x_min, self.x_pixel_size, 0, self.y_max, 0, self.y_pixel_size)
+
     def __str__(self) -&gt; str:
         return f&#39;Origin: ({self.x_min}, {self.y_max}), &#39; \
             f&#39;X Pixel Size: {self.x_pixel_size}, &#39; \
@@ -2100,7 +2124,23 @@ def from_string(data_type: str) -&gt; FeatureDataType:
         return self.x_min + number_of_pixels * self.x_pixel_size
 
     def y_min(self, number_of_pixels: int) -&gt; float:
-        return self.y_max + number_of_pixels * self.y_pixel_size</code></pre>
+        return self.y_max + number_of_pixels * self.y_pixel_size
+
+    def coord_to_pixel_ul(self, x_cord: float, y_coord: float) -&gt; Tuple[int, int]:
+        &#39;&#39;&#39;Convert a coordinate to a pixel index rould towards top left&#39;&#39;&#39;
+        return (int(np.floor((x_cord - self.x_min) / self.x_pixel_size)),
+                int(np.ceil((y_coord - self.y_max) / self.y_pixel_size)))
+
+    def coord_to_pixel_lr(self, x_cord: float, y_coord: float) -&gt; Tuple[int, int]:
+        &#39;&#39;&#39;Convert a coordinate to a pixel index ound towards lower right&#39;&#39;&#39;
+        return (int(np.ceil((x_cord - self.x_min) / self.x_pixel_size)),
+                int(np.floor((y_coord - self.y_max) / self.y_pixel_size)))
+
+    def spatial_resolution(self) -&gt; SpatialResolution:
+        return SpatialResolution(
+            x_resolution=abs(self.x_pixel_size),
+            y_resolution=abs(self.y_pixel_size)
+        )</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -2174,6 +2214,52 @@ def y_half_pixel_size(self) -&gt; float:
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="geoengine.types.GeoTransform.coord_to_pixel_lr"><code class="name flex">
+<span>def <span class="ident">coord_to_pixel_lr</span></span>(<span>self, x_cord: float, y_coord: float) ‑> Tuple[int, int]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a coordinate to a pixel index ound towards lower right</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def coord_to_pixel_lr(self, x_cord: float, y_coord: float) -&gt; Tuple[int, int]:
+    &#39;&#39;&#39;Convert a coordinate to a pixel index ound towards lower right&#39;&#39;&#39;
+    return (int(np.ceil((x_cord - self.x_min) / self.x_pixel_size)),
+            int(np.floor((y_coord - self.y_max) / self.y_pixel_size)))</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.GeoTransform.coord_to_pixel_ul"><code class="name flex">
+<span>def <span class="ident">coord_to_pixel_ul</span></span>(<span>self, x_cord: float, y_coord: float) ‑> Tuple[int, int]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a coordinate to a pixel index rould towards top left</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def coord_to_pixel_ul(self, x_cord: float, y_coord: float) -&gt; Tuple[int, int]:
+    &#39;&#39;&#39;Convert a coordinate to a pixel index rould towards top left&#39;&#39;&#39;
+    return (int(np.floor((x_cord - self.x_min) / self.x_pixel_size)),
+            int(np.ceil((y_coord - self.y_max) / self.y_pixel_size)))</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.GeoTransform.spatial_resolution"><code class="name flex">
+<span>def <span class="ident">spatial_resolution</span></span>(<span>self) ‑> <a title="geoengine.types.SpatialResolution" href="#geoengine.types.SpatialResolution">SpatialResolution</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def spatial_resolution(self) -&gt; SpatialResolution:
+    return SpatialResolution(
+        x_resolution=abs(self.x_pixel_size),
+        y_resolution=abs(self.y_pixel_size)
+    )</code></pre>
+</details>
+</dd>
 <dt id="geoengine.types.GeoTransform.to_api_dict"><code class="name flex">
 <span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.GeoTransform" href="api.html#geoengine.api.GeoTransform">GeoTransform</a></span>
 </code></dt>
@@ -2192,6 +2278,20 @@ def y_half_pixel_size(self) -&gt; float:
         &#39;xPixelSize&#39;: self.x_pixel_size,
         &#39;yPixelSize&#39;: self.y_pixel_size
     })</code></pre>
+</details>
+</dd>
+<dt id="geoengine.types.GeoTransform.to_gdal"><code class="name flex">
+<span>def <span class="ident">to_gdal</span></span>(<span>self) ‑> Tuple[float, float, float, float, float, float]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert to a GDAL geotransform</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_gdal(self) -&gt; Tuple[float, float, float, float, float, float]:
+    &#39;&#39;&#39;Convert to a GDAL geotransform&#39;&#39;&#39;
+    return (self.x_min, self.x_pixel_size, 0, self.y_max, 0, self.y_pixel_size)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.types.GeoTransform.x_max"><code class="name flex">
@@ -5167,8 +5267,12 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
 <li>
 <h4><code><a title="geoengine.types.GeoTransform" href="#geoengine.types.GeoTransform">GeoTransform</a></code></h4>
 <ul class="two-column">
+<li><code><a title="geoengine.types.GeoTransform.coord_to_pixel_lr" href="#geoengine.types.GeoTransform.coord_to_pixel_lr">coord_to_pixel_lr</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.coord_to_pixel_ul" href="#geoengine.types.GeoTransform.coord_to_pixel_ul">coord_to_pixel_ul</a></code></li>
 <li><code><a title="geoengine.types.GeoTransform.from_response" href="#geoengine.types.GeoTransform.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.spatial_resolution" href="#geoengine.types.GeoTransform.spatial_resolution">spatial_resolution</a></code></li>
 <li><code><a title="geoengine.types.GeoTransform.to_api_dict" href="#geoengine.types.GeoTransform.to_api_dict">to_api_dict</a></code></li>
+<li><code><a title="geoengine.types.GeoTransform.to_gdal" href="#geoengine.types.GeoTransform.to_gdal">to_gdal</a></code></li>
 <li><code><a title="geoengine.types.GeoTransform.x_half_pixel_size" href="#geoengine.types.GeoTransform.x_half_pixel_size">x_half_pixel_size</a></code></li>
 <li><code><a title="geoengine.types.GeoTransform.x_max" href="#geoengine.types.GeoTransform.x_max">x_max</a></code></li>
 <li><code><a title="geoengine.types.GeoTransform.x_min" href="#geoengine.types.GeoTransform.x_min">x_min</a></code></li>
