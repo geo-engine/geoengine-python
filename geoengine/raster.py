@@ -161,7 +161,6 @@ class RasterTile2D:
 
         return array
 
-    @property
     def spatial_partition(self) -> gety.SpatialPartition2D:
         '''Return the spatial partition of the raster tile'''
         return gety.SpatialPartition2D(
@@ -170,6 +169,9 @@ class RasterTile2D:
             self.geo_transform.x_max(self.size_x),
             self.geo_transform.y_max,
         )
+
+    def spatial_resolution(self) -> gety.SpatialResolution:
+        return self.geo_transform.spatial_resolution()
 
     @staticmethod
     def from_ge_record_batch(record_batch: pa.RecordBatch) -> RasterTile2D:

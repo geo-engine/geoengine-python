@@ -1309,3 +1309,9 @@ class GeoTransform:
         '''Convert a coordinate to a pixel index ound towards lower right'''
         return (int(np.ceil((x_cord - self.x_min) / self.x_pixel_size)),
                 int(np.floor((y_coord - self.y_max) / self.y_pixel_size)))
+
+    def spatial_resolution(self) -> SpatialResolution:
+        return SpatialResolution(
+            x_resolution=abs(self.x_pixel_size),
+            y_resolution=abs(self.y_pixel_size)
+        )
