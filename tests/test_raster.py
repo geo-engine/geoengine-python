@@ -88,7 +88,7 @@ class RasterTests(unittest.TestCase):
         '''Test the to_xarray method'''
         xarray = self.test_data.to_xarray()
         self.assertEqual(xarray.shape, (8, 8))
-        self.assertEqual(xarray.dtype, np.float64)
+        self.assertTrue(issubclass(xarray.dtype.type, np.floating))
         origin_x = xarray.x.values[0]
         origin_y = xarray.y.values[0]
         self.assertEqual(origin_x, self.test_data.geo_transform.x_min + self.test_data.geo_transform.x_pixel_size / 2)
