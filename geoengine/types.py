@@ -1274,6 +1274,10 @@ class GeoTransform:
             'yPixelSize': self.y_pixel_size
         })
 
+    def to_gdal(self) -> Tuple[float, float, float, float, float, float]:
+        '''Convert to a GDAL geotransform'''
+        return (self.x_min, self.x_pixel_size, 0, self.y_max, 0, self.y_pixel_size)
+
     def __str__(self) -> str:
         return f'Origin: ({self.x_min}, {self.y_max}), ' \
             f'X Pixel Size: {self.x_pixel_size}, ' \
@@ -1295,3 +1299,19 @@ class GeoTransform:
 
     def y_min(self, number_of_pixels: int) -> float:
         return self.y_max + number_of_pixels * self.y_pixel_size
+
+    def coord_to_pixel_ul(self, x_cord: float, y_coord: float) -> Tuple[int, int]:
+        '''Convert a coordinate to a pixel index rould towards top left'''
+        return (int(np.floor((x_cord - self.x_min) / self.x_pixel_size)),
+                int(np.ceil((y_coord - self.y_max) / self.y_pixel_size)))
+
+    def coord_to_pixel_lr(self, x_cord: float, y_coord: float) -> Tuple[int, int]:
+        '''Convert a coordinate to a pixel index ound towards lower right'''
+        return (int(np.ceil((x_cord - self.x_min) / self.x_pixel_size)),
+                int(np.floor((y_coord - self.y_max) / self.y_pixel_size)))
+
+    def spatial_resolution(self) -> SpatialResolution:
+        return SpatialResolution(
+            x_resolution=abs(self.x_pixel_size),
+            y_resolution=abs(self.y_pixel_size)
+        )
