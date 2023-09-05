@@ -13,7 +13,7 @@ from typing import Dict, Optional, Tuple, Union, cast, List, Literal
 from attr import dataclass
 import numpy as np
 from geoengine.colorizer import Colorizer
-from geoengine import api
+import openapi_client
 from geoengine.error import GeoEngineException, InputException, TypeException
 
 

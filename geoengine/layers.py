@@ -13,7 +13,7 @@ import json
 import urllib
 import requests as req
 from strenum import LowercaseStrEnum
-from geoengine import api
+import openapi_client
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException, check_response_for_error
 from geoengine.tasks import Task, TaskId
@@ -178,46 +178,46 @@ class LayerCollection:
         self.items = items
 
     @classmethod
-    def from_response(cls, response_pages: List[api.LayerCollectionResponse]) -> LayerCollection:
+    def from_response(cls, response_pages: List[openapi_client.LayerCollection]) -> LayerCollection:
         '''Parse an HTTP JSON response to an `LayerCollection`'''
 
         assert len(response_pages) > 0, 'No response pages'
 
-        def parse_listing(response: api.LayerCollectionListingResponse) -> Listing:
-            item_type = LayerCollectionListingType(item_response['type'])
+        def parse_listing(response: openapi_client.LayerCollectionListingWithType) -> Listing:
+            item_type = LayerCollectionListingType(item_response.type)
 
             if item_type is LayerCollectionListingType.LAYER:
-                layer_id_response = cast(api.LayerAndProviderIdResponse, response['id'])
+                layer_id_response = cast(openapi_client.ProviderLayerId, response.id)
                 return LayerListing(
-                    listing_id=LayerId(layer_id_response['layerId']),
-                    provider_id=LayerProviderId(UUID(layer_id_response['providerId'])),
-                    name=item_response['name'],
-                    description=item_response['description'],
+                    listing_id=LayerId(layer_id_response.layer_id),
+                    provider_id=LayerProviderId(UUID(layer_id_response.provider_id)),
+                    name=item_response.name,
+                    description=item_response.description,
                 )
 
             if item_type is LayerCollectionListingType.COLLECTION:
-                collection_id_response = cast(api.LayerCollectionAndProviderIdResponse, response['id'])
+                collection_id_response = cast(openapi_client.ProviderLayerCollectionId, response.id)
                 return LayerCollectionListing(
-                    listing_id=LayerCollectionId(collection_id_response['collectionId']),
-                    provider_id=LayerProviderId(UUID(collection_id_response['providerId'])),
-                    name=item_response['name'],
-                    description=item_response['description'],
+                    listing_id=LayerCollectionId(collection_id_response.collection_id),
+                    provider_id=LayerProviderId(UUID(collection_id_response.provider_id)),
+                    name=item_response.name,
+                    description=item_response.description,
                 )
 
             assert False, 'Invalid listing type'
 
         items = []
         for response in response_pages:
-            for item_response in response['items']:
+            for item_response in response.items:
                 items.append(parse_listing(item_response))
 
         response = response_pages[0]
 
         return LayerCollection(
-            name=response['name'],
-            description=response['description'],
-            collection_id=LayerCollectionId(response['id']['collectionId']),
-            provider_id=LayerProviderId(UUID(response['id']['providerId'])),
+            name=response.name,
+            description=response.description,
+            collection_id=LayerCollectionId(response.id.collection_id),
+            provider_id=LayerProviderId(UUID(response.id.provider_id)),
             items=items,
         )
 
@@ -437,21 +437,21 @@ class Layer:
         self.metadata = metadata
 
     @classmethod
-    def from_response(cls, response: api.LayerResponse) -> Layer:
+    def from_response(cls, response: openapi_client.Layer) -> Layer:
         '''Parse an HTTP JSON response to an `Layer`'''
         symbology = None
-        if 'symbology' in response and response['symbology'] is not None:
-            symbology = Symbology.from_response(cast(api.Symbology, response['symbology']))
+        if 'symbology' in response and response.symbology is not None:
+            symbology = Symbology.from_response(response.symbology)
 
         return Layer(
-            name=response['name'],
-            description=response['description'],
-            layer_id=LayerId(response['id']['layerId']),
-            provider_id=LayerProviderId(UUID(response['id']['providerId'])),
-            workflow=response['workflow'],
+            name=response.name,
+            description=response.description,
+            layer_id=LayerId(response.id.layer_id),
+            provider_id=LayerProviderId(UUID(response.id.provider_id)),
+            workflow=response.workflow,
             symbology=symbology,
-            properties=response['properties'],
-            metadata=response['metadata'],
+            properties=response.properties,
+            metadata=response.metadata,
         )
 
     def __repr__(self) -> str:
@@ -511,31 +511,26 @@ class Layer:
         '''
         session = get_session()
 
-        layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
-        response = req.post(
-            url=f'{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/dataset',
-            headers=session.auth_header,
-            timeout=timeout
-        )
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            layers_api = openapi_client.LayersApi(api_client)
+            response = layers_api.layer_to_dataset(self.provider_id, self.layer_id, _request_timeout=timeout)
 
-        check_response_for_error(response)
+        return Task(TaskId.from_response(response))
 
-        return Task(TaskId.from_response(response.json()))
-
-    def to_api_dict(self) -> api.LayerResponse:
+    def to_api_dict(self) -> openapi_client.Layer:
         '''Convert to a dictionary that can be serialized to JSON'''
-        return api.LayerResponse({
-            'name': self.name,
-            'description': self.description,
-            'id': {
-                'layerId': str(self.layer_id),
-                'providerId': str(self.provider_id),
-            },
-            'workflow': self.workflow,
-            'symbology': self.symbology.to_api_dict() if self.symbology is not None else None,
-            'properties': self.properties,
-            'metadata': self.metadata,
-        })
+        return openapi_client.Layer(
+            name=self.name,
+            description=self.description,
+            id=openapi_client.ProviderLayerId(
+                layerId=str(self.layer_id),
+                providerId=str(self.provider_id),
+            ),
+            workflow=self.workflow,
+            symbology=self.symbology.to_api_dict() if self.symbology is not None else None,
+            properties=self.properties,
+            metadata=self.metadata,
+        )
 
     def as_workflow_id(self, timeout: int = 60) -> WorkflowId:
         '''
@@ -543,18 +538,13 @@ class Layer:
         '''
         session = get_session()
 
-        layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
-        response = req.post(
-            url=f'{session.server_url}/layers/{self.provider_id}/{layer_id_quote}/workflowId',
-            headers=session.auth_header,
-            timeout=timeout
-        )
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            layers_api = openapi_client.LayersApi(api_client)
+            response = layers_api.layer_to_workflow_id_handler(self.provider_id, self.layer_id)
 
         check_response_for_error(response)
 
-        workflow_id: api.WorkflowId = response.json()
-
-        return WorkflowId.from_response(workflow_id)
+        return WorkflowId.from_response(response)
 
     def as_workflow(self, timeout: int = 60) -> Workflow:
         '''
@@ -574,27 +564,21 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
 
     session = get_session()
 
-    request = '/layers/collections' if layer_collection_id is None \
-        else f'/layers/collections/{layer_provider_id}/{urllib.parse.quote_plus(str(layer_collection_id))}'
-
     page_limit = 20
-    pages: List[api.LayerCollectionResponse] = []
+    pages: List[openapi_client.LayerCollection] = []
 
     offset = 0
     while True:
-        response = req.get(
-            f'{session.server_url}{request}?offset={offset}&limit={page_limit}',
-            headers=session.auth_header,
-            timeout=timeout,
-        )
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            layers_api = openapi_client.LayersApi(api_client)
 
-        if not response.ok:
-            raise GeoEngineException(response.json())
+            if layer_collection_id is None:
+                page = layers_api.list_root_collections_handler(offset, page_limit, _request_timeout=timeout)
+            else:
+                page = layers_api.list_collection_handler(layer_provider_id, layer_collection_id, offset, page_limit, _request_timeout=timeout)
 
-        page: api.LayerCollectionResponse = response.json()
-
-        if len(page['items']) < page_limit:
-            if len(pages) == 0 or len(page['items']) > 0:  # we need at least one page before breaking
+        if len(page.items) < page_limit:
+            if len(pages) == 0 or len(page.items) > 0:  # we need at least one page before breaking
                 pages.append(page)
             break
 

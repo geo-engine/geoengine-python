@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 import requests as req
 from requests.auth import AuthBase
 
+import openapi_client
 from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro, UninitializedException
 
 
@@ -37,6 +38,7 @@ class Session:
     __valid_until: Optional[str] = None
     __server_url: str
     __timeout: int = 60
+    __configuration: openapi_client.Configuration
 
     session: ClassVar[Optional[Session]] = None
 
@@ -64,6 +66,10 @@ class Session:
 
         if credentials is not None and token is not None:
             raise GeoEngineException({'message': 'Cannot provide both credentials and token'})
+        
+        configuration = openapi_client.Configuration(
+            host = server_url
+        )
 
         if credentials is not None:
             session = req.post(f'{server_url}/login', json={"email": credentials[0],
@@ -74,22 +80,27 @@ class Session:
                                      "password": os.environ.get("GEOENGINE_PASSWORD")},
                                timeout=self.__timeout).json()
         elif token is not None:
-            session = req.get(f'{server_url}/session', headers={'Authorization': f'Bearer {token}'},
-                              timeout=self.__timeout).json()
+            configuration.access_token = token
+            with openapi_client.ApiClient(configuration) as api_client:
+                session_api = openapi_client.SessionApi(api_client)
+                session = session_api.session_handler()
         elif "GEOENGINE_TOKEN" in os.environ:
-            session = req.get(f'{server_url}/session',
-                              headers={'Authorization': f'Bearer {os.environ.get("GEOENGINE_TOKEN")}'},
-                              timeout=self.__timeout).json()
+            configuration.access_token = os.environ.get("GEOENGINE_TOKEN")
+            with openapi_client.ApiClient(configuration) as api_client:
+                session_api = openapi_client.SessionApi(api_client)
+                session = session_api.session_handler()
         else:
-            session = req.post(f'{server_url}/anonymous', timeout=self.__timeout).json()
+            with openapi_client.ApiClient(configuration) as api_client:
+                session_api = openapi_client.SessionApi(api_client)
+                session = session_api.anonymous_handler()
 
         if 'error' in session:
             raise GeoEngineException(session)
 
-        self.__id = session['id']
+        self.__id = session.id
 
         try:
-            self.__user_id = session['user']['id']
+            self.__user_id = session.user.id
         except KeyError:
             # user id is only present in Pro
             pass
@@ -98,9 +109,10 @@ class Session:
             pass
 
         if 'validUntil' in session:
-            self.__valid_until = session['validUntil']
+            self.__valid_until = session.validUntil
 
         self.__server_url = server_url
+        self.__configuration = configuration
 
     def __repr__(self) -> str:
         '''Display representation of a session'''
@@ -132,6 +144,14 @@ class Session:
         '''
 
         return self.__server_url
+    
+    @property
+    def configuration(self) -> str:
+        '''
+        Return the current http configuration
+        '''
+
+        return self.__configuration
 
     @property
     def user_id(self) -> UUID:

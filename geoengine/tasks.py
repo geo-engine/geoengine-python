@@ -17,6 +17,7 @@ from geoengine.types import DEFAULT_ISO_TIME_FORMAT
 from geoengine.auth import get_session
 from geoengine.error import check_response_for_error, GeoEngineException
 from geoengine import backports
+import openapi_client
 
 
 class TaskId:
@@ -26,15 +27,13 @@ class TaskId:
         self.__task_id = task_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> TaskId:
+    def from_response(cls, response: openapi_client.TaskResponse) -> TaskId:
         '''Parse a http response to an `TaskId`'''
 
-        if 'task_id' not in response and 'taskId' not in response:
+        if 'task_id' not in response:
             raise GeoEngineException(response)
 
-        task_id = response['task_id'] if 'task_id' in response else response['taskId']
-
-        return TaskId(UUID(task_id))
+        return TaskId(UUID(response.task_id))
 
     def __eq__(self, other) -> bool:
         '''Checks if two dataset ids are equal'''
@@ -70,7 +69,7 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         self.time_started = time_started
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> TaskStatusInfo:
+    def from_response(cls, response: openapi_client.TaskStatus) -> TaskStatusInfo:
         '''
         Parse a http response to a `TaskStatusInfo`
 
@@ -78,41 +77,39 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         RunningTaskStatusInfo, CompletedTaskStatusInfo, AbortedTaskStatusInfo or FailedTaskStatusInfo
         '''
 
-        if 'status' not in response:
-            raise GeoEngineException(response)
-
-        status = TaskStatus(response['status'])
+        inner = response.actual_instance
+        status = TaskStatus(inner.status)
         time_started = None
-        if 'timeStarted' in response:
-            time_started = datetime.datetime.strptime(response['timeStarted'], DEFAULT_ISO_TIME_FORMAT)
+        if 'time_started' in inner:
+            time_started = datetime.datetime.strptime(inner.time_started, DEFAULT_ISO_TIME_FORMAT)
 
         if status == TaskStatus.RUNNING:
-            if 'pctComplete' not in response  \
-                    or 'estimatedTimeRemaining' not in response \
-                    or 'info' not in response \
-                    or 'taskType' not in response \
-                    or 'description' not in response:
+            if 'pct_complete' not in inner  \
+                    or 'estimated_time_remaining' not in inner \
+                    or 'info' not in inner \
+                    or 'task_type' not in inner \
+                    or 'description' not in inner:
                 raise GeoEngineException(response)
-            pct_complete = response['pctComplete']
-            estimated_time_remaining = response['estimatedTimeRemaining']
-            task_type = response['taskType']
+            pct_complete = inner.pct_complete
+            estimated_time_remaining = inner.estimated_time_remaining
+            task_type = inner.task_type
 
-            return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, response['info'],
-                                         task_type, response['description'])
+            return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, inner.info,
+                                         task_type, inner.description)
         if status == TaskStatus.COMPLETED:
-            if 'info' not in response or 'timeTotal' not in response \
-                    or 'taskType' not in response or 'description' not in response:
+            if 'info' not in inner or 'time_total' not in inner \
+                    or 'task_type' not in inner or 'description' not in inner:
                 raise GeoEngineException(response)
-            return CompletedTaskStatusInfo(status, time_started, response['info'], response['timeTotal'],
-                                           response['taskType'], response['description'])
+            return CompletedTaskStatusInfo(status, time_started, inner.info, inner.time_total,
+                                           inner.task_type, inner.description)
         if status == TaskStatus.ABORTED:
-            if 'cleanUp' not in response:
+            if 'clean_up' not in inner:
                 raise GeoEngineException(response)
-            return AbortedTaskStatusInfo(status, time_started, response['cleanUp'])
+            return AbortedTaskStatusInfo(status, time_started, inner.clean_up)
         if status == TaskStatus.FAILED:
-            if 'error' not in response or 'cleanUp' not in response:
+            if 'error' not in inner or 'clean_up' not in inner:
                 raise GeoEngineException(response)
-            return FailedTaskStatusInfo(status, time_started, response['error'], response['cleanUp'])
+            return FailedTaskStatusInfo(status, time_started, inner.error, inner.clean_up)
         raise GeoEngineException(response)
 
 
@@ -245,15 +242,11 @@ class Task:
 
         task_id_str = str(self.__task_id)
 
-        response = req.get(
-            url=f'{session.server_url}/tasks/{task_id_str}/status',
-            headers=session.auth_header,
-            timeout=timeout
-        )
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            tasks_api = openapi_client.TasksApi(api_client)
+            response = tasks_api.status_handler(task_id_str, _request_timeout=timeout)
 
-        check_response_for_error(response)
-
-        return TaskStatusInfo.from_response(response.json())
+        return TaskStatusInfo.from_response(response)
 
     def abort(self, force: bool = False, timeout: int = 3600) -> None:
         '''

@@ -10,7 +10,7 @@ import numpy as np
 import numpy.typing as npt
 from matplotlib.colors import Colormap
 from matplotlib.cm import ScalarMappable
-from geoengine import api
+import openapi_client
 
 Rgba = Tuple[int, int, int, int]
 
@@ -21,12 +21,12 @@ class ColorBreakpoint():
     value: float
     color: Rgba
 
-    def to_api_dict(self) -> api.ColorizerBreakpoint:
+    def to_api_dict(self) -> openapi_client.Breakpoint:
         """Return the color breakpoint as a dictionary."""
-        return api.ColorizerBreakpoint(value=self.value, color=self.color)
+        return openapi_client.Breakpoint(value=self.value, color=self.color)
 
     @staticmethod
-    def from_response(response: api.ColorizerBreakpoint) -> ColorBreakpoint:
+    def from_response(response: openapi_client.Breakpoint) -> ColorBreakpoint:
         """Parse a http response to a `ColorBreakpoint`."""
         return ColorBreakpoint(response['value'], response['color'])
 
@@ -208,7 +208,7 @@ class Colorizer():
         )
 
     @abstractmethod
-    def to_api_dict(self) -> api.Colorizer:
+    def to_api_dict(self) -> openapi_client.Colorizer:
         pass
 
     def to_json(self) -> str:
@@ -216,18 +216,24 @@ class Colorizer():
         return json.dumps(self.to_api_dict())
 
     @staticmethod
-    def from_response(response: api.Colorizer) -> Colorizer:
+    def from_response(response: openapi_client.Colorizer) -> Colorizer:
         """Create a colorizer from a response."""
-        if response['type'] == 'linearGradient':
-            return LinearGradientColorizer.from_response_linear(cast(api.LinearGradientColorizer, response))
-        if response['type'] == 'palette':
-            return PaletteColorizer.from_response_palette(cast(api.PaletteColorizer, response))
-        if response['type'] == 'logarithmicGradient':
+        type_ = response.actual_instance.type
+
+        if type_ == 'linearGradient':
+            return LinearGradientColorizer.from_response_linear(
+                cast(openapi_client.LinearGradientWithType, response.actual_instance)
+            )
+        if type_ == 'palette':
+            return PaletteColorizer.from_response_palette(
+                cast(openapi_client.ColorizerPalette, response.actual_instance)
+            )
+        if type_ == 'logarithmicGradient':
             return LogarithmicGradientColorizer.from_response_logarithmic(
-                cast(api.LogarithmicGradientColorizer, response)
+                cast(openapi_client.LogarithmicGradientWithType, response.actual_instance)
             )
 
-        raise TypeError(f"Unknown colorizer type: {response['type']}")
+        raise TypeError(f"Unknown colorizer type: {type_}")
 
 
 @dataclass
@@ -238,24 +244,24 @@ class LinearGradientColorizer(Colorizer):
     under_color: Rgba
 
     @staticmethod
-    def from_response_linear(response: api.LinearGradientColorizer) -> LinearGradientColorizer:
+    def from_response_linear(response: openapi_client.LinearGradientWithType) -> LinearGradientColorizer:
         """Create a colorizer from a response."""
-        breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response['breakpoints']]
+        breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response.breakpoints]
         return LinearGradientColorizer(
             breakpoints=breakpoints,
-            no_data_color=response['noDataColor'],
-            over_color=response['overColor'],
-            under_color=response['underColor'],
+            no_data_color=response.no_data_color,
+            over_color=response.over_color,
+            under_color=response.under_color,
         )
 
-    def to_api_dict(self) -> api.LinearGradientColorizer:
+    def to_api_dict(self) -> openapi_client.LinearGradientWithType:
         """Return the colorizer as a dictionary."""
-        return api.LinearGradientColorizer(
+        return openapi_client.LinearGradientWithType(
             type='linearGradient',
             breakpoints=[breakpoint.to_api_dict() for breakpoint in self.breakpoints],
             noDataColor=self.no_data_color,
             overColor=self.over_color,
-            underColor=self.under_color,
+            underColor=self.under_color
         )
 
 
@@ -267,19 +273,19 @@ class LogarithmicGradientColorizer(Colorizer):
     under_color: Rgba
 
     @staticmethod
-    def from_response_logarithmic(response: api.LogarithmicGradientColorizer) -> LogarithmicGradientColorizer:
+    def from_response_logarithmic(response: openapi_client.LogarithmicGradientWithType) -> LogarithmicGradientColorizer:
         """Create a colorizer from a response."""
         breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response['breakpoints']]
         return LogarithmicGradientColorizer(
             breakpoints=breakpoints,
-            no_data_color=response['noDataColor'],
-            over_color=response['overColor'],
-            under_color=response['underColor'],
+            no_data_color=response.no_data_color,
+            over_color=response.over_color,
+            under_color=response.under_color,
         )
 
-    def to_api_dict(self) -> api.LogarithmicGradientColorizer:
+    def to_api_dict(self) -> openapi_client.LogarithmicGradientWithType:
         """Return the colorizer as a dictionary."""
-        return api.LogarithmicGradientColorizer(
+        return openapi_client.LogarithmicGradientWithType(
             type='logarithmicGradient',
             breakpoints=[breakpoint.to_api_dict() for breakpoint in self.breakpoints],
             noDataColor=self.no_data_color,
@@ -295,18 +301,18 @@ class PaletteColorizer(Colorizer):
     default_color: Rgba
 
     @staticmethod
-    def from_response_palette(response: api.PaletteColorizer) -> PaletteColorizer:
+    def from_response_palette(response: openapi_client.ColorizerPalette) -> PaletteColorizer:
         """Create a colorizer from a response."""
 
         return PaletteColorizer(
-            colors=response['colors'],
-            no_data_color=response['noDataColor'],
-            default_color=response['defaultColor'],
+            colors=response.colors,
+            no_data_color=response.no_data_color,
+            default_color=response.default_color,
         )
 
-    def to_api_dict(self) -> api.PaletteColorizer:
+    def to_api_dict(self) -> openapi_client.ColorizerPalette:
         """Return the colorizer as a dictionary."""
-        return api.PaletteColorizer(
+        return openapi_client.ColorizerPalette(
             type='palette',
             colors=self.colors,
             defaultColor=self.default_color,

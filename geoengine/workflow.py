@@ -30,7 +30,7 @@ import websockets.client
 import xarray as xr
 import pyarrow as pa
 
-from geoengine import api
+import openapi_client
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
@@ -68,13 +68,13 @@ class WorkflowId:
         self.__workflow_id = workflow_id
 
     @classmethod
-    def from_response(cls, response: api.WorkflowId) -> WorkflowId:
+    def from_response(cls, response: openapi_client.AddCollection200Response) -> WorkflowId:
         '''
         Create a `WorkflowId` from an http response
         '''
         if 'id' not in response:
             raise TypeError('Response does not contain a workflow id.')
-        return WorkflowId(UUID(response['id']))
+        return WorkflowId(UUID(response.id))
 
     def __str__(self) -> str:
         return str(self.__workflow_id)
@@ -511,7 +511,7 @@ class Workflow:
 
     def save_as_dataset(
             self,
-            query_rectangle: api.RasterQueryRectangle,
+            query_rectangle: openapi_client.RasterQueryRectangle,
             name: Optional[str],
             display_name: str,
             description: str = '',

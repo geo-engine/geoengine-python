@@ -5,7 +5,7 @@ from uuid import UUID
 import requests_mock
 import geoengine as ge
 from geoengine import StoredDataset, GeoEngineException
-from geoengine import api
+import openapi_client
 from geoengine.datasets import DatasetName, UploadId
 from geoengine.layers import Layer, LayerId, LayerProviderId
 from geoengine.types import RasterSymbology

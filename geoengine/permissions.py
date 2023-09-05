@@ -10,7 +10,7 @@ from uuid import UUID
 import json
 
 import requests as req
-from geoengine import api
+import openapi_client
 
 from geoengine.auth import get_session
 from geoengine.datasets import DatasetName
