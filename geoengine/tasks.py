@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import time
 from enum import Enum
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 from uuid import UUID
 import asyncio
 import datetime
@@ -15,7 +15,7 @@ import requests as req
 
 from geoengine.types import DEFAULT_ISO_TIME_FORMAT
 from geoengine.auth import get_session
-from geoengine.error import check_response_for_error, GeoEngineException
+from geoengine.error import GeoEngineException
 from geoengine import backports
 import openapi_client
 
@@ -29,9 +29,6 @@ class TaskId:
     @classmethod
     def from_response(cls, response: openapi_client.TaskResponse) -> TaskId:
         '''Parse a http response to an `TaskId`'''
-
-        if 'task_id' not in response:
-            raise GeoEngineException(response)
 
         return TaskId(UUID(response.task_id))
 
@@ -80,35 +77,18 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         inner = response.actual_instance
         status = TaskStatus(inner.status)
         time_started = None
-        if 'time_started' in inner:
+        if (isinstance(inner, openapi_client.TaskStatusOneOf) or isinstance(inner, openapi_client.TaskStatusOneOf1)) and inner.time_started is not None:
             time_started = datetime.datetime.strptime(inner.time_started, DEFAULT_ISO_TIME_FORMAT)
 
-        if status == TaskStatus.RUNNING:
-            if 'pct_complete' not in inner  \
-                    or 'estimated_time_remaining' not in inner \
-                    or 'info' not in inner \
-                    or 'task_type' not in inner \
-                    or 'description' not in inner:
-                raise GeoEngineException(response)
-            pct_complete = inner.pct_complete
-            estimated_time_remaining = inner.estimated_time_remaining
-            task_type = inner.task_type
-
-            return RunningTaskStatusInfo(status, time_started, pct_complete, estimated_time_remaining, inner.info,
-                                         task_type, inner.description)
-        if status == TaskStatus.COMPLETED:
-            if 'info' not in inner or 'time_total' not in inner \
-                    or 'task_type' not in inner or 'description' not in inner:
-                raise GeoEngineException(response)
+        if isinstance(inner, openapi_client.TaskStatusOneOf):
+            return RunningTaskStatusInfo(status, time_started, inner.pct_complete, inner.estimated_time_remaining, inner.info,
+                                         inner.task_type, inner.description)
+        if isinstance(inner, openapi_client.TaskStatusOneOf1):
             return CompletedTaskStatusInfo(status, time_started, inner.info, inner.time_total,
                                            inner.task_type, inner.description)
-        if status == TaskStatus.ABORTED:
-            if 'clean_up' not in inner:
-                raise GeoEngineException(response)
+        if isinstance(inner, openapi_client.TaskStatusOneOf2):
             return AbortedTaskStatusInfo(status, time_started, inner.clean_up)
-        if status == TaskStatus.FAILED:
-            if 'error' not in inner or 'clean_up' not in inner:
-                raise GeoEngineException(response)
+        if isinstance(inner, openapi_client.TaskStatusOneOf3):
             return FailedTaskStatusInfo(status, time_started, inner.error, inner.clean_up)
         raise GeoEngineException(response)
 
@@ -256,15 +236,9 @@ class Task:
 
         task_id_str = str(self.__task_id)
 
-        force_str = str(force).lower()
-
-        response = req.delete(
-            url=f'{session.server_url}/tasks/{task_id_str}?force={force_str}',
-            headers=session.auth_header,
-            timeout=timeout
-        )
-
-        check_response_for_error(response)
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            tasks_api = openapi_client.TasksApi(api_client)
+            tasks_api.abort_handler(task_id_str, force, _request_timeout=timeout)
 
     def wait_for_finish(
             self,
@@ -302,33 +276,27 @@ class Task:
         Returns a future that will be resolved when the task is finished in the backend.
         '''
 
-        def get_status_inner(auth_header, url: str, timeout: int = 3600):
-            response = req.get(
-                url=url,
-                headers=auth_header,
-                timeout=timeout
-            )
-            check_response_for_error(response)
-            return response.json()
+        def get_status_inner(tasks_api: openapi_client.TasksApi, task_id_str: str, timeout: int = 3600):
+            return tasks_api.status_handler(task_id_str, _request_timeout=timeout)
 
         session = get_session()
         task_id_str = str(self.__task_id)
-        url = f'{session.server_url}/tasks/{task_id_str}/status'
-        headers = session.auth_header
 
         last_status = None
-        while True:
-            response = await backports.to_thread(get_status_inner, headers, url)
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            tasks_api = openapi_client.TasksApi(api_client)
+            while True:
+                response = await backports.to_thread(get_status_inner, tasks_api, task_id_str)
 
-            last_status = TaskStatusInfo.from_response(response)
+                last_status = TaskStatusInfo.from_response(response)
 
-            if print_status:
-                print(last_status)
+                if print_status:
+                    print(last_status)
 
-            if last_status.status != TaskStatus.RUNNING:
-                return last_status
+                if last_status.status != TaskStatus.RUNNING:
+                    return last_status
 
-            await asyncio.sleep(request_interval)
+                await asyncio.sleep(request_interval)
 
 
 def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
@@ -337,23 +305,12 @@ def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
     '''
     session = get_session()
 
-    response = req.get(
-        url=f'{session.server_url}/tasks/list',
-        headers=session.auth_header,
-        timeout=timeout
-    )
-
-    check_response_for_error(response)
-
-    response_json = response.json()
+    with openapi_client.ApiClient(session.configuration) as api_client:
+        tasks_api = openapi_client.TasksApi(api_client)
+        response = tasks_api.list_handler(_request_timeout=timeout)
 
     result = []
-    for item in response_json:
-        if 'task_id' not in item and 'taskId' not in item:
-            raise GeoEngineException(response_json)
-
-        task_id = item['task_id'] if 'task_id' in item else item['taskId']
-
-        result.append((Task(TaskId(UUID(task_id))), TaskStatusInfo.from_response(item)))
+    for item in response:
+        result.append((Task(TaskId(UUID(item.task_id))), TaskStatusInfo.from_response(item)))
 
     return result

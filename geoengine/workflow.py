@@ -31,6 +31,7 @@ import xarray as xr
 import pyarrow as pa
 
 import openapi_client
+from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
@@ -72,8 +73,6 @@ class WorkflowId:
         '''
         Create a `WorkflowId` from an http response
         '''
-        if 'id' not in response:
-            raise TypeError('Response does not contain a workflow id.')
         return WorkflowId(UUID(response.id))
 
     def __str__(self) -> str:

@@ -66,9 +66,9 @@ class Session:
 
         if credentials is not None and token is not None:
             raise GeoEngineException({'message': 'Cannot provide both credentials and token'})
-        
+
         configuration = openapi_client.Configuration(
-            host = server_url
+            host=server_url
         )
 
         if credentials is not None:
@@ -94,22 +94,11 @@ class Session:
                 session_api = openapi_client.SessionApi(api_client)
                 session = session_api.anonymous_handler()
 
-        if 'error' in session:
-            raise GeoEngineException(session)
+        self.__id = UUID(session.id)
 
-        self.__id = session.id
-
-        try:
-            self.__user_id = session.user.id
-        except KeyError:
-            # user id is only present in Pro
-            pass
-        except TypeError:
-            # user is None in non-Pro
-            pass
-
-        if 'validUntil' in session:
-            self.__valid_until = session.validUntil
+        if isinstance(session, openapi_client.UserSession):
+            self.__user_id = UUID(session.user.id)
+            self.__valid_until = str(session.valid_until)
 
         self.__server_url = server_url
         self.__configuration = configuration
@@ -144,9 +133,9 @@ class Session:
         '''
 
         return self.__server_url
-    
+
     @property
-    def configuration(self) -> str:
+    def configuration(self) -> openapi_client.Configuration:
         '''
         Return the current http configuration
         '''

@@ -13,7 +13,7 @@ import numpy as np
 import geopandas as gpd
 import requests as req
 import openapi_client
-import api
+from geoengine import api
 from geoengine.error import GeoEngineException, InputException, MissingFieldInResponseException
 from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
@@ -55,21 +55,21 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
     '''An OGR time format specified in seconds (UNIX time)'''
     timestampType: UnixTimeStampType
 
-    def to_api_dict(self) -> openapi_client.OgrSourceTimeFormatUnixTimeStamp:
-        return openapi_client.OgrSourceTimeFormatUnixTimeStamp(
+    def to_api_dict(self) -> openapi_client.OgrSourceTimeFormat:
+        return openapi_client.OgrSourceTimeFormat(openapi_client.UnixTimeStampOgrSourceTimeFormat(
             format="unixTimeStamp",
-            timestampType=self.timestampType.to_api_enum(),
-        )
+            timestamp_type=self.timestampType.to_api_enum(),
+        ))
 
 
 @dataclass
 class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
     '''An auto detection OGR time format'''
 
-    def to_api_dict(self) -> openapi_client.OgrSourceTimeFormatAuto:
-        return openapi_client.OgrSourceTimeFormatAuto(
+    def to_api_dict(self) -> openapi_client.OgrSourceTimeFormat:
+        return openapi_client.OgrSourceTimeFormat(openapi_client.AutoOgrSourceTimeFormat(
             format="auto"
-        )
+        ))
 
 
 @dataclass
@@ -78,11 +78,11 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 
     custom_format: str
 
-    def to_api_dict(self) -> openapi_client.OgrSourceTimeFormatCustom:
-        return openapi_client.OgrSourceTimeFormatCustom(
+    def to_api_dict(self) -> openapi_client.OgrSourceTimeFormat:
+        return openapi_client.OgrSourceTimeFormat(openapi_client.CustomOgrSourceTimeFormat(
             format="custom",
-            customFormat=self.custom_format
-        )
+            custom_format=self.custom_format
+        ))
 
 
 class OgrSourceDuration():
@@ -117,30 +117,30 @@ class ValueOgrSourceDurationSpec(OgrSourceDuration):
     def __init__(self, step: TimeStep):
         self.step = step
 
-    def to_api_dict(self) -> openapi_client.TimeStepWithType:
-        return openapi_client.TimeStepWithType(
+    def to_api_dict(self) -> openapi_client.OgrSourceDurationSpec:
+        return openapi_client.OgrSourceDurationSpec(openapi_client.TimeStepWithType(
             type="value",
             step=self.step.step,
             granularity=self.step.granularity.to_api_enum(),
-        )
+        ))
 
 
 class ZeroOgrSourceDurationSpec(OgrSourceDuration):
     '''An instant, i.e. no duration'''
 
-    def to_api_dict(self) -> openapi_client.OgrSourceDurationSpecZero:
-        return openapi_client.OgrSourceDurationSpecZero(
+    def to_api_dict(self) -> openapi_client.OgrSourceDurationSpec:
+        return openapi_client.OgrSourceDurationSpec(openapi_client.ZeroOgrSourceDurationSpec(
             type="zero",
-        )
+        ))
 
 
 class InfiniteOgrSourceDurationSpec(OgrSourceDuration):
     '''An open-ended time duration'''
 
-    def to_api_dict(self) -> openapi_client.InfiniteOgrSourceDurationSpec:
-        return openapi_client.InfiniteOgrSourceDurationSpec(
+    def to_api_dict(self) -> openapi_client.OgrSourceDurationSpec:
+        return openapi_client.OgrSourceDurationSpec(openapi_client.InfiniteOgrSourceDurationSpec(
             type="infinite",
-        )
+        ))
 
 
 class OgrSourceDatasetTimeType:
@@ -185,7 +185,7 @@ class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     '''Specify no time information'''
 
     def to_api_dict(self) -> openapi_client.OgrSourceDatasetTimeType:
-        return openapi_client.OgrSourceDatasetTimeType(openapi_client.OgrSourceDatasetTimeTypeNone(
+        return openapi_client.OgrSourceDatasetTimeType(openapi_client.NoneOgrSourceDatasetTimeType(
             type="none",
         ))
 
@@ -198,13 +198,13 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     start_format: OgrSourceTimeFormat
     duration: OgrSourceDuration
 
-    def to_api_dict(self) -> openapi_client.OgrSourceDatasetTimeTypeStart:
-        return openapi_client.OgrSourceDatasetTimeTypeStart(
+    def to_api_dict(self) -> openapi_client.OgrSourceDatasetTimeType:
+        return openapi_client.OgrSourceDatasetTimeType(openapi_client.StartOgrSourceDatasetTimeType(
             type="start",
-            startField=self.start_field,
-            startFormat=self.start_format.to_api_dict(),
+            start_field=self.start_field,
+            start_format=self.start_format.to_api_dict(),
             duration=self.duration.to_api_dict()
-        )
+        ))
 
 
 @dataclass
@@ -216,14 +216,14 @@ class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     end_field: str
     end_format: OgrSourceTimeFormat
 
-    def to_api_dict(self) -> openapi_client.OgrSourceDatasetTimeTypeStartEnd:
-        return openapi_client.OgrSourceDatasetTimeTypeStartEnd(
+    def to_api_dict(self) -> openapi_client.OgrSourceDatasetTimeType:
+        return openapi_client.OgrSourceDatasetTimeType(openapi_client.StartEndOgrSourceDatasetTimeType(
             type="startEnd",
-            startField=self.start_field,
-            startFormat=self.start_format.to_api_dict(),
-            endField=self.end_field,
-            endFormat=self.end_format.to_api_dict(),
-        )
+            start_field=self.start_field,
+            start_format=self.start_format.to_api_dict(),
+            end_field=self.end_field,
+            end_format=self.end_format.to_api_dict(),
+        ))
 
 
 @dataclass
@@ -234,13 +234,13 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     start_format: OgrSourceTimeFormat
     duration_field: str
 
-    def to_api_dict(self) -> openapi_client.OgrSourceDatasetTimeTypeStartDuration:
-        return openapi_client.OgrSourceDatasetTimeTypeStartDuration(
+    def to_api_dict(self) -> openapi_client.OgrSourceDatasetTimeType:
+        return openapi_client.OgrSourceDatasetTimeType(openapi_client.StartDurationOgrSourceDatasetTimeType(
             type="startDuration",
-            startField=self.start_field,
-            startFormat=self.start_format.to_api_dict(),
-            durationField=self.duration_field
-        )
+            start_field=self.start_field,
+            start_format=self.start_format.to_api_dict(),
+            duration_field=self.duration_field
+        ))
 
 
 class OgrOnError(Enum):
@@ -280,7 +280,7 @@ class DatasetName:
 
     def to_api_dict(self) -> openapi_client.CreateDatasetHandler200Response:
         return openapi_client.CreateDatasetHandler200Response(
-            datasetName=str(self.__dataset_name)
+            dataset_name=str(self.__dataset_name)
         )
 
 
@@ -348,9 +348,9 @@ class AddDatasetProperties():
         '''Converts the properties to a dictionary'''
         return openapi_client.AddDataset(
             name=str(self.name) if self.name is not None else None,
-            displayName=self.display_name,
+            display_name=self.display_name,
             description=self.description,
-            sourceOperator=self.source_operator,
+            source_operator=self.source_operator,
             symbology=self.symbology.to_api_dict() if self.symbology is not None else None,
             provenance=[p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
         )
@@ -475,7 +475,7 @@ def upload_dataframe(
     texts = [key for (key, value) in columns.items() if value.data_type == 'text']
 
     create = openapi_client.CreateDataset(
-        dataPath=openapi_client.DataPath(openapi_client.DataPathOneOf1(
+        data_path=openapi_client.DataPath(openapi_client.DataPathOneOf1(
             upload=str(upload_id)
         )),
         definition=openapi_client.DatasetDefinition(
@@ -485,12 +485,12 @@ def upload_dataframe(
                 description='Upload from Python',
                 source_operator='OgrSource',
             ).to_api_dict(),
-            metaData=openapi_client.MetaDataDefinition(openapi_client.OgrMetaDataWithType(
+            meta_data=openapi_client.MetaDataDefinition(openapi_client.OgrMetaDataWithType(
                 type='OgrMetaData',
-                loadingInfo=openapi_client.OgrSourceDataset(
-                    fileName='geo.json',
-                    layerName='geo',
-                    dataType=vector_type.to_api_enum(),
+                loading_info=openapi_client.OgrSourceDataset(
+                    file_name='geo.json',
+                    layer_name='geo',
+                    data_type=vector_type.to_api_enum(),
                     time=time.to_api_dict(),
                     columns=openapi_client.OgrSourceColumnSpec(
                         y='',
@@ -499,9 +499,9 @@ def upload_dataframe(
                         int=ints,
                         text=texts,
                     ),
-                    onError=on_error.to_api_enum(),
+                    on_error=on_error.to_api_enum(),
                 ),
-                resultDescriptor=VectorResultDescriptor(
+                result_descriptor=VectorResultDescriptor(
                     data_type=vector_type,
                     spatial_reference=df.crs.to_string(),
                     columns=columns,
@@ -512,9 +512,9 @@ def upload_dataframe(
 
     with openapi_client.ApiClient(session.configuration) as api_client:
         datasets_api = openapi_client.DatasetsApi(api_client)
-        datasets_api.create_dataset_handler(create, _request_timeout=timeout)
+        response2 = datasets_api.create_dataset_handler(create, _request_timeout=timeout)
 
-    return DatasetName.from_response(response)
+    return DatasetName.from_response(response2)
 
 
 class StoredDataset(NamedTuple):
@@ -648,7 +648,7 @@ def list_datasets(offset: int = 0,
         response = datasets_api.list_datasets_handler(
             offset=offset,
             limit=limit,
-            order=order.value,
+            order=openapi_client.OrderBy(order.value),
             filter=name_filter,
             _request_timeout=timeout
         )
