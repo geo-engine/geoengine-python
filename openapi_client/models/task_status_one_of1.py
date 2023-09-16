@@ -30,7 +30,9 @@ class TaskStatusOneOf1(BaseModel):
     status: Optional[StrictStr] = None
     time_started: Optional[StrictStr] = Field(None, alias="timeStarted")
     time_total: Optional[StrictStr] = Field(None, alias="timeTotal")
-    __properties = ["info", "status", "timeStarted", "timeTotal"]
+    task_type: Optional[StrictStr] = Field(None, alias="taskType")
+    description: Optional[StrictStr] = None
+    __properties = ["info", "status", "timeStarted", "timeTotal", "taskType", "description"]
 
     @validator('status')
     def status_validate_enum(cls, value):
@@ -81,7 +83,9 @@ class TaskStatusOneOf1(BaseModel):
             "info": obj.get("info"),
             "status": obj.get("status"),
             "time_started": obj.get("timeStarted"),
-            "time_total": obj.get("timeTotal")
+            "time_total": obj.get("timeTotal"),
+            "task_type": obj.get("taskType"),
+            "description": obj.get("description")
         })
         return _obj
 

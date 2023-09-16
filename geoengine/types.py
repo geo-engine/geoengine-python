@@ -214,10 +214,6 @@ class TimeInterval:
     def __datetime_to_iso_str(timestamp: np.datetime64) -> str:
         return str(np.datetime_as_string(timestamp, unit='ms', timezone='UTC')).replace('Z', '+00:00')
 
-    @staticmethod
-    def __datetime_to_unix(timestamp: np.datetime64) -> int:
-        return timestamp.astype('datetime64[ms]').astype('int')
-
 
 class SpatialResolution:
     ''''A spatial resolution.'''
@@ -412,23 +408,16 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         Parse a result descriptor from an http response
         '''
 
-        result_descriptor_type = response.actual_instance.type
+        inner = response.actual_instance
 
-        if result_descriptor_type == 'raster':
-            return RasterResultDescriptor.from_response_raster(
-                cast(openapi_client.RasterResultDescriptorWithType, response.actual_instance)
-            )
-        if result_descriptor_type == 'vector':
-            return VectorResultDescriptor.from_response_vector(
-                cast(openapi_client.VectorResultDescriptorWithType, response.actual_instance)
-            )
-        if result_descriptor_type == 'plot':
-            return PlotResultDescriptor.from_response_plot(
-                cast(openapi_client.PlotResultDescriptorWithType, response.actual_instance)
-            )
+        if isinstance(inner, openapi_client.RasterResultDescriptorWithType):
+            return RasterResultDescriptor.from_response_raster(inner)
+        if isinstance(inner, openapi_client.VectorResultDescriptorWithType):
+            return VectorResultDescriptor.from_response_vector(inner)
+        if isinstance(inner, openapi_client.PlotResultDescriptorWithType):
+            return PlotResultDescriptor.from_response_plot(inner)
 
-        raise TypeException(
-            f'Unknown `ResultDescriptor` type: {result_descriptor_type}')
+        raise TypeException(f'Unknown `ResultDescriptor` type: {inner.type}')
 
     @classmethod
     def is_raster_result(cls) -> bool:
@@ -902,15 +891,16 @@ class Symbology:
     @staticmethod
     def from_response(response: openapi_client.Symbology) -> Symbology:
         '''Parse an http response to a `Symbology` object'''
-        symbology_type = response.actual_instance.type
+        inner = response.actual_instance
 
-        if symbology_type == 'vector':
+        if isinstance(inner, (
+                openapi_client.PointSymbologyWithType,
+                openapi_client.LineSymbologyWithType,
+                openapi_client.PolygonSymbologyWithType)):
             # return VectorSymbology.from_response_vector(response)
             return VectorSymbology()  # TODO: implement
-        if symbology_type == 'raster':
-            return RasterSymbology.from_response_raster(
-                cast(openapi_client.RasterSymbologyWithType, response.actual_instance)
-            )
+        if isinstance(inner, openapi_client.RasterSymbologyWithType):
+            return RasterSymbology.from_response_raster(inner)
 
         raise InputException("Invalid symbology type")
 
@@ -961,14 +951,14 @@ class DataId:  # pylint: disable=too-few-public-methods
     @classmethod
     def from_response(cls, response: openapi_client.DataId) -> DataId:
         '''Parse an http response to a `DataId` object'''
-        id_type = response.actual_instance.type
+        inner = response.actual_instance
 
-        if id_type == "internal":
-            return InternalDataId.from_response_internal(cast(openapi_client.InternalDataId, response))
-        if id_type == "external":
-            return ExternalDataId.from_response_external(cast(openapi_client.ExternalDataIdWithType, response))
+        if isinstance(inner, openapi_client.InternalDataId):
+            return InternalDataId.from_response_internal(inner)
+        if isinstance(inner, openapi_client.ExternalDataIdWithType):
+            return ExternalDataId.from_response_external(inner)
 
-        raise GeoEngineException({"message": f"Unknown DataId type: {id_type}"})
+        raise GeoEngineException({"message": f"Unknown DataId type: {inner.type}"})
 
     @abstractmethod
     def to_api_dict(self) -> openapi_client.DataId:
@@ -1057,21 +1047,17 @@ class Measurement:  # pylint: disable=too-few-public-methods
         '''
         Parse a result descriptor from an http response
         '''
-        measurement_type = response.actual_instance.type
+        inner = response.actual_instance
 
-        if measurement_type == 'unitless':
+        if isinstance(inner, openapi_client.UnitlessMeasurement):
             return UnitlessMeasurement()
-        if measurement_type == 'continuous':
-            return ContinuousMeasurement.from_response_continuous(
-                cast(openapi_client.ContinuousMeasurementWithType, response.actual_instance)
-            )
-        if measurement_type == 'classification':
-            return ClassificationMeasurement.from_response_classification(
-                cast(openapi_client.ClassificationMeasurementWithType, response.actual_instance)
-            )
+        if isinstance(inner, openapi_client.ContinuousMeasurementWithType):
+            return ContinuousMeasurement.from_response_continuous(inner)
+        if isinstance(inner, openapi_client.ClassificationMeasurementWithType):
+            return ClassificationMeasurement.from_response_classification(inner)
 
         raise TypeException(
-            f'Unknown `Measurement` type: {measurement_type}')
+            f'Unknown `Measurement` type: {inner.type}')
 
     @abstractmethod
     def to_api_dict(self) -> openapi_client.Measurement:
@@ -1158,7 +1144,9 @@ class ClassificationMeasurement(Measurement):
         self.__classes = classes
 
     @staticmethod
-    def from_response_classification(response: openapi_client.ClassificationMeasurementWithType) -> ClassificationMeasurement:
+    def from_response_classification(
+        response: openapi_client.ClassificationMeasurementWithType
+    ) -> ClassificationMeasurement:
         '''Initialize a new `ClassificationMeasurement from a JSON response'''
 
         measurement = response.measurement

@@ -35,8 +35,7 @@ from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
-    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException, check_response_for_error, \
-    InvalidUrlException
+    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException, check_response_for_error
 from geoengine import backports
 from geoengine.types import GeoTransform, ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
 from geoengine.tasks import Task, TaskId
@@ -107,11 +106,9 @@ class Workflow:
 
         session = get_session()
 
-        response = req.get(
-            f'{session.server_url}/workflow/{self.__workflow_id}/metadata',
-            headers=session.auth_header,
-            timeout=timeout
-        ).json()
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            workflows_api = openapi_client.WorkflowsApi(api_client)
+            response = workflows_api.get_workflow_metadata_handler(str(self.__workflow_id), _request_timeout=timeout)
 
         debug(response)
 
@@ -124,64 +121,16 @@ class Workflow:
 
         return self.__result_descriptor
 
-    def workflow_definition(self, timeout: int = 60) -> Dict[str, Any]:
+    def workflow_definition(self, timeout: int = 60) -> openapi_client.Workflow:
         '''Return the workflow definition for this workflow'''
 
         session = get_session()
 
-        response = req.get(
-            f'{session.server_url}/workflow/{self.__workflow_id}',
-            headers=session.auth_header,
-            timeout=timeout
-        ).json()
-
-        if 'error' in response:
-            raise GeoEngineException(response)
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            workflows_api = openapi_client.WorkflowsApi(api_client)
+            response = workflows_api.load_workflow_handler(str(self.__workflow_id), _request_timeout=timeout)
 
         return response
-
-    def __get_wfs_url(self, bbox: QueryRectangle) -> str:
-        '''Build a WFS url from a workflow and a `QueryRectangle`'''
-
-        session = get_session()
-
-        params = {
-            'service': 'WFS',
-            'version': "2.0.0",
-            'request': 'GetFeature',
-            'outputFormat': 'application/json',
-            'typeNames': f'{self.__workflow_id}',
-            'bbox': bbox.bbox_str,
-            'time': bbox.time_str,
-            'srsName': bbox.srs,
-            'queryResolution': str(bbox.spatial_resolution)
-        }
-
-        wfs_url = req.Request(
-            'GET', url=f'{session.server_url}/wfs/{self.__workflow_id}', params=params).prepare().url
-
-        debug(f'WFS URL:\n{wfs_url}')
-
-        if not wfs_url:
-            raise InvalidUrlException('Failed to build WFS URL for workflow {self.__workflow_id}.')
-        return wfs_url
-
-    def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -> str:
-        '''Return the WFS url for a workflow and a `QueryRectangle` as a cURL command'''
-
-        if not self.__result_descriptor.is_vector_result():
-            raise MethodNotCalledOnVectorException()
-
-        wfs_request = req.Request(
-            'GET',
-            url=self.__get_wfs_url(bbox),
-            headers=get_session().auth_header
-        ).prepare()
-
-        command = "curl -X {method} -H {headers} '{uri}'"
-        headers_list = [f'"{k}: {v}"' for k, v in wfs_request.headers.items()]
-        headers = " -H ".join(headers_list)
-        return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
 
     def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -> gpd.GeoDataFrame:
         '''
@@ -193,13 +142,20 @@ class Workflow:
 
         session = get_session()
 
-        wfs_url = self.__get_wfs_url(bbox)
-
-        data_response = req.get(wfs_url, headers=session.auth_header, timeout=timeout)
-
-        check_response_for_error(data_response)
-
-        data = data_response.json()
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            wfs_api = openapi_client.OGCWFSApi(api_client)
+            response = wfs_api.wfs_feature_handler(
+                workflow=str(self.__workflow_id),
+                service=openapi_client.WfsService(openapi_client.WfsService.WFS),
+                request=openapi_client.GetFeatureRequest(openapi_client.GetFeatureRequest.GETFEATURE),
+                type_names=str(self.__workflow_id),
+                bbox=bbox.bbox_str,
+                version="2.0.0",
+                time=bbox.time_str,
+                srs_name=bbox.srs,
+                query_resolution=str(bbox.spatial_resolution),
+                _request_timeout=timeout
+            )
 
         def geo_json_with_time_to_geopandas(geo_json):
             '''
@@ -221,63 +177,34 @@ class Workflow:
 
             return data
 
-        return geo_json_with_time_to_geopandas(data)
+        return geo_json_with_time_to_geopandas(response.to_dict())
 
     def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -> Image:
         '''Return the result of a WMS request as a PIL Image'''
-
-        wms_request = self.__wms_get_map_request(bbox, colorizer)
-        response = req.Session().send(wms_request)
-
-        check_response_for_error(response)
-
-        return Image.open(BytesIO(response.content))
-
-    def __wms_get_map_request(self,
-                              bbox: QueryRectangle,
-                              colorizer: Colorizer) -> req.PreparedRequest:
-        '''Return the WMS url for a workflow and a given `QueryRectangle`'''
 
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
 
         session = get_session()
 
-        width = int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) / bbox.spatial_resolution.x_resolution)
-        height = int((bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) / bbox.spatial_resolution.y_resolution)
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            wms_api = openapi_client.OGCWMSApi(api_client)
+            response = wms_api.wms_map_handler(
+                workflow=str(self),
+                version=openapi_client.WmsVersion(openapi_client.WmsVersion.ENUM_1_DOT_3_DOT_0),
+                service=openapi_client.WmsService(openapi_client.WmsService.WMS),
+                request=openapi_client.GetMapRequest(openapi_client.GetMapRequest.GETMAP),
+                width=int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) / bbox.spatial_resolution.x_resolution),
+                height=int((bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) / bbox.spatial_resolution.y_resolution),  # pylint: disable=line-too-long
+                bbox=bbox.bbox_ogc_str,
+                format=openapi_client.GetMapFormat(openapi_client.GetMapFormat.IMAGE_SLASH_PNG),
+                layers=str(self),
+                styles='custom:' + colorizer.to_json(),
+                crs=bbox.srs,
+                time=bbox.time_str
+            )
 
-        colorizer_colorizer_str = 'custom:' + colorizer.to_json()
-
-        params = {
-            'service': 'WMS',
-            'version': '1.3.0',
-            'request': "GetMap",
-            'layers': str(self),
-            'time': bbox.time_str,
-            'crs': bbox.srs,
-            'bbox': bbox.bbox_ogc_str,
-            'width': width,
-            'height': height,
-            'format': 'image/png',
-            'styles': colorizer_colorizer_str,
-        }
-
-        return req.Request(
-            'GET',
-            url=f'{session.server_url}/wms/{str(self)}',
-            params=params,
-            headers=session.auth_header
-        ).prepare()
-
-    def wms_get_map_curl(self, bbox: QueryRectangle, colorizer: Colorizer) -> str:
-        '''Return the WMS curl command for a workflow and a given `QueryRectangle`'''
-
-        wms_request = self.__wms_get_map_request(bbox, colorizer)
-
-        command = "curl -X {method} -H {headers} '{uri}'"
-        headers_list = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
-        headers = " -H ".join(headers_list)
-        return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
+        return Image.open(response)
 
     def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
         '''
@@ -482,12 +409,9 @@ class Workflow:
 
         session = get_session()
 
-        provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/provenance'
-
-        response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).json()
-
-        if 'error' in response:
-            raise GeoEngineException(response)
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            workflows_api = openapi_client.WorkflowsApi(api_client)
+            response = workflows_api.get_workflow_provenance_handler(str(self.__workflow_id), _request_timeout=timeout)
 
         return [ProvenanceEntry.from_response(item) for item in response]
 
@@ -523,23 +447,20 @@ class Workflow:
 
         session = get_session()
 
-        request_body = {
-            'name': name,
-            'displayName': display_name,
-            'description': description,
-            'query': query_rectangle,
-        }
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            workflows_api = openapi_client.WorkflowsApi(api_client)
+            response = workflows_api.dataset_from_workflow_handler(
+                str(self.__workflow_id),
+                openapi_client.RasterDatasetFromWorkflow(
+                    name=name,
+                    display_name=display_name,
+                    description=description,
+                    query=query_rectangle
+                ),
+                _request_timeout=timeout
+            )
 
-        response = req.post(
-            url=f'{session.server_url}/datasetFromWorkflow/{self.__workflow_id}',
-            json=request_body,
-            headers=session.auth_header,
-            timeout=timeout
-        )
-
-        check_response_for_error(response)
-
-        return Task(TaskId.from_response(response.json()))
+        return Task(TaskId.from_response(response))
 
     async def raster_stream(
             self,
@@ -955,19 +876,15 @@ def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], 
     if isinstance(workflow, WorkflowBuilderOperator):
         workflow = workflow.to_workflow_dict()
 
+    workflow_model = openapi_client.Workflow.from_dict(workflow)
+
     session = get_session()
 
-    workflow_response = req.post(
-        f'{session.server_url}/workflow',
-        json=workflow,
-        headers=session.auth_header,
-        timeout=timeout
-    ).json()
+    with openapi_client.ApiClient(session.configuration) as api_client:
+        workflows_api = openapi_client.WorkflowsApi(api_client)
+        response = workflows_api.register_workflow_handler(workflow_model, _request_timeout=timeout)
 
-    if 'error' in workflow_response:
-        raise GeoEngineException(workflow_response)
-
-    return Workflow(WorkflowId.from_response(workflow_response))
+    return Workflow(WorkflowId.from_response(response))
 
 
 def workflow_by_id(workflow_id: UUID) -> Workflow:
@@ -980,31 +897,20 @@ def workflow_by_id(workflow_id: UUID) -> Workflow:
     return Workflow(WorkflowId(workflow_id))
 
 
-def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> api.Quota:
+def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> openapi_client.Quota:
     '''
     Gets a user's quota. Only admins can get other users' quota.
     '''
 
     session = get_session()
 
-    url = f'{session.server_url}/quota'
+    with openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = openapi_client.UserApi(api_client)
 
-    if user_id is not None:
-        url = f'{session.server_url}/quotas/{user_id}'
+        if user_id is None:
+            return user_api.quota_handler(_request_timeout=timeout)
 
-    quota_response = req.get(
-        url,
-        headers=session.auth_header,
-        timeout=timeout
-    ).json()
-
-    if 'error' in quota_response:
-        raise GeoEngineException(quota_response)
-
-    return api.Quota({
-        "available": quota_response["available"],
-        "used": quota_response["used"]
-    })
+        return user_api.get_user_quota_handler(str(user_id), _request_timeout=timeout)
 
 
 def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> None:
@@ -1014,11 +920,12 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> 
 
     session = get_session()
 
-    req.post(
-        f'{session.server_url}/quotas/{user_id}',
-        headers=session.auth_header,
-        json=api.UpdateQuota({
-            'available': new_available_quota
-        }),
-        timeout=timeout
-    )
+    with openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = openapi_client.UserApi(api_client)
+        user_api.update_user_quota_handler(
+            str(user_id),
+            openapi_client.UpdateQuota(
+                available=new_available_quota
+            ),
+            _request_timeout=timeout
+        )

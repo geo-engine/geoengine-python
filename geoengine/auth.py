@@ -70,6 +70,8 @@ class Session:
         configuration = openapi_client.Configuration(
             host=server_url
         )
+        # Auto-generated SessionApi cannot handle dynamically differing return types (SimpleSession or UserSession).
+        # Because of that "requests" must be used manually.
 
         if credentials is not None:
             session = req.post(f'{server_url}/login', json={"email": credentials[0],
@@ -80,25 +82,31 @@ class Session:
                                      "password": os.environ.get("GEOENGINE_PASSWORD")},
                                timeout=self.__timeout).json()
         elif token is not None:
-            configuration.access_token = token
-            with openapi_client.ApiClient(configuration) as api_client:
-                session_api = openapi_client.SessionApi(api_client)
-                session = session_api.session_handler()
+            session = req.get(f'{server_url}/session', headers={'Authorization': f'Bearer {token}'},
+                              timeout=self.__timeout).json()
         elif "GEOENGINE_TOKEN" in os.environ:
-            configuration.access_token = os.environ.get("GEOENGINE_TOKEN")
-            with openapi_client.ApiClient(configuration) as api_client:
-                session_api = openapi_client.SessionApi(api_client)
-                session = session_api.session_handler()
+            session = req.get(f'{server_url}/session',
+                              headers={'Authorization': f'Bearer {os.environ.get("GEOENGINE_TOKEN")}'},
+                              timeout=self.__timeout).json()
         else:
-            with openapi_client.ApiClient(configuration) as api_client:
-                session_api = openapi_client.SessionApi(api_client)
-                session = session_api.anonymous_handler()
+            session = req.post(f'{server_url}/anonymous', timeout=self.__timeout).json()
 
-        self.__id = UUID(session.id)
+        if 'error' in session:
+            raise GeoEngineException(session)
 
-        if isinstance(session, openapi_client.UserSession):
-            self.__user_id = UUID(session.user.id)
-            self.__valid_until = str(session.valid_until)
+        self.__id = session['id']
+
+        try:
+            self.__user_id = session['user']['id']
+        except KeyError:
+            # user id is only present in Pro
+            pass
+        except TypeError:
+            # user is None in non-Pro
+            pass
+
+        if 'validUntil' in session:
+            self.__valid_until = session['validUntil']
 
         self.__server_url = server_url
         self.__configuration = configuration
@@ -164,7 +172,9 @@ class Session:
         Logout the current session
         '''
 
-        req.post(f'{self.server_url}/logout', headers=self.auth_header, timeout=self.__timeout)
+        with openapi_client.ApiClient(self.configuration) as api_client:
+            session_api = openapi_client.SessionApi(api_client)
+            session_api.logout_handler(_request_timeout=self.__timeout)
 
 
 def get_session() -> Session:

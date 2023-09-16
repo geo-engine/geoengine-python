@@ -449,23 +449,6 @@ class WfsTests(unittest.TestCase):
                 }
             }
 
-            time = datetime.strptime(
-                '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
-
-            workflow = ge.register_workflow(workflow_definition)
-
-            wfs_curl = workflow.get_wfs_get_feature_curl(ge.QueryRectangle(
-                ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
-                ge.TimeInterval(time),
-                ge.SpatialResolution(0.1, 0.1)
-            ))
-
-            self.assertEqual(
-                # pylint: disable=line-too-long
-                wfs_curl,
-                """curl -X GET -H "Authorization: Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064" 'http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1'"""
-            )
-
     def test_wfs_error(self):
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/anonymous', json={

@@ -3,9 +3,9 @@ Package errors and backend mapped error types
 '''
 
 from typing import Any, Dict, Union
+import json
 from requests import Response, HTTPError
 import openapi_client
-import json
 
 
 class GeoEngineException(Exception):

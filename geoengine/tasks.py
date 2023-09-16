@@ -11,8 +11,6 @@ from uuid import UUID
 import asyncio
 import datetime
 
-import requests as req
-
 from geoengine.types import DEFAULT_ISO_TIME_FORMAT
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException
@@ -77,12 +75,13 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         inner = response.actual_instance
         status = TaskStatus(inner.status)
         time_started = None
-        if (isinstance(inner, openapi_client.TaskStatusOneOf) or isinstance(inner, openapi_client.TaskStatusOneOf1)) and inner.time_started is not None:
+        if isinstance(inner, (openapi_client.TaskStatusOneOf, openapi_client.TaskStatusOneOf1)) \
+                and inner.time_started is not None:
             time_started = datetime.datetime.strptime(inner.time_started, DEFAULT_ISO_TIME_FORMAT)
 
         if isinstance(inner, openapi_client.TaskStatusOneOf):
-            return RunningTaskStatusInfo(status, time_started, inner.pct_complete, inner.estimated_time_remaining, inner.info,
-                                         inner.task_type, inner.description)
+            return RunningTaskStatusInfo(status, time_started, inner.pct_complete, inner.estimated_time_remaining,
+                                         inner.info, inner.task_type, inner.description)
         if isinstance(inner, openapi_client.TaskStatusOneOf1):
             return CompletedTaskStatusInfo(status, time_started, inner.info, inner.time_total,
                                            inner.task_type, inner.description)
@@ -307,10 +306,11 @@ def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
 
     with openapi_client.ApiClient(session.configuration) as api_client:
         tasks_api = openapi_client.TasksApi(api_client)
-        response = tasks_api.list_handler(_request_timeout=timeout)
+        response = tasks_api.list_handler(None, 0, 10, _request_timeout=timeout)
 
     result = []
     for item in response:
-        result.append((Task(TaskId(UUID(item.task_id))), TaskStatusInfo.from_response(item)))
+        converted = openapi_client.TaskStatus.from_dict(item.to_dict())
+        result.append((Task(TaskId(UUID(item.task_id))), TaskStatusInfo.from_response(converted)))
 
     return result

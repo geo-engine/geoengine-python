@@ -218,22 +218,16 @@ class Colorizer():
     @staticmethod
     def from_response(response: openapi_client.Colorizer) -> Colorizer:
         """Create a colorizer from a response."""
-        type_ = response.actual_instance.type
+        inner = response.actual_instance
 
-        if type_ == 'linearGradient':
-            return LinearGradientColorizer.from_response_linear(
-                cast(openapi_client.LinearGradientWithType, response.actual_instance)
-            )
-        if type_ == 'palette':
-            return PaletteColorizer.from_response_palette(
-                cast(openapi_client.PaletteColorizer, response.actual_instance)
-            )
-        if type_ == 'logarithmicGradient':
-            return LogarithmicGradientColorizer.from_response_logarithmic(
-                cast(openapi_client.LogarithmicGradientWithType, response.actual_instance)
-            )
+        if isinstance(inner, openapi_client.LinearGradientWithType):
+            return LinearGradientColorizer.from_response_linear(inner)
+        if isinstance(inner, openapi_client.PaletteColorizer):
+            return PaletteColorizer.from_response_palette(inner)
+        if isinstance(inner, openapi_client.LogarithmicGradientWithType):
+            return LogarithmicGradientColorizer.from_response_logarithmic(inner)
 
-        raise TypeError(f"Unknown colorizer type: {type_}")
+        raise TypeError(f"Unknown colorizer type: {inner.type}")
 
 
 @dataclass

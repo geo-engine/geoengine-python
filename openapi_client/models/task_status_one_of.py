@@ -31,7 +31,9 @@ class TaskStatusOneOf(BaseModel):
     pct_complete: Optional[StrictStr] = Field(None, alias="pctComplete")
     status: Optional[StrictStr] = None
     time_started: Optional[StrictStr] = Field(None, alias="timeStarted")
-    __properties = ["estimatedTimeRemaining", "info", "pctComplete", "status", "timeStarted"]
+    task_type: Optional[StrictStr] = Field(None, alias="taskType")
+    description: Optional[StrictStr] = None
+    __properties = ["estimatedTimeRemaining", "info", "pctComplete", "status", "timeStarted", "taskType", "description"]
 
     @validator('status')
     def status_validate_enum(cls, value):
@@ -83,7 +85,9 @@ class TaskStatusOneOf(BaseModel):
             "info": obj.get("info"),
             "pct_complete": obj.get("pctComplete"),
             "status": obj.get("status"),
-            "time_started": obj.get("timeStarted")
+            "time_started": obj.get("timeStarted"),
+            "task_type": obj.get("taskType"),
+            "description": obj.get("description")
         })
         return _obj
 

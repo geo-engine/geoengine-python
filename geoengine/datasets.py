@@ -4,17 +4,15 @@ Module for working with datasets and source definitions
 
 from __future__ import annotations
 from abc import abstractmethod
-from typing import Dict, List, NamedTuple, Optional, Union, cast, Literal
+from typing import List, NamedTuple, Optional, Union, Literal
 from enum import Enum
 from uuid import UUID
-import json
 from attr import dataclass
 import numpy as np
 import geopandas as gpd
-import requests as req
 import openapi_client
 from geoengine import api
-from geoengine.error import GeoEngineException, InputException, MissingFieldInResponseException
+from geoengine.error import InputException, MissingFieldInResponseException
 from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
@@ -364,17 +362,6 @@ class VolumeId:
     def __init__(self, volume_id: UUID) -> None:
         self.__volume_id = volume_id
 
-    @classmethod
-    def from_response(cls, response: api.VolumeId) -> VolumeId:
-        '''Parse a http response to an `ColumeId`'''
-        if 'error' in response:
-            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
-
-        if 'id' not in response:  # TODO: improve error handling
-            raise MissingFieldInResponseException('id', response)
-
-        return VolumeId(UUID(response['id']))
-
     def __str__(self) -> str:
         return str(self.__volume_id)
 
@@ -387,12 +374,6 @@ class VolumeId:
             return False
 
         return self.__volume_id == other.__volume_id  # pylint: disable=protected-access
-
-    def to_api_dict(self) -> api.VolumeId:
-        '''Converts the volume id to a dictionary containing the id'''
-        return {
-            'id': str(self.__volume_id)
-        }
 
 
 def pandas_dtype_to_column_type(dtype: np.dtype) -> FeatureDataType:
@@ -549,12 +530,12 @@ class Volume:
     path: str
 
     @classmethod
-    def from_response(cls, response: api.Volume) -> Volume:
+    def from_response(cls, response: openapi_client.Volume) -> Volume:
         '''Parse a http response to an `Volume`'''
-        return Volume(response['name'], response['path'])
+        return Volume(response.name, response.path)
 
-    def to_api_dict(self) -> api.Volume:
-        return api.Volume(name=self.name, path=self.path)
+    def to_api_dict(self) -> openapi_client.Volume:
+        return openapi_client.Volume(name=self.name, path=self.path)
 
 
 def volumes(timeout: int = 60) -> List[Volume]:
@@ -562,59 +543,41 @@ def volumes(timeout: int = 60) -> List[Volume]:
 
     session = get_session()
 
-    response = req.get(f'{session.server_url}/dataset/volumes',
-                       headers=session.auth_header,
-                       timeout=timeout
-                       ).json()
+    with openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = openapi_client.DatasetsApi(api_client)
+        response = datasets_api.list_volumes_handler(_request_timeout=timeout)
 
     return [Volume.from_response(v) for v in response]
 
 
 def add_dataset(data_store: Union[Volume, UploadId],
                 properties: AddDatasetProperties,
-                meta_data: api.MetaDataDefinition,
+                meta_data: openapi_client.MetaDataDefinition,
                 timeout: int = 60) -> DatasetName:
     '''Adds a dataset to the Geo Engine'''
-    dataset_path: api.DatasetStorage
-    headers: Dict[str, str]
-
-    session = get_session()
-
-    headers = session.auth_header
 
     if isinstance(data_store, Volume):
-        dataset_path = api.DatasetVolume(
+        dataset_path = openapi_client.DataPath(openapi_client.DataPathOneOf(
             volume=data_store.name
-        )
+        ))
     else:
-        dataset_path = api.DatasetPath(
+        dataset_path = openapi_client.DataPath(openapi_client.DataPathOneOf1(
             upload=str(data_store)
+        ))
+
+    create = openapi_client.CreateDataset(
+        data_path=dataset_path,
+        definition=openapi_client.DatasetDefinition(
+            properties=properties.to_api_dict(),
+            meta_data=meta_data
         )
-
-    create = api.CreateDataset(
-
-        {
-            "dataPath": dataset_path,
-            "definition": {
-                "properties": properties.to_api_dict(),
-                "metaData": meta_data
-            }
-        })
-
-    data = json.dumps(create, default=dict)
+    )
 
     session = get_session()
 
-    headers = session.auth_header
-    headers['Content-Type'] = 'application/json'
-
-    response = req.post(f'{session.server_url}/dataset',
-                        data=data, headers=headers,
-                        timeout=timeout
-                        ).json()
-
-    if 'error' in response:
-        raise GeoEngineException(response)
+    with openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = openapi_client.DatasetsApi(api_client)
+        response = datasets_api.create_dataset_handler(create, _request_timeout=timeout)
 
     return DatasetName.from_response(response)
 
