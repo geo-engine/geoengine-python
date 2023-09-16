@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-import urllib.parse
 from io import BytesIO
 from logging import debug
 from os import PathLike
@@ -35,7 +34,7 @@ from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
-    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException, check_response_for_error
+    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException
 from geoengine import backports
 from geoengine.types import GeoTransform, ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
 from geoengine.tasks import Task, TaskId
@@ -216,21 +215,18 @@ class Workflow:
 
         session = get_session()
 
-        time = urllib.parse.quote(bbox.time_str)
-        spatial_bounds = urllib.parse.quote(bbox.bbox_str)
-        resolution = str(bbox.spatial_resolution)
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            plots_api = openapi_client.PlotsApi(api_client)
+            response = plots_api.get_plot_handler(
+                bbox.bbox_str,
+                bbox.time_str,
+                str(bbox.spatial_resolution),
+                str(self.__workflow_id),
+                bbox.srs,
+                _request_timeout=timeout
+            )
 
-        plot_url = f'{session.server_url}/plot/{self}?bbox={spatial_bounds}&crs={bbox.srs}&time={time}'\
-            f'&spatialResolution={resolution}'
-
-        response = req.get(plot_url, headers=session.auth_header, timeout=timeout)
-
-        check_response_for_error(response)
-
-        response_json: JsonType = response.json()
-        assert isinstance(response_json, Dict)
-
-        vega_spec: VegaSpec = json.loads(response_json['data']['vegaString'])
+        vega_spec: VegaSpec = json.loads(response.data['vegaString'])
 
         return VegaLite(vega_spec)
 
@@ -422,9 +418,12 @@ class Workflow:
 
         session = get_session()
 
-        provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/allMetadata/zip'
-
-        response = req.get(provenance_url, headers=session.auth_header, timeout=timeout).content
+        with openapi_client.ApiClient(session.configuration) as api_client:
+            workflows_api = openapi_client.WorkflowsApi(api_client)
+            response = workflows_api.get_workflow_all_metadata_zip_handler(
+                str(self.__workflow_id),
+                _request_timeout=timeout
+            )
 
         if isinstance(path, BytesIO):
             path.write(response)
