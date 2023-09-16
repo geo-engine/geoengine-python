@@ -8,6 +8,7 @@ from openapi_client.api.ogcwcs_api import OGCWCSApi
 from openapi_client.api.ogcwfs_api import OGCWFSApi
 from openapi_client.api.ogcwms_api import OGCWMSApi
 from openapi_client.api.permissions_api import PermissionsApi
+from openapi_client.api.plots_api import PlotsApi
 from openapi_client.api.projects_api import ProjectsApi
 from openapi_client.api.session_api import SessionApi
 from openapi_client.api.spatial_references_api import SpatialReferencesApi

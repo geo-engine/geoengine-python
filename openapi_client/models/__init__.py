@@ -174,6 +174,8 @@ from openapi_client.models.raster_symbology_with_type import RasterSymbologyWith
 from openapi_client.models.resource import Resource
 from openapi_client.models.resource_id import ResourceId
 from openapi_client.models.rgba_colorizer import RgbaColorizer
+from openapi_client.models.role import Role
+from openapi_client.models.role_description import RoleDescription
 from openapi_client.models.st_rectangle import STRectangle
 from openapi_client.models.server_info import ServerInfo
 from openapi_client.models.spatial_partition2_d import SpatialPartition2D

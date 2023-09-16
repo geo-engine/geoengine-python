@@ -28,10 +28,10 @@ class LineSymbology(BaseModel):
     """
     LineSymbology
     """
-    auto_simplified: StrictBool = Field(...)
+    auto_simplified: StrictBool = Field(..., alias="autoSimplified")
     stroke: StrokeParam = Field(...)
     text: Optional[TextSymbology] = None
-    __properties = ["auto_simplified", "stroke", "text"]
+    __properties = ["autoSimplified", "stroke", "text"]
 
     class Config:
         """Pydantic configuration"""
@@ -80,7 +80,7 @@ class LineSymbology(BaseModel):
             return LineSymbology.parse_obj(obj)
 
         _obj = LineSymbology.parse_obj({
-            "auto_simplified": obj.get("auto_simplified"),
+            "auto_simplified": obj.get("autoSimplified"),
             "stroke": StrokeParam.from_dict(obj.get("stroke")) if obj.get("stroke") is not None else None,
             "text": TextSymbology.from_dict(obj.get("text")) if obj.get("text") is not None else None
         })

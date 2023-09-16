@@ -25,6 +25,7 @@ from openapi_client.api.ogcwcs_api import OGCWCSApi
 from openapi_client.api.ogcwfs_api import OGCWFSApi
 from openapi_client.api.ogcwms_api import OGCWMSApi
 from openapi_client.api.permissions_api import PermissionsApi
+from openapi_client.api.plots_api import PlotsApi
 from openapi_client.api.projects_api import ProjectsApi
 from openapi_client.api.session_api import SessionApi
 from openapi_client.api.spatial_references_api import SpatialReferencesApi
@@ -204,6 +205,8 @@ from openapi_client.models.raster_symbology_with_type import RasterSymbologyWith
 from openapi_client.models.resource import Resource
 from openapi_client.models.resource_id import ResourceId
 from openapi_client.models.rgba_colorizer import RgbaColorizer
+from openapi_client.models.role import Role
+from openapi_client.models.role_description import RoleDescription
 from openapi_client.models.st_rectangle import STRectangle
 from openapi_client.models.server_info import ServerInfo
 from openapi_client.models.spatial_partition2_d import SpatialPartition2D
