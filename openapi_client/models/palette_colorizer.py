@@ -63,15 +63,6 @@ class PaletteColorizer(BaseModel):
                           exclude={
                           },
                           exclude_none=True)
-        # override the default output from pydantic by calling `to_dict()` of each value in colors (dict of array)
-        _field_dict_of_array = {}
-        if self.colors:
-            for _key in self.colors:
-                if self.colors[_key]:
-                    _field_dict_of_array[_key] = [
-                        _item.to_dict() for _item in self.colors[_key]
-                    ]
-            _dict['colors'] = _field_dict_of_array
         return _dict
 
     @classmethod

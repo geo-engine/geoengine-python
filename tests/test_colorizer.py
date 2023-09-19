@@ -21,19 +21,19 @@ class ColorizerTests(unittest.TestCase):
         expected = {
             "type": "linearGradient",
             "breakpoints": [
-                {"value": 0.0, "color": (0, 0, 0, 255)},
-                {"value": 63.75, "color": (64, 64, 64, 255)},
-                {"value": 127.5, "color": (128, 128, 128, 255)},
-                {"value": 191.25, "color": (192, 192, 192, 255)},
-                {"value": 255.0, "color": (255, 255, 255, 255)}
+                {"value": 0.0, "color": [0, 0, 0, 255]},
+                {"value": 63.75, "color": [64, 64, 64, 255]},
+                {"value": 127.5, "color": [128, 128, 128, 255]},
+                {"value": 191.25, "color": [192, 192, 192, 255]},
+                {"value": 255.0, "color": [255, 255, 255, 255]}
             ],
-            "noDataColor": (0, 0, 0, 0),
-            "overColor": (0, 0, 0, 0),
-            "underColor": (0, 0, 0, 0)
+            "noDataColor": [0, 0, 0, 0],
+            "overColor": [0, 0, 0, 0],
+            "underColor": [0, 0, 0, 0]
         }
 
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map="gray", min_max=(0.0, 255.0), n_steps=5)
-        gray = geo_colorizer.to_api_dict()
+        gray = geo_colorizer.to_api_dict().to_dict()
 
         assert gray == expected
 
@@ -42,20 +42,20 @@ class ColorizerTests(unittest.TestCase):
         expected = {
             "type": "logarithmicGradient",
             "breakpoints": [
-                {"value": 1.0, "color": (0, 0, 0, 255)},
-                {"value": 10.0, "color": (64, 64, 64, 255)},
-                {"value": 100.0, "color": (128, 128, 128, 255)},
-                {"value": 1000.0, "color": (192, 192, 192, 255)},
-                {"value": 10000.0, "color": (255, 255, 255, 255)}
+                {"value": 1.0, "color": [0, 0, 0, 255]},
+                {"value": 10.0, "color": [64, 64, 64, 255]},
+                {"value": 100.0, "color": [128, 128, 128, 255]},
+                {"value": 1000.0, "color": [192, 192, 192, 255]},
+                {"value": 10000.0, "color": [255, 255, 255, 255]}
             ],
-            "noDataColor": (0, 0, 0, 0),
-            "overColor": (0, 0, 0, 0),
-            "underColor": (0, 0, 0, 0)
+            "noDataColor": [0, 0, 0, 0],
+            "overColor": [0, 0, 0, 0],
+            "underColor": [0, 0, 0, 0]
         }
 
         geo_colorizer = colorizer.Colorizer.logarithmic_with_mpl_cmap(
             color_map="gray", min_max=(1.0, 10000.0), n_steps=5)
-        gray = geo_colorizer.to_api_dict()
+        gray = geo_colorizer.to_api_dict().to_dict()
 
         assert gray == expected
 
@@ -64,22 +64,22 @@ class ColorizerTests(unittest.TestCase):
         expected = {
             "type": "palette",
             "colors": {
-                1.0: (0, 0, 0, 255),
-                2.0: (128, 128, 128, 255),
-                3.0: (255, 255, 255, 255)
+                "1.0": [0, 0, 0, 255],
+                "2.0": [128, 128, 128, 255],
+                "3.0": [255, 255, 255, 255]
             },
-            "noDataColor": (0, 0, 0, 0),
-            "defaultColor": (0, 0, 0, 0)
+            "noDataColor": [0, 0, 0, 0],
+            "defaultColor": [0, 0, 0, 0]
         }
 
         geo_colorizer = colorizer.Colorizer.palette(
             color_mapping={
-                1.0: (0, 0, 0, 255),
-                2.0: (128, 128, 128, 255),
-                3.0: (255, 255, 255, 255),
+                1.0: [0, 0, 0, 255],
+                2.0: [128, 128, 128, 255],
+                3.0: [255, 255, 255, 255],
             })
 
-        gray = geo_colorizer.to_api_dict()
+        gray = geo_colorizer.to_api_dict().to_dict()
 
         assert gray == expected
 
@@ -89,12 +89,12 @@ class ColorizerTests(unittest.TestCase):
         expected = {
             "type": "palette",
             "colors": {
-                1.0: (0, 0, 0, 255),
-                2.0: (128, 128, 128, 255),
-                3.0: (255, 255, 255, 255)
+                "1.0": [0, 0, 0, 255],
+                "2.0": [128, 128, 128, 255],
+                "3.0": [255, 255, 255, 255]
             },
-            "noDataColor": (0, 0, 0, 0),
-            "defaultColor": (0, 0, 0, 0)
+            "noDataColor": [0, 0, 0, 0],
+            "defaultColor": [0, 0, 0, 0]
         }
 
         # verify color map object variant
@@ -103,7 +103,7 @@ class ColorizerTests(unittest.TestCase):
         geo_colorizer = colorizer.Colorizer.palette_with_colormap(
             values=[1.0, 2.0, 3.0], color_map=cmap_obj)
 
-        gray_obj = geo_colorizer.to_api_dict()
+        gray_obj = geo_colorizer.to_api_dict().to_dict()
 
         assert gray_obj == expected
 
@@ -113,7 +113,7 @@ class ColorizerTests(unittest.TestCase):
         geo_colorizer = colorizer.Colorizer.palette_with_colormap(
             values=[1.0, 2.0, 3.0], color_map=cmap_name)
 
-        gray_name = geo_colorizer.to_api_dict()
+        gray_name = geo_colorizer.to_api_dict().to_dict()
 
         assert gray_name == expected
 
@@ -154,12 +154,12 @@ class ColorizerTests(unittest.TestCase):
         expected = {
             "type": "linearGradient",
             "breakpoints": [
-                {"value": 0.0, "color": (68, 1, 84, 255)},
-                {"value": 255.0, "color": (253, 231, 36, 255)}
+                {"value": 0.0, "color": [68, 1, 84, 255]},
+                {"value": 255.0, "color": [253, 231, 36, 255]}
             ],
-            "noDataColor": (100, 100, 100, 100),
-            "overColor": (100, 100, 100, 100),
-            "underColor": (100, 100, 100, 100)
+            "noDataColor": [100, 100, 100, 100],
+            "overColor": [100, 100, 100, 100],
+            "underColor": [100, 100, 100, 100]
         }
 
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(
@@ -170,38 +170,38 @@ class ColorizerTests(unittest.TestCase):
             over_color=(100, 100, 100, 100),
             under_color=(100, 100, 100, 100)
         )
-        viridis = geo_colorizer.to_api_dict()
+        viridis = geo_colorizer.to_api_dict().to_dict()
 
         assert viridis == expected
 
     def test_set_steps(self):
         """Tests the setting of the number of steps."""
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map="viridis", min_max=(0.0, 255.0), n_steps=2)
-        viridis = geo_colorizer.to_api_dict()
+        viridis = geo_colorizer.to_api_dict().to_dict()
         expected = {
             "type": "linearGradient",
             "breakpoints": [
-                {"value": 0.0, "color": (68, 1, 84, 255)},
-                {"value": 255.0, "color": (253, 231, 36, 255)}
+                {"value": 0.0, "color": [68, 1, 84, 255]},
+                {"value": 255.0, "color": [253, 231, 36, 255]}
             ],
-            "noDataColor": (0, 0, 0, 0),
-            "overColor": (0, 0, 0, 0),
-            "underColor": (0, 0, 0, 0)
+            "noDataColor": [0, 0, 0, 0],
+            "overColor": [0, 0, 0, 0],
+            "underColor": [0, 0, 0, 0]
         }
 
         assert viridis == expected
 
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map="viridis", min_max=(0.0, 255.0), n_steps=3)
-        viridis = geo_colorizer.to_api_dict()
+        viridis = geo_colorizer.to_api_dict().to_dict()
         expected = {
             "type": "linearGradient", "breakpoints": [
-                {"value": 0.0, "color": (68, 1, 84, 255)},
-                {"value": 127.5, "color": (32, 144, 140, 255)},
-                {"value": 255.0, "color": (253, 231, 36, 255)}
+                {"value": 0.0, "color": [68, 1, 84, 255]},
+                {"value": 127.5, "color": [32, 144, 140, 255]},
+                {"value": 255.0, "color": [253, 231, 36, 255]}
             ],
-            "noDataColor": (0, 0, 0, 0),
-            "overColor": (0, 0, 0, 0),
-            "underColor": (0, 0, 0, 0)
+            "noDataColor": [0, 0, 0, 0],
+            "overColor": [0, 0, 0, 0],
+            "underColor": [0, 0, 0, 0]
         }
 
         assert viridis == expected
@@ -212,15 +212,15 @@ class ColorizerTests(unittest.TestCase):
         expected = {
             "type": "linearGradient",
                     "breakpoints": [
-                        {"value": -10.0, "color": (68, 1, 84, 255)},
-                        {"value": 0.0, "color": (32, 144, 140, 255)},
-                        {"value": 10.0, "color": (253, 231, 36, 255)}
+                        {"value": -10.0, "color": [68, 1, 84, 255]},
+                        {"value": 0.0, "color": [32, 144, 140, 255]},
+                        {"value": 10.0, "color": [253, 231, 36, 255]}
                     ],
-            "noDataColor": (0, 0, 0, 0),
-            "overColor": (0, 0, 0, 0),
-            "underColor": (0, 0, 0, 0)
+            "noDataColor": [0, 0, 0, 0],
+            "overColor": [0, 0, 0, 0],
+            "underColor": [0, 0, 0, 0]
         }
-        viridis = geo_colorizer.to_api_dict()
+        viridis = geo_colorizer.to_api_dict().to_dict()
 
         assert viridis == expected
 
@@ -289,17 +289,17 @@ class ColorizerTests(unittest.TestCase):
         expected = {
             "type": "linearGradient",
             "breakpoints": [
-                {"value": 0.0, "color": (255, 140, 0, 255)},
-                {"value": 127.5, "color": (124, 252, 0, 255)},
-                {"value": 255.0, "color": (32, 178, 170, 255)}
+                {"value": 0.0, "color": [255, 140, 0, 255]},
+                {"value": 127.5, "color": [124, 252, 0, 255]},
+                {"value": 255.0, "color": [32, 178, 170, 255]}
             ],
-            "noDataColor": (0, 0, 0, 0),
-            "overColor": (0, 0, 0, 0),
-            "underColor": (0, 0, 0, 0)
+            "noDataColor": [0, 0, 0, 0],
+            "overColor": [0, 0, 0, 0],
+            "underColor": [0, 0, 0, 0]
         }
         custom_map = ListedColormap(["darkorange", "gold", "lawngreen", "lightseagreen"])
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map=custom_map, min_max=(0.0, 255.0), n_steps=3)
-        custom = geo_colorizer.to_api_dict()
+        custom = geo_colorizer.to_api_dict().to_dict()
 
         assert custom == expected
 
@@ -308,13 +308,13 @@ class ColorizerTests(unittest.TestCase):
         expected = {
             "type": "linearGradient",
             "breakpoints": [
-                {"value": 40.0, "color": (255, 140, 0, 255)},
-                {"value": 220.0, "color": (124, 252, 0, 255)},
-                {"value": 400.0, "color": (32, 178, 170, 255)}
+                {"value": 40.0, "color": [255, 140, 0, 255]},
+                {"value": 220.0, "color": [124, 252, 0, 255]},
+                {"value": 400.0, "color": [32, 178, 170, 255]}
             ],
-            "noDataColor": (100, 100, 100, 100),
-            "overColor": (100, 100, 100, 100),
-            "underColor": (100, 100, 100, 100)
+            "noDataColor": [100, 100, 100, 100],
+            "overColor": [100, 100, 100, 100],
+            "underColor": [100, 100, 100, 100]
         }
         custom_map = ListedColormap(["darkorange", "gold", "lawngreen", "lightseagreen"])
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(
@@ -325,23 +325,24 @@ class ColorizerTests(unittest.TestCase):
             over_color=(100, 100, 100, 100),
             under_color=(100, 100, 100, 100)
         )
-        custom = geo_colorizer.to_api_dict()
+        custom = geo_colorizer.to_api_dict().to_dict()
 
         assert custom == expected
 
     def test_to_json(self):
         """Tests the to_json method."""
-        expected = '{"type": "linearGradient", "breakpoints": [{"value": 0.0, "color": [68, 1, 84, 255]'\
-            '}, {"value": 255.0, "color": [253, 231, 36, 255]}], "noDataColor": [0, 0, 0, 0],'\
-            ' "overColor": [0, 0, 0, 0], "underColor": [0, 0, 0, 0]}'
+        expected = '{"overColor": [0, 0, 0, 0], "underColor": [0, 0, 0, 0],'\
+            ' "breakpoints": [{"color": [68, 1, 84, 255], "value": 0.0'\
+            '}, {"color": [253, 231, 36, 255], "value": 255.0}], "noDataColor": [0, 0, 0, 0],'\
+            ' "type": "linearGradient"}'
 
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map="viridis", min_max=(0.0, 255.0), n_steps=2)
-        jsonstr = geo_colorizer.to_json()
+        jsonstr = geo_colorizer.to_api_dict().to_json()
 
         assert jsonstr == expected
 
     def test_palette_with_too_small_colormap(self):
-        """Tests, if the warning is emittd if an unappropriate color map is chosen."""
+        """Tests, if the warning is emitted if an unappropriate color map is chosen."""
 
         with pytest.warns(UserWarning, match="Warning!\nYour colormap does not have enough colors "
                           "to display all unique values of the palette!"

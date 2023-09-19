@@ -1,6 +1,7 @@
 '''These types represent Geo Engine's backend API types before/after JSON (de)serialization.'''
 
 from typing import Tuple, TypedDict
+from openapi_client.models import *
 
 Rgba = Tuple[int, int, int, int]
 
