@@ -1,7 +1,7 @@
 """Tests for the datasets module."""
 
 import unittest
-import requests_mock
+from test_util import UrllibMocker
 import geoengine as ge
 
 
@@ -15,7 +15,7 @@ class DatasetsTests(unittest.TestCase):
     def test_list_datasets(self):
         """Test `GET /datasets`."""
 
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -82,9 +82,9 @@ class DatasetsTests(unittest.TestCase):
 
             dataset = datasets[0]
 
-            self.assertEqual(dataset['name'], 'foobar')
-            self.assertEqual(dataset['displayName'], 'Land Cover')
-            self.assertEqual(dataset['resultDescriptor']['type'], 'raster')
+            self.assertEqual(dataset.name, 'foobar')
+            self.assertEqual(dataset.display_name, 'Land Cover')
+            self.assertEqual(dataset.result_descriptor.actual_instance.type, 'raster')
 
 
 if __name__ == '__main__':
