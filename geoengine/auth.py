@@ -8,24 +8,10 @@ from uuid import UUID
 
 import os
 from dotenv import load_dotenv
-import requests as req
-from requests.auth import AuthBase
+import urllib3
 
 import openapi_client
 from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro, UninitializedException
-
-
-class BearerAuth(AuthBase):  # pylint: disable=too-few-public-methods
-    '''A bearer token authentication for `requests`'''
-
-    __token: str
-
-    def __init__(self, token: str):
-        self.__token = token
-
-    def __call__(self, r):
-        r.headers['Authorization'] = f'Bearer {self.__token}'
-        return r
 
 
 class Session:
@@ -67,29 +53,44 @@ class Session:
         if credentials is not None and token is not None:
             raise GeoEngineException({'message': 'Cannot provide both credentials and token'})
 
-        configuration = openapi_client.Configuration(
-            host=server_url
-        )
         # Auto-generated SessionApi cannot handle dynamically differing return types (SimpleSession or UserSession).
-        # Because of that "requests" must be used manually.
+        # Because of that requests must be send manually.
+        http = urllib3.PoolManager()
 
         if credentials is not None:
-            session = req.post(f'{server_url}/login', json={"email": credentials[0],
-                                                            "password": credentials[1]}, timeout=self.__timeout).json()
+            session = http.request(
+                "POST",
+                f'{server_url}/login',
+                json={"email": credentials[0], "password": credentials[1]},
+                timeout=self.__timeout
+            ).json()
         elif "GEOENGINE_EMAIL" in os.environ and "GEOENGINE_PASSWORD" in os.environ:
-            session = req.post(f'{server_url}/login',
-                               json={"email": os.environ.get("GEOENGINE_EMAIL"),
-                                     "password": os.environ.get("GEOENGINE_PASSWORD")},
-                               timeout=self.__timeout).json()
+            session = http.request(
+                "POST",
+                f'{server_url}/login',
+                json={"email": os.environ.get("GEOENGINE_EMAIL"), "password": os.environ.get("GEOENGINE_PASSWORD")},
+                timeout=self.__timeout
+            ).json()
         elif token is not None:
-            session = req.get(f'{server_url}/session', headers={'Authorization': f'Bearer {token}'},
-                              timeout=self.__timeout).json()
+            session = http.request(
+                "GET",
+                f'{server_url}/session',
+                headers={'Authorization': f'Bearer {token}'},
+                timeout=self.__timeout
+            ).json()
         elif "GEOENGINE_TOKEN" in os.environ:
-            session = req.get(f'{server_url}/session',
-                              headers={'Authorization': f'Bearer {os.environ.get("GEOENGINE_TOKEN")}'},
-                              timeout=self.__timeout).json()
+            session = http.request(
+                "GET",
+                f'{server_url}/session',
+                headers={'Authorization': f'Bearer {os.environ.get("GEOENGINE_TOKEN")}'},
+                timeout=self.__timeout
+            ).json()
         else:
-            session = req.post(f'{server_url}/anonymous', timeout=self.__timeout).json()
+            session = http.request(
+                "POST",
+                f'{server_url}/anonymous',
+                timeout=self.__timeout
+            ).json()
 
         if 'error' in session:
             raise GeoEngineException(session)
@@ -109,7 +110,10 @@ class Session:
             self.__valid_until = session['validUntil']
 
         self.__server_url = server_url
-        self.__configuration = configuration
+        self.__configuration = openapi_client.Configuration(
+            host=server_url,
+            access_token=session['id']
+        )
 
     def __repr__(self) -> str:
         '''Display representation of a session'''
@@ -159,13 +163,6 @@ class Session:
             raise MethodOnlyAvailableInGeoEnginePro("User id is only available in Geo Engine Pro")
 
         return self.__user_id
-
-    def requests_bearer_auth(self) -> BearerAuth:
-        '''
-        Return a Bearer authentication object for the current session
-        '''
-
-        return BearerAuth(str(self.__id))
 
     def logout(self):
         '''
