@@ -125,6 +125,71 @@ class MetaDataDefinition(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `GdalMetaDataListWithType`
+        if _data_type == "GdalMetaDataList":
+            instance.actual_instance = GdalMetaDataListWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `GdalMetaDataListWithType`
+        if _data_type == "GdalMetaDataListWithType":
+            instance.actual_instance = GdalMetaDataListWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `GdalMetaDataRegularWithType`
+        if _data_type == "GdalMetaDataRegular":
+            instance.actual_instance = GdalMetaDataRegularWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `GdalMetaDataRegularWithType`
+        if _data_type == "GdalMetaDataRegularWithType":
+            instance.actual_instance = GdalMetaDataRegularWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `GdalMetaDataStaticWithType`
+        if _data_type == "GdalMetaDataStaticWithType":
+            instance.actual_instance = GdalMetaDataStaticWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `GdalMetadataNetCdfCfWithType`
+        if _data_type == "GdalMetadataNetCdfCf":
+            instance.actual_instance = GdalMetadataNetCdfCfWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `GdalMetadataNetCdfCfWithType`
+        if _data_type == "GdalMetadataNetCdfCfWithType":
+            instance.actual_instance = GdalMetadataNetCdfCfWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `GdalMetaDataStaticWithType`
+        if _data_type == "GdalStatic":
+            instance.actual_instance = GdalMetaDataStaticWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `MockMetaDataWithType`
+        if _data_type == "MockMetaData":
+            instance.actual_instance = MockMetaDataWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `MockMetaDataWithType`
+        if _data_type == "MockMetaDataWithType":
+            instance.actual_instance = MockMetaDataWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `OgrMetaDataWithType`
+        if _data_type == "OgrMetaData":
+            instance.actual_instance = OgrMetaDataWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `OgrMetaDataWithType`
+        if _data_type == "OgrMetaDataWithType":
+            instance.actual_instance = OgrMetaDataWithType.from_json(json_str)
+            return instance
+
         # deserialize data into MockMetaDataWithType
         try:
             instance.actual_instance = MockMetaDataWithType.from_json(json_str)

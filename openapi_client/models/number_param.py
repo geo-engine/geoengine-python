@@ -93,6 +93,31 @@ class NumberParam(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `DerivedNumberWithType`
+        if _data_type == "DerivedNumberWithType":
+            instance.actual_instance = DerivedNumberWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `StaticNumberParam`
+        if _data_type == "StaticNumberParam":
+            instance.actual_instance = StaticNumberParam.from_json(json_str)
+            return instance
+
+        # check if data type is `DerivedNumberWithType`
+        if _data_type == "derived":
+            instance.actual_instance = DerivedNumberWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `StaticNumberParam`
+        if _data_type == "static":
+            instance.actual_instance = StaticNumberParam.from_json(json_str)
+            return instance
+
         # deserialize data into StaticNumberParam
         try:
             instance.actual_instance = StaticNumberParam.from_json(json_str)

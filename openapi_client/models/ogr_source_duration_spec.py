@@ -101,6 +101,41 @@ class OgrSourceDurationSpec(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `InfiniteOgrSourceDurationSpec`
+        if _data_type == "InfiniteOgrSourceDurationSpec":
+            instance.actual_instance = InfiniteOgrSourceDurationSpec.from_json(json_str)
+            return instance
+
+        # check if data type is `TimeStepWithType`
+        if _data_type == "TimeStepWithType":
+            instance.actual_instance = TimeStepWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `ZeroOgrSourceDurationSpec`
+        if _data_type == "ZeroOgrSourceDurationSpec":
+            instance.actual_instance = ZeroOgrSourceDurationSpec.from_json(json_str)
+            return instance
+
+        # check if data type is `InfiniteOgrSourceDurationSpec`
+        if _data_type == "infinite":
+            instance.actual_instance = InfiniteOgrSourceDurationSpec.from_json(json_str)
+            return instance
+
+        # check if data type is `TimeStepWithType`
+        if _data_type == "value":
+            instance.actual_instance = TimeStepWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `ZeroOgrSourceDurationSpec`
+        if _data_type == "zero":
+            instance.actual_instance = ZeroOgrSourceDurationSpec.from_json(json_str)
+            return instance
+
         # deserialize data into InfiniteOgrSourceDurationSpec
         try:
             instance.actual_instance = InfiniteOgrSourceDurationSpec.from_json(json_str)

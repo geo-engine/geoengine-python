@@ -93,6 +93,31 @@ class ColorParam(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `DerivedColorWithType`
+        if _data_type == "DerivedColorWithType":
+            instance.actual_instance = DerivedColorWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `StaticColorParam`
+        if _data_type == "StaticColorParam":
+            instance.actual_instance = StaticColorParam.from_json(json_str)
+            return instance
+
+        # check if data type is `DerivedColorWithType`
+        if _data_type == "derived":
+            instance.actual_instance = DerivedColorWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `StaticColorParam`
+        if _data_type == "static":
+            instance.actual_instance = StaticColorParam.from_json(json_str)
+            return instance
+
         # deserialize data into StaticColorParam
         try:
             instance.actual_instance = StaticColorParam.from_json(json_str)

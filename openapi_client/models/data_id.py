@@ -93,6 +93,31 @@ class DataId(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `ExternalDataIdWithType`
+        if _data_type == "ExternalDataIdWithType":
+            instance.actual_instance = ExternalDataIdWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `InternalDataId`
+        if _data_type == "InternalDataId":
+            instance.actual_instance = InternalDataId.from_json(json_str)
+            return instance
+
+        # check if data type is `ExternalDataIdWithType`
+        if _data_type == "external":
+            instance.actual_instance = ExternalDataIdWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `InternalDataId`
+        if _data_type == "internal":
+            instance.actual_instance = InternalDataId.from_json(json_str)
+            return instance
+
         # deserialize data into InternalDataId
         try:
             instance.actual_instance = InternalDataId.from_json(json_str)

@@ -101,6 +101,41 @@ class Measurement(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `ClassificationMeasurementWithType`
+        if _data_type == "ClassificationMeasurementWithType":
+            instance.actual_instance = ClassificationMeasurementWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `ContinuousMeasurementWithType`
+        if _data_type == "ContinuousMeasurementWithType":
+            instance.actual_instance = ContinuousMeasurementWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `UnitlessMeasurement`
+        if _data_type == "UnitlessMeasurement":
+            instance.actual_instance = UnitlessMeasurement.from_json(json_str)
+            return instance
+
+        # check if data type is `ClassificationMeasurementWithType`
+        if _data_type == "classification":
+            instance.actual_instance = ClassificationMeasurementWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `ContinuousMeasurementWithType`
+        if _data_type == "continuous":
+            instance.actual_instance = ContinuousMeasurementWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `UnitlessMeasurement`
+        if _data_type == "unitless":
+            instance.actual_instance = UnitlessMeasurement.from_json(json_str)
+            return instance
+
         # deserialize data into UnitlessMeasurement
         try:
             instance.actual_instance = UnitlessMeasurement.from_json(json_str)

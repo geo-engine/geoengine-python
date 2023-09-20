@@ -109,6 +109,51 @@ class Symbology(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `LineSymbologyWithType`
+        if _data_type == "LineSymbologyWithType":
+            instance.actual_instance = LineSymbologyWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `PointSymbologyWithType`
+        if _data_type == "PointSymbologyWithType":
+            instance.actual_instance = PointSymbologyWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `PolygonSymbologyWithType`
+        if _data_type == "PolygonSymbologyWithType":
+            instance.actual_instance = PolygonSymbologyWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `RasterSymbologyWithType`
+        if _data_type == "RasterSymbologyWithType":
+            instance.actual_instance = RasterSymbologyWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `LineSymbologyWithType`
+        if _data_type == "line":
+            instance.actual_instance = LineSymbologyWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `PointSymbologyWithType`
+        if _data_type == "point":
+            instance.actual_instance = PointSymbologyWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `PolygonSymbologyWithType`
+        if _data_type == "polygon":
+            instance.actual_instance = PolygonSymbologyWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `RasterSymbologyWithType`
+        if _data_type == "raster":
+            instance.actual_instance = RasterSymbologyWithType.from_json(json_str)
+            return instance
+
         # deserialize data into RasterSymbologyWithType
         try:
             instance.actual_instance = RasterSymbologyWithType.from_json(json_str)

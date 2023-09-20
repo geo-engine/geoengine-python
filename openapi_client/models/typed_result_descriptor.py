@@ -101,6 +101,41 @@ class TypedResultDescriptor(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `PlotResultDescriptorWithType`
+        if _data_type == "PlotResultDescriptorWithType":
+            instance.actual_instance = PlotResultDescriptorWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `RasterResultDescriptorWithType`
+        if _data_type == "RasterResultDescriptorWithType":
+            instance.actual_instance = RasterResultDescriptorWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `VectorResultDescriptorWithType`
+        if _data_type == "VectorResultDescriptorWithType":
+            instance.actual_instance = VectorResultDescriptorWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `PlotResultDescriptorWithType`
+        if _data_type == "plot":
+            instance.actual_instance = PlotResultDescriptorWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `RasterResultDescriptorWithType`
+        if _data_type == "raster":
+            instance.actual_instance = RasterResultDescriptorWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `VectorResultDescriptorWithType`
+        if _data_type == "vector":
+            instance.actual_instance = VectorResultDescriptorWithType.from_json(json_str)
+            return instance
+
         # deserialize data into PlotResultDescriptorWithType
         try:
             instance.actual_instance = PlotResultDescriptorWithType.from_json(json_str)

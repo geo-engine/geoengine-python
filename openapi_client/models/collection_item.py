@@ -93,6 +93,31 @@ class CollectionItem(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `LayerCollectionListingWithType`
+        if _data_type == "LayerCollectionListingWithType":
+            instance.actual_instance = LayerCollectionListingWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `LayerListingWithType`
+        if _data_type == "LayerListingWithType":
+            instance.actual_instance = LayerListingWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `LayerCollectionListingWithType`
+        if _data_type == "collection":
+            instance.actual_instance = LayerCollectionListingWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `LayerListingWithType`
+        if _data_type == "layer":
+            instance.actual_instance = LayerListingWithType.from_json(json_str)
+            return instance
+
         # deserialize data into LayerCollectionListingWithType
         try:
             instance.actual_instance = LayerCollectionListingWithType.from_json(json_str)

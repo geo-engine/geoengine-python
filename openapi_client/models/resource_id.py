@@ -109,6 +109,51 @@ class ResourceId(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `DatasetIdResourceId`
+        if _data_type == "DatasetId":
+            instance.actual_instance = DatasetIdResourceId.from_json(json_str)
+            return instance
+
+        # check if data type is `DatasetIdResourceId`
+        if _data_type == "DatasetIdResourceId":
+            instance.actual_instance = DatasetIdResourceId.from_json(json_str)
+            return instance
+
+        # check if data type is `LayerResourceId`
+        if _data_type == "Layer":
+            instance.actual_instance = LayerResourceId.from_json(json_str)
+            return instance
+
+        # check if data type is `LayerCollectionResourceId`
+        if _data_type == "LayerCollection":
+            instance.actual_instance = LayerCollectionResourceId.from_json(json_str)
+            return instance
+
+        # check if data type is `LayerCollectionResourceId`
+        if _data_type == "LayerCollectionResourceId":
+            instance.actual_instance = LayerCollectionResourceId.from_json(json_str)
+            return instance
+
+        # check if data type is `LayerResourceId`
+        if _data_type == "LayerResourceId":
+            instance.actual_instance = LayerResourceId.from_json(json_str)
+            return instance
+
+        # check if data type is `ProjectResourceId`
+        if _data_type == "Project":
+            instance.actual_instance = ProjectResourceId.from_json(json_str)
+            return instance
+
+        # check if data type is `ProjectResourceId`
+        if _data_type == "ProjectResourceId":
+            instance.actual_instance = ProjectResourceId.from_json(json_str)
+            return instance
+
         # deserialize data into LayerResourceId
         try:
             instance.actual_instance = LayerResourceId.from_json(json_str)

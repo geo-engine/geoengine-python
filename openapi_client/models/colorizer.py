@@ -109,6 +109,51 @@ class Colorizer(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `LinearGradientWithType`
+        if _data_type == "LinearGradientWithType":
+            instance.actual_instance = LinearGradientWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `LogarithmicGradientWithType`
+        if _data_type == "LogarithmicGradientWithType":
+            instance.actual_instance = LogarithmicGradientWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `PaletteColorizer`
+        if _data_type == "PaletteColorizer":
+            instance.actual_instance = PaletteColorizer.from_json(json_str)
+            return instance
+
+        # check if data type is `RgbaColorizer`
+        if _data_type == "RgbaColorizer":
+            instance.actual_instance = RgbaColorizer.from_json(json_str)
+            return instance
+
+        # check if data type is `LinearGradientWithType`
+        if _data_type == "linearGradient":
+            instance.actual_instance = LinearGradientWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `LogarithmicGradientWithType`
+        if _data_type == "logarithmicGradient":
+            instance.actual_instance = LogarithmicGradientWithType.from_json(json_str)
+            return instance
+
+        # check if data type is `PaletteColorizer`
+        if _data_type == "palette":
+            instance.actual_instance = PaletteColorizer.from_json(json_str)
+            return instance
+
+        # check if data type is `RgbaColorizer`
+        if _data_type == "rgba":
+            instance.actual_instance = RgbaColorizer.from_json(json_str)
+            return instance
+
         # deserialize data into LinearGradientWithType
         try:
             instance.actual_instance = LinearGradientWithType.from_json(json_str)

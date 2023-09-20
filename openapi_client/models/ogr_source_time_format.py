@@ -101,6 +101,41 @@ class OgrSourceTimeFormat(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("format")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `format` in the input.")
+
+        # check if data type is `AutoOgrSourceTimeFormat`
+        if _data_type == "AutoOgrSourceTimeFormat":
+            instance.actual_instance = AutoOgrSourceTimeFormat.from_json(json_str)
+            return instance
+
+        # check if data type is `CustomOgrSourceTimeFormat`
+        if _data_type == "CustomOgrSourceTimeFormat":
+            instance.actual_instance = CustomOgrSourceTimeFormat.from_json(json_str)
+            return instance
+
+        # check if data type is `UnixTimeStampOgrSourceTimeFormat`
+        if _data_type == "UnixTimeStampOgrSourceTimeFormat":
+            instance.actual_instance = UnixTimeStampOgrSourceTimeFormat.from_json(json_str)
+            return instance
+
+        # check if data type is `AutoOgrSourceTimeFormat`
+        if _data_type == "auto":
+            instance.actual_instance = AutoOgrSourceTimeFormat.from_json(json_str)
+            return instance
+
+        # check if data type is `CustomOgrSourceTimeFormat`
+        if _data_type == "custom":
+            instance.actual_instance = CustomOgrSourceTimeFormat.from_json(json_str)
+            return instance
+
+        # check if data type is `UnixTimeStampOgrSourceTimeFormat`
+        if _data_type == "unixTimeStamp":
+            instance.actual_instance = UnixTimeStampOgrSourceTimeFormat.from_json(json_str)
+            return instance
+
         # deserialize data into CustomOgrSourceTimeFormat
         try:
             instance.actual_instance = CustomOgrSourceTimeFormat.from_json(json_str)

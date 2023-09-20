@@ -109,6 +109,51 @@ class OgrSourceDatasetTimeType(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `NoneOgrSourceDatasetTimeType`
+        if _data_type == "NoneOgrSourceDatasetTimeType":
+            instance.actual_instance = NoneOgrSourceDatasetTimeType.from_json(json_str)
+            return instance
+
+        # check if data type is `StartDurationOgrSourceDatasetTimeType`
+        if _data_type == "StartDurationOgrSourceDatasetTimeType":
+            instance.actual_instance = StartDurationOgrSourceDatasetTimeType.from_json(json_str)
+            return instance
+
+        # check if data type is `StartEndOgrSourceDatasetTimeType`
+        if _data_type == "StartEndOgrSourceDatasetTimeType":
+            instance.actual_instance = StartEndOgrSourceDatasetTimeType.from_json(json_str)
+            return instance
+
+        # check if data type is `StartOgrSourceDatasetTimeType`
+        if _data_type == "StartOgrSourceDatasetTimeType":
+            instance.actual_instance = StartOgrSourceDatasetTimeType.from_json(json_str)
+            return instance
+
+        # check if data type is `NoneOgrSourceDatasetTimeType`
+        if _data_type == "none":
+            instance.actual_instance = NoneOgrSourceDatasetTimeType.from_json(json_str)
+            return instance
+
+        # check if data type is `StartOgrSourceDatasetTimeType`
+        if _data_type == "start":
+            instance.actual_instance = StartOgrSourceDatasetTimeType.from_json(json_str)
+            return instance
+
+        # check if data type is `StartDurationOgrSourceDatasetTimeType`
+        if _data_type == "startDuration":
+            instance.actual_instance = StartDurationOgrSourceDatasetTimeType.from_json(json_str)
+            return instance
+
+        # check if data type is `StartEndOgrSourceDatasetTimeType`
+        if _data_type == "startEnd":
+            instance.actual_instance = StartEndOgrSourceDatasetTimeType.from_json(json_str)
+            return instance
+
         # deserialize data into NoneOgrSourceDatasetTimeType
         try:
             instance.actual_instance = NoneOgrSourceDatasetTimeType.from_json(json_str)

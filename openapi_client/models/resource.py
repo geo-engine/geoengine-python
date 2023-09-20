@@ -109,6 +109,51 @@ class Resource(BaseModel):
         error_messages = []
         match = 0
 
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("type")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `type` in the input.")
+
+        # check if data type is `DatasetResource`
+        if _data_type == "DatasetResource":
+            instance.actual_instance = DatasetResource.from_json(json_str)
+            return instance
+
+        # check if data type is `LayerCollectionResource`
+        if _data_type == "LayerCollectionResource":
+            instance.actual_instance = LayerCollectionResource.from_json(json_str)
+            return instance
+
+        # check if data type is `LayerResource`
+        if _data_type == "LayerResource":
+            instance.actual_instance = LayerResource.from_json(json_str)
+            return instance
+
+        # check if data type is `ProjectResource`
+        if _data_type == "ProjectResource":
+            instance.actual_instance = ProjectResource.from_json(json_str)
+            return instance
+
+        # check if data type is `DatasetResource`
+        if _data_type == "dataset":
+            instance.actual_instance = DatasetResource.from_json(json_str)
+            return instance
+
+        # check if data type is `LayerResource`
+        if _data_type == "layer":
+            instance.actual_instance = LayerResource.from_json(json_str)
+            return instance
+
+        # check if data type is `LayerCollectionResource`
+        if _data_type == "layerCollection":
+            instance.actual_instance = LayerCollectionResource.from_json(json_str)
+            return instance
+
+        # check if data type is `ProjectResource`
+        if _data_type == "project":
+            instance.actual_instance = ProjectResource.from_json(json_str)
+            return instance
+
         # deserialize data into LayerResource
         try:
             instance.actual_instance = LayerResource.from_json(json_str)
