@@ -12,6 +12,8 @@ from .error import GeoEngineException, InputException, UninitializedException, T
     MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, \
     SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \
     InvalidUrlException, MissingFieldInResponseException
+from openapi_client.exceptions import BadRequestException, OpenApiException, ApiTypeError, ApiValueError, \
+    ApiKeyError, ApiAttributeError, ApiException
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
     LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer

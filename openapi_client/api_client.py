@@ -230,7 +230,7 @@ class ApiClient(object):
 
           if response_type == "bytearray":
               response_data.data = response_data.data
-          else:
+          elif response_data.data is not None:
               match = None
               content_type = response_data.getheader('content-type')
               if content_type is not None:

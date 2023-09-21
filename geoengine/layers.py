@@ -181,25 +181,26 @@ class LayerCollection:
 
         assert len(response_pages) > 0, 'No response pages'
 
-        def parse_listing(response: openapi_client.LayerCollectionListingWithType) -> Listing:
-            item_type = LayerCollectionListingType(item_response.type)
+        def parse_listing(response: openapi_client.CollectionItem) -> Listing:
+            inner = response.actual_instance
+            item_type = LayerCollectionListingType(inner.type)
 
             if item_type is LayerCollectionListingType.LAYER:
-                layer_id_response = cast(openapi_client.ProviderLayerId, response.id)
+                layer_id_response = cast(openapi_client.ProviderLayerId, inner.id)
                 return LayerListing(
                     listing_id=LayerId(layer_id_response.layer_id),
                     provider_id=LayerProviderId(UUID(layer_id_response.provider_id)),
-                    name=item_response.name,
-                    description=item_response.description,
+                    name=inner.name,
+                    description=inner.description,
                 )
 
             if item_type is LayerCollectionListingType.COLLECTION:
-                collection_id_response = cast(openapi_client.ProviderLayerCollectionId, response.id)
+                collection_id_response = cast(openapi_client.ProviderLayerCollectionId, inner.id)
                 return LayerCollectionListing(
                     listing_id=LayerCollectionId(collection_id_response.collection_id),
                     provider_id=LayerProviderId(UUID(collection_id_response.provider_id)),
-                    name=item_response.name,
-                    description=item_response.description,
+                    name=inner.name,
+                    description=inner.description,
                 )
 
             assert False, 'Invalid listing type'
@@ -492,7 +493,7 @@ class Layer:
         else:
             buf.write(
                 '<td align="left">'
-                f'<pre>{json.dumps(self.symbology.to_api_dict(), indent=4)}{os.linesep}</pre>'
+                f'<pre>{self.symbology.to_api_dict().to_json()}{os.linesep}</pre>'
                 '</td></tr>'
             )
         buf.write(f"<tr><th>properties</th><td>{self.properties}{os.linesep}</td></tr>")
@@ -511,7 +512,7 @@ class Layer:
 
         with openapi_client.ApiClient(session.configuration) as api_client:
             layers_api = openapi_client.LayersApi(api_client)
-            response = layers_api.layer_to_dataset(str(self.provider_id), self.layer_id, _request_timeout=timeout)
+            response = layers_api.layer_to_dataset(str(self.provider_id), str(self.layer_id), _request_timeout=timeout)
 
         return Task(TaskId.from_response(response))
 

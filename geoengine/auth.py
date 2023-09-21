@@ -8,10 +8,25 @@ from uuid import UUID
 
 import os
 from dotenv import load_dotenv
+from requests.auth import AuthBase
 import urllib3
 
 import openapi_client
 from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro, UninitializedException
+
+
+class BearerAuth(AuthBase):  # pylint: disable=too-few-public-methods
+    '''A bearer token authentication for `requests`'''
+
+    __token: str
+
+    def __init__(self, token: str):
+        self.__token = token
+
+    def __call__(self, r):
+        r.headers['Authorization'] = f'Bearer {self.__token}'
+        return r
+
 
 
 class Session:
@@ -163,6 +178,13 @@ class Session:
             raise MethodOnlyAvailableInGeoEnginePro("User id is only available in Geo Engine Pro")
 
         return self.__user_id
+    
+    def requests_bearer_auth(self) -> BearerAuth:
+        '''
+        Return a Bearer authentication object for the current session
+        '''
+
+        return BearerAuth(str(self.__id))
 
     def logout(self):
         '''

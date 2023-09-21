@@ -2,13 +2,13 @@
 
 import unittest
 from uuid import UUID
-import requests_mock
 import geoengine as ge
-from geoengine import StoredDataset, GeoEngineException
-import openapi_client
+from geoengine import StoredDataset, BadRequestException
+from geoengine import api
 from geoengine.datasets import DatasetName, UploadId
 from geoengine.layers import Layer, LayerId, LayerProviderId
 from geoengine.types import RasterSymbology
+from test_util import UrllibMocker
 
 
 class LayerTests(unittest.TestCase):
@@ -21,7 +21,7 @@ class LayerTests(unittest.TestCase):
     def test_layer(self):
         """Test `add_layer`."""
 
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -85,44 +85,44 @@ class LayerTests(unittest.TestCase):
 
             self.assertEqual(
                 layer.to_api_dict(),
-                ge.api.LayerResponse({
-                    "name": 'Land Cover',
-                    "description": "Land Cover derived from MODIS/Terra+Aqua Land Cover",
-                    "id": {
-                        "layerId": '9ee3619e-d0f9-4ced-9c44-3d407c3aed69',
-                        "providerId": 'ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b'
-                    },
-                    "metadata": {},
-                    "properties": [],
-                    "symbology": ge.api.RasterSymbology({
-                        "colorizer": ge.api.PaletteColorizer({
-                            "colors": {
-                                "0": [134, 201, 227, 255],
-                                "1": [30, 129, 62, 255],
-                                "2": [59, 194, 212, 255],
-                                "3": [157, 194, 63, 255],
-                                "4": [159, 225, 127, 255],
-                                "5": [125, 194, 127, 255],
-                                "6": [195, 127, 126, 255],
-                                "7": [188, 221, 190, 255],
-                                "8": [224, 223, 133, 255],
-                                "9": [226, 221, 7, 255],
-                                "10": [223, 192, 125, 255],
-                                "11": [66, 128, 189, 255],
-                                "12": [225, 222, 127, 255],
-                                "13": [253, 2, 0, 255],
-                                "14": [162, 159, 66, 255],
-                                "15": [255, 255, 255, 255],
-                                "16": [192, 192, 192, 255]
+                api.Layer(
+                    name='Land Cover',
+                    description="Land Cover derived from MODIS/Terra+Aqua Land Cover",
+                    id=api.ProviderLayerId(
+                        layer_id='9ee3619e-d0f9-4ced-9c44-3d407c3aed69',
+                        provider_id='ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b'
+                    ),
+                    metadata={},
+                    properties=[],
+                    symbology=api.Symbology(api.RasterSymbologyWithType(
+                        colorizer=api.Colorizer(api.PaletteColorizer(
+                            colors={
+                                "0.0": [134, 201, 227, 255],
+                                "1.0": [30, 129, 62, 255],
+                                "2.0": [59, 194, 212, 255],
+                                "3.0": [157, 194, 63, 255],
+                                "4.0": [159, 225, 127, 255],
+                                "5.0": [125, 194, 127, 255],
+                                "6.0": [195, 127, 126, 255],
+                                "7.0": [188, 221, 190, 255],
+                                "8.0": [224, 223, 133, 255],
+                                "9.0": [226, 221, 7, 255],
+                                "10.0": [223, 192, 125, 255],
+                                "11.0": [66, 128, 189, 255],
+                                "12.0": [225, 222, 127, 255],
+                                "13.0": [253, 2, 0, 255],
+                                "14.0": [162, 159, 66, 255],
+                                "15.0": [255, 255, 255, 255],
+                                "16.0": [192, 192, 192, 255]
                             },
-                            "defaultColor": [0, 0, 0, 0],
-                            "noDataColor": [0, 0, 0, 0],
-                            "type": "palette"
-                        }),
-                        "opacity": 1,
-                        "type": "raster"
-                    }),
-                    "workflow": {
+                            default_color=[0, 0, 0, 0],
+                            no_data_color=[0, 0, 0, 0],
+                            type="palette"
+                        )),
+                        opacity=1,
+                        type="raster"
+                    )),
+                    workflow={
                         "operator": {
                             "params": {
                                 "data": "ndvi"
@@ -131,14 +131,13 @@ class LayerTests(unittest.TestCase):
                         },
                         "type": "Raster"
                     }
-
-                })
+                )
             )
 
     def test_layer_collection(self):
         """Test `add_layer`."""
 
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -214,7 +213,7 @@ class LayerTests(unittest.TestCase):
     def test_layer_collection_modification(self):
         """Test addition and removal to a data collection."""
 
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -274,7 +273,7 @@ class LayerTests(unittest.TestCase):
             m.post(
                 'http://mock-instance/layerDb/collections/490ef009-aa7a-44b0-bbef-73cfb5916b55/layers',
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
-                additional_matcher=lambda request: request.json() == {
+                expected_request_body={
                     'name': 'ports clone',
                     'description': 'test description',
                     'workflow': {
@@ -376,7 +375,7 @@ class LayerTests(unittest.TestCase):
             m.post(
                 'http://mock-instance/layerDb/collections/64221c85-22df-4d30-9c97-605e5c498629/collections',
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
-                additional_matcher=lambda request: request.json() == {
+                expected_request_body={
                     'name': 'sub sub collection',
                     'description': 'yet another description',
                 },
@@ -491,7 +490,7 @@ class LayerTests(unittest.TestCase):
     def test_save_as_dataset(self):
         """Test `layer.save_as_dataset`."""
 
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -572,7 +571,7 @@ class LayerTests(unittest.TestCase):
                 metadata={},
             )
 
-            with self.assertRaises(GeoEngineException):
+            with self.assertRaises(BadRequestException):
                 layer.save_as_dataset()
 
     def test_layer_repr_html_does_not_crash(self):
@@ -592,39 +591,39 @@ class LayerTests(unittest.TestCase):
                 },
                 "type": "Raster"
             },
-            symbology=RasterSymbology.from_response(api.RasterSymbology(
+            symbology=RasterSymbology.from_response(api.Symbology(api.RasterSymbologyWithType(
                 type='raster',
-                colorizer=api.LinearGradientColorizer(
+                colorizer=api.Colorizer(api.LinearGradientWithType(
                     type='linearGradient',
-                    noDataColor=[0, 0, 0, 0],
-                    overColor=[0, 0, 0, 0],
-                    underColor=[0, 0, 0, 0],
+                    no_data_color=[0, 0, 0, 0],
+                    over_color=[0, 0, 0, 0],
+                    under_color=[0, 0, 0, 0],
                     breakpoints=[
-                        api.ColorizerBreakpoint(value=0., color=[0, 0, 0, 0]),
-                        api.ColorizerBreakpoint(value=1., color=[0, 0, 0, 0]),
+                        api.Breakpoint(value=0., color=[0, 0, 0, 0]),
+                        api.Breakpoint(value=1., color=[0, 0, 0, 0]),
                     ],
-                ),
+                )),
                 opacity=1,
-            )),
+            ))),
             properties=[],
             metadata={},
         )
 
         _html = layer._repr_html_()  # pylint: disable=protected-access
 
-        layer.symbology = RasterSymbology.from_response(api.RasterSymbology(
+        layer.symbology = RasterSymbology.from_response(api.Symbology(api.RasterSymbologyWithType(
             type='raster',
-            colorizer=api.PaletteColorizer(
+            colorizer=api.Colorizer(api.PaletteColorizer(
                 type='palette',
-                noDataColor=[0, 0, 0, 0],
+                no_data_color=[0, 0, 0, 0],
                 colors={
                     0.: [0, 0, 0, 0],
                     1.: [0, 0, 0, 0],
                 },
-                defaultColor=[0, 0, 0, 0],
-            ),
+                default_color=[0, 0, 0, 0],
+            )),
             opacity=1,
-        ))
+        )))
 
         _html = layer._repr_html_()  # pylint: disable=protected-access
 

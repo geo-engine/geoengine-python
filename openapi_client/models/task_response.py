@@ -26,7 +26,7 @@ class TaskResponse(BaseModel):
     """
     Create a task somewhere and respond with a task id to query the task status.
     """
-    task_id: StrictStr = Field(...)
+    task_id: StrictStr = Field(..., alias="taskId")
     __properties = ["task_id"]
 
     class Config:
@@ -65,7 +65,7 @@ class TaskResponse(BaseModel):
             return TaskResponse.parse_obj(obj)
 
         _obj = TaskResponse.parse_obj({
-            "task_id": obj.get("task_id")
+            "taskId": obj.get("taskId")
         })
         return _obj
 
