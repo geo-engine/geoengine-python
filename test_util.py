@@ -4,14 +4,26 @@ from unittest.mock import patch
 
 
 class UrllibMocker:
+    STATUS_CODE_REASON_MAP = {
+        200: "OK",
+        400: "Bad Request",
+        404: "Not Found"
+    }
+
     def __enter__(self):
         self._matchers = []
+        self.request_history = []
         self._mock_context = patch("openapi_client.rest.urllib3.PoolManager.request")
         mock_request = self._mock_context.__enter__()
         mock_request.side_effect = self._handle_request
         return self
 
     def _handle_request(self, method, url, *args, **kwargs):
+        self.request_history.append({
+            "method": method,
+            "url": url,
+            **kwargs
+        })
         for matcher in self._matchers:
             if matcher["method"] == method and matcher["url"].startswith(url) and (
                 matcher["requestHeaders"] is None or matcher["requestHeaders"].items() <= kwargs["headers"].items()
@@ -19,7 +31,7 @@ class UrllibMocker:
                     matcher["expectedRequestBody"] is None or matcher["expectedRequestBody"] == loads(kwargs["body"])):
                 return urllib3.response.HTTPResponse(
                     status=matcher["statusCode"],
-                    reason="OK",
+                    reason=UrllibMocker.STATUS_CODE_REASON_MAP[matcher["statusCode"]],
                     body=matcher["body"]
                 )
         raise KeyError(f'No handler found for {method} {url}')

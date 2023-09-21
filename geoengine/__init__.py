@@ -13,7 +13,7 @@ from .error import GeoEngineException, InputException, UninitializedException, T
     SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \
     InvalidUrlException, MissingFieldInResponseException
 from openapi_client.exceptions import BadRequestException, OpenApiException, ApiTypeError, ApiValueError, \
-    ApiKeyError, ApiAttributeError, ApiException
+    ApiKeyError, ApiAttributeError, ApiException, NotFoundException
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
     LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer

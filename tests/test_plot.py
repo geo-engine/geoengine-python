@@ -1,9 +1,10 @@
 '''Tests for the plotting functionality'''
 
+import json
 import textwrap
 from datetime import datetime
 import unittest
-import requests_mock
+from test_util import UrllibMocker
 from vega import VegaLite
 
 import geoengine as ge
@@ -16,7 +17,7 @@ class PlotTests(unittest.TestCase):
         ge.reset(False)
 
     def test_ndvi_histogram(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -38,7 +39,7 @@ class PlotTests(unittest.TestCase):
 
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/plot/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?bbox=-180.0%2C-90.0%2C180.0%2C90.0&crs=EPSG:4326&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&spatialResolution=0.1,0.1',
+                'http://mock-instance/plot/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?bbox=-180.0%2C-90.0%2C180.0%2C90.0&crs=EPSG%3A4326&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&spatialResolution=0.1%2C0.1',
                 json={
                     "outputFormat": "JsonVega",
                     "plotType": "Histogram",
@@ -94,15 +95,15 @@ class PlotTests(unittest.TestCase):
             self.assertEqual(len(m.request_history), 4)
 
             workflow_request = m.request_history[1]
-            self.assertEqual(workflow_request.method, "POST")
-            self.assertEqual(workflow_request.url,
+            self.assertEqual(workflow_request["method"], "POST")
+            self.assertEqual(workflow_request["url"],
                              "http://mock-instance/workflow")
-            self.assertEqual(workflow_request.json(), workflow_definition)
+            self.assertEqual(json.loads(workflow_request["body"]), workflow_definition)
 
     def test_result_descriptor(self):
         # pylint: disable=duplicate-code
 
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -121,7 +122,8 @@ class PlotTests(unittest.TestCase):
                       'error': 'NotFound',
                       'message': 'Not Found',
                   },
-                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
+                  status_code=404)
 
             ge.initialize("http://mock-instance")
 
@@ -137,18 +139,17 @@ class PlotTests(unittest.TestCase):
                 textwrap.dedent(expected_repr)
             )
 
-            with self.assertRaises(ge.GeoEngineException) as exception:
+            with self.assertRaises(ge.NotFoundException) as exception:
                 workflow = ge.workflow_by_id('foo')
 
                 result_descriptor = workflow.get_result_descriptor()
 
-            self.assertEqual(str(exception.exception),
-                             'NotFound: Not Found')
+            self.assertTrue('404' in str(exception.exception))
 
     def test_wrong_request(self):
         # pylint: disable=duplicate-code
 
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -186,7 +187,7 @@ class PlotTests(unittest.TestCase):
                     ))
 
     def test_plot_error(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -208,7 +209,7 @@ class PlotTests(unittest.TestCase):
 
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/plot/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?bbox=-180.0%2C-90.0%2C180.0%2C90.0&crs=EPSG:4326&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&spatialResolution=0.1,0.1',
+                'http://mock-instance/plot/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?bbox=-180.0%2C-90.0%2C180.0%2C90.0&crs=EPSG%3A4326&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&spatialResolution=0.1%2C0.1',
                 json={
                     "error": "Operator",
                     "message": 'Operator: Could not open gdal dataset for file path '
@@ -248,7 +249,7 @@ class PlotTests(unittest.TestCase):
 
             workflow = ge.register_workflow(workflow_definition)
 
-            with self.assertRaises(ge.GeoEngineException) as ctx:
+            with self.assertRaises(ge.BadRequestException) as ctx:
                 workflow.plot_chart(
                     ge.QueryRectangle(
                         ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
@@ -257,8 +258,8 @@ class PlotTests(unittest.TestCase):
                     )
                 )
 
-            self.assertEqual(str(ctx.exception),
-                             'Operator: Operator: Could not open gdal dataset for file path '
+            self.assertEqual(json.loads(ctx.exception.body)["message"],
+                             'Operator: Could not open gdal dataset for file path '
                              '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"')
 
 

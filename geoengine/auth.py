@@ -28,7 +28,6 @@ class BearerAuth(AuthBase):  # pylint: disable=too-few-public-methods
         return r
 
 
-
 class Session:
     '''
     A Geo Engine session
@@ -178,7 +177,7 @@ class Session:
             raise MethodOnlyAvailableInGeoEnginePro("User id is only available in Geo Engine Pro")
 
         return self.__user_id
-    
+
     def requests_bearer_auth(self) -> BearerAuth:
         '''
         Return a Bearer authentication object for the current session
