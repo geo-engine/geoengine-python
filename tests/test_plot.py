@@ -4,9 +4,9 @@ import json
 import textwrap
 from datetime import datetime
 import unittest
-from test_util import UrllibMocker
 from vega import VegaLite
 
+from test_util import UrllibMocker
 import geoengine as ge
 
 
