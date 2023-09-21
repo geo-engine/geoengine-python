@@ -2,6 +2,7 @@
 
 from pkg_resources import get_distribution
 from requests import utils
+from pydantic.error_wrappers import ValidationError
 
 from .auth import Session, get_session, initialize, reset
 from .colorizer import Colorizer, ColorBreakpoint, LinearGradientColorizer, PaletteColorizer, \

@@ -19,25 +19,26 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 from pydantic import BaseModel, Field, StrictStr, validator
 
-class TaskStatusOneOf2(BaseModel):
+class CompletedTaskStatus(BaseModel):
     """
-    TaskStatusOneOf2
+    CompletedTaskStatus
     """
-    clean_up: Optional[Dict[str, Any]] = Field(None, alias="cleanUp")
-    status: Optional[StrictStr] = None
-    __properties = ["cleanUp", "status"]
+    description: Optional[StrictStr] = None
+    info: Optional[Any] = None
+    status: StrictStr = Field(...)
+    task_type: StrictStr = Field(..., alias="taskType")
+    time_started: StrictStr = Field(..., alias="timeStarted")
+    time_total: StrictStr = Field(..., alias="timeTotal")
+    __properties = ["description", "info", "status", "taskType", "timeStarted", "timeTotal"]
 
     @validator('status')
     def status_validate_enum(cls, value):
         """Validates the enum"""
-        if value is None:
-            return value
-
-        if value not in ('aborted'):
-            raise ValueError("must be one of enum values ('aborted')")
+        if value not in ('completed'):
+            raise ValueError("must be one of enum values ('completed')")
         return value
 
     class Config:
@@ -54,8 +55,8 @@ class TaskStatusOneOf2(BaseModel):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> TaskStatusOneOf2:
-        """Create an instance of TaskStatusOneOf2 from a JSON string"""
+    def from_json(cls, json_str: str) -> CompletedTaskStatus:
+        """Create an instance of CompletedTaskStatus from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self):
@@ -64,20 +65,29 @@ class TaskStatusOneOf2(BaseModel):
                           exclude={
                           },
                           exclude_none=True)
+        # set to None if info (nullable) is None
+        # and __fields_set__ contains the field
+        if self.info is None and "info" in self.__fields_set__:
+            _dict['info'] = None
+
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> TaskStatusOneOf2:
-        """Create an instance of TaskStatusOneOf2 from a dict"""
+    def from_dict(cls, obj: dict) -> CompletedTaskStatus:
+        """Create an instance of CompletedTaskStatus from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return TaskStatusOneOf2.parse_obj(obj)
+            return CompletedTaskStatus.parse_obj(obj)
 
-        _obj = TaskStatusOneOf2.parse_obj({
-            "clean_up": obj.get("cleanUp"),
-            "status": obj.get("status")
+        _obj = CompletedTaskStatus.parse_obj({
+            "description": obj.get("description"),
+            "info": obj.get("info"),
+            "status": obj.get("status"),
+            "task_type": obj.get("taskType"),
+            "time_started": obj.get("timeStarted"),
+            "time_total": obj.get("timeTotal")
         })
         return _obj
 

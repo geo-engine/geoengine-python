@@ -19,29 +19,27 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 from pydantic import BaseModel, Field, StrictStr, validator
 
-class TaskStatusOneOf1(BaseModel):
+class RunningTaskStatus(BaseModel):
     """
-    TaskStatusOneOf1
+    RunningTaskStatus
     """
     description: Optional[StrictStr] = None
-    info: Optional[Dict[str, Any]] = None
-    status: Optional[StrictStr] = None
-    task_type: Optional[StrictStr] = Field(None, alias="taskType")
-    time_started: Optional[StrictStr] = Field(None, alias="timeStarted")
-    time_total: Optional[StrictStr] = Field(None, alias="timeTotal")
-    __properties = ["description", "info", "status", "taskType", "timeStarted", "timeTotal"]
+    estimated_time_remaining: StrictStr = Field(..., alias="estimatedTimeRemaining")
+    info: Optional[Any] = None
+    pct_complete: StrictStr = Field(..., alias="pctComplete")
+    status: StrictStr = Field(...)
+    task_type: StrictStr = Field(..., alias="taskType")
+    time_started: StrictStr = Field(..., alias="timeStarted")
+    __properties = ["description", "estimatedTimeRemaining", "info", "pctComplete", "status", "taskType", "timeStarted"]
 
     @validator('status')
     def status_validate_enum(cls, value):
         """Validates the enum"""
-        if value is None:
-            return value
-
-        if value not in ('completed'):
-            raise ValueError("must be one of enum values ('completed')")
+        if value not in ('running'):
+            raise ValueError("must be one of enum values ('running')")
         return value
 
     class Config:
@@ -58,8 +56,8 @@ class TaskStatusOneOf1(BaseModel):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> TaskStatusOneOf1:
-        """Create an instance of TaskStatusOneOf1 from a JSON string"""
+    def from_json(cls, json_str: str) -> RunningTaskStatus:
+        """Create an instance of RunningTaskStatus from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self):
@@ -68,24 +66,30 @@ class TaskStatusOneOf1(BaseModel):
                           exclude={
                           },
                           exclude_none=True)
+        # set to None if info (nullable) is None
+        # and __fields_set__ contains the field
+        if self.info is None and "info" in self.__fields_set__:
+            _dict['info'] = None
+
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> TaskStatusOneOf1:
-        """Create an instance of TaskStatusOneOf1 from a dict"""
+    def from_dict(cls, obj: dict) -> RunningTaskStatus:
+        """Create an instance of RunningTaskStatus from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return TaskStatusOneOf1.parse_obj(obj)
+            return RunningTaskStatus.parse_obj(obj)
 
-        _obj = TaskStatusOneOf1.parse_obj({
+        _obj = RunningTaskStatus.parse_obj({
             "description": obj.get("description"),
+            "estimated_time_remaining": obj.get("estimatedTimeRemaining"),
             "info": obj.get("info"),
+            "pct_complete": obj.get("pctComplete"),
             "status": obj.get("status"),
             "task_type": obj.get("taskType"),
-            "time_started": obj.get("timeStarted"),
-            "time_total": obj.get("timeTotal")
+            "time_started": obj.get("timeStarted")
         })
         return _obj
 

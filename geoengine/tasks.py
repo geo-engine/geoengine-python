@@ -75,19 +75,19 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         inner = response.actual_instance
         status = TaskStatus(inner.status)
         time_started = None
-        if isinstance(inner, (openapi_client.TaskStatusOneOf, openapi_client.TaskStatusOneOf1)) \
+        if isinstance(inner, (openapi_client.RunningTaskStatus, openapi_client.CompletedTaskStatus)) \
                 and inner.time_started is not None:
             time_started = datetime.datetime.strptime(inner.time_started, DEFAULT_ISO_TIME_FORMAT)
 
-        if isinstance(inner, openapi_client.TaskStatusOneOf):
+        if isinstance(inner, openapi_client.RunningTaskStatus):
             return RunningTaskStatusInfo(status, time_started, inner.pct_complete, inner.estimated_time_remaining,
                                          inner.info, inner.task_type, inner.description)
-        if isinstance(inner, openapi_client.TaskStatusOneOf1):
+        if isinstance(inner, openapi_client.CompletedTaskStatus):
             return CompletedTaskStatusInfo(status, time_started, inner.info, inner.time_total,
                                            inner.task_type, inner.description)
-        if isinstance(inner, openapi_client.TaskStatusOneOf2):
+        if isinstance(inner, openapi_client.AbortedTaskStatus):
             return AbortedTaskStatusInfo(status, time_started, inner.clean_up)
-        if isinstance(inner, openapi_client.TaskStatusOneOf3):
+        if isinstance(inner, openapi_client.FailedTaskStatus):
             return FailedTaskStatusInfo(status, time_started, inner.error, inner.clean_up)
         raise GeoEngineException(response)
 
@@ -310,7 +310,8 @@ def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
 
     result = []
     for item in response:
-        converted = openapi_client.TaskStatus.from_dict(item.to_dict())
-        result.append((Task(TaskId(UUID(item.task_id))), TaskStatusInfo.from_response(converted)))
+        print("Item:", item)
+        print("Actual:", item.actual_instance)
+        result.append((Task(TaskId(UUID(item.task_id))), TaskStatusInfo.from_response(item)))
 
     return result

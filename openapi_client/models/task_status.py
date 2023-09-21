@@ -21,35 +21,39 @@ import re  # noqa: F401
 
 from typing import Any, List, Optional
 from pydantic import BaseModel, Field, StrictStr, ValidationError, validator
-from openapi_client.models.task_status_one_of import TaskStatusOneOf
-from openapi_client.models.task_status_one_of1 import TaskStatusOneOf1
-from openapi_client.models.task_status_one_of2 import TaskStatusOneOf2
-from openapi_client.models.task_status_one_of3 import TaskStatusOneOf3
+from openapi_client.models.aborted_task_status import AbortedTaskStatus
+from openapi_client.models.completed_task_status import CompletedTaskStatus
+from openapi_client.models.failed_task_status import FailedTaskStatus
+from openapi_client.models.running_task_status import RunningTaskStatus
 from typing import Union, Any, List, TYPE_CHECKING
 from pydantic import StrictStr, Field
 
-TASKSTATUS_ONE_OF_SCHEMAS = ["TaskStatusOneOf", "TaskStatusOneOf1", "TaskStatusOneOf2", "TaskStatusOneOf3"]
+TASKSTATUS_ONE_OF_SCHEMAS = ["AbortedTaskStatus", "CompletedTaskStatus", "FailedTaskStatus", "RunningTaskStatus"]
 
 class TaskStatus(BaseModel):
     """
     TaskStatus
     """
-    # data type: TaskStatusOneOf
-    oneof_schema_1_validator: Optional[TaskStatusOneOf] = None
-    # data type: TaskStatusOneOf1
-    oneof_schema_2_validator: Optional[TaskStatusOneOf1] = None
-    # data type: TaskStatusOneOf2
-    oneof_schema_3_validator: Optional[TaskStatusOneOf2] = None
-    # data type: TaskStatusOneOf3
-    oneof_schema_4_validator: Optional[TaskStatusOneOf3] = None
+    # data type: RunningTaskStatus
+    oneof_schema_1_validator: Optional[RunningTaskStatus] = None
+    # data type: CompletedTaskStatus
+    oneof_schema_2_validator: Optional[CompletedTaskStatus] = None
+    # data type: AbortedTaskStatus
+    oneof_schema_3_validator: Optional[AbortedTaskStatus] = None
+    # data type: FailedTaskStatus
+    oneof_schema_4_validator: Optional[FailedTaskStatus] = None
     if TYPE_CHECKING:
-        actual_instance: Union[TaskStatusOneOf, TaskStatusOneOf1, TaskStatusOneOf2, TaskStatusOneOf3]
+        actual_instance: Union[AbortedTaskStatus, CompletedTaskStatus, FailedTaskStatus, RunningTaskStatus]
     else:
         actual_instance: Any
     one_of_schemas: List[str] = Field(TASKSTATUS_ONE_OF_SCHEMAS, const=True)
 
     class Config:
         validate_assignment = True
+
+    discriminator_value_class_map = {
+        'TaskStatusWithId': 'TaskStatusWithId'
+    }
 
     def __init__(self, *args, **kwargs):
         if args:
@@ -66,32 +70,32 @@ class TaskStatus(BaseModel):
         instance = TaskStatus.construct()
         error_messages = []
         match = 0
-        # validate data type: TaskStatusOneOf
-        if not isinstance(v, TaskStatusOneOf):
-            error_messages.append(f"Error! Input type `{type(v)}` is not `TaskStatusOneOf`")
+        # validate data type: RunningTaskStatus
+        if not isinstance(v, RunningTaskStatus):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `RunningTaskStatus`")
         else:
             match += 1
-        # validate data type: TaskStatusOneOf1
-        if not isinstance(v, TaskStatusOneOf1):
-            error_messages.append(f"Error! Input type `{type(v)}` is not `TaskStatusOneOf1`")
+        # validate data type: CompletedTaskStatus
+        if not isinstance(v, CompletedTaskStatus):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `CompletedTaskStatus`")
         else:
             match += 1
-        # validate data type: TaskStatusOneOf2
-        if not isinstance(v, TaskStatusOneOf2):
-            error_messages.append(f"Error! Input type `{type(v)}` is not `TaskStatusOneOf2`")
+        # validate data type: AbortedTaskStatus
+        if not isinstance(v, AbortedTaskStatus):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `AbortedTaskStatus`")
         else:
             match += 1
-        # validate data type: TaskStatusOneOf3
-        if not isinstance(v, TaskStatusOneOf3):
-            error_messages.append(f"Error! Input type `{type(v)}` is not `TaskStatusOneOf3`")
+        # validate data type: FailedTaskStatus
+        if not isinstance(v, FailedTaskStatus):
+            error_messages.append(f"Error! Input type `{type(v)}` is not `FailedTaskStatus`")
         else:
             match += 1
         if match > 1:
             # more than 1 match
-            raise ValueError("Multiple matches found when setting `actual_instance` in TaskStatus with oneOf schemas: TaskStatusOneOf, TaskStatusOneOf1, TaskStatusOneOf2, TaskStatusOneOf3. Details: " + ", ".join(error_messages))
+            raise ValueError("Multiple matches found when setting `actual_instance` in TaskStatus with oneOf schemas: AbortedTaskStatus, CompletedTaskStatus, FailedTaskStatus, RunningTaskStatus. Details: " + ", ".join(error_messages))
         elif match == 0:
             # no match
-            raise ValueError("No match found when setting `actual_instance` in TaskStatus with oneOf schemas: TaskStatusOneOf, TaskStatusOneOf1, TaskStatusOneOf2, TaskStatusOneOf3. Details: " + ", ".join(error_messages))
+            raise ValueError("No match found when setting `actual_instance` in TaskStatus with oneOf schemas: AbortedTaskStatus, CompletedTaskStatus, FailedTaskStatus, RunningTaskStatus. Details: " + ", ".join(error_messages))
         else:
             return v
 
@@ -106,37 +110,87 @@ class TaskStatus(BaseModel):
         error_messages = []
         match = 0
 
-        # deserialize data into TaskStatusOneOf
+        # use oneOf discriminator to lookup the data type
+        _data_type = json.loads(json_str).get("status")
+        if not _data_type:
+            raise ValueError("Failed to lookup data type from the field `status` in the input.")
+
+        # check if data type is `AbortedTaskStatus`
+        if _data_type == "AbortedTaskStatus":
+            instance.actual_instance = AbortedTaskStatus.from_json(json_str)
+            return instance
+
+        # check if data type is `CompletedTaskStatus`
+        if _data_type == "CompletedTaskStatus":
+            instance.actual_instance = CompletedTaskStatus.from_json(json_str)
+            return instance
+
+        # check if data type is `FailedTaskStatus`
+        if _data_type == "FailedTaskStatus":
+            instance.actual_instance = FailedTaskStatus.from_json(json_str)
+            return instance
+
+        # check if data type is `RunningTaskStatus`
+        if _data_type == "RunningTaskStatus":
+            instance.actual_instance = RunningTaskStatus.from_json(json_str)
+            return instance
+
+        # check if data type is `TaskStatusWithId`
+        if _data_type == "TaskStatusWithId":
+            instance.actual_instance = TaskStatusWithId.from_json(json_str)
+            return instance
+
+        # check if data type is `AbortedTaskStatus`
+        if _data_type == "aborted":
+            instance.actual_instance = AbortedTaskStatus.from_json(json_str)
+            return instance
+
+        # check if data type is `CompletedTaskStatus`
+        if _data_type == "completed":
+            instance.actual_instance = CompletedTaskStatus.from_json(json_str)
+            return instance
+
+        # check if data type is `FailedTaskStatus`
+        if _data_type == "failed":
+            instance.actual_instance = FailedTaskStatus.from_json(json_str)
+            return instance
+
+        # check if data type is `RunningTaskStatus`
+        if _data_type == "running":
+            instance.actual_instance = RunningTaskStatus.from_json(json_str)
+            return instance
+
+        # deserialize data into RunningTaskStatus
         try:
-            instance.actual_instance = TaskStatusOneOf.from_json(json_str)
+            instance.actual_instance = RunningTaskStatus.from_json(json_str)
             match += 1
         except (ValidationError, ValueError) as e:
             error_messages.append(str(e))
-        # deserialize data into TaskStatusOneOf1
+        # deserialize data into CompletedTaskStatus
         try:
-            instance.actual_instance = TaskStatusOneOf1.from_json(json_str)
+            instance.actual_instance = CompletedTaskStatus.from_json(json_str)
             match += 1
         except (ValidationError, ValueError) as e:
             error_messages.append(str(e))
-        # deserialize data into TaskStatusOneOf2
+        # deserialize data into AbortedTaskStatus
         try:
-            instance.actual_instance = TaskStatusOneOf2.from_json(json_str)
+            instance.actual_instance = AbortedTaskStatus.from_json(json_str)
             match += 1
         except (ValidationError, ValueError) as e:
             error_messages.append(str(e))
-        # deserialize data into TaskStatusOneOf3
+        # deserialize data into FailedTaskStatus
         try:
-            instance.actual_instance = TaskStatusOneOf3.from_json(json_str)
+            instance.actual_instance = FailedTaskStatus.from_json(json_str)
             match += 1
         except (ValidationError, ValueError) as e:
             error_messages.append(str(e))
 
         if match > 1:
             # more than 1 match
-            raise ValueError("Multiple matches found when deserializing the JSON string into TaskStatus with oneOf schemas: TaskStatusOneOf, TaskStatusOneOf1, TaskStatusOneOf2, TaskStatusOneOf3. Details: " + ", ".join(error_messages))
+            raise ValueError("Multiple matches found when deserializing the JSON string into TaskStatus with oneOf schemas: AbortedTaskStatus, CompletedTaskStatus, FailedTaskStatus, RunningTaskStatus. Details: " + ", ".join(error_messages))
         elif match == 0:
             # no match
-            raise ValueError("No match found when deserializing the JSON string into TaskStatus with oneOf schemas: TaskStatusOneOf, TaskStatusOneOf1, TaskStatusOneOf2, TaskStatusOneOf3. Details: " + ", ".join(error_messages))
+            raise ValueError("No match found when deserializing the JSON string into TaskStatus with oneOf schemas: AbortedTaskStatus, CompletedTaskStatus, FailedTaskStatus, RunningTaskStatus. Details: " + ", ".join(error_messages))
         else:
             return instance
 

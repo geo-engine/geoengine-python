@@ -19,35 +19,16 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, Dict, Optional
-from pydantic import BaseModel, Field, StrictStr, validator
 
-class TaskStatusWithId(BaseModel):
+from pydantic import Field, StrictStr
+from openapi_client.models.task_status import TaskStatus
+
+class TaskStatusWithId(TaskStatus):
     """
     TaskStatusWithId
     """
-    description: Optional[StrictStr] = None
-    estimated_time_remaining: Optional[StrictStr] = Field(None, alias="estimatedTimeRemaining")
-    info: Optional[Dict[str, Any]] = None
-    pct_complete: Optional[StrictStr] = Field(None, alias="pctComplete")
-    status: Optional[StrictStr] = None
-    task_type: Optional[StrictStr] = Field(None, alias="taskType")
-    time_started: Optional[StrictStr] = Field(None, alias="timeStarted")
-    time_total: Optional[StrictStr] = Field(None, alias="timeTotal")
-    clean_up: Optional[Dict[str, Any]] = Field(None, alias="cleanUp")
-    error: Optional[Dict[str, Any]] = None
     task_id: StrictStr = Field(..., alias="taskId")
     __properties = ["description", "estimatedTimeRemaining", "info", "pctComplete", "status", "taskType", "timeStarted", "timeTotal", "cleanUp", "error", "taskId"]
-
-    @validator('status')
-    def status_validate_enum(cls, value):
-        """Validates the enum"""
-        if value is None:
-            return value
-
-        if value not in ('failed'):
-            raise ValueError("must be one of enum values ('failed')")
-        return value
 
     class Config:
         """Pydantic configuration"""
@@ -73,6 +54,21 @@ class TaskStatusWithId(BaseModel):
                           exclude={
                           },
                           exclude_none=True)
+        # set to None if info (nullable) is None
+        # and __fields_set__ contains the field
+        if getattr(self.actual_instance, "info", None) is None and "info" in self.actual_instance.__fields_set__:
+            _dict['info'] = None
+
+        # set to None if clean_up (nullable) is None
+        # and __fields_set__ contains the field
+        if getattr(self.actual_instance, "clean_up", None) is None and "clean_up" in self.actual_instance.__fields_set__:
+            _dict['cleanUp'] = None
+
+        # set to None if error (nullable) is None
+        # and __fields_set__ contains the field
+        if getattr(self.actual_instance, "error", None) is None and "error" in self.actual_instance.__fields_set__:
+            _dict['error'] = None
+
         return _dict
 
     @classmethod
@@ -85,16 +81,7 @@ class TaskStatusWithId(BaseModel):
             return TaskStatusWithId.parse_obj(obj)
 
         _obj = TaskStatusWithId.parse_obj({
-            "description": obj.get("description"),
-            "estimated_time_remaining": obj.get("estimatedTimeRemaining"),
-            "info": obj.get("info"),
-            "pct_complete": obj.get("pctComplete"),
-            "status": obj.get("status"),
-            "task_type": obj.get("taskType"),
-            "time_started": obj.get("timeStarted"),
-            "time_total": obj.get("timeTotal"),
-            "clean_up": obj.get("cleanUp"),
-            "error": obj.get("error"),
+            "actual_instance": TaskStatus.from_dict(obj).actual_instance,
             "task_id": obj.get("taskId")
         })
         return _obj

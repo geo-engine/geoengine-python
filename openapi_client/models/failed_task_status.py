@@ -19,24 +19,21 @@ import re  # noqa: F401
 import json
 
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 from pydantic import BaseModel, Field, StrictStr, validator
 
-class TaskStatusOneOf3(BaseModel):
+class FailedTaskStatus(BaseModel):
     """
-    TaskStatusOneOf3
+    FailedTaskStatus
     """
-    clean_up: Optional[Dict[str, Any]] = Field(None, alias="cleanUp")
-    error: Optional[Dict[str, Any]] = None
-    status: Optional[StrictStr] = None
+    clean_up: Optional[Any] = Field(..., alias="cleanUp")
+    error: Optional[Any] = Field(...)
+    status: StrictStr = Field(...)
     __properties = ["cleanUp", "error", "status"]
 
     @validator('status')
     def status_validate_enum(cls, value):
         """Validates the enum"""
-        if value is None:
-            return value
-
         if value not in ('failed'):
             raise ValueError("must be one of enum values ('failed')")
         return value
@@ -55,8 +52,8 @@ class TaskStatusOneOf3(BaseModel):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> TaskStatusOneOf3:
-        """Create an instance of TaskStatusOneOf3 from a JSON string"""
+    def from_json(cls, json_str: str) -> FailedTaskStatus:
+        """Create an instance of FailedTaskStatus from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self):
@@ -65,18 +62,28 @@ class TaskStatusOneOf3(BaseModel):
                           exclude={
                           },
                           exclude_none=True)
+        # set to None if clean_up (nullable) is None
+        # and __fields_set__ contains the field
+        if self.clean_up is None and "clean_up" in self.__fields_set__:
+            _dict['cleanUp'] = None
+
+        # set to None if error (nullable) is None
+        # and __fields_set__ contains the field
+        if self.error is None and "error" in self.__fields_set__:
+            _dict['error'] = None
+
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> TaskStatusOneOf3:
-        """Create an instance of TaskStatusOneOf3 from a dict"""
+    def from_dict(cls, obj: dict) -> FailedTaskStatus:
+        """Create an instance of FailedTaskStatus from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return TaskStatusOneOf3.parse_obj(obj)
+            return FailedTaskStatus.parse_obj(obj)
 
-        _obj = TaskStatusOneOf3.parse_obj({
+        _obj = FailedTaskStatus.parse_obj({
             "clean_up": obj.get("cleanUp"),
             "error": obj.get("error"),
             "status": obj.get("status")

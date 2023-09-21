@@ -46,6 +46,7 @@ from openapi_client.exceptions import ApiAttributeError
 from openapi_client.exceptions import ApiException
 
 # import models into sdk package
+from openapi_client.models.aborted_task_status import AbortedTaskStatus
 from openapi_client.models.add_collection200_response import AddCollection200Response
 from openapi_client.models.add_dataset import AddDataset
 from openapi_client.models.add_layer import AddLayer
@@ -62,6 +63,7 @@ from openapi_client.models.collection_item import CollectionItem
 from openapi_client.models.collection_type import CollectionType
 from openapi_client.models.color_param import ColorParam
 from openapi_client.models.colorizer import Colorizer
+from openapi_client.models.completed_task_status import CompletedTaskStatus
 from openapi_client.models.continuous_measurement import ContinuousMeasurement
 from openapi_client.models.continuous_measurement_with_type import ContinuousMeasurementWithType
 from openapi_client.models.coordinate2_d import Coordinate2D
@@ -91,6 +93,7 @@ from openapi_client.models.describe_coverage_request import DescribeCoverageRequ
 from openapi_client.models.error_response import ErrorResponse
 from openapi_client.models.external_data_id import ExternalDataId
 from openapi_client.models.external_data_id_with_type import ExternalDataIdWithType
+from openapi_client.models.failed_task_status import FailedTaskStatus
 from openapi_client.models.feature import Feature
 from openapi_client.models.feature_data_type import FeatureDataType
 from openapi_client.models.feature_type import FeatureType
@@ -207,6 +210,7 @@ from openapi_client.models.resource_id import ResourceId
 from openapi_client.models.rgba_colorizer import RgbaColorizer
 from openapi_client.models.role import Role
 from openapi_client.models.role_description import RoleDescription
+from openapi_client.models.running_task_status import RunningTaskStatus
 from openapi_client.models.st_rectangle import STRectangle
 from openapi_client.models.server_info import ServerInfo
 from openapi_client.models.spatial_partition2_d import SpatialPartition2D
@@ -225,10 +229,6 @@ from openapi_client.models.task_filter import TaskFilter
 from openapi_client.models.task_list_options import TaskListOptions
 from openapi_client.models.task_response import TaskResponse
 from openapi_client.models.task_status import TaskStatus
-from openapi_client.models.task_status_one_of import TaskStatusOneOf
-from openapi_client.models.task_status_one_of1 import TaskStatusOneOf1
-from openapi_client.models.task_status_one_of2 import TaskStatusOneOf2
-from openapi_client.models.task_status_one_of3 import TaskStatusOneOf3
 from openapi_client.models.task_status_with_id import TaskStatusWithId
 from openapi_client.models.text_symbology import TextSymbology
 from openapi_client.models.time_granularity import TimeGranularity

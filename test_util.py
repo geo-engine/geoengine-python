@@ -1,6 +1,7 @@
 import urllib3
 from json import dumps, loads
 from unittest.mock import patch
+from urllib.parse import urlparse
 
 
 class UrllibMocker:
@@ -25,7 +26,7 @@ class UrllibMocker:
             **kwargs
         })
         for matcher in self._matchers:
-            if matcher["method"] == method and matcher["url"].startswith(url) and (
+            if matcher["method"] == method and matcher["path"] == urlparse(url).path and (
                 matcher["requestHeaders"] is None or matcher["requestHeaders"].items() <= kwargs["headers"].items()
             ) and (
                     matcher["expectedRequestBody"] is None or matcher["expectedRequestBody"] == loads(kwargs["body"])):
@@ -36,14 +37,14 @@ class UrllibMocker:
                 )
         raise KeyError(f'No handler found for {method} {url}')
 
-    def register_uri(self, method, url, request_headers=None, expected_request_body=None, status_code=None, json=None):
+    def register_uri(self, method, url, request_headers=None, expected_request_body=None, status_code=200, json=None):
         matcher = {
             "method": method,
-            "url": url,
+            "path": urlparse(url).path,
             "requestHeaders": request_headers,
             "expectedRequestBody": expected_request_body,
-            "statusCode": 200 if status_code is None else status_code,
-            "body": "".encode('utf-8')
+            "statusCode": status_code,
+            "body": b''
         }
         if json is not None:
             matcher["body"] = dumps(json).encode('utf-8')
