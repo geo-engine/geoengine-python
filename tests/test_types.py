@@ -25,20 +25,14 @@ class TypesTests(unittest.TestCase):
 
         time_interval_without_tz = ge.TimeInterval(time_without_tz)
 
-        self.assertEqual(time_interval_with_tz.to_api_dict(), {
-            "start": "2014-04-01T12:00:00.000+00:00",
-            "end": None,
-        })
+        self.assertEqual(time_interval_with_tz.time_str, '2014-04-01T12:00:00.000+00:00')
 
-        self.assertEqual(time_interval_without_tz.to_api_dict(), {
-            "start": "2014-05-01T12:00:00.000+00:00",
-            "end": None,
-        })
+        self.assertEqual(time_interval_without_tz.time_str, '2014-05-01T12:00:00.000+00:00')
 
-        self.assertEqual(ge.TimeInterval(np.datetime64('-10000-01-01T00:00:00.000')).to_api_dict(), {
-            "start": "-10000-01-01T00:00:00.000+00:00",
-            "end": None,
-        })
+        self.assertEqual(
+            ge.TimeInterval(np.datetime64('-10000-01-01T00:00:00.000')).time_str,
+            '-10000-01-01T00:00:00.000+00:00'
+        )
 
 
 if __name__ == '__main__':
