@@ -1,10 +1,10 @@
 '''Tests regarding upload functionality'''
 
 import unittest
-import requests_mock
 import pandas as pd
 import geopandas
 
+from test_util import UrllibMocker
 import geoengine as ge
 from geoengine.datasets import DatasetName, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat
 from geoengine.types import TimeStepGranularity
@@ -17,7 +17,7 @@ class UploadTests(unittest.TestCase):
         ge.reset(False)
 
     def test_upload(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -65,7 +65,7 @@ class UploadTests(unittest.TestCase):
         time = OgrSourceDatasetTimeType.start(
             'start', OgrSourceTimeFormat.auto(), OgrSourceDuration.value(10, TimeStepGranularity.MINUTES))
 
-        self.assertEqual(time.to_api_dict(), {
+        self.assertEqual(time.to_api_dict().to_dict(), {
             'type': 'start',
             'startField': 'start',
             'startFormat': {
@@ -74,7 +74,7 @@ class UploadTests(unittest.TestCase):
             'duration': {
                 'type': 'value',
                 'step': 10,
-                'granularity': 'Minutes'
+                'granularity': 'minutes'
             }
         })
 

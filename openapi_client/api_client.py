@@ -558,6 +558,7 @@ class ApiClient(object):
         :param files: File parameters.
         :return: Form parameters with files.
         """
+        # Note: added support to upload data from RAM
         params = []
 
         if files:
@@ -566,17 +567,18 @@ class ApiClient(object):
                     continue
                 file_names = v if type(v) is list else [v]
                 for n in file_names:
-                    if os.path.isfile(n):
+                    if type(n) is tuple:
+                        filename = n[0]
+                        filedata = n[1]
+                    else:
                         with open(n, 'rb') as f:
                             filename = os.path.basename(f.name)
                             filedata = f.read()
-                            mimetype = (mimetypes.guess_type(filename)[0] or
-                                        'application/octet-stream')
-                            params.append(
-                                tuple([k, tuple([filename, filedata, mimetype])]))
-                    else:
-                        params.append(
-                            tuple([k, tuple([k, n])]))
+
+                    mimetype = (mimetypes.guess_type(filename)[0] or
+                                'application/octet-stream')
+                    params.append(
+                        tuple([k, tuple([filename, filedata, mimetype])]))
 
         return params
 

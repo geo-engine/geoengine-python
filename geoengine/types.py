@@ -550,7 +550,7 @@ class VectorResultDescriptor(ResultDescriptor):
         '''Convert the vector result descriptor to a dictionary'''
 
         return openapi_client.TypedResultDescriptor(openapi_client.VectorResultDescriptorWithType(
-            type='raster',
+            type='vector',
             data_type=self.data_type.to_api_enum(),
             spatial_reference=self.spatial_reference,
             columns={name: column_info.to_api_dict() for name, column_info in self.columns.items()},
@@ -818,13 +818,13 @@ class VectorDataType(str, Enum):
 
 class TimeStepGranularity(Enum):
     '''An enum of time step granularities'''
-    MILLIS = 'Millis'
-    SECONDS = 'Seconds'
-    MINUTES = 'Minutes'
-    HOURS = 'Hours'
-    DAYS = 'Days'
-    MONTHS = 'Months'
-    YEARS = 'Years'
+    MILLIS = 'millis'
+    SECONDS = 'seconds'
+    MINUTES = 'minutes'
+    HOURS = 'hours'
+    DAYS = 'days'
+    MONTHS = 'months'
+    YEARS = 'years'
 
     def to_api_enum(self) -> openapi_client.TimeGranularity:
         return openapi_client.TimeGranularity(self.value)

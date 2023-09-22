@@ -441,7 +441,7 @@ def upload_dataframe(
 
     with openapi_client.ApiClient(session.configuration) as api_client:
         uploads_api = openapi_client.UploadsApi(api_client)
-        response = uploads_api.upload_handler({"geo.json": df_json}, _request_timeout=timeout)
+        response = uploads_api.upload_handler([("geo.json", df_json)], _request_timeout=timeout)
 
     upload_id = UploadId.from_response(response)
 
@@ -486,7 +486,7 @@ def upload_dataframe(
                     data_type=vector_type,
                     spatial_reference=df.crs.to_string(),
                     columns=columns,
-                ).to_api_dict()
+                ).to_api_dict().actual_instance
             )),
         )
     )
