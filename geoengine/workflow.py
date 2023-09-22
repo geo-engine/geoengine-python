@@ -476,7 +476,7 @@ class Workflow:
 
         def create_xarray(record_batch: pa.RecordBatch) -> xr.DataArray:
             metadata = record_batch.schema.metadata
-            geo_transform: GeoTransform = GeoTransform.from_response(json.loads(metadata[b'geoTransform']))
+            geo_transform: GeoTransform = GeoTransform.from_response(openapi_client.GdalDatasetGeoTransform.from_json(metadata[b'geoTransform']))
             x_size = int(metadata[b'xSize'])
             y_size = int(metadata[b'ySize'])
             spatial_reference = metadata[b'spatialReference'].decode('utf-8')

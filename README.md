@@ -203,8 +203,8 @@ Then run the following commands. Note that you need to insert the correct url to
 
 ```bash
 rm -r openapi_client
-podman run --network=host -v ${PWD}:/local docker.io/openapitools/openapi-generator-cli generate -i http://localhost:3030/api/api-docs/openapi.json -g python --additional-properties=useOneOfDiscriminatorLookup=true,generateSourceCodeOnly=true -o /local/generated
-rm -r generated/openapi_client/test
+podman run --network=host -v ${PWD}:/local docker.io/openapitools/openapi-generator-cli generate -i http://localhost:3030/api/api-docs/openapi.json -g python --additional-properties=useOneOfDiscriminatorLookup=true -o /local/generated
+rm -r generated/openapi_client/test generated/openapi_client/docs
 mv generated/openapi_client .
 rm -r generated
 ```
