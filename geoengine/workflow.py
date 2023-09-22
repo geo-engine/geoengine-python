@@ -149,7 +149,7 @@ class Workflow:
                 request=openapi_client.GetFeatureRequest(openapi_client.GetFeatureRequest.GETFEATURE),
                 type_names=str(self.__workflow_id),
                 bbox=bbox.bbox_str,
-                version="2.0.0",
+                version=openapi_client.WfsVersion(openapi_client.WfsVersion.ENUM_2_DOT_0_DOT_0),
                 time=bbox.time_str,
                 srs_name=bbox.srs,
                 query_resolution=str(bbox.spatial_resolution),

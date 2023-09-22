@@ -19,16 +19,15 @@ import re  # noqa: F401
 import json
 
 
-from typing import List
+from typing import Any, List
 from pydantic import BaseModel, Field, conlist
 from openapi_client.models.collection_type import CollectionType
-from openapi_client.models.feature import Feature
 
 class GeoJson(BaseModel):
     """
     GeoJson
     """
-    features: conlist(Feature) = Field(...)
+    features: conlist(Any) = Field(...)
     type: CollectionType = Field(...)
     __properties = ["features", "type"]
 
@@ -56,13 +55,6 @@ class GeoJson(BaseModel):
                           exclude={
                           },
                           exclude_none=True)
-        # override the default output from pydantic by calling `to_dict()` of each item in features (list)
-        _items = []
-        if self.features:
-            for _item in self.features:
-                if _item:
-                    _items.append(_item.to_dict())
-            _dict['features'] = _items
         return _dict
 
     @classmethod
@@ -75,7 +67,7 @@ class GeoJson(BaseModel):
             return GeoJson.parse_obj(obj)
 
         _obj = GeoJson.parse_obj({
-            "features": [Feature.from_dict(_item) for _item in obj.get("features")] if obj.get("features") is not None else None,
+            "features": obj.get("features"),
             "type": obj.get("type")
         })
         return _obj

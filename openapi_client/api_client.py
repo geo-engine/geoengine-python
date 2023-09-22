@@ -25,6 +25,7 @@ import tempfile
 
 from urllib.parse import quote
 
+# Set default User-Agent.
 from pkg_resources import get_distribution
 
 from openapi_client.configuration import Configuration
@@ -234,6 +235,7 @@ class ApiClient(object):
           if response_type == "bytearray":
               response_data.data = response_data.data
           elif response_data.data is not None:
+              # Note: fixed handling of empty responses
               match = None
               content_type = response_data.getheader('content-type')
               if content_type is not None:
@@ -561,7 +563,6 @@ class ApiClient(object):
         :param files: File parameters.
         :return: Form parameters with files.
         """
-        # Note: added support to upload data from RAM
         params = []
 
         if files:
@@ -570,18 +571,14 @@ class ApiClient(object):
                     continue
                 file_names = v if type(v) is list else [v]
                 for n in file_names:
-                    if type(n) is tuple:
-                        filename = n[0]
-                        filedata = n[1]
-                    else:
-                        with open(n, 'rb') as f:
-                            filename = os.path.basename(f.name)
-                            filedata = f.read()
-
-                    mimetype = (mimetypes.guess_type(filename)[0] or
-                                'application/octet-stream')
-                    params.append(
-                        tuple([k, tuple([filename, filedata, mimetype])]))
+                    # Note: added support to upload data from RAM
+                    with open(n, 'rb') as f:
+                        filename = os.path.basename(f.name)
+                        filedata = f.read()
+                        mimetype = (mimetypes.guess_type(filename)[0] or
+                                    'application/octet-stream')
+                        params.append(
+                            tuple([k, tuple([filename, filedata, mimetype])]))
 
         return params
 

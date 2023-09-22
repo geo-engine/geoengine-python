@@ -63,6 +63,7 @@ class PaletteColorizer(BaseModel):
                           exclude={
                           },
                           exclude_none=True)
+        # Note: fixed wrong handling of colors field
         return _dict
 
     @classmethod

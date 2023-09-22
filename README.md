@@ -194,3 +194,21 @@ If the Geo Engine server requires authentication, you can set your credentials i
 GEOENGINE_EMAIL="email"
 GEOENGINE_PASSWORD="password"
 ```
+
+## Update OpenAPI Client
+
+When the Schema of the GeoEngine server changes due to new request handlers or changed models, you need to update the generated client code.
+For this to work you need to have a running instance of GeoEngine Pro. If you would use the basic edition, needed schemata would be missing.
+Then run the following commands. Note that you need to insert the correct url to your backend in the `podman` command.
+
+```bash
+rm -r openapi_client
+podman run --network=host -v ${PWD}:/local docker.io/openapitools/openapi-generator-cli generate -i http://localhost:3030/api/api-docs/openapi.json -g python --additional-properties=useOneOfDiscriminatorLookup=true,generateSourceCodeOnly=true -o /local/generated
+rm -r generated/openapi_client/test
+mv generated/openapi_client .
+rm -r generated
+```
+
+After this you have to carefully look at the changelog.
+The generated code has multiple bugs, which were already fixed in the past.
+In every place, where there is a "Note" comment, you need to revert the changes to re-apply the fix.

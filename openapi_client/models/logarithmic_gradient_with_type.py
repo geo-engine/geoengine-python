@@ -27,6 +27,7 @@ class LogarithmicGradientWithType(BaseModel):
     """
     LogarithmicGradientWithType
     """
+    # Note: need to remove default_color
     over_color: conlist(StrictInt, max_items=4, min_items=4) = Field(..., alias="overColor")
     under_color: conlist(StrictInt, max_items=4, min_items=4) = Field(..., alias="underColor")
     breakpoints: conlist(Breakpoint) = Field(...)
@@ -84,7 +85,7 @@ class LogarithmicGradientWithType(BaseModel):
             return LogarithmicGradientWithType.parse_obj(obj)
 
         _obj = LogarithmicGradientWithType.parse_obj({
-            "default_color": obj.get("defaultColor"),
+            # Note: need to remove default_color
             "over_color": obj.get("overColor"),
             "under_color": obj.get("underColor"),
             "breakpoints": [Breakpoint.from_dict(_item) for _item in obj.get("breakpoints")] if obj.get("breakpoints") is not None else None,

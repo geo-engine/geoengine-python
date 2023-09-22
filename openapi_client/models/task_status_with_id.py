@@ -54,6 +54,7 @@ class TaskStatusWithId(TaskStatus):
                           exclude={
                           },
                           exclude_none=True)
+        # Note: fixed handling of actual_instance
         # set to None if info (nullable) is None
         # and __fields_set__ contains the field
         if getattr(self.actual_instance, "info", None) is None and "info" in self.actual_instance.__fields_set__:
@@ -81,6 +82,7 @@ class TaskStatusWithId(TaskStatus):
             return TaskStatusWithId.parse_obj(obj)
 
         _obj = TaskStatusWithId.parse_obj({
+            # Note: fixed handling of actual_instance
             "actual_instance": TaskStatus.from_dict(obj).actual_instance,
             "task_id": obj.get("taskId")
         })

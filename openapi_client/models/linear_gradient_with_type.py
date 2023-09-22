@@ -27,6 +27,7 @@ class LinearGradientWithType(BaseModel):
     """
     LinearGradientWithType
     """
+    # Note: need to remove default_color
     over_color: conlist(StrictInt, max_items=4, min_items=4) = Field(..., alias="overColor")
     under_color: conlist(StrictInt, max_items=4, min_items=4) = Field(..., alias="underColor")
     breakpoints: conlist(Breakpoint) = Field(...)

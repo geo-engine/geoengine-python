@@ -118,12 +118,12 @@ class PlotTests(unittest.TestCase):
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             m.get('http://mock-instance/workflow/foo/metadata',
+                  status_code=404,
                   json={
                       'error': 'NotFound',
                       'message': 'Not Found',
                   },
-                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
-                  status_code=404)
+                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             ge.initialize("http://mock-instance")
 
@@ -210,12 +210,12 @@ class PlotTests(unittest.TestCase):
             m.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/plot/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?bbox=-180.0%2C-90.0%2C180.0%2C90.0&crs=EPSG%3A4326&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&spatialResolution=0.1%2C0.1',
+                status_code=400,
                 json={
                     "error": "Operator",
                     "message": 'Operator: Could not open gdal dataset for file path '
                     '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"'
                 },
-                status_code=400,
                 request_headers={
                     'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'}
             )
@@ -258,8 +258,8 @@ class PlotTests(unittest.TestCase):
                     )
                 )
 
-            self.assertEqual(json.loads(ctx.exception.body)["message"],
-                             'Operator: Could not open gdal dataset for file path '
+            self.assertEqual(str(ctx.exception),
+                             'Operator: Operator: Could not open gdal dataset for file path '
                              '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"')
 
 

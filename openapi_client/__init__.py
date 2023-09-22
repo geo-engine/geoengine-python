@@ -94,9 +94,7 @@ from openapi_client.models.error_response import ErrorResponse
 from openapi_client.models.external_data_id import ExternalDataId
 from openapi_client.models.external_data_id_with_type import ExternalDataIdWithType
 from openapi_client.models.failed_task_status import FailedTaskStatus
-from openapi_client.models.feature import Feature
 from openapi_client.models.feature_data_type import FeatureDataType
-from openapi_client.models.feature_type import FeatureType
 from openapi_client.models.file_not_found_handling import FileNotFoundHandling
 from openapi_client.models.format_specifics import FormatSpecifics
 from openapi_client.models.format_specifics_one_of import FormatSpecificsOneOf
