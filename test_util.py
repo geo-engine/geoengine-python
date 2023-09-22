@@ -37,7 +37,7 @@ class UrllibMocker:
                 )
         raise KeyError(f'No handler found for {method} {url}')
 
-    def register_uri(self, method, url, request_headers=None, expected_request_body=None, status_code=200, json=None):
+    def register_uri(self, method, url, request_headers=None, expected_request_body=None, status_code=200, json=None, text=None, body=None):
         matcher = {
             "method": method,
             "path": urlparse(url).path,
@@ -48,6 +48,10 @@ class UrllibMocker:
         }
         if json is not None:
             matcher["body"] = dumps(json).encode('utf-8')
+        elif text is not None:
+            matcher["body"] = text.encode('utf-8')
+        elif body is not None:
+            matcher["body"] = body
 
         self._matchers.append(matcher)
 
