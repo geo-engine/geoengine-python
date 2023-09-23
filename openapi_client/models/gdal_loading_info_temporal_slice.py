@@ -20,8 +20,9 @@ import json
 
 
 from typing import Optional
-from pydantic import BaseModel, Field, StrictStr, conint
+from pydantic import BaseModel, Field, conint
 from openapi_client.models.gdal_dataset_parameters import GdalDatasetParameters
+from openapi_client.models.time_interval import TimeInterval
 
 class GdalLoadingInfoTemporalSlice(BaseModel):
     """
@@ -29,7 +30,7 @@ class GdalLoadingInfoTemporalSlice(BaseModel):
     """
     cache_ttl: Optional[conint(strict=True, ge=0)] = Field(None, alias="cacheTtl")
     params: Optional[GdalDatasetParameters] = None
-    time: StrictStr = Field(...)
+    time: TimeInterval = Field(...)
     __properties = ["cacheTtl", "params", "time"]
 
     class Config:
@@ -59,6 +60,9 @@ class GdalLoadingInfoTemporalSlice(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of params
         if self.params:
             _dict['params'] = self.params.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of time
+        if self.time:
+            _dict['time'] = self.time.to_dict()
         # set to None if params (nullable) is None
         # and __fields_set__ contains the field
         if self.params is None and "params" in self.__fields_set__:
@@ -78,7 +82,7 @@ class GdalLoadingInfoTemporalSlice(BaseModel):
         _obj = GdalLoadingInfoTemporalSlice.parse_obj({
             "cache_ttl": obj.get("cacheTtl"),
             "params": GdalDatasetParameters.from_dict(obj.get("params")) if obj.get("params") is not None else None,
-            "time": obj.get("time")
+            "time": TimeInterval.from_dict(obj.get("time")) if obj.get("time") is not None else None
         })
         return _obj
 

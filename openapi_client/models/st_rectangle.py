@@ -22,6 +22,7 @@ import json
 
 from pydantic import BaseModel, Field, StrictStr
 from openapi_client.models.bounding_box2_d import BoundingBox2D
+from openapi_client.models.time_interval import TimeInterval
 
 class STRectangle(BaseModel):
     """
@@ -29,7 +30,7 @@ class STRectangle(BaseModel):
     """
     bounding_box: BoundingBox2D = Field(..., alias="boundingBox")
     spatial_reference: StrictStr = Field(..., alias="spatialReference")
-    time_interval: StrictStr = Field(..., alias="timeInterval")
+    time_interval: TimeInterval = Field(..., alias="timeInterval")
     __properties = ["boundingBox", "spatialReference", "timeInterval"]
 
     class Config:
@@ -59,6 +60,9 @@ class STRectangle(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of bounding_box
         if self.bounding_box:
             _dict['boundingBox'] = self.bounding_box.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of time_interval
+        if self.time_interval:
+            _dict['timeInterval'] = self.time_interval.to_dict()
         return _dict
 
     @classmethod
@@ -73,7 +77,7 @@ class STRectangle(BaseModel):
         _obj = STRectangle.parse_obj({
             "bounding_box": BoundingBox2D.from_dict(obj.get("boundingBox")) if obj.get("boundingBox") is not None else None,
             "spatial_reference": obj.get("spatialReference"),
-            "time_interval": obj.get("timeInterval")
+            "time_interval": TimeInterval.from_dict(obj.get("timeInterval")) if obj.get("timeInterval") is not None else None
         })
         return _obj
 

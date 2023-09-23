@@ -386,7 +386,7 @@ class OGCWCSApi(object):
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def wcs_get_coverage_handler(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], version : WcsVersion, service : WcsService, request : GetCoverageRequest, format : GetCoverageFormat, identifier : StrictStr, boundingbox : StrictStr, gridbasecrs : StrictStr, gridorigin : Optional[StrictStr] = None, gridoffsets : Optional[StrictStr] = None, time : Optional[Any] = None, resx : Optional[Union[StrictFloat, StrictInt]] = None, resy : Optional[Union[StrictFloat, StrictInt]] = None, nodatavalue : Optional[Union[StrictFloat, StrictInt]] = None, **kwargs) -> bytearray:  # noqa: E501
+    def wcs_get_coverage_handler(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], version : WcsVersion, service : WcsService, request : GetCoverageRequest, format : GetCoverageFormat, identifier : StrictStr, boundingbox : StrictStr, gridbasecrs : StrictStr, gridorigin : Optional[StrictStr] = None, gridoffsets : Optional[StrictStr] = None, time : Optional[StrictStr] = None, resx : Optional[Union[StrictFloat, StrictInt]] = None, resy : Optional[Union[StrictFloat, StrictInt]] = None, nodatavalue : Optional[Union[StrictFloat, StrictInt]] = None, **kwargs) -> bytearray:  # noqa: E501
         """Get WCS Coverage  # noqa: E501
 
         Get WCS Coverage  # noqa: E501
@@ -441,7 +441,7 @@ class OGCWCSApi(object):
         return self.wcs_get_coverage_handler_with_http_info(workflow, version, service, request, format, identifier, boundingbox, gridbasecrs, gridorigin, gridoffsets, time, resx, resy, nodatavalue, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def wcs_get_coverage_handler_with_http_info(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], version : WcsVersion, service : WcsService, request : GetCoverageRequest, format : GetCoverageFormat, identifier : StrictStr, boundingbox : StrictStr, gridbasecrs : StrictStr, gridorigin : Optional[StrictStr] = None, gridoffsets : Optional[StrictStr] = None, time : Optional[Any] = None, resx : Optional[Union[StrictFloat, StrictInt]] = None, resy : Optional[Union[StrictFloat, StrictInt]] = None, nodatavalue : Optional[Union[StrictFloat, StrictInt]] = None, **kwargs) -> ApiResponse:  # noqa: E501
+    def wcs_get_coverage_handler_with_http_info(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], version : WcsVersion, service : WcsService, request : GetCoverageRequest, format : GetCoverageFormat, identifier : StrictStr, boundingbox : StrictStr, gridbasecrs : StrictStr, gridorigin : Optional[StrictStr] = None, gridoffsets : Optional[StrictStr] = None, time : Optional[StrictStr] = None, resx : Optional[Union[StrictFloat, StrictInt]] = None, resy : Optional[Union[StrictFloat, StrictInt]] = None, nodatavalue : Optional[Union[StrictFloat, StrictInt]] = None, **kwargs) -> ApiResponse:  # noqa: E501
         """Get WCS Coverage  # noqa: E501
 
         Get WCS Coverage  # noqa: E501

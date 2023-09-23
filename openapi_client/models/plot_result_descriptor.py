@@ -22,6 +22,7 @@ import json
 from typing import Optional
 from pydantic import BaseModel, Field, StrictStr
 from openapi_client.models.bounding_box2_d import BoundingBox2D
+from openapi_client.models.time_interval import TimeInterval
 
 class PlotResultDescriptor(BaseModel):
     """
@@ -29,7 +30,7 @@ class PlotResultDescriptor(BaseModel):
     """
     bbox: Optional[BoundingBox2D] = None
     spatial_reference: StrictStr = Field(..., alias="spatialReference")
-    time: Optional[StrictStr] = None
+    time: Optional[TimeInterval] = None
     __properties = ["bbox", "spatialReference", "time"]
 
     class Config:
@@ -59,6 +60,9 @@ class PlotResultDescriptor(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of bbox
         if self.bbox:
             _dict['bbox'] = self.bbox.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of time
+        if self.time:
+            _dict['time'] = self.time.to_dict()
         # set to None if bbox (nullable) is None
         # and __fields_set__ contains the field
         if self.bbox is None and "bbox" in self.__fields_set__:
@@ -83,7 +87,7 @@ class PlotResultDescriptor(BaseModel):
         _obj = PlotResultDescriptor.parse_obj({
             "bbox": BoundingBox2D.from_dict(obj.get("bbox")) if obj.get("bbox") is not None else None,
             "spatial_reference": obj.get("spatialReference"),
-            "time": obj.get("time")
+            "time": TimeInterval.from_dict(obj.get("time")) if obj.get("time") is not None else None
         })
         return _obj
 

@@ -22,7 +22,7 @@ from typing_extensions import Annotated
 
 from pydantic import Field, StrictStr, conint
 
-from typing import Any, List
+from typing import List
 
 from openapi_client.models.add_collection200_response import AddCollection200Response
 from openapi_client.models.create_project import CreateProject
@@ -332,18 +332,16 @@ class ProjectsApi(object):
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def list_projects_handler(self, filter : Any, order : OrderBy, offset : conint(strict=True, ge=0), limit : conint(strict=True, ge=0), **kwargs) -> List[ProjectListing]:  # noqa: E501
+    def list_projects_handler(self, order : OrderBy, offset : conint(strict=True, ge=0), limit : conint(strict=True, ge=0), **kwargs) -> List[ProjectListing]:  # noqa: E501
         """List all projects accessible to the user that match the selected criteria.  # noqa: E501
 
         List all projects accessible to the user that match the selected criteria.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_projects_handler(filter, order, offset, limit, async_req=True)
+        >>> thread = api.list_projects_handler(order, offset, limit, async_req=True)
         >>> result = thread.get()
 
-        :param filter: (required)
-        :type filter: ProjectFilter
         :param order: (required)
         :type order: OrderBy
         :param offset: (required)
@@ -364,21 +362,19 @@ class ProjectsApi(object):
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
             raise ValueError("Error! Please call the list_projects_handler_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data")
-        return self.list_projects_handler_with_http_info(filter, order, offset, limit, **kwargs)  # noqa: E501
+        return self.list_projects_handler_with_http_info(order, offset, limit, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def list_projects_handler_with_http_info(self, filter : Any, order : OrderBy, offset : conint(strict=True, ge=0), limit : conint(strict=True, ge=0), **kwargs) -> ApiResponse:  # noqa: E501
+    def list_projects_handler_with_http_info(self, order : OrderBy, offset : conint(strict=True, ge=0), limit : conint(strict=True, ge=0), **kwargs) -> ApiResponse:  # noqa: E501
         """List all projects accessible to the user that match the selected criteria.  # noqa: E501
 
         List all projects accessible to the user that match the selected criteria.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_projects_handler_with_http_info(filter, order, offset, limit, async_req=True)
+        >>> thread = api.list_projects_handler_with_http_info(order, offset, limit, async_req=True)
         >>> result = thread.get()
 
-        :param filter: (required)
-        :type filter: ProjectFilter
         :param order: (required)
         :type order: OrderBy
         :param offset: (required)
@@ -413,7 +409,6 @@ class ProjectsApi(object):
         _params = locals()
 
         _all_params = [
-            'filter',
             'order',
             'offset',
             'limit'
@@ -444,9 +439,6 @@ class ProjectsApi(object):
 
         # process the path parameters
         _path_params = {}
-        if _params['filter']:
-            _path_params['filter'] = _params['filter']
-
         if _params['order']:
             _path_params['order'] = _params['order']
 

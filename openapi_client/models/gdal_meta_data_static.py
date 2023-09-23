@@ -20,9 +20,10 @@ import json
 
 
 from typing import Optional
-from pydantic import BaseModel, Field, StrictStr, conint
+from pydantic import BaseModel, Field, conint
 from openapi_client.models.gdal_dataset_parameters import GdalDatasetParameters
 from openapi_client.models.raster_result_descriptor import RasterResultDescriptor
+from openapi_client.models.time_interval import TimeInterval
 
 class GdalMetaDataStatic(BaseModel):
     """
@@ -31,7 +32,7 @@ class GdalMetaDataStatic(BaseModel):
     cache_ttl: Optional[conint(strict=True, ge=0)] = Field(None, alias="cacheTtl")
     params: GdalDatasetParameters = Field(...)
     result_descriptor: RasterResultDescriptor = Field(..., alias="resultDescriptor")
-    time: Optional[StrictStr] = None
+    time: Optional[TimeInterval] = None
     __properties = ["cacheTtl", "params", "resultDescriptor", "time"]
 
     class Config:
@@ -64,6 +65,9 @@ class GdalMetaDataStatic(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of result_descriptor
         if self.result_descriptor:
             _dict['resultDescriptor'] = self.result_descriptor.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of time
+        if self.time:
+            _dict['time'] = self.time.to_dict()
         # set to None if time (nullable) is None
         # and __fields_set__ contains the field
         if self.time is None and "time" in self.__fields_set__:
@@ -84,7 +88,7 @@ class GdalMetaDataStatic(BaseModel):
             "cache_ttl": obj.get("cacheTtl"),
             "params": GdalDatasetParameters.from_dict(obj.get("params")) if obj.get("params") is not None else None,
             "result_descriptor": RasterResultDescriptor.from_dict(obj.get("resultDescriptor")) if obj.get("resultDescriptor") is not None else None,
-            "time": obj.get("time")
+            "time": TimeInterval.from_dict(obj.get("time")) if obj.get("time") is not None else None
         })
         return _obj
 

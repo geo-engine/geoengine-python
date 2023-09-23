@@ -22,6 +22,7 @@ import json
 from typing import Dict, Optional
 from pydantic import BaseModel, Field, StrictStr, validator
 from openapi_client.models.bounding_box2_d import BoundingBox2D
+from openapi_client.models.time_interval import TimeInterval
 from openapi_client.models.vector_column_info import VectorColumnInfo
 from openapi_client.models.vector_data_type import VectorDataType
 
@@ -33,7 +34,7 @@ class VectorResultDescriptorWithType(BaseModel):
     columns: Dict[str, VectorColumnInfo] = Field(...)
     data_type: VectorDataType = Field(..., alias="dataType")
     spatial_reference: StrictStr = Field(..., alias="spatialReference")
-    time: Optional[StrictStr] = None
+    time: Optional[TimeInterval] = None
     type: StrictStr = Field(...)
     __properties = ["bbox", "columns", "dataType", "spatialReference", "time", "type"]
 
@@ -78,6 +79,9 @@ class VectorResultDescriptorWithType(BaseModel):
                 if self.columns[_key]:
                     _field_dict[_key] = self.columns[_key].to_dict()
             _dict['columns'] = _field_dict
+        # override the default output from pydantic by calling `to_dict()` of time
+        if self.time:
+            _dict['time'] = self.time.to_dict()
         # set to None if bbox (nullable) is None
         # and __fields_set__ contains the field
         if self.bbox is None and "bbox" in self.__fields_set__:
@@ -109,7 +113,7 @@ class VectorResultDescriptorWithType(BaseModel):
             else None,
             "data_type": obj.get("dataType"),
             "spatial_reference": obj.get("spatialReference"),
-            "time": obj.get("time"),
+            "time": TimeInterval.from_dict(obj.get("time")) if obj.get("time") is not None else None,
             "type": obj.get("type")
         })
         return _obj

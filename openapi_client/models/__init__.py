@@ -146,10 +146,6 @@ from openapi_client.models.point_symbology_with_type import PointSymbologyWithTy
 from openapi_client.models.polygon_symbology import PolygonSymbology
 from openapi_client.models.polygon_symbology_with_type import PolygonSymbologyWithType
 from openapi_client.models.project import Project
-from openapi_client.models.project_filter import ProjectFilter
-from openapi_client.models.project_filter_one_of import ProjectFilterOneOf
-from openapi_client.models.project_filter_one_of1 import ProjectFilterOneOf1
-from openapi_client.models.project_filter_one_of_name import ProjectFilterOneOfName
 from openapi_client.models.project_layer import ProjectLayer
 from openapi_client.models.project_listing import ProjectListing
 from openapi_client.models.project_resource import ProjectResource
@@ -199,6 +195,7 @@ from openapi_client.models.task_status import TaskStatus
 from openapi_client.models.task_status_with_id import TaskStatusWithId
 from openapi_client.models.text_symbology import TextSymbology
 from openapi_client.models.time_granularity import TimeGranularity
+from openapi_client.models.time_interval import TimeInterval
 from openapi_client.models.time_reference import TimeReference
 from openapi_client.models.time_step import TimeStep
 from openapi_client.models.time_step_with_type import TimeStepWithType

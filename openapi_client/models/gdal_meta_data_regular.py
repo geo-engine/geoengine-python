@@ -20,10 +20,11 @@ import json
 
 
 from typing import Dict, Optional
-from pydantic import BaseModel, Field, StrictStr, conint
+from pydantic import BaseModel, Field, conint
 from openapi_client.models.gdal_dataset_parameters import GdalDatasetParameters
 from openapi_client.models.gdal_source_time_placeholder import GdalSourceTimePlaceholder
 from openapi_client.models.raster_result_descriptor import RasterResultDescriptor
+from openapi_client.models.time_interval import TimeInterval
 from openapi_client.models.time_step import TimeStep
 
 class GdalMetaDataRegular(BaseModel):
@@ -31,7 +32,7 @@ class GdalMetaDataRegular(BaseModel):
     GdalMetaDataRegular
     """
     cache_ttl: Optional[conint(strict=True, ge=0)] = Field(None, alias="cacheTtl")
-    data_time: StrictStr = Field(..., alias="dataTime")
+    data_time: TimeInterval = Field(..., alias="dataTime")
     params: GdalDatasetParameters = Field(...)
     result_descriptor: RasterResultDescriptor = Field(..., alias="resultDescriptor")
     step: TimeStep = Field(...)
@@ -62,6 +63,9 @@ class GdalMetaDataRegular(BaseModel):
                           exclude={
                           },
                           exclude_none=True)
+        # override the default output from pydantic by calling `to_dict()` of data_time
+        if self.data_time:
+            _dict['dataTime'] = self.data_time.to_dict()
         # override the default output from pydantic by calling `to_dict()` of params
         if self.params:
             _dict['params'] = self.params.to_dict()
@@ -91,7 +95,7 @@ class GdalMetaDataRegular(BaseModel):
 
         _obj = GdalMetaDataRegular.parse_obj({
             "cache_ttl": obj.get("cacheTtl"),
-            "data_time": obj.get("dataTime"),
+            "data_time": TimeInterval.from_dict(obj.get("dataTime")) if obj.get("dataTime") is not None else None,
             "params": GdalDatasetParameters.from_dict(obj.get("params")) if obj.get("params") is not None else None,
             "result_descriptor": RasterResultDescriptor.from_dict(obj.get("resultDescriptor")) if obj.get("resultDescriptor") is not None else None,
             "step": TimeStep.from_dict(obj.get("step")) if obj.get("step") is not None else None,

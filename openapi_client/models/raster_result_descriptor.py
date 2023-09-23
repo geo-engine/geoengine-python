@@ -25,6 +25,7 @@ from openapi_client.models.measurement import Measurement
 from openapi_client.models.raster_data_type import RasterDataType
 from openapi_client.models.spatial_partition2_d import SpatialPartition2D
 from openapi_client.models.spatial_resolution import SpatialResolution
+from openapi_client.models.time_interval import TimeInterval
 
 class RasterResultDescriptor(BaseModel):
     """
@@ -35,7 +36,7 @@ class RasterResultDescriptor(BaseModel):
     measurement: Measurement = Field(...)
     resolution: Optional[SpatialResolution] = None
     spatial_reference: StrictStr = Field(..., alias="spatialReference")
-    time: Optional[StrictStr] = None
+    time: Optional[TimeInterval] = None
     __properties = ["bbox", "dataType", "measurement", "resolution", "spatialReference", "time"]
 
     class Config:
@@ -71,6 +72,9 @@ class RasterResultDescriptor(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of resolution
         if self.resolution:
             _dict['resolution'] = self.resolution.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of time
+        if self.time:
+            _dict['time'] = self.time.to_dict()
         # set to None if bbox (nullable) is None
         # and __fields_set__ contains the field
         if self.bbox is None and "bbox" in self.__fields_set__:
@@ -103,7 +107,7 @@ class RasterResultDescriptor(BaseModel):
             "measurement": Measurement.from_dict(obj.get("measurement")) if obj.get("measurement") is not None else None,
             "resolution": SpatialResolution.from_dict(obj.get("resolution")) if obj.get("resolution") is not None else None,
             "spatial_reference": obj.get("spatialReference"),
-            "time": obj.get("time")
+            "time": TimeInterval.from_dict(obj.get("time")) if obj.get("time") is not None else None
         })
         return _obj
 

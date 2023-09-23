@@ -213,7 +213,7 @@ class OGCWFSApi(object):
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def wfs_feature_handler(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], service : WfsService, request : GetFeatureRequest, type_names : StrictStr, bbox : StrictStr, version : Optional[Any] = None, time : Optional[Any] = None, srs_name : Optional[Any] = None, namespaces : Optional[StrictStr] = None, count : Optional[conint(strict=True, ge=0)] = None, sort_by : Optional[StrictStr] = None, result_type : Optional[StrictStr] = None, filter : Optional[StrictStr] = None, property_name : Optional[StrictStr] = None, query_resolution : Annotated[Optional[Any], Field(description="Vendor parameter for specifying a spatial query resolution")] = None, **kwargs) -> GeoJson:  # noqa: E501
+    def wfs_feature_handler(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], service : WfsService, request : GetFeatureRequest, type_names : StrictStr, bbox : StrictStr, version : Optional[Any] = None, time : Optional[StrictStr] = None, srs_name : Optional[StrictStr] = None, namespaces : Optional[StrictStr] = None, count : Optional[conint(strict=True, ge=0)] = None, sort_by : Optional[StrictStr] = None, result_type : Optional[StrictStr] = None, filter : Optional[StrictStr] = None, property_name : Optional[StrictStr] = None, query_resolution : Annotated[Optional[Any], Field(description="Vendor parameter for specifying a spatial query resolution")] = None, **kwargs) -> GeoJson:  # noqa: E501
         """Get WCS Features  # noqa: E501
 
         Get WCS Features  # noqa: E501
@@ -270,7 +270,7 @@ class OGCWFSApi(object):
         return self.wfs_feature_handler_with_http_info(workflow, service, request, type_names, bbox, version, time, srs_name, namespaces, count, sort_by, result_type, filter, property_name, query_resolution, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def wfs_feature_handler_with_http_info(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], service : WfsService, request : GetFeatureRequest, type_names : StrictStr, bbox : StrictStr, version : Optional[Any] = None, time : Optional[Any] = None, srs_name : Optional[Any] = None, namespaces : Optional[StrictStr] = None, count : Optional[conint(strict=True, ge=0)] = None, sort_by : Optional[StrictStr] = None, result_type : Optional[StrictStr] = None, filter : Optional[StrictStr] = None, property_name : Optional[StrictStr] = None, query_resolution : Annotated[Optional[Any], Field(description="Vendor parameter for specifying a spatial query resolution")] = None, **kwargs) -> ApiResponse:  # noqa: E501
+    def wfs_feature_handler_with_http_info(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], service : WfsService, request : GetFeatureRequest, type_names : StrictStr, bbox : StrictStr, version : Optional[Any] = None, time : Optional[StrictStr] = None, srs_name : Optional[StrictStr] = None, namespaces : Optional[StrictStr] = None, count : Optional[conint(strict=True, ge=0)] = None, sort_by : Optional[StrictStr] = None, result_type : Optional[StrictStr] = None, filter : Optional[StrictStr] = None, property_name : Optional[StrictStr] = None, query_resolution : Annotated[Optional[Any], Field(description="Vendor parameter for specifying a spatial query resolution")] = None, **kwargs) -> ApiResponse:  # noqa: E501
         """Get WCS Features  # noqa: E501
 
         Get WCS Features  # noqa: E501

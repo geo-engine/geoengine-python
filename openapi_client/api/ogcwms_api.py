@@ -388,7 +388,7 @@ class OGCWMSApi(object):
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def wms_map_handler(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], version : WmsVersion, service : WmsService, request : GetMapRequest, width : conint(strict=True, ge=0), height : conint(strict=True, ge=0), bbox : StrictStr, format : GetMapFormat, layers : StrictStr, styles : StrictStr, crs : Optional[Any] = None, time : Optional[Any] = None, transparent : Optional[StrictBool] = None, bgcolor : Optional[StrictStr] = None, sld : Optional[StrictStr] = None, sld_body : Optional[StrictStr] = None, elevation : Optional[StrictStr] = None, exceptions : Optional[Any] = None, **kwargs) -> bytearray:  # noqa: E501
+    def wms_map_handler(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], version : WmsVersion, service : WmsService, request : GetMapRequest, width : conint(strict=True, ge=0), height : conint(strict=True, ge=0), bbox : StrictStr, format : GetMapFormat, layers : StrictStr, styles : StrictStr, crs : Optional[StrictStr] = None, time : Optional[StrictStr] = None, transparent : Optional[StrictBool] = None, bgcolor : Optional[StrictStr] = None, sld : Optional[StrictStr] = None, sld_body : Optional[StrictStr] = None, elevation : Optional[StrictStr] = None, exceptions : Optional[Any] = None, **kwargs) -> bytearray:  # noqa: E501
         """Get WMS Map  # noqa: E501
 
         Get WMS Map  # noqa: E501
@@ -451,7 +451,7 @@ class OGCWMSApi(object):
         return self.wms_map_handler_with_http_info(workflow, version, service, request, width, height, bbox, format, layers, styles, crs, time, transparent, bgcolor, sld, sld_body, elevation, exceptions, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def wms_map_handler_with_http_info(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], version : WmsVersion, service : WmsService, request : GetMapRequest, width : conint(strict=True, ge=0), height : conint(strict=True, ge=0), bbox : StrictStr, format : GetMapFormat, layers : StrictStr, styles : StrictStr, crs : Optional[Any] = None, time : Optional[Any] = None, transparent : Optional[StrictBool] = None, bgcolor : Optional[StrictStr] = None, sld : Optional[StrictStr] = None, sld_body : Optional[StrictStr] = None, elevation : Optional[StrictStr] = None, exceptions : Optional[Any] = None, **kwargs) -> ApiResponse:  # noqa: E501
+    def wms_map_handler_with_http_info(self, workflow : Annotated[StrictStr, Field(..., description="Workflow id")], version : WmsVersion, service : WmsService, request : GetMapRequest, width : conint(strict=True, ge=0), height : conint(strict=True, ge=0), bbox : StrictStr, format : GetMapFormat, layers : StrictStr, styles : StrictStr, crs : Optional[StrictStr] = None, time : Optional[StrictStr] = None, transparent : Optional[StrictBool] = None, bgcolor : Optional[StrictStr] = None, sld : Optional[StrictStr] = None, sld_body : Optional[StrictStr] = None, elevation : Optional[StrictStr] = None, exceptions : Optional[Any] = None, **kwargs) -> ApiResponse:  # noqa: E501
         """Get WMS Map  # noqa: E501
 
         Get WMS Map  # noqa: E501

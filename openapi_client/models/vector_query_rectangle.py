@@ -20,9 +20,10 @@ import json
 
 
 
-from pydantic import BaseModel, Field, StrictStr
+from pydantic import BaseModel, Field
 from openapi_client.models.bounding_box2_d import BoundingBox2D
 from openapi_client.models.spatial_resolution import SpatialResolution
+from openapi_client.models.time_interval import TimeInterval
 
 class VectorQueryRectangle(BaseModel):
     """
@@ -30,7 +31,7 @@ class VectorQueryRectangle(BaseModel):
     """
     spatial_bounds: BoundingBox2D = Field(..., alias="spatialBounds")
     spatial_resolution: SpatialResolution = Field(..., alias="spatialResolution")
-    time_interval: StrictStr = Field(..., alias="timeInterval")
+    time_interval: TimeInterval = Field(..., alias="timeInterval")
     __properties = ["spatialBounds", "spatialResolution", "timeInterval"]
 
     class Config:
@@ -63,6 +64,9 @@ class VectorQueryRectangle(BaseModel):
         # override the default output from pydantic by calling `to_dict()` of spatial_resolution
         if self.spatial_resolution:
             _dict['spatialResolution'] = self.spatial_resolution.to_dict()
+        # override the default output from pydantic by calling `to_dict()` of time_interval
+        if self.time_interval:
+            _dict['timeInterval'] = self.time_interval.to_dict()
         return _dict
 
     @classmethod
@@ -77,7 +81,7 @@ class VectorQueryRectangle(BaseModel):
         _obj = VectorQueryRectangle.parse_obj({
             "spatial_bounds": BoundingBox2D.from_dict(obj.get("spatialBounds")) if obj.get("spatialBounds") is not None else None,
             "spatial_resolution": SpatialResolution.from_dict(obj.get("spatialResolution")) if obj.get("spatialResolution") is not None else None,
-            "time_interval": obj.get("timeInterval")
+            "time_interval": TimeInterval.from_dict(obj.get("timeInterval")) if obj.get("timeInterval") is not None else None
         })
         return _obj
 

@@ -22,7 +22,7 @@ from typing_extensions import Annotated
 
 from pydantic import Field, StrictStr
 
-from typing import Any, Optional
+from typing import Optional
 
 from openapi_client.models.wrapped_plot_output import WrappedPlotOutput
 
@@ -47,7 +47,7 @@ class PlotsApi(object):
         self.api_client = api_client
 
     @validate_arguments
-    def get_plot_handler(self, bbox : StrictStr, time : StrictStr, spatial_resolution : StrictStr, id : Annotated[StrictStr, Field(..., description="Workflow id")], crs : Optional[Any] = None, **kwargs) -> WrappedPlotOutput:  # noqa: E501
+    def get_plot_handler(self, bbox : StrictStr, time : StrictStr, spatial_resolution : StrictStr, id : Annotated[StrictStr, Field(..., description="Workflow id")], crs : Optional[StrictStr] = None, **kwargs) -> WrappedPlotOutput:  # noqa: E501
         """Generates a plot.  # noqa: E501
 
         Generates a plot.  # Example  1. Upload the file `plain_data.csv` with the following content:  ```csv a 1 2 ``` 2. Create a dataset from it using the \"Plain Data\" example at `/dataset`. 3. Create a statistics workflow using the \"Statistics Plot\" example at `/workflow`. 4. Generate the plot with this handler.  # noqa: E501
@@ -84,7 +84,7 @@ class PlotsApi(object):
         return self.get_plot_handler_with_http_info(bbox, time, spatial_resolution, id, crs, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def get_plot_handler_with_http_info(self, bbox : StrictStr, time : StrictStr, spatial_resolution : StrictStr, id : Annotated[StrictStr, Field(..., description="Workflow id")], crs : Optional[Any] = None, **kwargs) -> ApiResponse:  # noqa: E501
+    def get_plot_handler_with_http_info(self, bbox : StrictStr, time : StrictStr, spatial_resolution : StrictStr, id : Annotated[StrictStr, Field(..., description="Workflow id")], crs : Optional[StrictStr] = None, **kwargs) -> ApiResponse:  # noqa: E501
         """Generates a plot.  # noqa: E501
 
         Generates a plot.  # Example  1. Upload the file `plain_data.csv` with the following content:  ```csv a 1 2 ``` 2. Create a dataset from it using the \"Plain Data\" example at `/dataset`. 3. Create a statistics workflow using the \"Statistics Plot\" example at `/workflow`. 4. Generate the plot with this handler.  # noqa: E501

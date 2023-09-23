@@ -20,14 +20,15 @@ import json
 
 
 
-from pydantic import BaseModel, Field, StrictStr
+from pydantic import BaseModel, Field, StrictInt
 
-class ProjectFilterOneOfName(BaseModel):
+class TimeInterval(BaseModel):
     """
-    ProjectFilterOneOfName
+    Stores time intervals in ms in close-open semantic [start, end)
     """
-    term: StrictStr = Field(...)
-    __properties = ["term"]
+    end: StrictInt = Field(...)
+    start: StrictInt = Field(...)
+    __properties = ["end", "start"]
 
     class Config:
         """Pydantic configuration"""
@@ -43,8 +44,8 @@ class ProjectFilterOneOfName(BaseModel):
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> ProjectFilterOneOfName:
-        """Create an instance of ProjectFilterOneOfName from a JSON string"""
+    def from_json(cls, json_str: str) -> TimeInterval:
+        """Create an instance of TimeInterval from a JSON string"""
         return cls.from_dict(json.loads(json_str))
 
     def to_dict(self):
@@ -56,16 +57,17 @@ class ProjectFilterOneOfName(BaseModel):
         return _dict
 
     @classmethod
-    def from_dict(cls, obj: dict) -> ProjectFilterOneOfName:
-        """Create an instance of ProjectFilterOneOfName from a dict"""
+    def from_dict(cls, obj: dict) -> TimeInterval:
+        """Create an instance of TimeInterval from a dict"""
         if obj is None:
             return None
 
         if not isinstance(obj, dict):
-            return ProjectFilterOneOfName.parse_obj(obj)
+            return TimeInterval.parse_obj(obj)
 
-        _obj = ProjectFilterOneOfName.parse_obj({
-            "term": obj.get("term")
+        _obj = TimeInterval.parse_obj({
+            "end": obj.get("end"),
+            "start": obj.get("start")
         })
         return _obj
 
