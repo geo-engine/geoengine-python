@@ -165,48 +165,6 @@ class WmsTests(unittest.TestCase):
                              'Operator: Operator: Could not open gdal dataset for file path '
                              '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"')
 
-    def test_wms_url(self):
-        with requests_mock.Mocker() as m, open("tests/responses/4326.gml", "rb") as epsg4326_gml:
-            m.post('http://mock-instance/anonymous', json={
-                "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
-                "project": None,
-                "view": None
-            })
-
-            m.post('http://mock-instance/workflow',
-                   json={
-                       "id": "5b9508a8-bd34-5a1c-acd6-75bb832d2d38"
-                   },
-                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
-
-            m.get('http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata',
-                  json={
-                      "type": "raster",
-                      "dataType": "U8",
-                      "spatialReference": "EPSG:4326",
-                      "measurement": {
-                              "type": "unitless"
-                      }
-                  },
-                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
-
-            m.get('http://epsg.io/4326.gml?download', body=epsg4326_gml)
-
-            ge.initialize("http://mock-instance")
-
-            workflow_definition = {
-                "type": "Raster",
-                "operator": {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": {
-                            "type": "internal",
-                            "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
-                        }
-                    }
-                }
-            }
-
     def test_result_descriptor(self):
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/anonymous', json={
