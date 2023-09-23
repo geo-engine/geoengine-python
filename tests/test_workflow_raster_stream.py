@@ -1,7 +1,7 @@
 '''Tests for raster streaming workflows'''
 
 import asyncio
-from typing import Dict, List
+from typing import List
 import unittest
 import unittest.mock
 from uuid import UUID

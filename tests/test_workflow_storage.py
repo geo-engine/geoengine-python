@@ -2,7 +2,7 @@
 
 import unittest
 from uuid import UUID
-import requests_mock
+from test_util import UrllibMocker
 from geoengine.datasets import DatasetName, UploadId, StoredDataset
 import geoengine as ge
 
@@ -15,7 +15,7 @@ class WorkflowStorageTests(unittest.TestCase):
 
     def test_storing_workflow(self):
 
-        expected_request_text = ({
+        expected_request_text = {
             'name': None,
             'displayName': 'Foo',
             'description': 'Bar',
@@ -32,15 +32,16 @@ class WorkflowStorageTests(unittest.TestCase):
                            },
                 'timeInterval': {
                                'start': 1396353600000,
+                               'end': 1396353600000,
                            },
                 'spatialResolution': {
                                'x': 1.8,
                                'y': 1.8
                            }
             }
-        })
+        }
 
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -65,8 +66,8 @@ class WorkflowStorageTests(unittest.TestCase):
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             m.post('http://mock-instance/datasetFromWorkflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38',
-                   additional_matcher=lambda request: request.json() == expected_request_text,
-                   json={'task_id': '9ec828ef-c3da-4016-8cc7-79e5556267fc'},
+                   expected_request_body=expected_request_text,
+                   json={'taskId': '9ec828ef-c3da-4016-8cc7-79e5556267fc'},
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             m.get('http://mock-instance/tasks/9ec828ef-c3da-4016-8cc7-79e5556267fc/status',
@@ -75,7 +76,8 @@ class WorkflowStorageTests(unittest.TestCase):
                                  'upload': '3086f494-d5a4-4b51-a14b-3b29f8bf7bb0'},
                         'timeTotal': '00:00:00',
                         'taskType': 'create-dataset',
-                        'description': 'Creating dataset Foo from workflow 5b9508a8-bd34-5a1c-acd6-75bb832d2d38'}, )
+                        'description': 'Creating dataset Foo from workflow 5b9508a8-bd34-5a1c-acd6-75bb832d2d38',
+                        'timeStarted': '2023-02-16T15:25:45.390Z'}, )
 
             ge.initialize("http://mock-instance")
 
@@ -89,24 +91,26 @@ class WorkflowStorageTests(unittest.TestCase):
                 }
             }
 
-            query = ge.api.RasterQueryRectangle({
-                "spatialBounds": ge.api.SpatialPartition2D({
-                    "upperLeftCoordinate": {
-                        "x": -180.0,
-                        "y": 90.0},
-                    "lowerRightCoordinate": {
-                        "x": 180.0,
-                        "y": -90.0
-                    }
-                }),
-                "timeInterval": ge.api.TimeInterval({
-                    "start": 1396353600000,
-                }),
-                "spatialResolution": ge.api.SpatialResolution({
-                    "x": 1.8,
-                    "y": 1.8
-                })
-            })
+            query = ge.api.RasterQueryRectangle(
+                spatial_bounds=ge.api.SpatialPartition2D(
+                    upper_left_coordinate=ge.api.Coordinate2D(
+                        x=-180.0,
+                        y=90.0
+                    ),
+                    lower_right_coordinate=ge.api.Coordinate2D(
+                        x=180.0,
+                        y=-90.0
+                    )
+                ),
+                time_interval=ge.api.TimeInterval(
+                    start=1396353600000,
+                    end=1396353600000
+                ),
+                spatial_resolution=ge.api.SpatialResolution(
+                    x=1.8,
+                    y=1.8
+                )
+            )
 
             workflow = ge.register_workflow(workflow_definition)
             task = workflow.save_as_dataset(

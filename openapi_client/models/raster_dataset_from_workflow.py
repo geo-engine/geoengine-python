@@ -57,7 +57,9 @@ class RasterDatasetFromWorkflow(BaseModel):
         _dict = self.dict(by_alias=True,
                           exclude={
                           },
-                          exclude_none=True)
+                          exclude_none=True,
+                          # Note: remove as_cog when set to default
+                          exclude_defaults=True)
         # override the default output from pydantic by calling `to_dict()` of query
         if self.query:
             _dict['query'] = self.query.to_dict()
