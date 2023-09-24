@@ -1229,6 +1229,10 @@ class GeoTransform:
         '''Convert to a GDAL geotransform'''
         return (self.x_min, self.x_pixel_size, 0, self.y_max, 0, self.y_pixel_size)
 
+    def to_gdal(self) -> Tuple[float, float, float, float, float, float]:
+        '''Convert to a GDAL geotransform'''
+        return (self.x_min, self.x_pixel_size, 0, self.y_max, 0, self.y_pixel_size)
+
     def __str__(self) -> str:
         return f'Origin: ({self.x_min}, {self.y_max}), ' \
             f'X Pixel Size: {self.x_pixel_size}, ' \
