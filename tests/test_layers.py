@@ -511,7 +511,8 @@ class LayerTests(unittest.TestCase):
                                  'upload': '3086f494-d5a4-4b51-a14b-3b29f8bf7bb0'},
                         'timeTotal': '00:00:00',
                         'taskType': 'create-dataset',
-                        'description': 'Creating dataset Test Raster Layer from layer 86c81654-e572-42ed-96ee-8b38ebcd84ab'}, )
+                        'description': 'Creating dataset Test Raster Layer from layer 86c81654-e572-42ed-96ee-8b38ebcd84ab',
+                        'timeStarted': '2023-02-16T15:25:45.390Z'}, )
 
             # Some processing error occurred
             m.post(

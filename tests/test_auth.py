@@ -3,11 +3,10 @@
 from datetime import datetime
 
 import unittest
-import json
 import os
-import requests_mock
 from pkg_resources import get_distribution
 
+from test_util import UrllibMocker
 import geoengine as ge
 from geoengine.error import GeoEngineException
 from geoengine.types import QueryRectangle
@@ -36,7 +35,7 @@ class AuthTests(unittest.TestCase):
                          'You have to call `initialize` before using other functionality')
 
     def test_initialize(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
                 "user": {
@@ -54,10 +53,9 @@ class AuthTests(unittest.TestCase):
                              ge.Session)
 
     def test_initialize_tuple(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/login',
-                   additional_matcher=lambda request:
-                   request.text == json.dumps({"email": "foo@bar.de", "password": "secret123"}),
+                   expected_request_body={"email": "foo@bar.de", "password": "secret123"},
                    json={
                        "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
                        "user": {
@@ -75,10 +73,9 @@ class AuthTests(unittest.TestCase):
                              ge.Session)
 
     def test_initialize_env(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/login',
-                   additional_matcher=lambda request:
-                   request.text == json.dumps({"email": "foo@bar.de", "password": "secret123"}),
+                   expected_request_body={"email": "foo@bar.de", "password": "secret123"},
                    json={
                        "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
                        "user": {
@@ -103,7 +100,7 @@ class AuthTests(unittest.TestCase):
                              ge.Session)
 
     def test_initialize_token(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.get('http://mock-instance/session',
                   request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
                   json={
@@ -123,7 +120,7 @@ class AuthTests(unittest.TestCase):
                              ge.Session)
 
     def test_initialize_token_env(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.get('http://mock-instance/session',
                   request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
                   json={
@@ -148,7 +145,7 @@ class AuthTests(unittest.TestCase):
                              ge.Session)
 
     def test_user_agent(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous',
                    request_headers={'User-Agent': f'geoengine-python/{get_distribution("geoengine").version}'},
                    json={

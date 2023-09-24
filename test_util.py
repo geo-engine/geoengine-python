@@ -1,7 +1,6 @@
 import urllib3
 from json import dumps, loads
 from unittest.mock import patch
-from urllib.parse import urlparse
 
 
 class UrllibMocker:
@@ -25,11 +24,18 @@ class UrllibMocker:
             "url": url,
             **kwargs
         })
+        if "json" in kwargs:
+            sent_body = kwargs["json"]
+        elif kwargs.get("body") is not None:
+            sent_body = loads(kwargs["body"])
+        else:
+            sent_body = None
+
         for matcher in self._matchers:
-            if matcher["method"] == method and matcher["path"] == urlparse(url).path and (
-                matcher["requestHeaders"] is None or matcher["requestHeaders"].items() <= kwargs["headers"].items()
+            if matcher["method"] == method and matcher["url"] == url and (
+                matcher["requestHeaders"] is None or ("headers" in kwargs and matcher["requestHeaders"].items() <= kwargs["headers"].items())
             ) and (
-                    matcher["expectedRequestBody"] is None or matcher["expectedRequestBody"] == loads(kwargs["body"])):
+                    matcher["expectedRequestBody"] is None or matcher["expectedRequestBody"] == sent_body):
                 return urllib3.response.HTTPResponse(
                     status=matcher["statusCode"],
                     reason=UrllibMocker.STATUS_CODE_REASON_MAP[matcher["statusCode"]],
@@ -40,7 +46,7 @@ class UrllibMocker:
     def register_uri(self, method, url, request_headers=None, expected_request_body=None, status_code=200, json=None, text=None, body=None):
         matcher = {
             "method": method,
-            "path": urlparse(url).path,
+            "url": url,
             "requestHeaders": request_headers,
             "expectedRequestBody": expected_request_body,
             "statusCode": status_code,

@@ -144,7 +144,8 @@ class PlotTests(unittest.TestCase):
 
                 result_descriptor = workflow.get_result_descriptor()
 
-            self.assertTrue('404' in str(exception.exception))
+            self.assertEqual(str(exception.exception),
+                             'NotFound: Not Found')
 
     def test_wrong_request(self):
         # pylint: disable=duplicate-code

@@ -1199,15 +1199,15 @@ class LayersApi(object):
         if _params['collection']:
             _path_params['collection'] = _params['collection']
 
-        if _params['offset']:
-            _path_params['offset'] = _params['offset']
-
-        if _params['limit']:
-            _path_params['limit'] = _params['limit']
-
 
         # process the query parameters
         _query_params = []
+        if _params.get('offset') is not None:  # noqa: E501
+            _query_params.append(('offset', _params['offset']))
+
+        if _params.get('limit') is not None:  # noqa: E501
+            _query_params.append(('limit', _params['limit']))
+
         # process the header parameters
         _header_params = dict(_params.get('_headers', {}))
         # process the form parameters
@@ -1346,15 +1346,15 @@ class LayersApi(object):
 
         # process the path parameters
         _path_params = {}
-        if _params['offset']:
-            _path_params['offset'] = _params['offset']
-
-        if _params['limit']:
-            _path_params['limit'] = _params['limit']
-
 
         # process the query parameters
         _query_params = []
+        if _params.get('offset') is not None:  # noqa: E501
+            _query_params.append(('offset', _params['offset']))
+
+        if _params.get('limit') is not None:  # noqa: E501
+            _query_params.append(('limit', _params['limit']))
+
         # process the header parameters
         _header_params = dict(_params.get('_headers', {}))
         # process the form parameters

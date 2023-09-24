@@ -23,7 +23,7 @@ class DatasetsTests(unittest.TestCase):
             })
 
             m.get(
-                'http://mock-instance/datasets?offset=1&limit=2&order=NameAsc&filter=foo',
+                'http://mock-instance/datasets?filter=foo&order=NameAsc&offset=1&limit=2',
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
                 json=[{
                     'id': '35383178-4b70-421f-af82-c345c81d2e13',

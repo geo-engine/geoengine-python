@@ -633,24 +633,24 @@ class DatasetsApi(object):
             _request_auth=_params.get('_request_auth'))
 
     @validate_arguments
-    def list_datasets_handler(self, filter : Optional[StrictStr], order : OrderBy, offset : conint(strict=True, ge=0), limit : conint(strict=True, ge=0), **kwargs) -> List[DatasetListing]:  # noqa: E501
+    def list_datasets_handler(self, order : OrderBy, offset : conint(strict=True, ge=0), limit : conint(strict=True, ge=0), filter : Optional[StrictStr] = None, **kwargs) -> List[DatasetListing]:  # noqa: E501
         """Lists available datasets.  # noqa: E501
 
         Lists available datasets.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_datasets_handler(filter, order, offset, limit, async_req=True)
+        >>> thread = api.list_datasets_handler(order, offset, limit, filter, async_req=True)
         >>> result = thread.get()
 
-        :param filter: (required)
-        :type filter: str
         :param order: (required)
         :type order: OrderBy
         :param offset: (required)
         :type offset: int
         :param limit: (required)
         :type limit: int
+        :param filter:
+        :type filter: str
         :param async_req: Whether to execute the request asynchronously.
         :type async_req: bool, optional
         :param _request_timeout: timeout setting for this request. If one
@@ -665,27 +665,27 @@ class DatasetsApi(object):
         kwargs['_return_http_data_only'] = True
         if '_preload_content' in kwargs:
             raise ValueError("Error! Please call the list_datasets_handler_with_http_info method with `_preload_content` instead and obtain raw data from ApiResponse.raw_data")
-        return self.list_datasets_handler_with_http_info(filter, order, offset, limit, **kwargs)  # noqa: E501
+        return self.list_datasets_handler_with_http_info(order, offset, limit, filter, **kwargs)  # noqa: E501
 
     @validate_arguments
-    def list_datasets_handler_with_http_info(self, filter : Optional[StrictStr], order : OrderBy, offset : conint(strict=True, ge=0), limit : conint(strict=True, ge=0), **kwargs) -> ApiResponse:  # noqa: E501
+    def list_datasets_handler_with_http_info(self, order : OrderBy, offset : conint(strict=True, ge=0), limit : conint(strict=True, ge=0), filter : Optional[StrictStr] = None, **kwargs) -> ApiResponse:  # noqa: E501
         """Lists available datasets.  # noqa: E501
 
         Lists available datasets.  # noqa: E501
         This method makes a synchronous HTTP request by default. To make an
         asynchronous HTTP request, please pass async_req=True
 
-        >>> thread = api.list_datasets_handler_with_http_info(filter, order, offset, limit, async_req=True)
+        >>> thread = api.list_datasets_handler_with_http_info(order, offset, limit, filter, async_req=True)
         >>> result = thread.get()
 
-        :param filter: (required)
-        :type filter: str
         :param order: (required)
         :type order: OrderBy
         :param offset: (required)
         :type offset: int
         :param limit: (required)
         :type limit: int
+        :param filter:
+        :type filter: str
         :param async_req: Whether to execute the request asynchronously.
         :type async_req: bool, optional
         :param _preload_content: if False, the ApiResponse.data will
@@ -714,10 +714,10 @@ class DatasetsApi(object):
         _params = locals()
 
         _all_params = [
-            'filter',
             'order',
             'offset',
-            'limit'
+            'limit',
+            'filter'
         ]
         _all_params.extend(
             [
@@ -745,21 +745,21 @@ class DatasetsApi(object):
 
         # process the path parameters
         _path_params = {}
-        if _params['filter']:
-            _path_params['filter'] = _params['filter']
-
-        if _params['order']:
-            _path_params['order'] = _params['order']
-
-        if _params['offset']:
-            _path_params['offset'] = _params['offset']
-
-        if _params['limit']:
-            _path_params['limit'] = _params['limit']
-
 
         # process the query parameters
         _query_params = []
+        if _params.get('filter') is not None:  # noqa: E501
+            _query_params.append(('filter', _params['filter']))
+
+        if _params.get('order') is not None:  # noqa: E501
+            _query_params.append(('order', _params['order'].value))
+
+        if _params.get('offset') is not None:  # noqa: E501
+            _query_params.append(('offset', _params['offset']))
+
+        if _params.get('limit') is not None:  # noqa: E501
+            _query_params.append(('limit', _params['limit']))
+
         # process the header parameters
         _header_params = dict(_params.get('_headers', {}))
         # process the form parameters

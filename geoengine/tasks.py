@@ -237,7 +237,11 @@ class Task:
 
         with openapi_client.ApiClient(session.configuration) as api_client:
             tasks_api = openapi_client.TasksApi(api_client)
-            tasks_api.abort_handler(task_id_str, force, _request_timeout=timeout)
+            tasks_api.abort_handler(
+                task_id_str,
+                None if force is False else True,
+                _request_timeout=timeout
+            )
 
     def wait_for_finish(
             self,

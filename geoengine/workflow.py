@@ -36,9 +36,10 @@ from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
     MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException
 from geoengine import backports
-from geoengine.types import GeoTransform, ProvenanceEntry, QueryRectangle, ResultDescriptor, TimeInterval
+from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
 from geoengine.tasks import Task, TaskId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
+from geoengine.raster import RasterTile2D
 
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
@@ -198,12 +199,12 @@ class Workflow:
                 bbox=bbox.bbox_ogc_str,
                 format=openapi_client.GetMapFormat(openapi_client.GetMapFormat.IMAGE_SLASH_PNG),
                 layers=str(self),
-                styles='custom:' + colorizer.to_json(),
+                styles='custom:' + colorizer.to_api_dict().to_json(),
                 crs=bbox.srs,
                 time=bbox.time_str
             )
 
-        return Image.open(response)
+        return Image.open(BytesIO(response))
 
     def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
         '''
@@ -464,9 +465,8 @@ class Workflow:
     async def raster_stream(
             self,
             query_rectangle: QueryRectangle,
-            clip_to_query_rectangle: bool = False,
-            open_timeout: int = 60) -> AsyncIterator[xr.DataArray]:
-        '''Stream the workflow result as series of xarrays'''
+            open_timeout: int = 60) -> AsyncIterator[RasterTile2D]:
+        '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
 
         def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
             reader = pa.ipc.open_file(arrow_ipc)
@@ -474,48 +474,13 @@ class Workflow:
             record_batch = reader.get_record_batch(0)
             return record_batch
 
-        def create_xarray(record_batch: pa.RecordBatch) -> xr.DataArray:
-            metadata = record_batch.schema.metadata
-            geo_transform: GeoTransform = GeoTransform.from_response(openapi_client.GdalDatasetGeoTransform.from_json(metadata[b'geoTransform']))
-            x_size = int(metadata[b'xSize'])
-            y_size = int(metadata[b'ySize'])
-            spatial_reference = metadata[b'spatialReference'].decode('utf-8')
-            # We know from the backend that there is only one array a.k.a. one column
-            arrow_array = record_batch.column(0)
-
-            time = TimeInterval.from_response(json.loads(metadata[b'time']))
-
-            array = xr.DataArray(
-                arrow_array.to_numpy(
-                    zero_copy_only=False,  # cannot zero-copy as soon as we have nodata values
-                ).reshape(x_size, y_size),
-                dims=["y", "x"],
-                coords={
-                    'x': np.arange(
-                        start=geo_transform.x_min + geo_transform.x_half_pixel_size,
-                        step=geo_transform.x_pixel_size,
-                        stop=geo_transform.x_max(x_size),
-                    ),
-                    'y': np.arange(
-                        start=geo_transform.y_max + geo_transform.y_half_pixel_size,
-                        step=geo_transform.y_pixel_size,
-                        stop=geo_transform.y_min(y_size),
-                    ),
-                    'time': np.datetime64(time.start, 'ms'),  # TODO: incorporate time end?
-                },
-            )
-
-            array.rio.write_crs(spatial_reference, inplace=True)
-
-            return array
-
-        def process_bytes(tile_bytes: Optional[bytes]) -> Optional[xr.DataArray]:
+        def process_bytes(tile_bytes: Optional[bytes]) -> Optional[RasterTile2D]:
             if tile_bytes is None:
                 return None
 
             # process the received data
             record_batch = read_arrow_ipc(tile_bytes)
-            tile = create_xarray(record_batch)
+            tile = RasterTile2D.from_ge_record_batch(record_batch)
 
             return tile
 
@@ -576,20 +541,12 @@ class Workflow:
                 )
 
                 if tile is not None:
-                    if clip_to_query_rectangle:
-                        tile = tile.rio.clip_box(*query_rectangle.spatial_bounds.as_bbox_tuple())
-                        tile = cast(xr.DataArray, tile)
-
                     yield tile
 
             # process the last tile
             tile = process_bytes(tile_bytes)
 
             if tile is not None:
-                if clip_to_query_rectangle:
-                    tile = tile.rio.clip_box(*query_rectangle.spatial_bounds.as_bbox_tuple())
-                    tile = cast(xr.DataArray, tile)
-
                 yield tile
 
     async def raster_stream_into_xarray(
@@ -605,30 +562,33 @@ class Workflow:
 
         tile_stream = self.raster_stream(
             query_rectangle,
-            clip_to_query_rectangle=clip_to_query_rectangle,
             open_timeout=open_timeout
         )
 
         timesteps: List[xr.DataArray] = []
 
+        spatial_clip_bounds = query_rectangle.spatial_bounds if clip_to_query_rectangle else None
+
         async def read_tiles(
-            remainder_tile: Optional[xr.DataArray]
-        ) -> tuple[List[xr.DataArray], Optional[xr.DataArray]]:
+            remainder_tile: Optional[RasterTile2D]
+        ) -> tuple[List[xr.DataArray], Optional[RasterTile2D]]:
             last_timestep: Optional[np.datetime64] = None
             tiles = []
 
             if remainder_tile is not None:
-                last_timestep = remainder_tile.time.values
-                tiles.append(remainder_tile)
+                last_timestep = remainder_tile.time_start_ms
+                xr_tile = remainder_tile.to_xarray(clip_with_bounds=spatial_clip_bounds)
+                tiles.append(xr_tile)
 
             async for tile in tile_stream:
-                timestep: np.datetime64 = tile.time.values
+                timestep: np.datetime64 = tile.time_start_ms
                 if last_timestep is None:
                     last_timestep = timestep
                 elif last_timestep != timestep:
                     return tiles, tile
 
-                tiles.append(tile)
+                xr_tile = tile.to_xarray(clip_with_bounds=spatial_clip_bounds)
+                tiles.append(xr_tile)
 
             # this seems to be the last time step, so just return tiles
             return tiles, None

@@ -408,6 +408,9 @@ class ApiClient(object):
             If parameter async_req is False or missing,
             then the method will return the response directly.
         """
+        # Note: remove query string in path part for ogc endpoints
+        resource_path = resource_path.partition("?")[0]
+
         if not async_req:
             return self.__call_api(resource_path, method,
                                    path_params, query_params, header_params,

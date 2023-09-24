@@ -85,174 +85,176 @@ class WfsTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
-            m.get('http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd',
-                  json={
-                      "type": "FeatureCollection",
-                      "features": [
-                          {
-                              "type": "Feature",
-                              "geometry": {
-                                  "type": "Point",
-                                  "coordinates": [
-                                      0.007420495,
-                                      5.631944444
-                                  ]
-                              },
-                              "properties": {
-                                  "scalerank": 7,
-                                  "website": "www.ghanaports.gov.gh",
-                                  "NDVI": None,
-                                  "natlscale": 10.0,
-                                  "featurecla": "Port",
-                                  "name": "Tema"
-                              },
-                              "when": {
-                                  "start": "2014-04-01T00:00:00+00:00",
-                                  "end": "2014-05-01T00:00:00+00:00",
-                                  "type": "Interval"
-                              }
-                          },
-                          {
-                              "type": "Feature",
-                              "geometry": {
-                                  "type": "Point",
-                                  "coordinates": [
-                                      -10.05265018,
-                                      5.858055556
-                                  ]
-                              },
-                              "properties": {
-                                  "scalerank": 7,
-                                  "website": "www.nationalportauthorityliberia.org",
-                                  "NDVI": 178,
-                                  "natlscale": 10.0,
-                                  "featurecla": "Port",
-                                  "name": "Buchanan"
-                              },
-                              "when": {
-                                  "start": "2014-04-01T00:00:00+00:00",
-                                  "end": "2014-05-01T00:00:00+00:00",
-                                  "type": "Interval"
-                              }
-                          },
-                          {
-                              "type": "Feature",
-                              "geometry": {
-                                  "type": "Point",
-                                  "coordinates": [
-                                      -57.00176678,
-                                      5.951666667
-                                  ]
-                              },
-                              "properties": {
-                                  "scalerank": 6,
-                                  "website": None,
-                                  "NDVI": 108,
-                                  "natlscale": 20.0,
-                                  "featurecla": "Port",
-                                  "name": "Nieuw Nickerie"
-                              },
-                              "when": {
-                                  "start": "2014-04-01T00:00:00+00:00",
-                                  "end": "2014-05-01T00:00:00+00:00",
-                                  "type": "Interval"
-                              }
-                          },
-                          {
-                              "type": "Feature",
-                              "geometry": {
-                                  "type": "Point",
-                                  "coordinates": [
-                                      -3.966666667,
-                                      5.233055556
-                                  ]
-                              },
-                              "properties": {
-                                  "scalerank": 5,
-                                  "website": "www.paa-ci.org",
-                                  "NDVI": 99,
-                                  "natlscale": 30.0,
-                                  "featurecla": "Port",
-                                  "name": "Abidjan"
-                              },
-                              "when": {
-                                  "start": "2014-04-01T00:00:00+00:00",
-                                  "end": "2014-05-01T00:00:00+00:00",
-                                  "type": "Interval"
-                              }
-                          },
-                          {
-                              "type": "Feature",
-                              "geometry": {
-                                  "type": "Point",
-                                  "coordinates": [
-                                      -52.62426384,
-                                      5.158888889
-                                  ]
-                              },
-                              "properties": {
-                                  "scalerank": 5,
-                                  "website": None,
-                                  "NDVI": 159,
-                                  "natlscale": 30.0,
-                                  "featurecla": "Port",
-                                  "name": "Kourou"
-                              },
-                              "when": {
-                                  "start": "2014-04-01T00:00:00+00:00",
-                                  "end": "2014-05-01T00:00:00+00:00",
-                                  "type": "Interval"
-                              }
-                          },
-                          {
-                              "type": "Feature",
-                              "geometry": {
-                                  "type": "Point",
-                                  "coordinates": [
-                                      -55.13898704,
-                                      5.82
-                                  ]
-                              },
-                              "properties": {
-                                  "scalerank": 5,
-                                  "website": None,
-                                  "NDVI": 128,
-                                  "natlscale": 30.0,
-                                  "featurecla": "Port",
-                                  "name": "Paramaribo"
-                              },
-                              "when": {
-                                  "start": "2014-04-01T00:00:00+00:00",
-                                  "end": "2014-05-01T00:00:00+00:00",
-                                  "type": "Interval"
-                              }
-                          },
-                          {
-                              "type": "Feature",
-                              "geometry": {
-                                  "type": "Point",
-                                  "coordinates": [
-                                      -4.021260306,
-                                      5.283333333
-                                  ]
-                              },
-                              "properties": {
-                                  "scalerank": 3,
-                                  "website": "www.paa-ci.org",
-                                  "NDVI": 126,
-                                  "natlscale": 75.0,
-                                  "featurecla": "Port",
-                                  "name": "Abidjan"
-                              },
-                              "when": {
-                                  "start": "2014-04-01T00:00:00+00:00",
-                                  "end": "2014-05-01T00:00:00+00:00",
-                                  "type": "Interval"
-                              }
-                          }
-                      ]
-                  },
-                  request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1',
+                json={
+                    "type": "FeatureCollection",
+                    "features": [
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [
+                                    0.007420495,
+                                    5.631944444
+                                ]
+                            },
+                            "properties": {
+                                "scalerank": 7,
+                                "website": "www.ghanaports.gov.gh",
+                                "NDVI": None,
+                                "natlscale": 10.0,
+                                "featurecla": "Port",
+                                "name": "Tema"
+                            },
+                            "when": {
+                                "start": "2014-04-01T00:00:00+00:00",
+                                "end": "2014-05-01T00:00:00+00:00",
+                                "type": "Interval"
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [
+                                    -10.05265018,
+                                    5.858055556
+                                ]
+                            },
+                            "properties": {
+                                "scalerank": 7,
+                                "website": "www.nationalportauthorityliberia.org",
+                                "NDVI": 178,
+                                "natlscale": 10.0,
+                                "featurecla": "Port",
+                                "name": "Buchanan"
+                            },
+                            "when": {
+                                "start": "2014-04-01T00:00:00+00:00",
+                                "end": "2014-05-01T00:00:00+00:00",
+                                "type": "Interval"
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [
+                                    -57.00176678,
+                                    5.951666667
+                                ]
+                            },
+                            "properties": {
+                                "scalerank": 6,
+                                "website": None,
+                                "NDVI": 108,
+                                "natlscale": 20.0,
+                                "featurecla": "Port",
+                                "name": "Nieuw Nickerie"
+                            },
+                            "when": {
+                                "start": "2014-04-01T00:00:00+00:00",
+                                "end": "2014-05-01T00:00:00+00:00",
+                                "type": "Interval"
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [
+                                    -3.966666667,
+                                    5.233055556
+                                ]
+                            },
+                            "properties": {
+                                "scalerank": 5,
+                                "website": "www.paa-ci.org",
+                                "NDVI": 99,
+                                "natlscale": 30.0,
+                                "featurecla": "Port",
+                                "name": "Abidjan"
+                            },
+                            "when": {
+                                "start": "2014-04-01T00:00:00+00:00",
+                                "end": "2014-05-01T00:00:00+00:00",
+                                "type": "Interval"
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [
+                                    -52.62426384,
+                                    5.158888889
+                                ]
+                            },
+                            "properties": {
+                                "scalerank": 5,
+                                "website": None,
+                                "NDVI": 159,
+                                "natlscale": 30.0,
+                                "featurecla": "Port",
+                                "name": "Kourou"
+                            },
+                            "when": {
+                                "start": "2014-04-01T00:00:00+00:00",
+                                "end": "2014-05-01T00:00:00+00:00",
+                                "type": "Interval"
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [
+                                    -55.13898704,
+                                    5.82
+                                ]
+                            },
+                            "properties": {
+                                "scalerank": 5,
+                                "website": None,
+                                "NDVI": 128,
+                                "natlscale": 30.0,
+                                "featurecla": "Port",
+                                "name": "Paramaribo"
+                            },
+                            "when": {
+                                "start": "2014-04-01T00:00:00+00:00",
+                                "end": "2014-05-01T00:00:00+00:00",
+                                "type": "Interval"
+                            }
+                        },
+                        {
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [
+                                    -4.021260306,
+                                    5.283333333
+                                ]
+                            },
+                            "properties": {
+                                "scalerank": 3,
+                                "website": "www.paa-ci.org",
+                                "NDVI": 126,
+                                "natlscale": 75.0,
+                                "featurecla": "Port",
+                                "name": "Abidjan"
+                            },
+                            "when": {
+                                "start": "2014-04-01T00:00:00+00:00",
+                                "end": "2014-05-01T00:00:00+00:00",
+                                "type": "Interval"
+                            }
+                        }
+                    ]
+                },
+                request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
             ge.initialize("http://mock-instance")
 
@@ -317,7 +319,7 @@ class WfsTests(unittest.TestCase):
             self.assertEqual(
                 # pylint: disable=line-too-long
                 wfs_request["url"],
-                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?service=WFS&version=2.0.0&request=GetFeature&outputFormat=application%2Fjson&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1"
+                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1"
             )
 
             expected_df = gpd.GeoDataFrame(
@@ -415,15 +417,17 @@ class WfsTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
-            m.get('http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd',
-                  json={
-                      "error": "Operator",
-                      "message": 'Operator: Could not open gdal dataset for file path '
-                      '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"'
-                  },
-                  status_code=400,
-                  request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'}
-                  )
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1',
+                json={
+                    "error": "Operator",
+                    "message": 'Operator: Could not open gdal dataset for file path '
+                    '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"'
+                },
+                status_code=400,
+                request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'}
+            )
 
             ge.initialize("http://mock-instance")
 
@@ -795,36 +799,38 @@ class WfsTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
-            m.get('http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd',
-                  json={
-                      "type": "FeatureCollection",
-                      "features": [{
-                          "type": "Feature",
-                          "geometry": {
-                              "type": "Point",
-                              "coordinates": [
-                                  -4.021260306,
-                                  5.283333333
-                              ]
-                          },
-                          "properties": {
-                              "scalerank": 3,
-                              "website": "www.paa-ci.org",
-                              "NDVI": 126,
-                              "natlscale": 75.0,
-                              "featurecla": "Port",
-                              "name": "Abidjan"
-                          },
-                          "when": {
-                              "start": "2014-04-01T00:00:00+00:00",
-                              "end": "2014-05-01T00:00:00+00:00",
-                              "type": "Interval"
-                          }
-                      }]
-                  },
-                  request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064',
-                                   'User-Agent': f'geoengine-python/{get_distribution("geoengine").version}'}
-                  )
+            m.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1',
+                json={
+                    "type": "FeatureCollection",
+                    "features": [{
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "Point",
+                            "coordinates": [
+                                -4.021260306,
+                                5.283333333
+                            ]
+                        },
+                        "properties": {
+                            "scalerank": 3,
+                            "website": "www.paa-ci.org",
+                            "NDVI": 126,
+                            "natlscale": 75.0,
+                            "featurecla": "Port",
+                            "name": "Abidjan"
+                        },
+                        "when": {
+                            "start": "2014-04-01T00:00:00+00:00",
+                            "end": "2014-05-01T00:00:00+00:00",
+                            "type": "Interval"
+                        }
+                    }]
+                },
+                request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064',
+                                 'User-Agent': f'geoengine-python/{get_distribution("geoengine").version}'}
+            )
 
             ge.initialize("http://mock-instance")
 

@@ -6,7 +6,7 @@ import unittest
 # import textwrap
 from PIL import Image
 
-import requests_mock
+from test_util import UrllibMocker
 
 import geoengine as ge
 from geoengine.colorizer import Colorizer
@@ -19,7 +19,7 @@ class WmsTests(unittest.TestCase):
         ge.reset(False)
 
     def test_ndvi_image(self):
-        with requests_mock.Mocker() as m, \
+        with UrllibMocker() as m, \
                 open("tests/responses/wms-ndvi.png", "rb") as ndvi_png, \
                 open("tests/responses/4326.gml", "rb") as epsg4326_gml:
             m.post('http://mock-instance/anonymous', json={
@@ -56,7 +56,7 @@ class WmsTests(unittest.TestCase):
 
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=200&height=100&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0.0%2C+%22color%22%3A+%5B0%2C+0%2C+0%2C+255%5D%7D%2C+%7B%22value%22%3A+255.0%2C+%22color%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22overColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22underColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%7D',
+                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?version=1.3.0&service=WMS&request=GetMap&width=200&height=100&bbox=-90.0%2C-180.0%2C90.0%2C180.0&format=image/png&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&crs=EPSG%3A4326&styles=custom%3A%7B%22overColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22underColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22breakpoints%22%3A%20%5B%7B%22color%22%3A%20%5B0%2C%200%2C%200%2C%20255%5D%2C%20%22value%22%3A%200.0%7D%2C%20%7B%22color%22%3A%20%5B255%2C%20255%2C%20255%2C%20255%5D%2C%20%22value%22%3A%20255.0%7D%5D%2C%20%22noDataColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22type%22%3A%20%22linearGradient%22%7D&time=2014-04-01T12%3A00%3A00.000%2B00%3A00',
                 body=ndvi_png,
             )
 
@@ -92,7 +92,7 @@ class WmsTests(unittest.TestCase):
             self.assertEqual(img, Image.open("tests/responses/wms-ndvi.png"))
 
     def test_image_error(self):
-        with requests_mock.Mocker() as m, \
+        with UrllibMocker() as m, \
                 open("tests/responses/4326.gml", "rb") as epsg4326_gml:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
@@ -122,7 +122,7 @@ class WmsTests(unittest.TestCase):
             # Unfortunately, we need a separate library to catch the request from the WMS call
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&version=1.3.0&request=GetMap&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&crs=EPSG%3A4326&bbox=-90.0%2C-180.0%2C90.0%2C180.0&width=200&height=100&format=image%2Fpng&styles=custom%3A%7B%22type%22%3A+%22linearGradient%22%2C+%22breakpoints%22%3A+%5B%7B%22value%22%3A+0.0%2C+%22color%22%3A+%5B0%2C+0%2C+0%2C+255%5D%7D%2C+%7B%22value%22%3A+255.0%2C+%22color%22%3A+%5B255%2C+255%2C+255%2C+255%5D%7D%5D%2C+%22noDataColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22overColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%2C+%22underColor%22%3A+%5B0%2C+0%2C+0%2C+0%5D%7D',
+                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?version=1.3.0&service=WMS&request=GetMap&width=200&height=100&bbox=-90.0%2C-180.0%2C90.0%2C180.0&format=image/png&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&crs=EPSG%3A4326&styles=custom%3A%7B%22overColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22underColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22breakpoints%22%3A%20%5B%7B%22color%22%3A%20%5B0%2C%200%2C%200%2C%20255%5D%2C%20%22value%22%3A%200.0%7D%2C%20%7B%22color%22%3A%20%5B255%2C%20255%2C%20255%2C%20255%5D%2C%20%22value%22%3A%20255.0%7D%5D%2C%20%22noDataColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22type%22%3A%20%22linearGradient%22%7D&time=2004-04-01T12%3A00%3A00.000%2B00%3A00',
                 json={
                     "error": "Operator",
                     "message": 'Operator: Could not open gdal dataset for file path '
@@ -151,7 +151,7 @@ class WmsTests(unittest.TestCase):
 
             workflow = ge.register_workflow(workflow_definition)
 
-            with self.assertRaises(ge.GeoEngineException) as ctx:
+            with self.assertRaises(ge.BadRequestException) as ctx:
                 workflow.wms_get_map_as_image(
                     ge.QueryRectangle(
                         spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
@@ -166,7 +166,7 @@ class WmsTests(unittest.TestCase):
                              '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"')
 
     def test_result_descriptor(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
@@ -185,6 +185,7 @@ class WmsTests(unittest.TestCase):
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
             m.get('http://mock-instance/workflow/foo/metadata',
+                  status_code=404,
                   json={
                       'error': 'NotFound',
                       'message': 'Not Found',
@@ -209,7 +210,7 @@ class WmsTests(unittest.TestCase):
                 textwrap.dedent(expected_repr)
             )
 
-            with self.assertRaises(ge.GeoEngineException) as exception:
+            with self.assertRaises(ge.NotFoundException) as exception:
                 workflow = ge.workflow_by_id('foo')
 
                 result_descriptor = workflow.get_result_descriptor()
