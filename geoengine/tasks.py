@@ -314,8 +314,6 @@ def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
 
     result = []
     for item in response:
-        print("Item:", item)
-        print("Actual:", item.actual_instance)
         result.append((Task(TaskId(UUID(item.task_id))), TaskStatusInfo.from_response(item)))
 
     return result
