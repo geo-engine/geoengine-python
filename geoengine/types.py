@@ -146,6 +146,7 @@ class TimeInterval:
                  dt_format: Optional[str] = DEFAULT_ISO_TIME_FORMAT) -> None:
         '''Initialize a new `TimeInterval` object'''
 
+        # pylint: disable=too-many-branches
         if dt_format is None:
             dt_format = DEFAULT_ISO_TIME_FORMAT
 
