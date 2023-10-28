@@ -10,7 +10,7 @@ import geoengine.datasets as ge_datasets
 import geoengine.layers as ge_layers
 import geoengine.permissions as ge_permissions
 import geoengine.workflow as ge_workflow
-import geoengine.api as api
+from geoengine import api
 import geoengine.tasks as ge_tasks
 
 
