@@ -14,10 +14,6 @@ from geoengine.types import RasterSymbology
 class LayerTests(unittest.TestCase):
     """Layer test runner."""
 
-    def setUp(self) -> None:
-        """Set up the geo engine session."""
-        ge.reset(False)
-
     def test_layer(self):
         """Test `add_layer`."""
 
@@ -79,9 +75,9 @@ class LayerTests(unittest.TestCase):
                     }
                 })
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            layer = ge.layer('9ee3619e-d0f9-4ced-9c44-3d407c3aed69', 'ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')
+            layer = client.layer('9ee3619e-d0f9-4ced-9c44-3d407c3aed69', 'ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')
 
             self.assertEqual(
                 layer.to_api_dict(),
@@ -180,9 +176,9 @@ class LayerTests(unittest.TestCase):
                 }
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            layer_collection = ge.layer_collection(
+            layer_collection = client.layer_collection(
                 '546073b6-d535-4205-b601-99675c9f6dd7',
                 'ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b'
             )
@@ -190,18 +186,21 @@ class LayerTests(unittest.TestCase):
             self.assertEqual(
                 layer_collection.__dict__,
                 ge.LayerCollection(
+                    session=client.get_session(),
                     name='Datasets',
                     description='Basic Layers for all Datasets',
                     collection_id=ge.LayerCollectionId('546073b6-d535-4205-b601-99675c9f6dd7'),
                     provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                     items=[
                         ge.LayerListing(
+                            session=client.get_session(),
                             listing_id=ge.LayerId('9ee3619e-d0f9-4ced-9c44-3d407c3aed69'),
                             provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                             name='Land Cover',
                             description='Land Cover derived from MODIS/Terra+Aqua Land Cover',
                         ),
                         ge.LayerListing(
+                            session=client.get_session(),
                             listing_id=ge.LayerId('36574dc3-560a-4b09-9d22-d5945f2b8093'),
                             provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                             name='NDVI',
@@ -431,9 +430,9 @@ class LayerTests(unittest.TestCase):
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            root_of_layerdb = ge.layer_collection('05102bb3-a855-4a37-8a8a-30026a91fef1')
+            root_of_layerdb = client.layer_collection('05102bb3-a855-4a37-8a8a-30026a91fef1')
 
             root_of_layerdb.add_collection("my test collection", "test description")
 
@@ -523,10 +522,11 @@ class LayerTests(unittest.TestCase):
                       'message': 'Some Processing Message'},
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             # Success case
-            layer = ge.Layer(
+            layer = Layer(
+                session=client.get_session(),
                 name='Test Raster Layer',
                 description='Test Raster Layer Description',
                 layer_id=ge.LayerId(UUID('9ee3619e-d0f9-4ced-9c44-3d407c3aed69')),
@@ -554,6 +554,7 @@ class LayerTests(unittest.TestCase):
 
             # Some processing error occurred (e.g., layer does not exist)
             layer = ge.Layer(
+                session=client.get_session(),
                 name='Test Error Raster Layer',
                 description='Test Error Raster Layer Description',
                 layer_id=ge.LayerId(UUID('86c81654-e572-42ed-96ee-8b38ebcd84ab')),
@@ -578,55 +579,65 @@ class LayerTests(unittest.TestCase):
     def test_layer_repr_html_does_not_crash(self):
         """Test `layer._repr_html_`."""
 
-        layer = Layer(
-            name='Test Raster Layer',
-            description='Test Raster Layer Description',
-            layer_id=LayerId(UUID('9ee3619e-d0f9-4ced-9c44-3d407c3aed69')),
-            provider_id=LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
-            workflow={
-                "operator": {
-                        "params": {
-                            "data": "ndvi"
-                        },
-                    "type": "GdalSource"
+        with requests_mock.Mocker() as m:
+            m.post('http://mock-instance/anonymous', json={
+                "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                "project": None,
+                "view": None
+            })
+
+            client = ge.create_client("http://mock-instance")
+
+            layer = Layer(
+                session=client.get_session(),
+                name='Test Raster Layer',
+                description='Test Raster Layer Description',
+                layer_id=LayerId(UUID('9ee3619e-d0f9-4ced-9c44-3d407c3aed69')),
+                provider_id=LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
+                workflow={
+                    "operator": {
+                            "params": {
+                                "data": "ndvi"
+                            },
+                        "type": "GdalSource"
+                    },
+                    "type": "Raster"
                 },
-                "type": "Raster"
-            },
-            symbology=RasterSymbology.from_response(api.RasterSymbology(
+                symbology=RasterSymbology.from_response(api.RasterSymbology(
+                    type='raster',
+                    colorizer=api.LinearGradientColorizer(
+                        type='linearGradient',
+                        noDataColor=[0, 0, 0, 0],
+                        overColor=[0, 0, 0, 0],
+                        underColor=[0, 0, 0, 0],
+                        breakpoints=[
+                            api.ColorizerBreakpoint(value=0., color=[0, 0, 0, 0]),
+                            api.ColorizerBreakpoint(value=1., color=[0, 0, 0, 0]),
+                        ],
+                    ),
+                    opacity=1,
+                )),
+                properties=[],
+                metadata={},
+            )
+
+            _html = layer._repr_html_()  # pylint: disable=protected-access
+
+            layer.symbology = RasterSymbology.from_response(api.RasterSymbology(
                 type='raster',
-                colorizer=api.LinearGradientColorizer(
-                    type='linearGradient',
+                colorizer=api.PaletteColorizer(
+                    type='palette',
                     noDataColor=[0, 0, 0, 0],
-                    overColor=[0, 0, 0, 0],
-                    underColor=[0, 0, 0, 0],
-                    breakpoints=[
-                        api.ColorizerBreakpoint(value=0., color=[0, 0, 0, 0]),
-                        api.ColorizerBreakpoint(value=1., color=[0, 0, 0, 0]),
-                    ],
+                    colors={
+                        0.: [0, 0, 0, 0],
+                        1.: [0, 0, 0, 0],
+                    },
+                    defaultColor=[0, 0, 0, 0],
                 ),
                 opacity=1,
-            )),
-            properties=[],
-            metadata={},
-        )
+            ))
 
-        _html = layer._repr_html_()  # pylint: disable=protected-access
-
-        layer.symbology = RasterSymbology.from_response(api.RasterSymbology(
-            type='raster',
-            colorizer=api.PaletteColorizer(
-                type='palette',
-                noDataColor=[0, 0, 0, 0],
-                colors={
-                    0.: [0, 0, 0, 0],
-                    1.: [0, 0, 0, 0],
-                },
-                defaultColor=[0, 0, 0, 0],
-            ),
-            opacity=1,
-        ))
-
-        _html = layer._repr_html_()  # pylint: disable=protected-access
+            _html = layer._repr_html_()  # pylint: disable=protected-access
 
 
 if __name__ == '__main__':

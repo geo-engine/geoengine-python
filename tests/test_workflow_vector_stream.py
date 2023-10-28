@@ -121,14 +121,11 @@ def arrow_bytes(geo: List[str], time: List[List[int]], data: List[int]) -> bytes
 class WorkflowVectorStreamTests(unittest.TestCase):
     '''Test methods for retrieving vector workflows as data streams'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_streaming_workflow(self):
         with unittest.mock.patch("requests.get", return_value=MockRequestsGet(json_data={
             "id": "00000000-0000-0000-0000-000000000000",
         })):
-            ge.initialize("http://localhost:3030", token="no_token")
+            client = ge.create_client("http://localhost:3030", token="no_token")
 
         with unittest.mock.patch(
             "geoengine.Workflow._Workflow__query_result_descriptor",
@@ -143,7 +140,7 @@ class WorkflowVectorStreamTests(unittest.TestCase):
                 spatial_resolution=ge.SpatialResolution(0.5, 0.5)
             ),
         ):
-            workflow = ge.Workflow(UUID("00000000-0000-0000-0000-000000000000"))
+            workflow = ge.Workflow(client.get_session(), UUID("00000000-0000-0000-0000-000000000000"))
 
         query_rect = ge.QueryRectangle(
             spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),

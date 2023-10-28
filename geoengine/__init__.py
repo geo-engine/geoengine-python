@@ -3,7 +3,8 @@
 from pkg_resources import get_distribution
 from requests import utils
 
-from .auth import Session, get_session, initialize, reset
+from .auth import Session
+from .client import Client, create_client
 from .colorizer import Colorizer, ColorBreakpoint, LinearGradientColorizer, PaletteColorizer, \
     LogarithmicGradientColorizer
 from .datasets import upload_dataframe, StoredDataset, add_dataset, volumes, AddDatasetProperties, \

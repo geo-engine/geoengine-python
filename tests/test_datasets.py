@@ -8,10 +8,6 @@ import geoengine as ge
 class DatasetsTests(unittest.TestCase):
     """Dataset test runner."""
 
-    def setUp(self) -> None:
-        """Set up the geo engine session."""
-        ge.reset(False)
-
     def test_list_datasets(self):
         """Test `GET /datasets`."""
 
@@ -69,9 +65,9 @@ class DatasetsTests(unittest.TestCase):
                                                 'underColor': [0, 0, 0, 0]}}}
                       ])
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            datasets = ge.list_datasets(
+            datasets = client.list_datasets(
                 offset=1,
                 limit=2,
                 order=ge.DatasetListOrder.NAME_ASC,

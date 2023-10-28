@@ -14,11 +14,11 @@ import urllib
 import requests as req
 from strenum import LowercaseStrEnum
 from geoengine import api
-from geoengine.auth import get_session
+from geoengine.auth import Session
 from geoengine.error import GeoEngineException, ModificationNotOnLayerDbException, check_response_for_error
 from geoengine.tasks import Task, TaskId
 from geoengine.types import Symbology
-from geoengine.workflow import Workflow, WorkflowId
+from geoengine.workflow import Workflow, WorkflowId, WorkflowType
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 
 LayerId = NewType('LayerId', str)
@@ -101,15 +101,21 @@ class Listing(Generic[LISTINGID]):
 class LayerListing(Listing[LayerId]):
     '''A layer listing as item of a collection'''
 
+    session: Session
+
     def _type_str(self) -> str:
         '''String representation of the listing type'''
 
         return 'Layer'
 
+    def get_session(self) -> Session:
+        '''Get the session of the layer'''
+        return self.session
+
     def load(self, timeout: int = 60) -> Union[LayerCollection, Layer]:
         '''Load the listing item'''
 
-        return layer(self.listing_id, self.provider_id, timeout)
+        return layer(self.get_session(), self.listing_id, self.provider_id, timeout)
 
     def _remove(self,
                 collection_id: LayerCollectionId,
@@ -118,26 +124,31 @@ class LayerListing(Listing[LayerId]):
         if provider_id != LAYER_DB_PROVIDER_ID:
             raise ModificationNotOnLayerDbException('Layer collection is not stored in the layer database')
 
-        _delete_layer_from_collection(
-            collection_id,
-            self.listing_id,
-            timeout,
-        )
+        _delete_layer_from_collection(self.get_session(),
+                                      collection_id,
+                                      self.listing_id,
+                                      timeout,
+                                      )
 
 
 @dataclass(repr=False)
 class LayerCollectionListing(Listing[LayerCollectionId]):
     '''A layer listing as item of a collection'''
+    session: Session
 
     def _type_str(self) -> str:
         '''String representation of the listing type'''
 
         return 'Layer Collection'
 
+    def get_session(self) -> Session:
+        '''Get the session of the layer collection'''
+        return self.session
+
     def load(self, timeout: int = 60) -> Union[LayerCollection, Layer]:
         '''Load the listing item'''
 
-        return layer_collection(self.listing_id, self.provider_id, timeout)
+        return layer_collection(self.get_session(), self.listing_id, self.provider_id, timeout)
 
     def _remove(self,
                 collection_id: LayerCollectionId,
@@ -147,6 +158,7 @@ class LayerCollectionListing(Listing[LayerCollectionId]):
             raise ModificationNotOnLayerDbException('Layer collection is not stored in the layer database')
 
         _delete_layer_collection_from_collection(
+            self.get_session(),
             collection_id,
             self.listing_id,
             timeout,
@@ -156,6 +168,7 @@ class LayerCollectionListing(Listing[LayerCollectionId]):
 class LayerCollection:
     '''A layer collection'''
 
+    session: Session
     name: str
     description: str
     collection_id: LayerCollectionId
@@ -163,6 +176,7 @@ class LayerCollection:
     items: List[Listing]
 
     def __init__(self,
+                 session: Session,
                  name: str,
                  description: str,
                  collection_id: LayerCollectionId,
@@ -170,7 +184,7 @@ class LayerCollection:
                  items: List[Listing]) -> None:
         '''Create a new `LayerCollection`'''
         # pylint: disable=too-many-arguments
-
+        self.session = session
         self.name = name
         self.description = description
         self.collection_id = collection_id
@@ -178,7 +192,7 @@ class LayerCollection:
         self.items = items
 
     @classmethod
-    def from_response(cls, response_pages: List[api.LayerCollectionResponse]) -> LayerCollection:
+    def from_response(cls, session: Session, response_pages: List[api.LayerCollectionResponse]) -> LayerCollection:
         '''Parse an HTTP JSON response to an `LayerCollection`'''
 
         assert len(response_pages) > 0, 'No response pages'
@@ -189,6 +203,7 @@ class LayerCollection:
             if item_type is LayerCollectionListingType.LAYER:
                 layer_id_response = cast(api.LayerAndProviderIdResponse, response['id'])
                 return LayerListing(
+                    session=session,
                     listing_id=LayerId(layer_id_response['layerId']),
                     provider_id=LayerProviderId(UUID(layer_id_response['providerId'])),
                     name=item_response['name'],
@@ -198,6 +213,7 @@ class LayerCollection:
             if item_type is LayerCollectionListingType.COLLECTION:
                 collection_id_response = cast(api.LayerCollectionAndProviderIdResponse, response['id'])
                 return LayerCollectionListing(
+                    session=session,
                     listing_id=LayerCollectionId(collection_id_response['collectionId']),
                     provider_id=LayerProviderId(UUID(collection_id_response['providerId'])),
                     name=item_response['name'],
@@ -214,6 +230,7 @@ class LayerCollection:
         response = response_pages[0]
 
         return LayerCollection(
+            session=session,
             name=response['name'],
             description=response['description'],
             collection_id=LayerCollectionId(response['id']['collectionId']),
@@ -221,10 +238,14 @@ class LayerCollection:
             items=items,
         )
 
+    def get_session(self) -> Session:
+        '''Get the session of the layer collection'''
+        return self.session
+
     def reload(self) -> LayerCollection:
         '''Reload the layer collection'''
 
-        return layer_collection(self.collection_id, self.provider_id)
+        return layer_collection(self.get_session(), self.collection_id, self.provider_id)
 
     def __repr__(self) -> str:
         '''String representation of a `LayerCollection`'''
@@ -276,7 +297,7 @@ class LayerCollection:
         if self.provider_id != LAYER_DB_PROVIDER_ID:
             raise ModificationNotOnLayerDbException('Layer collection is not stored in the layer database')
 
-        _delete_layer_collection(self.collection_id, timeout)
+        _delete_layer_collection(self.get_session(), self.collection_id, timeout)
 
     def remove_item(self, index: int, timeout: int = 60):
         '''Remove a layer or collection from this collection'''
@@ -297,7 +318,7 @@ class LayerCollection:
     def add_layer(self,
                   name: str,
                   description: str,
-                  workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
+                  workflow: WorkflowType,
                   symbology: Optional[Symbology],
                   timeout: int = 60) -> LayerId:
         '''Add a layer to this collection'''
@@ -306,9 +327,12 @@ class LayerCollection:
         if self.provider_id != LAYER_DB_PROVIDER_ID:
             raise ModificationNotOnLayerDbException('Layer collection is not stored in the layer database')
 
-        layer_id = _add_layer_to_collection(name, description, workflow, symbology, self.collection_id, timeout)
+        layer_id = _add_layer_to_collection(
+            self.get_session(), name, description, workflow, symbology, self.collection_id, timeout
+        )
 
         self.items.append(LayerListing(
+            session=self.get_session(),
             listing_id=layer_id,
             provider_id=self.provider_id,
             name=name,
@@ -332,11 +356,12 @@ class LayerCollection:
         elif isinstance(existing_layer, str):  # TODO: check for LayerId in Python 3.11+
             layer_id = existing_layer
 
-        _add_existing_layer_to_collection(layer_id, self.collection_id, timeout)
+        _add_existing_layer_to_collection(self.get_session(), layer_id, self.collection_id, timeout)
 
-        child_layer = layer(layer_id, self.provider_id)
+        child_layer = layer(self.get_session(), layer_id, self.provider_id)
 
         self.items.append(LayerListing(
+            session=self.get_session(),
             listing_id=layer_id,
             provider_id=self.provider_id,
             name=child_layer.name,
@@ -354,9 +379,12 @@ class LayerCollection:
         if self.provider_id != LAYER_DB_PROVIDER_ID:
             raise ModificationNotOnLayerDbException('Layer collection is not stored in the layer database')
 
-        collection_id = _add_layer_collection_to_collection(name, description, self.collection_id, timeout)
+        collection_id = _add_layer_collection_to_collection(
+            self.get_session(), name, description, self.collection_id, timeout
+        )
 
         self.items.append(LayerCollectionListing(
+            session=self.get_session(),
             listing_id=collection_id,
             provider_id=self.provider_id,
             name=name,
@@ -380,13 +408,14 @@ class LayerCollection:
         elif isinstance(existing_collection, str):  # TODO: check for LayerId in Python 3.11+
             collection_id = existing_collection
 
-        _add_existing_layer_collection_to_collection(collection_id=collection_id,
+        _add_existing_layer_collection_to_collection(self.get_session(), collection_id=collection_id,
                                                      parent_collection_id=self.collection_id,
                                                      timeout=timeout)
 
-        child_collection = layer_collection(collection_id, self.provider_id)
+        child_collection = layer_collection(self.get_session(), collection_id, self.provider_id)
 
         self.items.append(LayerCollectionListing(
+            session=self.get_session(),
             listing_id=collection_id,
             provider_id=self.provider_id,
             name=child_collection.name,
@@ -405,7 +434,7 @@ class LayerCollection:
 class Layer:
     '''A layer'''
     # pylint: disable=too-many-instance-attributes
-
+    session: Session
     name: str
     description: str
     layer_id: LayerId
@@ -416,6 +445,7 @@ class Layer:
     metadata: Dict[str, Any]  # TODO: specify in more detail
 
     def __init__(self,
+                 session: Session,
                  name: str,
                  description: str,
                  layer_id: LayerId,
@@ -427,6 +457,7 @@ class Layer:
         '''Create a new `Layer`'''
         # pylint: disable=too-many-arguments
 
+        self.session = session
         self.name = name
         self.description = description
         self.layer_id = layer_id
@@ -437,13 +468,14 @@ class Layer:
         self.metadata = metadata
 
     @classmethod
-    def from_response(cls, response: api.LayerResponse) -> Layer:
+    def from_response(cls, session: Session, response: api.LayerResponse) -> Layer:
         '''Parse an HTTP JSON response to an `Layer`'''
         symbology = None
         if 'symbology' in response and response['symbology'] is not None:
             symbology = Symbology.from_response(cast(api.Symbology, response['symbology']))
 
         return Layer(
+            session=session,
             name=response['name'],
             description=response['description'],
             layer_id=LayerId(response['id']['layerId']),
@@ -505,11 +537,15 @@ class Layer:
 
         return buf.getvalue()
 
+    def get_session(self) -> Session:
+        '''Get the session of the layer'''
+        return self.session
+
     def save_as_dataset(self, timeout: int = 60) -> Task:
         '''
         Save a layer as a new dataset.
         '''
-        session = get_session()
+        session = self.get_session()
 
         layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
         response = req.post(
@@ -520,7 +556,7 @@ class Layer:
 
         check_response_for_error(response)
 
-        return Task(TaskId.from_response(response.json()))
+        return Task(session, TaskId.from_response(response.json()))
 
     def to_api_dict(self) -> api.LayerResponse:
         '''Convert to a dictionary that can be serialized to JSON'''
@@ -541,7 +577,7 @@ class Layer:
         '''
         Register a layer as a workflow and returns its workflowId
         '''
-        session = get_session()
+        session = self.get_session()
 
         layer_id_quote = urllib.parse.quote_plus(str(self.layer_id))
         response = req.post(
@@ -562,17 +598,15 @@ class Layer:
         '''
         workflow_id = self.as_workflow_id(timeout=timeout)
 
-        return Workflow(workflow_id)
+        return Workflow(self.get_session(), workflow_id)
 
 
-def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
+def layer_collection(session: Session, layer_collection_id: Optional[LayerCollectionId] = None,
                      layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
                      timeout: int = 60) -> LayerCollection:
     '''
     Retrieve a layer collection that contains layers and layer collections.
     '''
-
-    session = get_session()
 
     request = '/layers/collections' if layer_collection_id is None \
         else f'/layers/collections/{layer_provider_id}/{urllib.parse.quote_plus(str(layer_collection_id))}'
@@ -601,17 +635,15 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
         pages.append(page)
         offset += page_limit
 
-    return LayerCollection.from_response(pages)
+    return LayerCollection.from_response(session, pages)
 
 
-def layer(layer_id: LayerId,
+def layer(session: Session, layer_id: LayerId,
           layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
           timeout: int = 60) -> Layer:
     '''
     Retrieve a layer from the server.
     '''
-
-    session = get_session()
 
     response = req.get(
         f'{session.server_url}/layers/{layer_provider_id}/{urllib.parse.quote_plus(layer_id)}',
@@ -622,15 +654,13 @@ def layer(layer_id: LayerId,
     if not response.ok:
         raise GeoEngineException(response.json())
 
-    return Layer.from_response(response.json())
+    return Layer.from_response(session, response.json())
 
 
-def _delete_layer_from_collection(collection_id: LayerCollectionId,
+def _delete_layer_from_collection(session: Session, collection_id: LayerCollectionId,
                                   layer_id: LayerId,
                                   timeout: int = 60) -> None:
     '''Delete a layer from a collection'''
-
-    session = get_session()
 
     response = req.delete(
         f'{session.server_url}/layerDb/collections/{collection_id}/layers/{layer_id}',
@@ -642,12 +672,10 @@ def _delete_layer_from_collection(collection_id: LayerCollectionId,
         raise GeoEngineException(response.json())
 
 
-def _delete_layer_collection_from_collection(parent_id: LayerCollectionId,
+def _delete_layer_collection_from_collection(session: Session, parent_id: LayerCollectionId,
                                              collection_id: LayerCollectionId,
                                              timeout: int = 60) -> None:
     '''Delete a layer collection from a collection'''
-
-    session = get_session()
 
     response = req.delete(
         f'{session.server_url}/layerDb/collections/{parent_id}/collections/{collection_id}',
@@ -659,11 +687,9 @@ def _delete_layer_collection_from_collection(parent_id: LayerCollectionId,
         raise GeoEngineException(response.json())
 
 
-def _delete_layer_collection(collection_id: LayerCollectionId,
+def _delete_layer_collection(session: Session, collection_id: LayerCollectionId,
                              timeout: int = 60) -> None:
     '''Delete a layer collection'''
-
-    session = get_session()
 
     response = req.delete(
         f'{session.server_url}/layerDb/collections/{collection_id}',
@@ -675,13 +701,11 @@ def _delete_layer_collection(collection_id: LayerCollectionId,
         raise GeoEngineException(response.json())
 
 
-def _add_layer_collection_to_collection(name: str,
+def _add_layer_collection_to_collection(session: Session, name: str,
                                         description: str,
                                         parent_collection_id: LayerCollectionId,
                                         timeout: int = 60) -> LayerCollectionId:
     '''Add a new layer collection'''
-
-    session = get_session()
 
     response = req.post(
         f'{session.server_url}/layerDb/collections/{parent_collection_id}/collections',
@@ -699,12 +723,10 @@ def _add_layer_collection_to_collection(name: str,
     return LayerCollectionId(response.json()['id'])
 
 
-def _add_existing_layer_collection_to_collection(collection_id: LayerCollectionId,
+def _add_existing_layer_collection_to_collection(session: Session, collection_id: LayerCollectionId,
                                                  parent_collection_id: LayerCollectionId,
                                                  timeout: int = 60) -> None:
     '''Add an existing layer collection to a collection'''
-
-    session = get_session()
 
     response = req.post(
         f'{session.server_url}/layerDb/collections/{parent_collection_id}/collections/{collection_id}',
@@ -716,9 +738,9 @@ def _add_existing_layer_collection_to_collection(collection_id: LayerCollectionI
         raise GeoEngineException(response.json())
 
 
-def _add_layer_to_collection(name: str,
+def _add_layer_to_collection(session: Session, name: str,
                              description: str,
-                             workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
+                             workflow: WorkflowType,
                              symbology: Optional[Symbology],
                              collection_id: LayerCollectionId,
                              timeout: int = 60) -> LayerId:
@@ -730,8 +752,6 @@ def _add_layer_to_collection(name: str,
         workflow = workflow.to_workflow_dict()
 
     symbology_dict = symbology.to_api_dict() if symbology is not None and isinstance(symbology, Symbology) else None
-
-    session = get_session()
 
     response = req.post(
         f'{session.server_url}/layerDb/collections/{collection_id}/layers',
@@ -751,12 +771,10 @@ def _add_layer_to_collection(name: str,
     return LayerId(response.json()['id'])
 
 
-def _add_existing_layer_to_collection(layer_id: LayerId,
+def _add_existing_layer_to_collection(session: Session, layer_id: LayerId,
                                       collection_id: LayerCollectionId,
                                       timeout: int = 60) -> None:
     '''Add an existing layer to a collection'''
-
-    session = get_session()
 
     response = req.post(
         f'{session.server_url}/layerDb/collections/{collection_id}/layers/{layer_id}',

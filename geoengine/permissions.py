@@ -12,7 +12,7 @@ import json
 import requests as req
 from geoengine import api
 
-from geoengine.auth import get_session
+from geoengine.auth import Session
 from geoengine.datasets import DatasetName
 from geoengine.error import GeoEngineException
 from geoengine.layers import LayerCollectionId, LayerId
@@ -127,10 +127,8 @@ REGISTERED_USER_ROLE_ID: RoleId = RoleId(UUID("4e8081b6-8aa6-4275-af0c-2fa2da557
 ANONYMOUS_USER_ROLE_ID: RoleId = RoleId(UUID("fd8e87bf-515c-4f36-8da6-1a53702ff102"))
 
 
-def add_permission(role: RoleId, resource: Resource, permission: Permission, timeout: int = 60):
+def add_permission(session: Session, role: RoleId, resource: Resource, permission: Permission, timeout: int = 60):
     """Add a permission to a resource for a role. Requires admin role."""
-
-    session = get_session()
 
     payload = json.dumps(api.PermissionRequest({
         "roleId": str(role),
@@ -154,10 +152,8 @@ def add_permission(role: RoleId, resource: Resource, permission: Permission, tim
         raise GeoEngineException(response.json())
 
 
-def remove_permission(role: RoleId, resource: Resource, permission: Permission, timeout: int = 60):
+def remove_permission(session: Session, role: RoleId, resource: Resource, permission: Permission, timeout: int = 60):
     """Removes a permission to a resource from a role. Requires admin role."""
-
-    session = get_session()
 
     payload = json.dumps(api.PermissionRequest({
         "roleId": str(role),
@@ -179,10 +175,8 @@ def remove_permission(role: RoleId, resource: Resource, permission: Permission, 
         raise GeoEngineException(response.json())
 
 
-def add_role(name: str, timeout: int = 60) -> RoleId:
+def add_role(session: Session, name: str, timeout: int = 60) -> RoleId:
     """Add a new role. Requires admin role."""
-
-    session = get_session()
 
     headers = session.auth_header
 
@@ -201,10 +195,8 @@ def add_role(name: str, timeout: int = 60) -> RoleId:
     return RoleId.from_response(response.json())
 
 
-def remove_role(role: RoleId, timeout: int = 60):
+def remove_role(session: Session, role: RoleId, timeout: int = 60):
     """Remove a role. Requires admin role."""
-
-    session = get_session()
 
     headers = session.auth_header
 
@@ -218,10 +210,8 @@ def remove_role(role: RoleId, timeout: int = 60):
         raise GeoEngineException(response.json())
 
 
-def assign_role(role: RoleId, user: UserId, timeout: int = 60):
+def assign_role(session: Session, role: RoleId, user: UserId, timeout: int = 60):
     """Assign a role to a user. Requires admin role."""
-
-    session = get_session()
 
     headers = session.auth_header
 
@@ -235,10 +225,8 @@ def assign_role(role: RoleId, user: UserId, timeout: int = 60):
         raise GeoEngineException(response.json())
 
 
-def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
+def revoke_role(session: Session, role: RoleId, user: UserId, timeout: int = 60):
     """Assign a role to a user. Requires admin role."""
-
-    session = get_session()
 
     headers = session.auth_header
 

@@ -11,9 +11,6 @@ import geoengine as ge
 class ProvenanceTests(unittest.TestCase):
     '''Test runner for provenance tests'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_provenance_call(self):
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/anonymous', json={
@@ -59,7 +56,7 @@ class ProvenanceTests(unittest.TestCase):
                     'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'}
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Raster",
@@ -74,7 +71,7 @@ class ProvenanceTests(unittest.TestCase):
                 }
             }
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.register_workflow(workflow_definition)
 
             provenance = workflow.get_provenance()
 

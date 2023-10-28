@@ -5,16 +5,11 @@ import unittest
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 import pytest
-import geoengine as ge
 from geoengine import colorizer
 
 
 class ColorizerTests(unittest.TestCase):
     """Colorizer test runner."""
-
-    def setUp(self) -> None:
-        """Set up the geo engine session."""
-        ge.reset(logout=False)
 
     def test_gray_linear(self):
         """Test the basic black to white cmap colorizer."""

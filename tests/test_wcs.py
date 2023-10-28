@@ -13,9 +13,6 @@ import geoengine as ge
 class WcsTests(unittest.TestCase):
     '''WCS test runner'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_ndvi(self):
         with requests_mock.Mocker() as m, open("tests/responses/ndvi.tiff", "rb") as ndvi_tiff:
             m.post('http://mock-instance/anonymous', json={
@@ -106,7 +103,7 @@ class WcsTests(unittest.TestCase):
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Raster",
@@ -121,7 +118,7 @@ class WcsTests(unittest.TestCase):
                 }
             }
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.register_workflow(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
@@ -243,7 +240,7 @@ class WcsTests(unittest.TestCase):
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Raster",
@@ -258,7 +255,7 @@ class WcsTests(unittest.TestCase):
                 }
             }
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.register_workflow(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
@@ -366,7 +363,7 @@ class WcsTests(unittest.TestCase):
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Raster",
@@ -381,7 +378,7 @@ class WcsTests(unittest.TestCase):
                 }
             }
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.register_workflow(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)

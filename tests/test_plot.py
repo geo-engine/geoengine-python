@@ -12,9 +12,6 @@ import geoengine as ge
 class PlotTests(unittest.TestCase):
     '''Test runner for the plotting functionality'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_ndvi_histogram(self):
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/anonymous', json={
@@ -51,7 +48,7 @@ class PlotTests(unittest.TestCase):
                     'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'}
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Plot",
@@ -78,7 +75,7 @@ class PlotTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.register_workflow(workflow_definition)
 
             vega_chart = workflow.plot_chart(
                 ge.QueryRectangle(
@@ -123,9 +120,9 @@ class PlotTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            workflow = ge.workflow_by_id(
+            workflow = client.workflow_by_id(
                 '5b9508a8-bd34-5a1c-acd6-75bb832d2d38')
 
             result_descriptor = workflow.get_result_descriptor()
@@ -138,7 +135,7 @@ class PlotTests(unittest.TestCase):
             )
 
             with self.assertRaises(ge.GeoEngineException) as exception:
-                workflow = ge.workflow_by_id('foo')
+                workflow = client.workflow_by_id('foo')
 
                 result_descriptor = workflow.get_result_descriptor()
 
@@ -169,9 +166,9 @@ class PlotTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            workflow = ge.workflow_by_id(
+            workflow = client.workflow_by_id(
                 '5b9508a8-bd34-5a1c-acd6-75bb832d2d38')
 
             time = datetime.strptime(
@@ -219,7 +216,7 @@ class PlotTests(unittest.TestCase):
                     'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'}
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Plot",
@@ -246,7 +243,7 @@ class PlotTests(unittest.TestCase):
             time = datetime.strptime(
                 '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.register_workflow(workflow_definition)
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.plot_chart(

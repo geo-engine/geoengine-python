@@ -14,7 +14,7 @@ import geopandas as gpd
 import requests as req
 from geoengine import api
 from geoengine.error import GeoEngineException, InputException, MissingFieldInResponseException
-from geoengine.auth import get_session
+from geoengine.auth import Session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
     UnitlessMeasurement, FeatureDataType
@@ -423,6 +423,7 @@ def pandas_dtype_to_column_type(dtype: np.dtype) -> FeatureDataType:
 
 
 def upload_dataframe(
+        session: Session,
         df: gpd.GeoDataFrame,
         display_name: str = "Upload from Python",
         name: Optional[str] = None,
@@ -434,6 +435,8 @@ def upload_dataframe(
 
     Parameters
     ----------
+    session
+        The session to use for the upload.
     df
         The dataframe to upload.
     display_name
@@ -464,8 +467,6 @@ def upload_dataframe(
 
     if df.crs is None:
         raise InputException("Dataframe must have a specified crs")
-
-    session = get_session()
 
     df_json = df.to_json()
 
@@ -579,10 +580,8 @@ class Volume:
         return api.Volume(name=self.name, path=self.path)
 
 
-def volumes(timeout: int = 60) -> List[Volume]:
+def volumes(session: Session, timeout: int = 60) -> List[Volume]:
     '''Returns a list of all volumes'''
-
-    session = get_session()
 
     response = req.get(f'{session.server_url}/dataset/volumes',
                        headers=session.auth_header,
@@ -592,15 +591,15 @@ def volumes(timeout: int = 60) -> List[Volume]:
     return [Volume.from_response(v) for v in response]
 
 
-def add_dataset(data_store: Union[Volume, UploadId],
-                properties: AddDatasetProperties,
-                meta_data: api.MetaDataDefinition,
-                timeout: int = 60) -> DatasetName:
+def add_dataset(
+    session: Session,
+    data_store: Union[Volume, UploadId],
+        properties: AddDatasetProperties,
+        meta_data: api.MetaDataDefinition,
+        timeout: int = 60) -> DatasetName:
     '''Adds a dataset to the Geo Engine'''
     dataset_path: api.DatasetStorage
     headers: Dict[str, str]
-
-    session = get_session()
 
     headers = session.auth_header
 
@@ -625,8 +624,6 @@ def add_dataset(data_store: Union[Volume, UploadId],
 
     data = json.dumps(create, default=dict)
 
-    session = get_session()
-
     headers = session.auth_header
     headers['Content-Type'] = 'application/json'
 
@@ -641,10 +638,8 @@ def add_dataset(data_store: Union[Volume, UploadId],
     return DatasetName.from_response(response)
 
 
-def delete_dataset(dataset_name: DatasetName, timeout: int = 60) -> None:
+def delete_dataset(session: Session, dataset_name: DatasetName, timeout: int = 60) -> None:
     '''Delete a dataset. The dataset must be owned by the caller.'''
-
-    session = get_session()
 
     response = req.delete(f'{session.server_url}/dataset/{dataset_name}',
                           headers=session.auth_header,
@@ -660,14 +655,15 @@ class DatasetListOrder(Enum):
     NAME_DESC = 'NameDesc'
 
 
-def list_datasets(offset: int = 0,
-                  limit: int = 20,
-                  order: DatasetListOrder = DatasetListOrder.NAME_ASC,
-                  name_filter: Optional[str] = None,
-                  timeout: int = 60) -> List[api.DatasetListing]:
+def list_datasets(
+    session: Session,
+    offset: int = 0,
+        limit: int = 20,
+        order: DatasetListOrder = DatasetListOrder.NAME_ASC,
+        name_filter: Optional[str] = None,
+        timeout: int = 60) -> List[api.DatasetListing]:
     '''List datasets'''
-
-    session = get_session()
+    # pylint: disable=too-many-arguments
 
     response = req.get(f'{session.server_url}/datasets',
                        params={
