@@ -590,6 +590,14 @@ def volumes(session: Session, timeout: int = 60) -> List[Volume]:
 
     return [Volume.from_response(v) for v in response]
 
+def volume_by_name(self, name: str, timeout: int = 60) -> Optional[Volume]:
+    '''Returns a volume by name if it exists, otherwise None'''
+    volumes_list = volumes(self, timeout)
+    for volume in volumes_list:
+        if volume.name == name:
+            return volume
+    return None
+
 
 def add_dataset(
     session: Session,

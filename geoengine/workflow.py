@@ -916,10 +916,13 @@ class Workflow:
         return f'{ws_prefix}{url_part}'
 
 
-def query_result_descriptor(session: Session, workflow_id: WorkflowId, timeout: int = 60) -> ResultDescriptor:
+def query_result_descriptor(session: Session, workflow_id: Union[WorkflowId, UUID], timeout: int = 60) -> ResultDescriptor:
     '''
     Query the metadata of the workflow result
     '''
+
+    if isinstance(workflow_id, UUID):
+        workflow_id = WorkflowId(workflow_id)
 
     response = req.get(
         f'{session.server_url}/workflow/{workflow_id}/metadata',

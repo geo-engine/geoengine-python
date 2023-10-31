@@ -1,8 +1,9 @@
 '''A client for the Geo Engine API'''
 from __future__ import annotations
-from typing import Optional, List, Union, Tuple
+from typing import Optional, List, Union, Tuple, Dict, Any
 from uuid import UUID
 import geopandas as gpd
+import xarray as xr
 
 
 from geoengine.auth import Session, initialize
@@ -12,6 +13,7 @@ import geoengine.permissions as ge_permissions
 import geoengine.workflow as ge_workflow
 from geoengine import api
 import geoengine.tasks as ge_tasks
+import geoengine.types as ge_types
 
 
 class Client:
@@ -77,6 +79,10 @@ class Client:
     def volumes(self, timeout: int = 60) -> List[ge_datasets.Volume]:
         '''Returns a list of all volumes'''
         return ge_datasets.volumes(self.get_session(), timeout)
+    
+    def volume_by_name(self, name: str, timeout: int = 60) -> Optional[ge_datasets.Volume]:
+        '''Returns a volume by name'''
+        return ge_datasets.volume_by_name(self.get_session(), name, timeout)
 
     def add_dataset(
             self,
@@ -161,6 +167,47 @@ class Client:
     def get_task_list(self, timeout: int = 60) -> List[Tuple[ge_tasks.Task, ge_tasks.TaskStatusInfo]]:
         '''Get a list of tasks'''
         return ge_tasks.get_task_list(self.get_session(), timeout)
+
+    def workflow_result_descriptor(
+        self,
+        workflow_id: Union[UUID, ge_workflow.WorkflowId],
+        timeout: int = 60
+    ) -> ge_workflow.ResultDescriptor:
+        '''Retrieve a workflow result descriptor by its ID'''
+        return ge_workflow.query_result_descriptor(session=self.get_session(), workflow_id=workflow_id, timeout=timeout)
+
+    def workflow_definition(self, workflow: ge_workflow.Workflow, timeout: int = 60) -> Dict[str, Any]:
+        '''Retrieve a workflows definition'''
+        return workflow.workflow_definition(self.get_session(), timeout)
+
+    def workflow_save_as_dataset(self,
+                                 workflow: ge_workflow.Workflow,
+                                 query_rectangle: api.RasterQueryRectangle,
+                                 name: Optional[str],
+                                 display_name: str,
+                                 description: str = '',
+                                 timeout: int = 3600) -> ge_tasks.Task:
+        '''Init task to store the workflow result as a layer'''
+        # pylint: disable=too-many-arguments
+        return workflow.save_as_dataset(self.get_session(), query_rectangle, name, display_name, description, timeout)
+
+    def workflow_as_xarray(self,
+                           workflow: ge_workflow.Workflow,
+                           bbox: ge_types.QueryRectangle,
+                           timeout=3600,
+                           force_no_data_value: Optional[float] = None
+                           ) -> xr.DataArray:
+        '''
+        Query a workflow and return the raster result as a georeferenced xarray
+
+        Parameters
+        ----------
+        bbox : A bounding box for the query
+        timeout : HTTP request timeout in seconds
+        force_no_data_value: If not None, use this value as no data value for the requested raster data. \
+            Otherwise, use the Geo Engine will produce masked rasters.
+        '''
+        return workflow.get_xarray(self.get_session(), bbox, timeout, force_no_data_value)
 
 
 def create_client(server_url: str,
