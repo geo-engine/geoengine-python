@@ -1,32 +1,26 @@
 '''A client for the Geo Engine API'''
 from __future__ import annotations
-from typing import Optional, List, Union, Tuple, Dict, Any
+from typing import Optional, List, Union, Tuple, Dict, Any, AsyncIterator
 from uuid import UUID
 import geopandas as gpd
 import xarray as xr
 
 
-from geoengine.auth import Session, initialize
-import geoengine.datasets as ge_datasets
-import geoengine.layers as ge_layers
-import geoengine.permissions as ge_permissions
-import geoengine.workflow as ge_workflow
-from geoengine import api
-import geoengine.tasks as ge_tasks
-import geoengine.types as ge_types
+from geoengine import auth, api, datasets, layers, permissions, workflow as workflows, tasks, types, raster
+
 
 
 class Client:
     '''A client for the Geo Engine API'''
-    session: Session
+    session: auth.Session
 
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: auth.Session) -> None:
         self.session = session
 
     def __repr__(self) -> str:
         return f'Client({self.session})'
 
-    def get_session(self) -> Session:
+    def get_session(self) -> auth.Session:
         '''Return the current session'''
         return self.session
 
@@ -39,10 +33,10 @@ class Client:
             df: gpd.GeoDataFrame,
             display_name: str = "Upload from Python",
             name: Optional[str] = None,
-            time: ge_datasets.OgrSourceDatasetTimeType = ge_datasets.OgrSourceDatasetTimeType.none(),
-            on_error: ge_datasets.OgrOnError = ge_datasets.OgrOnError.ABORT,
+            time: datasets.OgrSourceDatasetTimeType = datasets.OgrSourceDatasetTimeType.none(),
+            on_error: datasets.OgrOnError = datasets.OgrOnError.ABORT,
             timeout: int = 3600
-    ) -> ge_datasets.DatasetName:
+    ) -> datasets.DatasetName:
         """
         Uploads a given dataframe to Geo Engine.
 
@@ -74,126 +68,130 @@ class Client:
             If the dataset could not be uploaded or the name is already taken.
         """
         # pylint: disable=too-many-arguments,too-many-locals
-        return ge_datasets.upload_dataframe(self.get_session(), df, display_name, name, time, on_error, timeout)
+        return datasets.upload_dataframe(self.get_session(), df, display_name, name, time, on_error, timeout)
 
-    def volumes(self, timeout: int = 60) -> List[ge_datasets.Volume]:
+    def volumes(self, timeout: int = 60) -> List[datasets.Volume]:
         '''Returns a list of all volumes'''
-        return ge_datasets.volumes(self.get_session(), timeout)
-    
-    def volume_by_name(self, name: str, timeout: int = 60) -> Optional[ge_datasets.Volume]:
+        return datasets.volumes(self.get_session(), timeout)
+
+    def volume_by_name(self, name: str, timeout: int = 60) -> Optional[datasets.Volume]:
         '''Returns a volume by name'''
-        return ge_datasets.volume_by_name(self.get_session(), name, timeout)
+        return datasets.volume_by_name(self.get_session(), name, timeout)
 
     def add_dataset(
             self,
-            data_store: Union[ge_datasets.Volume, ge_datasets.UploadId],
-            properties: ge_datasets.AddDatasetProperties,
+            data_store: Union[datasets.Volume, datasets.UploadId],
+            properties: datasets.AddDatasetProperties,
             meta_data: api.MetaDataDefinition,
-            timeout: int = 60) -> ge_datasets.DatasetName:
+            timeout: int = 60) -> datasets.DatasetName:
         '''Adds a dataset to the Geo Engine'''
-        return ge_datasets.add_dataset(self.get_session(), data_store, properties, meta_data, timeout)
+        return datasets.add_dataset(self.get_session(), data_store, properties, meta_data, timeout)
 
-    def delete_dataset(self, dataset_name: ge_datasets.DatasetName, timeout: int = 60) -> None:
+    def delete_dataset(self, dataset_name: datasets.DatasetName, timeout: int = 60) -> None:
         '''Delete a dataset. The dataset must be owned by the caller.'''
-        return ge_datasets.delete_dataset(self.get_session(), dataset_name, timeout)
+        return datasets.delete_dataset(self.get_session(), dataset_name, timeout)
 
     def list_datasets(self, offset: int = 0,
                       limit: int = 20,
-                      order: ge_datasets.DatasetListOrder = ge_datasets.DatasetListOrder.NAME_ASC,
+                      order: datasets.DatasetListOrder = datasets.DatasetListOrder.NAME_ASC,
                       name_filter: Optional[str] = None,
                       timeout: int = 60) -> List[api.DatasetListing]:
         '''List datasets'''
         # pylint: disable=too-many-arguments
-        return ge_datasets.list_datasets(self.get_session(), offset, limit, order, name_filter, timeout)
+        return datasets.list_datasets(self.get_session(), offset, limit, order, name_filter, timeout)
 
-    def layer_collection(self, layer_collection_id: Optional[ge_layers.LayerCollectionId] = None,
-                         layer_provider_id: ge_layers.LayerProviderId = ge_layers.LAYER_DB_PROVIDER_ID,
-                         timeout: int = 60) -> ge_layers.LayerCollection:
+    def layer_collection(self, layer_collection_id: Optional[layers.LayerCollectionId] = None,
+                         layer_provider_id: layers.LayerProviderId = layers.LAYER_DB_PROVIDER_ID,
+                         timeout: int = 60) -> layers.LayerCollection:
         '''
         Retrieve a layer collection that contains layers and layer collections.
         '''
-        return ge_layers.layer_collection(self.get_session(), layer_collection_id, layer_provider_id, timeout)
+        return layers.layer_collection(self.get_session(), layer_collection_id, layer_provider_id, timeout)
 
-    def layer(self, layer_id: ge_layers.LayerId,
-              layer_provider_id: ge_layers.LayerProviderId = ge_layers.LAYER_DB_PROVIDER_ID,
-              timeout: int = 60) -> ge_layers.Layer:
+    def layer(self, layer_id: layers.LayerId,
+              layer_provider_id: layers.LayerProviderId = layers.LAYER_DB_PROVIDER_ID,
+              timeout: int = 60) -> layers.Layer:
         '''
         Retrieve a layer from the server.
         '''
-        return ge_layers.layer(self.get_session(), layer_id, layer_provider_id, timeout)
+        return layers.layer(self.get_session(), layer_id, layer_provider_id, timeout)
 
-    def add_permission(self, role: ge_permissions.RoleId, resource: ge_permissions.Resource,
-                       permission: ge_permissions.Permission, timeout: int = 60) -> None:
+    def add_permission(self, role: permissions.RoleId, resource: permissions.Resource,
+                       permission: permissions.Permission, timeout: int = 60) -> None:
         '''Add a permission to a resource'''
-        return ge_permissions.add_permission(self.get_session(), role, resource, permission, timeout)
+        return permissions.add_permission(self.get_session(), role, resource, permission, timeout)
 
-    def remove_permission(self, role: ge_permissions.RoleId, resource: ge_permissions.Resource,
-                          permission: ge_permissions.Permission, timeout: int = 60) -> None:
+    def remove_permission(self, role: permissions.RoleId, resource: permissions.Resource,
+                          permission: permissions.Permission, timeout: int = 60) -> None:
         '''Remove a permission from a resource'''
-        return ge_permissions.remove_permission(self.get_session(), role, resource, permission, timeout)
+        return permissions.remove_permission(self.get_session(), role, resource, permission, timeout)
 
-    def add_role(self, name: str, timeout: int = 60) -> ge_permissions.RoleId:
+    def add_role(self, name: str, timeout: int = 60) -> permissions.RoleId:
         '''Add a role'''
-        return ge_permissions.add_role(self.get_session(), name, timeout)
+        return permissions.add_role(self.get_session(), name, timeout)
 
-    def remove_role(self, role: ge_permissions.RoleId, timeout: int = 60) -> None:
+    def remove_role(self, role: permissions.RoleId, timeout: int = 60) -> None:
         '''Remove a role'''
-        return ge_permissions.remove_role(self.get_session(), role, timeout)
+        return permissions.remove_role(self.get_session(), role, timeout)
 
-    def assign_role(self, role: ge_permissions.RoleId, user: ge_permissions.UserId, timeout: int = 60) -> None:
+    def assign_role(self, role: permissions.RoleId, user: permissions.UserId, timeout: int = 60) -> None:
         '''Assign a role to a user'''
-        return ge_permissions.assign_role(self.get_session(), role, user, timeout)
+        return permissions.assign_role(self.get_session(), role, user, timeout)
 
-    def revoke_role(self, role: ge_permissions.RoleId, user: ge_permissions.UserId, timeout: int = 60) -> None:
+    def revoke_role(self, role: permissions.RoleId, user: permissions.UserId, timeout: int = 60) -> None:
         '''Revoke a role from a user'''
-        return ge_permissions.revoke_role(self.get_session(), role, user, timeout)
+        return permissions.revoke_role(self.get_session(), role, user, timeout)
 
-    def workflow_by_id(self, workflow_id: Union[UUID, ge_workflow.WorkflowId]) -> ge_workflow.Workflow:
+    def workflow_by_id(self, workflow_id: Union[UUID, workflows.WorkflowId]) -> workflows.Workflow:
         '''Retrieve a workflow by its ID'''
-        return ge_workflow.workflow_by_id(session=self.get_session(), workflow_id=workflow_id)
+        return workflows.workflow_by_id(session=self.get_session(), workflow_id=workflow_id)
 
-    def register_workflow(self, workflow: ge_workflow.WorkflowType, timeout: int = 60) -> ge_workflow.Workflow:
+    def register_workflow(self, workflow: workflows.WorkflowType, timeout: int = 60) -> workflows.Workflow:
         '''Register a workflow'''
-        return ge_workflow.register_workflow(self.get_session(), workflow, timeout)
+        return workflows.register_workflow(self.get_session(), workflow, timeout)
 
     def get_quota(self, user_id: Optional[UUID] = None, timeout: int = 60) -> api.Quota:
         '''Get the current quota'''
-        return ge_workflow.get_quota(self.get_session(), user_id, timeout)
+        return workflows.get_quota(self.get_session(), user_id, timeout)
 
     def update_quota(self, user_id: UUID, new_available_quota: int, timeout: int = 60):
         '''Update the current quota'''
-        return ge_workflow.update_quota(self.get_session(), user_id, new_available_quota, timeout)
+        return workflows.update_quota(self.get_session(), user_id, new_available_quota, timeout)
 
-    def get_task_list(self, timeout: int = 60) -> List[Tuple[ge_tasks.Task, ge_tasks.TaskStatusInfo]]:
+    def get_task_list(self, timeout: int = 60) -> List[Tuple[tasks.Task, tasks.TaskStatusInfo]]:
         '''Get a list of tasks'''
-        return ge_tasks.get_task_list(self.get_session(), timeout)
+        return tasks.get_task_list(self.get_session(), timeout)
 
     def workflow_result_descriptor(
         self,
-        workflow_id: Union[UUID, ge_workflow.WorkflowId],
+        workflow_id: Union[UUID, workflows.WorkflowId],
         timeout: int = 60
-    ) -> ge_workflow.ResultDescriptor:
+    ) -> workflows.ResultDescriptor:
         '''Retrieve a workflow result descriptor by its ID'''
-        return ge_workflow.query_result_descriptor(session=self.get_session(), workflow_id=workflow_id, timeout=timeout)
+        return workflows.query_result_descriptor(session=self.get_session(), workflow_id=workflow_id, timeout=timeout)
 
-    def workflow_definition(self, workflow: ge_workflow.Workflow, timeout: int = 60) -> Dict[str, Any]:
+    def workflow_definition(
+        self,
+        workflow_id: Union[workflows.Workflow, workflows.WorkflowId, UUID],
+        timeout: int = 60
+    ) -> Dict[str, Any]:
         '''Retrieve a workflows definition'''
-        return workflow.workflow_definition(self.get_session(), timeout)
+        return workflows.get_workflow_definition(self.get_session(), workflow_id, timeout)
 
     def workflow_save_as_dataset(self,
-                                 workflow: ge_workflow.Workflow,
+                                 workflow: workflows.Workflow,
                                  query_rectangle: api.RasterQueryRectangle,
                                  name: Optional[str],
                                  display_name: str,
                                  description: str = '',
-                                 timeout: int = 3600) -> ge_tasks.Task:
+                                 timeout: int = 3600) -> tasks.Task:
         '''Init task to store the workflow result as a layer'''
         # pylint: disable=too-many-arguments
         return workflow.save_as_dataset(self.get_session(), query_rectangle, name, display_name, description, timeout)
 
     def workflow_as_xarray(self,
-                           workflow: ge_workflow.Workflow,
-                           bbox: ge_types.QueryRectangle,
+                           workflow: workflows.Workflow,
+                           bbox: types.QueryRectangle,
                            timeout=3600,
                            force_no_data_value: Optional[float] = None
                            ) -> xr.DataArray:
@@ -208,6 +206,18 @@ class Client:
             Otherwise, use the Geo Engine will produce masked rasters.
         '''
         return workflow.get_xarray(self.get_session(), bbox, timeout, force_no_data_value)
+
+    async def workflow_as_raster_stream(
+            self,
+            workflow: workflows.Workflow,
+            query_rectangle: types.QueryRectangle,
+            open_timeout: int = 60) -> AsyncIterator[raster.RasterTile2D]:
+        '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
+
+        it = workflow.raster_stream(self.get_session(), query_rectangle, open_timeout)
+        async for tile in it:
+            yield tile
+
 
 
 def create_client(server_url: str,
@@ -231,6 +241,6 @@ def create_client(server_url: str,
     Client
             The initialized client
     '''
-    session = initialize(server_url, credentials, token)
+    session = auth.initialize(server_url, credentials, token)
 
     return Client(session)
