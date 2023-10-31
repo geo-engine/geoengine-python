@@ -73,7 +73,7 @@ class ProvenanceTests(unittest.TestCase):
 
             workflow = client.register_workflow(workflow_definition)
 
-            provenance = workflow.get_provenance()
+            provenance = workflow.get_provenance(client.get_session())
 
             self.assertEqual(provenance, [
                 ProvenanceEntry(

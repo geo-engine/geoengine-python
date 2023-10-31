@@ -129,7 +129,7 @@ class WcsTests(unittest.TestCase):
                 resolution=ge.SpatialResolution(360. / 8, 180. / 8),
             )
 
-            array = workflow.get_array(query)
+            array = workflow.get_array(client.get_session(), query)
 
             self.assertEqual(array.shape, (8, 8))
 
@@ -267,7 +267,7 @@ class WcsTests(unittest.TestCase):
             )
 
             with self.assertRaises(owslib.util.ServiceException) as ctx:
-                workflow.get_array(query)
+                workflow.get_array(client.get_session(), query)
 
             self.assertEqual(str(ctx.exception),
                              '{"error": "Operator", "message": "Operator: Could not open gdal dataset for file path '
@@ -389,7 +389,7 @@ class WcsTests(unittest.TestCase):
                 resolution=ge.SpatialResolution(360. / 8, 180. / 8),
             )
 
-            array = workflow.get_xarray(query)
+            array = workflow.get_xarray(client.get_session(), query)
 
             self.assertEqual(array.shape, (1, 8, 8))
 

@@ -186,21 +186,18 @@ class LayerTests(unittest.TestCase):
             self.assertEqual(
                 layer_collection.__dict__,
                 ge.LayerCollection(
-                    session=client.get_session(),
                     name='Datasets',
                     description='Basic Layers for all Datasets',
                     collection_id=ge.LayerCollectionId('546073b6-d535-4205-b601-99675c9f6dd7'),
                     provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                     items=[
                         ge.LayerListing(
-                            session=client.get_session(),
                             listing_id=ge.LayerId('9ee3619e-d0f9-4ced-9c44-3d407c3aed69'),
                             provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                             name='Land Cover',
                             description='Land Cover derived from MODIS/Terra+Aqua Land Cover',
                         ),
                         ge.LayerListing(
-                            session=client.get_session(),
                             listing_id=ge.LayerId('36574dc3-560a-4b09-9d22-d5945f2b8093'),
                             provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                             name='NDVI',
@@ -434,13 +431,14 @@ class LayerTests(unittest.TestCase):
 
             root_of_layerdb = client.layer_collection('05102bb3-a855-4a37-8a8a-30026a91fef1')
 
-            root_of_layerdb.add_collection("my test collection", "test description")
+            root_of_layerdb.add_collection(client.get_session(), "my test collection", "test description")
 
-            test_collection = next(filter(lambda item: item.name == 'my test collection', root_of_layerdb.items)).load()
+            test_collection = root_of_layerdb.get_items_by_name('my test collection')[0].load(client.get_session())
 
-            test_collection.add_collection("sub collection", "another description")
+            test_collection.add_collection(client.get_session(), "sub collection", "another description")
 
             test_collection.add_layer(
+                client.get_session(),
                 name="ports clone",
                 description="test description",
                 workflow={
@@ -471,21 +469,24 @@ class LayerTests(unittest.TestCase):
                 symbology=None,
             )
 
-            sub_collection = test_collection.items[0].load()
+            sub_collection = test_collection.items[0].load(client.get_session())
 
-            sub_collection.add_existing_layer(test_collection.items[1])
+            sub_collection.add_existing_layer(client.get_session(), test_collection.items[1])
 
-            layer_collection_id = sub_collection.add_collection("sub sub collection", "yet another description")
+            layer_collection_id = sub_collection.add_collection(
+                client.get_session(),
+                "sub sub collection", "yet another description"
+            )
 
-            test_collection.add_existing_collection(layer_collection_id)
+            test_collection.add_existing_collection(client.get_session(), layer_collection_id)
 
-            test_collection.remove_item(0)
+            test_collection.remove_item(client.get_session(), 0)
 
-            test_collection.remove_item(0)
+            test_collection.remove_item(client.get_session(), 0)
 
-            test_collection.remove_item(0)
+            test_collection.remove_item(client.get_session(), 0)
 
-            test_collection.remove()
+            test_collection.remove(client.get_session())
 
     def test_save_as_dataset(self):
         """Test `layer.save_as_dataset`."""
@@ -526,7 +527,6 @@ class LayerTests(unittest.TestCase):
 
             # Success case
             layer = Layer(
-                session=client.get_session(),
                 name='Test Raster Layer',
                 description='Test Raster Layer Description',
                 layer_id=ge.LayerId(UUID('9ee3619e-d0f9-4ced-9c44-3d407c3aed69')),
@@ -545,7 +545,7 @@ class LayerTests(unittest.TestCase):
                 metadata={},
             )
 
-            task = layer.save_as_dataset()
+            task = layer.save_as_dataset(client.get_session())
             task_status = task.get_status()
             stored_dataset = StoredDataset.from_response(task_status.info)
 
@@ -554,7 +554,6 @@ class LayerTests(unittest.TestCase):
 
             # Some processing error occurred (e.g., layer does not exist)
             layer = ge.Layer(
-                session=client.get_session(),
                 name='Test Error Raster Layer',
                 description='Test Error Raster Layer Description',
                 layer_id=ge.LayerId(UUID('86c81654-e572-42ed-96ee-8b38ebcd84ab')),
@@ -574,7 +573,7 @@ class LayerTests(unittest.TestCase):
             )
 
             with self.assertRaises(GeoEngineException):
-                layer.save_as_dataset()
+                layer.save_as_dataset(client.get_session())
 
     def test_layer_repr_html_does_not_crash(self):
         """Test `layer._repr_html_`."""
@@ -586,10 +585,7 @@ class LayerTests(unittest.TestCase):
                 "view": None
             })
 
-            client = ge.create_client("http://mock-instance")
-
             layer = Layer(
-                session=client.get_session(),
                 name='Test Raster Layer',
                 description='Test Raster Layer Description',
                 layer_id=LayerId(UUID('9ee3619e-d0f9-4ced-9c44-3d407c3aed69')),

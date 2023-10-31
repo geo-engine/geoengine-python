@@ -78,6 +78,7 @@ class WmsTests(unittest.TestCase):
             workflow = client.register_workflow(workflow_definition)
 
             img = workflow.wms_get_map_as_image(
+                client.get_session(),
                 ge.QueryRectangle(
                     ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                     ge.TimeInterval(time),
@@ -150,6 +151,7 @@ class WmsTests(unittest.TestCase):
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.wms_get_map_as_image(
+                    client.get_session(),
                     ge.QueryRectangle(
                         spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                         time_interval=ge.TimeInterval(time),
@@ -210,6 +212,7 @@ class WmsTests(unittest.TestCase):
             workflow = client.register_workflow(workflow_definition)
 
             wms_curl = workflow.wms_get_map_curl(
+                client.get_session(),
                 ge.QueryRectangle(
                     ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                     ge.TimeInterval(time),

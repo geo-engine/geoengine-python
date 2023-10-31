@@ -107,6 +107,7 @@ class WorkflowStorageTests(unittest.TestCase):
 
             workflow = client.register_workflow(workflow_definition)
             task = workflow.save_as_dataset(
+                client.get_session(),
                 query,
                 None,
                 "Foo",

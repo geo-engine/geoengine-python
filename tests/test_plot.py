@@ -78,6 +78,7 @@ class PlotTests(unittest.TestCase):
             workflow = client.register_workflow(workflow_definition)
 
             vega_chart = workflow.plot_chart(
+                client.get_session(),
                 ge.QueryRectangle(
                     ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                     ge.TimeInterval(time),
@@ -176,6 +177,7 @@ class PlotTests(unittest.TestCase):
 
             with self.assertRaises(ge.MethodNotCalledOnVectorException):
                 workflow.get_dataframe(
+                    client.get_session(),
                     ge.QueryRectangle(
                         ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                         ge.TimeInterval(time),
@@ -247,6 +249,7 @@ class PlotTests(unittest.TestCase):
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.plot_chart(
+                    client.get_session(),
                     ge.QueryRectangle(
                         ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                         ge.TimeInterval(time),

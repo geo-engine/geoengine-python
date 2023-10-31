@@ -290,6 +290,7 @@ class WfsTests(unittest.TestCase):
             workflow = client.register_workflow(workflow_definition)
 
             df = workflow.get_dataframe(
+                client.get_session(),
                 ge.QueryRectangle(
                     ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
                     ge.TimeInterval(time, time),
@@ -451,7 +452,7 @@ class WfsTests(unittest.TestCase):
 
             workflow = client.register_workflow(workflow_definition)
 
-            wfs_curl = workflow.get_wfs_get_feature_curl(ge.QueryRectangle(
+            wfs_curl = workflow.get_wfs_get_feature_curl(client.get_session(), ge.QueryRectangle(
                 ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
                 ge.TimeInterval(time),
                 ge.SpatialResolution(0.1, 0.1)
@@ -581,6 +582,7 @@ class WfsTests(unittest.TestCase):
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.get_dataframe(
+                    client.get_session(),
                     ge.QueryRectangle(
                         ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
                         ge.TimeInterval(time),
@@ -876,7 +878,7 @@ class WfsTests(unittest.TestCase):
             workflow = client.register_workflow(workflow_definition)
 
             self.assertEqual(
-                workflow.workflow_definition(),
+                workflow.workflow_definition(client.get_session()),
                 workflow_definition
             )
 
@@ -962,6 +964,7 @@ class WfsTests(unittest.TestCase):
             workflow = client.register_workflow(workflow_definition)
 
             df = workflow.get_dataframe(
+                client.get_session(),
                 ge.QueryRectangle(
                     ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
                     ge.TimeInterval(time),
