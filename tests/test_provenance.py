@@ -71,7 +71,7 @@ class ProvenanceTests(unittest.TestCase):
                 }
             }
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             provenance = workflow.get_provenance(client.get_session())
 

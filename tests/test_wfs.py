@@ -287,7 +287,7 @@ class WfsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             df = workflow.get_dataframe(
                 client.get_session(),
@@ -450,7 +450,7 @@ class WfsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             wfs_curl = workflow.get_wfs_get_feature_curl(client.get_session(), ge.QueryRectangle(
                 ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
@@ -578,7 +578,7 @@ class WfsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.get_dataframe(
@@ -875,7 +875,7 @@ class WfsTests(unittest.TestCase):
 
             client = ge.create_client("http://mock-instance")
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             self.assertEqual(
                 workflow.workflow_definition(client.get_session()),
@@ -961,7 +961,7 @@ class WfsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             df = workflow.get_dataframe(
                 client.get_session(),

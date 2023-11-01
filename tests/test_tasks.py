@@ -29,7 +29,7 @@ class TaskTests(unittest.TestCase):
 
             expected_result = []
 
-            task_list = client.get_task_list()
+            task_list = client.task_list()
 
             self.assertEqual(len(task_list), 0)
             self.assertEqual(task_list, expected_result)
@@ -95,7 +95,7 @@ class TaskTests(unittest.TestCase):
                                       {'status': 'completed', 'info': None})),
             ]
 
-            task_list = client.get_task_list()
+            task_list = client.task_list()
 
             self.assertEqual(len(task_list), 4)
             self.assertEqual(task_list, expected_result)
@@ -130,7 +130,7 @@ class TaskTests(unittest.TestCase):
 
             client = ge.create_client('http://mock-instance')
 
-            self.assertRaises(ValueError, client.get_task_list, 0)
+            self.assertRaises(ValueError, client.task_list, 0)
 
     def test_get_task_list_malformed(self):
         with requests_mock.Mocker() as m:
@@ -160,7 +160,7 @@ class TaskTests(unittest.TestCase):
 
             client = ge.create_client('http://mock-instance')
 
-            self.assertRaises(GeoEngineException, client.get_task_list, 0)
+            self.assertRaises(GeoEngineException, client.task_list, 0)
 
     def test_get_task_status(self):
         with requests_mock.Mocker() as m:

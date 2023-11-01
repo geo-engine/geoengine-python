@@ -67,7 +67,7 @@ class DatasetsTests(unittest.TestCase):
 
             client = ge.create_client("http://mock-instance")
 
-            datasets = client.list_datasets(
+            datasets = client.datasets_list(
                 offset=1,
                 limit=2,
                 order=ge.DatasetListOrder.NAME_ASC,

@@ -118,7 +118,7 @@ class WcsTests(unittest.TestCase):
                 }
             }
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
@@ -255,7 +255,7 @@ class WcsTests(unittest.TestCase):
                 }
             }
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
@@ -378,7 +378,7 @@ class WcsTests(unittest.TestCase):
                 }
             }
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)

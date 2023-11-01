@@ -75,7 +75,7 @@ class PlotTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             vega_chart = workflow.plot_chart(
                 client.get_session(),
@@ -245,7 +245,7 @@ class PlotTests(unittest.TestCase):
             time = datetime.strptime(
                 '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.plot_chart(

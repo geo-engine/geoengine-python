@@ -75,7 +75,7 @@ class WmsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             img = workflow.wms_get_map_as_image(
                 client.get_session(),
@@ -147,7 +147,7 @@ class WmsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.wms_get_map_as_image(
@@ -209,7 +209,7 @@ class WmsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = client.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             wms_curl = workflow.wms_get_map_curl(
                 client.get_session(),
