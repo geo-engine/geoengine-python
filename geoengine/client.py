@@ -10,8 +10,7 @@ from PIL.Image import Image
 
 
 from geoengine import auth, api, datasets, layers, permissions, \
-      workflow as workflows, tasks, types, raster, colorizer as colorizers
-
+    workflow as workflows, tasks, types, raster, colorizer as colorizers
 
 
 class Client:
@@ -121,7 +120,7 @@ class Client:
             name: str,
             description: str,
             timeout: int = 60
-        ) -> layers.LayerCollectionId:
+    ) -> layers.LayerCollectionId:
         ''' Add a sub collection to a layer collection '''
         return layer_collection.add_collection(self.get_session(), name, description, timeout)
 
@@ -130,7 +129,7 @@ class Client:
             layer_collection: layers.LayerCollection,
             existing_collection: Union[layers.LayerCollectionListing, layers.LayerCollection, layers.LayerCollectionId],
             timeout: int = 60
-        ) -> layers.LayerCollectionId:
+    ) -> layers.LayerCollectionId:
         ''' Add an existing collection to a layer collection '''
         return layer_collection.add_existing_collection(self.get_session(), existing_collection, timeout)
 
@@ -151,7 +150,7 @@ class Client:
             layer_collection: layers.LayerCollection,
             existing_layer: Union[layers.Layer, layers.LayerId],
             timeout: int = 60
-        ) -> layers.LayerId:
+    ) -> layers.LayerId:
         ''' Add an existing layer to a layer collection '''
         return layer_collection.add_existing_layer(self.get_session(), existing_layer, timeout)
 
@@ -159,7 +158,7 @@ class Client:
             self,
             listing: layers.Listing,
             timeout: int = 60
-        ) -> Union[layers.LayerCollection, layers.Layer]:
+    ) -> Union[layers.LayerCollection, layers.Layer]:
         '''
         Retrieve a layer collection that contains layers and layer collections.
         '''
@@ -168,7 +167,7 @@ class Client:
     def layer_collection_reload(
             self,
             layer_collection: layers.LayerCollection,
-        ) -> layers.LayerCollection:
+    ) -> layers.LayerCollection:
         '''
         Reload a layer collection.
         '''
@@ -179,7 +178,7 @@ class Client:
             layer_collection: layers.LayerCollection,
             index: int,
             timeout: int = 60
-        ) -> None:
+    ) -> None:
         '''
         Remove an item from a layer collection.
         '''
@@ -189,7 +188,7 @@ class Client:
             self,
             layer_collection: layers.LayerCollection,
             timeout: int = 60
-        ) -> None:
+    ) -> None:
         '''
         Remove a layer collection.
         '''
@@ -447,10 +446,12 @@ class Client:
         # pylint: disable=too-many-arguments
         workflow.download_raster(self.get_session(), bbox, file_path, timeout, file_format, force_no_data_value)
 
-def create_client(server_url: str,
-                  credentials: Optional[Tuple[str, str]] = None,
-                  token: Optional[str] = None,
-                  ) -> Client:
+
+def create_client(
+    server_url: str,
+    credentials: Optional[Tuple[str, str]] = None,
+    token: Optional[str] = None,
+) -> Client:
     '''
     Initialize the clients session
 

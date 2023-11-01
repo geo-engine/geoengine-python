@@ -917,10 +917,10 @@ class Workflow:
 
 
 def query_result_descriptor(
-        session: Session,
-        workflow_id: Union[WorkflowId, UUID],
-        timeout: int = 60
-        ) -> ResultDescriptor:
+    session: Session,
+    workflow_id: Union[WorkflowId, UUID],
+    timeout: int = 60
+) -> ResultDescriptor:
     '''
     Query the metadata of the workflow result
     '''
@@ -975,11 +975,12 @@ def workflow_by_id(session: Session, workflow_id: Union[UUID, WorkflowId]) -> Wo
     # TODO: check that workflow exists
     return Workflow.with_resultdescriptor_from_backend(session, workflow_id)
 
+
 def get_workflow_definition(
-        session: Session,
-        workflow_id: Union[UUID, WorkflowId, Workflow],
-        timeout: int = 60
-        ) -> Dict[str, Any]:
+    session: Session,
+    workflow_id: Union[UUID, WorkflowId, Workflow],
+    timeout: int = 60
+) -> Dict[str, Any]:
     '''Return the workflow definition for this workflow'''
     return get_workflow_definition(session, workflow_id, timeout)
 
