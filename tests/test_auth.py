@@ -1,7 +1,5 @@
 '''Tests regarding Geo Engine authentication'''
 
-from datetime import datetime
-
 import unittest
 import json
 import os
@@ -10,7 +8,6 @@ from pkg_resources import get_distribution
 
 import geoengine as ge
 from geoengine.error import GeoEngineException
-from geoengine.types import QueryRectangle
 
 
 class AuthTests(unittest.TestCase):
@@ -20,20 +17,6 @@ class AuthTests(unittest.TestCase):
         assert "GEOENGINE_EMAIL" not in os.environ and "GEOENGINE_PASSWORD" not in os.environ \
             and "GEOENGINE_TOKEN" not in os.environ, \
             "Please unset GEOENGINE_EMAIL, GEOENGINE_PASSWORD and GEOENGINE_TOKEN"
-        ge.reset(False)
-
-    def test_uninitialized(self):
-        with self.assertRaises(ge.UninitializedException) as exception:
-            ge.workflow_by_id("foobar").get_dataframe(
-                QueryRectangle(
-                    ge.BoundingBox2D(- 180, -90, 180, 90),
-                    ge.TimeInterval(datetime.now()),
-                    ge.SpatialResolution(0.1, 0.1)
-                )
-            )
-
-        self.assertEqual(str(exception.exception),
-                         'You have to call `initialize` before using other functionality')
 
     def test_initialize(self):
         with requests_mock.Mocker() as m:
@@ -48,9 +31,9 @@ class AuthTests(unittest.TestCase):
                 "view": None
             })
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            self.assertEqual(type(ge.get_session()),
+            self.assertEqual(type(client.get_session()),
                              ge.Session)
 
     def test_initialize_tuple(self):
@@ -69,9 +52,9 @@ class AuthTests(unittest.TestCase):
                        "view": None
                    })
 
-            ge.initialize("http://mock-instance", ("foo@bar.de", "secret123"))
+            client = ge.create_client("http://mock-instance", ("foo@bar.de", "secret123"))
 
-            self.assertEqual(type(ge.get_session()),
+            self.assertEqual(type(client.get_session()),
                              ge.Session)
 
     def test_initialize_env(self):
@@ -94,12 +77,12 @@ class AuthTests(unittest.TestCase):
             os.environ["GEOENGINE_PASSWORD"] = "secret123"
 
             try:
-                ge.initialize("http://mock-instance")
+                client = ge.create_client("http://mock-instance")
             finally:
                 del os.environ["GEOENGINE_EMAIL"]
                 del os.environ["GEOENGINE_PASSWORD"]
 
-            self.assertEqual(type(ge.get_session()),
+            self.assertEqual(type(client.get_session()),
                              ge.Session)
 
     def test_initialize_token(self):
@@ -117,9 +100,9 @@ class AuthTests(unittest.TestCase):
                       "view": None
                   })
 
-            ge.initialize("http://mock-instance", token="e327d9c3-a4f3-4bd7-a5e1-30b26cae8064")
+            client = ge.create_client("http://mock-instance", token="e327d9c3-a4f3-4bd7-a5e1-30b26cae8064")
 
-            self.assertEqual(type(ge.get_session()),
+            self.assertEqual(type(client.get_session()),
                              ge.Session)
 
     def test_initialize_token_env(self):
@@ -140,11 +123,11 @@ class AuthTests(unittest.TestCase):
             os.environ["GEOENGINE_TOKEN"] = "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"
 
             try:
-                ge.initialize("http://mock-instance")
+                client = ge.create_client("http://mock-instance")
             finally:
                 del os.environ["GEOENGINE_TOKEN"]
 
-            self.assertEqual(type(ge.get_session()),
+            self.assertEqual(type(client.get_session()),
                              ge.Session)
 
     def test_user_agent(self):
@@ -160,13 +143,13 @@ class AuthTests(unittest.TestCase):
                        "view": None
                    })
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            self.assertEqual(type(ge.get_session()),
+            self.assertEqual(type(client.get_session()),
                              ge.Session)
 
     def test_initialize_credentials_and_token(self):
-        self.assertRaises(GeoEngineException, ge.initialize, "http://mock-instance", ("user", "pass"), "token")
+        self.assertRaises(GeoEngineException, ge.create_client, "http://mock-instance", ("user", "pass"), "token")
 
 
 if __name__ == '__main__':

@@ -121,17 +121,14 @@ def arrow_bytes(geo: List[str], time: List[List[int]], data: List[int]) -> bytes
 class WorkflowVectorStreamTests(unittest.TestCase):
     '''Test methods for retrieving vector workflows as data streams'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_streaming_workflow(self):
         with unittest.mock.patch("requests.get", return_value=MockRequestsGet(json_data={
             "id": "00000000-0000-0000-0000-000000000000",
         })):
-            ge.initialize("http://localhost:3030", token="no_token")
+            client = ge.create_client("http://localhost:3030", token="no_token")
 
         with unittest.mock.patch(
-            "geoengine.Workflow._Workflow__query_result_descriptor",
+            "geoengine.workflow.query_result_descriptor",
             return_value=ge.VectorResultDescriptor(
                 spatial_reference="EPSG:4326",
                 data_type=ge.VectorDataType.MULTI_POINT,
@@ -143,7 +140,7 @@ class WorkflowVectorStreamTests(unittest.TestCase):
                 spatial_resolution=ge.SpatialResolution(0.5, 0.5)
             ),
         ):
-            workflow = ge.Workflow(UUID("00000000-0000-0000-0000-000000000000"))
+            workflow = client.workflow_by_id(UUID("00000000-0000-0000-0000-000000000000"))
 
         query_rect = ge.QueryRectangle(
             spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
@@ -155,7 +152,7 @@ class WorkflowVectorStreamTests(unittest.TestCase):
             async def inner1():
                 chunks = []
 
-                async for chunk in workflow.vector_stream(query_rect):
+                async for chunk in workflow.vector_stream(client.get_session(), query_rect):
                     chunks.append(chunk)
 
                 assert len(chunks) == 4
@@ -164,7 +161,7 @@ class WorkflowVectorStreamTests(unittest.TestCase):
 
         with unittest.mock.patch("websockets.client.connect", return_value=MockWebsocket()):
             async def inner2():
-                data_frame = await workflow.vector_stream_into_geopandas(query_rect)
+                data_frame = await workflow.vector_stream_into_geopandas(client.get_session(), query_rect)
 
                 # 1x geo + 2x time + 1x data
                 assert data_frame.shape == (8, 4)

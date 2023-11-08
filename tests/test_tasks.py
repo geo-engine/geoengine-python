@@ -15,9 +15,6 @@ from geoengine.tasks import CompletedTaskStatusInfo, TaskStatus, RunningTaskStat
 class TaskTests(unittest.TestCase):
     '''Test runner regarding task functionality'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_get_task_list_empty(self):
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/anonymous', json={
@@ -28,11 +25,11 @@ class TaskTests(unittest.TestCase):
 
             m.get('http://mock-instance/tasks/list', json=[])
 
-            ge.initialize('http://mock-instance')
+            client = ge.create_client('http://mock-instance')
 
             expected_result = []
 
-            task_list = ge.tasks.get_task_list()
+            task_list = client.task_list()
 
             self.assertEqual(len(task_list), 0)
             self.assertEqual(task_list, expected_result)
@@ -80,25 +77,25 @@ class TaskTests(unittest.TestCase):
                 },
             ])
 
-            ge.initialize('http://mock-instance')
+            client = ge.create_client('http://mock-instance')
 
             expected_start_time = datetime.datetime.strptime('2023-02-16T15:25:45.390Z', DEFAULT_ISO_TIME_FORMAT)
             expected_result = [
-                (Task(TaskId(UUID('e07aec1e-387a-4d24-8041-fbfba37eae2b'))),
+                (Task(session=client.get_session(), task_id=TaskId(UUID('e07aec1e-387a-4d24-8041-fbfba37eae2b'))),
                  CompletedTaskStatusInfo(TaskStatus.COMPLETED, expected_start_time, 'generic info', '00:00:05',
                                          'dummy', 'No operation')),
-                (Task(TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe'))),
+                (Task(session=client.get_session(), task_id=TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe'))),
                  RunningTaskStatusInfo(TaskStatus.RUNNING, expected_start_time,
                                        '0.00%', '? (± ?)', 'generic running info',
                                        'dummy', 'No operation')),
-                (Task(TaskId(UUID('01d68e7b-c69f-4132-b758-538f2f05acf0'))),
+                (Task(session=client.get_session(), task_id=TaskId(UUID('01d68e7b-c69f-4132-b758-538f2f05acf0'))),
                  AbortedTaskStatusInfo(TaskStatus.ABORTED, expected_start_time, {'status': 'noCleanUp'})),
-                (Task(TaskId(UUID('1ccba900-167d-4dcf-9001-5ce3c0b20844'))),
+                (Task(session=client.get_session(), task_id=TaskId(UUID('1ccba900-167d-4dcf-9001-5ce3c0b20844'))),
                  FailedTaskStatusInfo(TaskStatus.FAILED, expected_start_time, 'TileLimitExceeded',
                                       {'status': 'completed', 'info': None})),
             ]
 
-            task_list = ge.tasks.get_task_list()
+            task_list = client.task_list()
 
             self.assertEqual(len(task_list), 4)
             self.assertEqual(task_list, expected_result)
@@ -131,9 +128,9 @@ class TaskTests(unittest.TestCase):
                 },
             ])
 
-            ge.initialize('http://mock-instance')
+            client = ge.create_client('http://mock-instance')
 
-            self.assertRaises(ValueError, ge.tasks.get_task_list, 0)
+            self.assertRaises(ValueError, client.task_list, 0)
 
     def test_get_task_list_malformed(self):
         with requests_mock.Mocker() as m:
@@ -161,9 +158,9 @@ class TaskTests(unittest.TestCase):
                 },
             ])
 
-            ge.initialize('http://mock-instance')
+            client = ge.create_client('http://mock-instance')
 
-            self.assertRaises(GeoEngineException, ge.tasks.get_task_list, 0)
+            self.assertRaises(GeoEngineException, client.task_list, 0)
 
     def test_get_task_status(self):
         with requests_mock.Mocker() as m:
@@ -220,7 +217,7 @@ class TaskTests(unittest.TestCase):
                       'info': 'generic running info',
                       'timeStarted': '2023-02-16T15:25:45.390Z'})
 
-            ge.initialize('http://mock-instance')
+            client = ge.create_client('http://mock-instance')
 
             # Correct results
             expected_start_time = datetime.datetime.strptime('2023-02-16T15:25:45.390Z', DEFAULT_ISO_TIME_FORMAT)
@@ -235,10 +232,10 @@ class TaskTests(unittest.TestCase):
                                      {'status': 'completed', 'info': None}),
             ]
 
-            completed_task = Task(TaskId(UUID('e07aec1e-387a-4d24-8041-fbfba37eae2b')))
-            running_task = Task(TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe')))
-            aborted_task = Task(TaskId(UUID('01d68e7b-c69f-4132-b758-538f2f05acf0')))
-            failed_task = Task(TaskId(UUID('1ccba900-167d-4dcf-9001-5ce3c0b20844')))
+            completed_task = Task(client.get_session(), TaskId(UUID('e07aec1e-387a-4d24-8041-fbfba37eae2b')))
+            running_task = Task(client.get_session(), TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe')))
+            aborted_task = Task(client.get_session(), TaskId(UUID('01d68e7b-c69f-4132-b758-538f2f05acf0')))
+            failed_task = Task(client.get_session(), TaskId(UUID('1ccba900-167d-4dcf-9001-5ce3c0b20844')))
 
             self.assertEqual(completed_task.get_status(), expected_results[0])
             self.assertEqual(running_task.get_status(), expected_results[1])
@@ -246,12 +243,12 @@ class TaskTests(unittest.TestCase):
             self.assertEqual(failed_task.get_status(), expected_results[3])
 
             # Unknown status
-            unknown_status_task = Task(TaskId(UUID('ee4bc7ca-e637-4427-a617-2d2aa79d1406')))
+            unknown_status_task = Task(client.get_session(), TaskId(UUID('ee4bc7ca-e637-4427-a617-2d2aa79d1406')))
             with self.assertRaises(ValueError):
                 unknown_status_task.get_status()
 
             # Malformed
-            malformed_status_task = Task(TaskId(UUID('ee4f1ed9-fd06-40be-90f5-d6289c154fcd')))
+            malformed_status_task = Task(client.get_session(), TaskId(UUID('ee4f1ed9-fd06-40be-90f5-d6289c154fcd')))
             with self.assertRaises(GeoEngineException):
                 malformed_status_task.get_status()
 
@@ -271,12 +268,12 @@ class TaskTests(unittest.TestCase):
                          'error': 'TaskError',
                          'message': 'TaskError: Task not found with id: 9f008e47-645b-48de-a513-748a1d0c2a3f'})
 
-            ge.initialize('http://mock-instance')
+            client = ge.create_client('http://mock-instance')
 
-            abort_success_task = Task(TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe')))
+            abort_success_task = Task(client.get_session(), TaskId(UUID('a04d2e1b-db24-42cb-a620-1d7803df3abe')))
             self.assertEqual(None, abort_success_task.abort())
 
-            abort_failed_task = Task(TaskId(UUID('9f008e47-645b-48de-a513-748a1d0c2a3f')))
+            abort_failed_task = Task(client.get_session(), TaskId(UUID('9f008e47-645b-48de-a513-748a1d0c2a3f')))
             with self.assertRaises(GeoEngineException):
                 abort_failed_task.abort()
 

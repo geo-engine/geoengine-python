@@ -13,9 +13,6 @@ from geoengine.types import TimeStepGranularity
 class UploadTests(unittest.TestCase):
     '''Test runner regarding upload functionality'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_upload(self):
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/anonymous', json={
@@ -36,7 +33,7 @@ class UploadTests(unittest.TestCase):
                    },
                    request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             df = pd.DataFrame(
                 {
@@ -54,7 +51,7 @@ class UploadTests(unittest.TestCase):
             gdf = geopandas.GeoDataFrame(
                 df, geometry=geopandas.GeoSeries.from_wkt(polygons), crs="EPSG:4326")
 
-            dataset_name = ge.upload_dataframe(gdf)
+            dataset_name = client.upload_dataframe(gdf)
 
             self.assertEqual(
                 dataset_name,

@@ -3,7 +3,7 @@ Module for encapsulating Geo Engine authentication
 '''
 
 from __future__ import annotations
-from typing import ClassVar, Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple
 from uuid import UUID
 
 import os
@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import requests as req
 from requests.auth import AuthBase
 
-from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro, UninitializedException
+from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro
 
 
 class BearerAuth(AuthBase):  # pylint: disable=too-few-public-methods
@@ -37,8 +37,6 @@ class Session:
     __valid_until: Optional[str] = None
     __server_url: str
     __timeout: int = 60
-
-    session: ClassVar[Optional[Session]] = None
 
     def __init__(self,
                  server_url: str,
@@ -158,22 +156,9 @@ class Session:
         req.post(f'{self.server_url}/logout', headers=self.auth_header, timeout=self.__timeout)
 
 
-def get_session() -> Session:
-    '''
-    Return the global session if it exists
-
-    Raises an exception otherwise.
-    '''
-
-    if Session.session is None:
-        raise UninitializedException()
-
-    return Session.session
-
-
 def initialize(server_url: str,
                credentials: Optional[Tuple[str, str]] = None,
-               token: Optional[str] = None) -> None:
+               token: Optional[str] = None) -> Session:
     '''
     Initialize communication between this library and a Geo Engine instance
 
@@ -187,15 +172,4 @@ def initialize(server_url: str,
 
     load_dotenv()
 
-    Session.session = Session(server_url, credentials, token)
-
-
-def reset(logout: bool = True) -> None:
-    '''
-    Resets the current session
-    '''
-
-    if Session.session is not None and logout:
-        Session.session.logout()
-
-    Session.session = None
+    return Session(server_url, credentials, token)

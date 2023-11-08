@@ -10,9 +10,6 @@ import geoengine as ge
 class WorkflowStorageTests(unittest.TestCase):
     '''Test methods for storing workflows as datasets'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_storing_workflow(self):
 
         expected_request_text = ({
@@ -77,7 +74,7 @@ class WorkflowStorageTests(unittest.TestCase):
                         'taskType': 'create-dataset',
                         'description': 'Creating dataset Foo from workflow 5b9508a8-bd34-5a1c-acd6-75bb832d2d38'}, )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Raster",
@@ -108,8 +105,9 @@ class WorkflowStorageTests(unittest.TestCase):
                 })
             })
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
             task = workflow.save_as_dataset(
+                client.get_session(),
                 query,
                 None,
                 "Foo",

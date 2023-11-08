@@ -107,7 +107,7 @@ python3 -m mypy tests
 Using the config file `mypy.ini`, you can suppress missing stub errors for external libraries.
 You can ignore a library by adding two lines to the config file. For example, suppressing matplotlib would look like this:
 
-```
+```ini
 [mypy-matplotlib.*]
 ignore_missing_imports = True
 
@@ -171,11 +171,11 @@ Start a python terminal and try it out:
 import geoengine as ge
 from datetime import datetime
 
-ge.initialize("https://nightly.peter.geoengine.io/api")
+ge_client = ge.create_client("https://nightly.peter.geoengine.io/api")
 
 time = datetime.strptime('2014-04-01T12:00:00.000Z', "%Y-%m-%dT%H:%M:%S.%f%z")
 
-workflow = ge.workflow_by_id('4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd')
+workflow = ge_client.workflow_by_id('4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd')
 
 print(workflow.get_result_descriptor())
 
@@ -186,7 +186,7 @@ workflow.get_dataframe(ge.Bbox([-60.0, 5.0, 61.0, 6.0], [time, time]))
 
 If the Geo Engine server requires authentication, you can set your credentials in the following ways:
 
-1. in the initialize method: `ge.initialize("https://nightly.peter.geoengine.io/api", ("email", "password"))`
+1. in the initialize method: `ge.create_client("https://nightly.peter.geoengine.io/api", ("email", "password"))`
 2. as environment variables `export GEOENGINE_EMAIL="email"` and `export GEOENGINE_PASSWORD="password"`
 3. in a .env file in the current working directory with the content:
 

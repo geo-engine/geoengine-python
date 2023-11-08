@@ -4,7 +4,6 @@ import asyncio
 from typing import Dict, List
 import unittest
 import unittest.mock
-from uuid import UUID
 from datetime import datetime
 import json
 import rioxarray
@@ -104,17 +103,14 @@ def arrow_bytes(data: xr.DataArray, time: str) -> bytes:
 class WorkflowRasterStreamTests(unittest.TestCase):
     '''Test methods for retrieving raster workflows as data streams'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_streaming_workflow(self):
         with unittest.mock.patch("requests.get", return_value=MockRequestsGet(json_data={
             "id": "00000000-0000-0000-0000-000000000000",
         })):
-            ge.initialize("http://localhost:3030", token="no_token")
+            client = ge.create_client("http://localhost:3030", token="no_token")
 
         with unittest.mock.patch(
-            "geoengine.Workflow._Workflow__query_result_descriptor",
+            "geoengine.workflow.query_result_descriptor",
             return_value=ge.RasterResultDescriptor(
                 "U8",
                 ge.UnitlessMeasurement(),
@@ -123,7 +119,7 @@ class WorkflowRasterStreamTests(unittest.TestCase):
                 spatial_resolution=ge.SpatialResolution(45.0, 22.5)
             ),
         ):
-            workflow = ge.Workflow(UUID("00000000-0000-0000-0000-000000000000"))
+            workflow = client.workflow_by_id("00000000-0000-0000-0000-000000000000")
 
         query_rect = ge.QueryRectangle(
             spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
@@ -135,7 +131,7 @@ class WorkflowRasterStreamTests(unittest.TestCase):
             async def inner1():
                 tiles = []
 
-                async for tile in workflow.raster_stream(query_rect):
+                async for tile in workflow.raster_stream(client.get_session(), query_rect):
                     tiles.append(tile)
 
                 assert len(tiles) == 8
@@ -144,7 +140,7 @@ class WorkflowRasterStreamTests(unittest.TestCase):
 
         with unittest.mock.patch("websockets.client.connect", return_value=MockWebsocket()):
             async def inner2():
-                array = await workflow.raster_stream_into_xarray(query_rect)
+                array = await workflow.raster_stream_into_xarray(client.get_session(), query_rect)
 
                 assert array.shape == (2, 8, 8)
 

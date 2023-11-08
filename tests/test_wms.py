@@ -15,9 +15,6 @@ from geoengine.colorizer import Colorizer
 class WmsTests(unittest.TestCase):
     '''WMS test runner'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_ndvi_image(self):
         with requests_mock.Mocker() as m, \
                 open("tests/responses/wms-ndvi.png", "rb") as ndvi_png, \
@@ -60,7 +57,7 @@ class WmsTests(unittest.TestCase):
                 body=ndvi_png,
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Raster",
@@ -78,9 +75,10 @@ class WmsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             img = workflow.wms_get_map_as_image(
+                client.get_session(),
                 ge.QueryRectangle(
                     ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                     ge.TimeInterval(time),
@@ -131,7 +129,7 @@ class WmsTests(unittest.TestCase):
                 status_code=400,
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Raster",
@@ -149,10 +147,11 @@ class WmsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.wms_get_map_as_image(
+                    client.get_session(),
                     ge.QueryRectangle(
                         spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                         time_interval=ge.TimeInterval(time),
@@ -192,7 +191,7 @@ class WmsTests(unittest.TestCase):
 
             m.get('http://epsg.io/4326.gml?download', body=epsg4326_gml)
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Raster",
@@ -210,9 +209,10 @@ class WmsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             wms_curl = workflow.wms_get_map_curl(
+                client.get_session(),
                 ge.QueryRectangle(
                     ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                     ge.TimeInterval(time),
@@ -251,9 +251,9 @@ class WmsTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            workflow = ge.workflow_by_id(
+            workflow = client.workflow_by_id(
                 '5b9508a8-bd34-5a1c-acd6-75bb832d2d38')
 
             result_descriptor = workflow.get_result_descriptor()
@@ -270,7 +270,7 @@ class WmsTests(unittest.TestCase):
             )
 
             with self.assertRaises(ge.GeoEngineException) as exception:
-                workflow = ge.workflow_by_id('foo')
+                workflow = client.workflow_by_id('foo')
 
                 result_descriptor = workflow.get_result_descriptor()
 

@@ -31,7 +31,7 @@ import xarray as xr
 import pyarrow as pa
 
 from geoengine import api
-from geoengine.auth import get_session
+from geoengine.auth import Session
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
     MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException, check_response_for_error, \
@@ -45,6 +45,7 @@ from geoengine.raster import RasterTile2D
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
 JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
+WorkflowType = Union[Dict[str, Any], WorkflowBuilderOperator]
 
 Axis = TypedDict('Axis', {'title': str})
 Bin = TypedDict('Bin', {'binned': bool, 'step': float})
@@ -92,9 +93,10 @@ class Workflow:
     __workflow_id: WorkflowId
     __result_descriptor: ResultDescriptor
 
-    def __init__(self, workflow_id: WorkflowId) -> None:
+    def __init__(self, result_descriptor: ResultDescriptor, workflow_id: WorkflowId) -> None:
+        '''Initialize a workflow with a workflow id'''
         self.__workflow_id = workflow_id
-        self.__result_descriptor = self.__query_result_descriptor()
+        self.__result_descriptor = result_descriptor
 
     def __str__(self) -> str:
         return str(self.__workflow_id)
@@ -102,22 +104,18 @@ class Workflow:
     def __repr__(self) -> str:
         return repr(self.__workflow_id)
 
-    def __query_result_descriptor(self, timeout: int = 60) -> ResultDescriptor:
+    @classmethod
+    def with_resultdescriptor_from_backend(
+        cls,
+        session: Session,
+        workflow_id: WorkflowId,
+        timeout: int = 60
+    ):
         '''
-        Query the metadata of the workflow result
+        Create a workflow from a workflow id and query the backend for the result descriptor
         '''
-
-        session = get_session()
-
-        response = req.get(
-            f'{session.server_url}/workflow/{self.__workflow_id}/metadata',
-            headers=session.auth_header,
-            timeout=timeout
-        ).json()
-
-        debug(response)
-
-        return ResultDescriptor.from_response(response)
+        result_descriptor = query_result_descriptor(session=session, timeout=timeout, workflow_id=workflow_id)
+        return cls(result_descriptor, workflow_id)
 
     def get_result_descriptor(self) -> ResultDescriptor:
         '''
@@ -126,10 +124,14 @@ class Workflow:
 
         return self.__result_descriptor
 
-    def workflow_definition(self, timeout: int = 60) -> Dict[str, Any]:
-        '''Return the workflow definition for this workflow'''
+    def get_workflow_id(self) -> WorkflowId:
+        '''
+        Return the workflow id
+        '''
+        return self.__workflow_id
 
-        session = get_session()
+    def workflow_definition(self, session: Session, timeout: int = 60) -> Dict[str, Any]:
+        '''Return the workflow definition for this workflow'''
 
         response = req.get(
             f'{session.server_url}/workflow/{self.__workflow_id}',
@@ -142,10 +144,8 @@ class Workflow:
 
         return response
 
-    def __get_wfs_url(self, bbox: QueryRectangle) -> str:
+    def __get_wfs_url(self, session: Session, bbox: QueryRectangle) -> str:
         '''Build a WFS url from a workflow and a `QueryRectangle`'''
-
-        session = get_session()
 
         params = {
             'service': 'WFS',
@@ -168,7 +168,7 @@ class Workflow:
             raise InvalidUrlException('Failed to build WFS URL for workflow {self.__workflow_id}.')
         return wfs_url
 
-    def get_wfs_get_feature_curl(self, bbox: QueryRectangle) -> str:
+    def get_wfs_get_feature_curl(self, session: Session, bbox: QueryRectangle) -> str:
         '''Return the WFS url for a workflow and a `QueryRectangle` as a cURL command'''
 
         if not self.__result_descriptor.is_vector_result():
@@ -176,8 +176,8 @@ class Workflow:
 
         wfs_request = req.Request(
             'GET',
-            url=self.__get_wfs_url(bbox),
-            headers=get_session().auth_header
+            url=self.__get_wfs_url(session=session, bbox=bbox),
+            headers=session.auth_header
         ).prepare()
 
         command = "curl -X {method} -H {headers} '{uri}'"
@@ -185,7 +185,7 @@ class Workflow:
         headers = " -H ".join(headers_list)
         return command.format(method=wfs_request.method, headers=headers, uri=wfs_request.url)
 
-    def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -> gpd.GeoDataFrame:
+    def get_dataframe(self, session: Session, bbox: QueryRectangle, timeout: int = 3600) -> gpd.GeoDataFrame:
         '''
         Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
         '''
@@ -193,9 +193,7 @@ class Workflow:
         if not self.__result_descriptor.is_vector_result():
             raise MethodNotCalledOnVectorException()
 
-        session = get_session()
-
-        wfs_url = self.__get_wfs_url(bbox)
+        wfs_url = self.__get_wfs_url(session=session, bbox=bbox)
 
         data_response = req.get(wfs_url, headers=session.auth_header, timeout=timeout)
 
@@ -225,10 +223,10 @@ class Workflow:
 
         return geo_json_with_time_to_geopandas(data)
 
-    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -> Image:
+    def wms_get_map_as_image(self, session: Session, bbox: QueryRectangle, colorizer: Colorizer) -> Image:
         '''Return the result of a WMS request as a PIL Image'''
 
-        wms_request = self.__wms_get_map_request(bbox, colorizer)
+        wms_request = self.__wms_get_map_request(session=session, bbox=bbox, colorizer=colorizer)
         response = req.Session().send(wms_request)
 
         check_response_for_error(response)
@@ -236,14 +234,13 @@ class Workflow:
         return Image.open(BytesIO(response.content))
 
     def __wms_get_map_request(self,
+                              session: Session,
                               bbox: QueryRectangle,
                               colorizer: Colorizer) -> req.PreparedRequest:
         '''Return the WMS url for a workflow and a given `QueryRectangle`'''
 
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
-
-        session = get_session()
 
         width = int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) / bbox.spatial_resolution.x_resolution)
         height = int((bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) / bbox.spatial_resolution.y_resolution)
@@ -271,25 +268,23 @@ class Workflow:
             headers=session.auth_header
         ).prepare()
 
-    def wms_get_map_curl(self, bbox: QueryRectangle, colorizer: Colorizer) -> str:
+    def wms_get_map_curl(self, session: Session, bbox: QueryRectangle, colorizer: Colorizer) -> str:
         '''Return the WMS curl command for a workflow and a given `QueryRectangle`'''
 
-        wms_request = self.__wms_get_map_request(bbox, colorizer)
+        wms_request = self.__wms_get_map_request(session=session, bbox=bbox, colorizer=colorizer)
 
         command = "curl -X {method} -H {headers} '{uri}'"
         headers_list = [f'"{k}: {v}"' for k, v in wms_request.headers.items()]
         headers = " -H ".join(headers_list)
         return command.format(method=wms_request.method, headers=headers, uri=wms_request.url)
 
-    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
+    def plot_chart(self, session: Session, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
         '''
         Query a workflow and return the plot chart result as a vega plot
         '''
 
         if not self.__result_descriptor.is_plot_result():
             raise MethodNotCalledOnPlotException()
-
-        session = get_session()
 
         time = urllib.parse.quote(bbox.time_str)
         spatial_bounds = urllib.parse.quote(bbox.bbox_str)
@@ -311,6 +306,7 @@ class Workflow:
 
     def __request_wcs(
         self,
+        session: Session,
         bbox: QueryRectangle,
         timeout=3600,
         file_format: str = 'image/tiff',
@@ -327,11 +323,10 @@ class Workflow:
         force_no_data_value: If not None, use this value as no data value for the requested raster data. \
             Otherwise, use the Geo Engine will produce masked rasters.
         '''
+        # pylint: disable=too-many-arguments
 
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
-
-        session = get_session()
 
         # TODO: properly build CRS string for bbox
         crs = f'urn:ogc:def:crs:{bbox.srs.replace(":", "::")}'
@@ -364,6 +359,7 @@ class Workflow:
 
     def __get_wcs_tiff_as_memory_file(
         self,
+        session: Session,
         bbox: QueryRectangle,
         timeout=3600,
         force_no_data_value: Optional[float] = None
@@ -379,7 +375,13 @@ class Workflow:
             Otherwise, use the Geo Engine will produce masked rasters.
         '''
 
-        response = self.__request_wcs(bbox, timeout, 'image/tiff', force_no_data_value).read()
+        response = self.__request_wcs(
+            session=session,
+            bbox=bbox,
+            timeout=timeout,
+            file_format='image/tiff',
+            force_no_data_value=force_no_data_value
+        ).read()
 
         # response is checked via `raise_on_error` in `getCoverage` / `openUrl`
 
@@ -389,6 +391,7 @@ class Workflow:
 
     def get_array(
         self,
+        session: Session,
         bbox: QueryRectangle,
         timeout=3600,
         force_no_data_value: Optional[float] = None
@@ -405,6 +408,7 @@ class Workflow:
         '''
 
         with self.__get_wcs_tiff_as_memory_file(
+            session,
             bbox,
             timeout,
             force_no_data_value
@@ -415,6 +419,7 @@ class Workflow:
 
     def get_xarray(
         self,
+        session: Session,
         bbox: QueryRectangle,
         timeout=3600,
         force_no_data_value: Optional[float] = None
@@ -431,6 +436,7 @@ class Workflow:
         '''
 
         with self.__get_wcs_tiff_as_memory_file(
+            session,
             bbox,
             timeout,
             force_no_data_value
@@ -453,6 +459,7 @@ class Workflow:
     # pylint: disable=too-many-arguments
     def download_raster(
         self,
+        session: Session,
         bbox: QueryRectangle,
         file_path: str,
         timeout=3600,
@@ -472,17 +479,15 @@ class Workflow:
             Otherwise, use the Geo Engine will produce masked rasters.
         '''
 
-        response = self.__request_wcs(bbox, timeout, file_format, force_no_data_value)
+        response = self.__request_wcs(session, bbox, timeout, file_format, force_no_data_value)
 
         with open(file_path, 'wb') as file:
             file.write(response.read())
 
-    def get_provenance(self, timeout: int = 60) -> List[ProvenanceEntry]:
+    def get_provenance(self, session: Session, timeout: int = 60) -> List[ProvenanceEntry]:
         '''
         Query the provenance of the workflow
         '''
-
-        session = get_session()
 
         provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/provenance'
 
@@ -493,12 +498,10 @@ class Workflow:
 
         return [ProvenanceEntry.from_response(item) for item in response]
 
-    def metadata_zip(self, path: Union[PathLike, BytesIO], timeout: int = 60) -> None:
+    def metadata_zip(self, session: Session, path: Union[PathLike, BytesIO], timeout: int = 60) -> None:
         '''
         Query workflow metadata and citations and stores it as zip file to `path`
         '''
-
-        session = get_session()
 
         provenance_url = f'{session.server_url}/workflow/{self.__workflow_id}/allMetadata/zip'
 
@@ -512,6 +515,7 @@ class Workflow:
 
     def save_as_dataset(
             self,
+            session: Session,
             query_rectangle: api.RasterQueryRectangle,
             name: Optional[str],
             display_name: str,
@@ -522,8 +526,6 @@ class Workflow:
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
-
-        session = get_session()
 
         request_body = {
             'name': name,
@@ -541,10 +543,11 @@ class Workflow:
 
         check_response_for_error(response)
 
-        return Task(TaskId.from_response(response.json()))
+        return Task(session, TaskId.from_response(response.json()))
 
     async def raster_stream(
             self,
+            session: Session,
             query_rectangle: QueryRectangle,
             open_timeout: int = 60) -> AsyncIterator[RasterTile2D]:
         '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
@@ -569,8 +572,6 @@ class Workflow:
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
 
-        session = get_session()
-
         url = req.Request(
             'GET',
             url=f'{session.server_url}/workflow/{self.__workflow_id}/rasterStream',
@@ -585,8 +586,11 @@ class Workflow:
         if url is None:
             raise InputException('Invalid websocket url')
 
+        uri = self.__replace_http_with_ws(url)
+        print(f'Connecting to {uri}')
+
         async with websockets.client.connect(
-            uri=self.__replace_http_with_ws(url),
+            uri=uri,
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
             max_size=None,
@@ -632,6 +636,7 @@ class Workflow:
 
     async def raster_stream_into_xarray(
             self,
+            session: Session,
             query_rectangle: QueryRectangle,
             clip_to_query_rectangle: bool = False,
             open_timeout: int = 60) -> xr.DataArray:
@@ -640,8 +645,10 @@ class Workflow:
 
         NOTE: You can run out of memory if the query rectangle is too large.
         '''
+        # pylint: disable=too-many-locals
 
         tile_stream = self.raster_stream(
+            session,
             query_rectangle,
             open_timeout=open_timeout
         )
@@ -715,6 +722,7 @@ class Workflow:
 
     async def vector_stream(
             self,
+            session: Session,
             query_rectangle: QueryRectangle,
             time_start_column: str = 'time_start',
             time_end_column: str = 'time_end',
@@ -778,8 +786,6 @@ class Workflow:
         if not self.__result_descriptor.is_vector_result():
             raise MethodNotCalledOnVectorException()
 
-        session = get_session()
-
         url = req.Request(
             'GET',
             url=f'{session.server_url}/workflow/{self.__workflow_id}/vectorStream',
@@ -841,6 +847,7 @@ class Workflow:
 
     async def vector_stream_into_geopandas(
             self,
+            session: Session,
             query_rectangle: QueryRectangle,
             time_start_column: str = 'time_start',
             time_end_column: str = 'time_end',
@@ -852,6 +859,7 @@ class Workflow:
         '''
 
         chunk_stream = self.vector_stream(
+            session,
             query_rectangle,
             time_start_column=time_start_column,
             time_end_column=time_end_column,
@@ -908,15 +916,40 @@ class Workflow:
         return f'{ws_prefix}{url_part}'
 
 
-def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], timeout: int = 60) -> Workflow:
+def query_result_descriptor(
+    session: Session,
+    workflow_id: Union[WorkflowId, UUID],
+    timeout: int = 60
+) -> ResultDescriptor:
+    '''
+    Query the metadata of the workflow result
+    '''
+
+    if isinstance(workflow_id, UUID):
+        workflow_id = WorkflowId(workflow_id)
+
+    response = req.get(
+        f'{session.server_url}/workflow/{workflow_id}/metadata',
+        headers=session.auth_header,
+        timeout=timeout
+    ).json()
+
+    debug(response)
+
+    return ResultDescriptor.from_response(response)
+
+
+def register_workflow(
+        session: Session,
+        workflow: WorkflowType,
+        timeout: int = 60
+) -> Workflow:
     '''
     Register a workflow in Geo Engine and receive a `WorkflowId`
     '''
 
     if isinstance(workflow, WorkflowBuilderOperator):
         workflow = workflow.to_workflow_dict()
-
-    session = get_session()
 
     workflow_response = req.post(
         f'{session.server_url}/workflow',
@@ -928,25 +961,34 @@ def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], 
     if 'error' in workflow_response:
         raise GeoEngineException(workflow_response)
 
-    return Workflow(WorkflowId.from_response(workflow_response))
+    return Workflow.with_resultdescriptor_from_backend(session, WorkflowId.from_response(workflow_response))
 
 
-def workflow_by_id(workflow_id: UUID) -> Workflow:
+def workflow_by_id(session: Session, workflow_id: Union[UUID, WorkflowId]) -> Workflow:
     '''
     Create a workflow object from a workflow id
     '''
 
+    if isinstance(workflow_id, UUID):
+        workflow_id = WorkflowId(workflow_id)
+
     # TODO: check that workflow exists
+    return Workflow.with_resultdescriptor_from_backend(session, workflow_id)
 
-    return Workflow(WorkflowId(workflow_id))
+
+def get_workflow_definition(
+    session: Session,
+    workflow_id: Union[UUID, WorkflowId, Workflow],
+    timeout: int = 60
+) -> Dict[str, Any]:
+    '''Return the workflow definition for this workflow'''
+    return get_workflow_definition(session, workflow_id, timeout)
 
 
-def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> api.Quota:
+def get_quota(session: Session, user_id: Optional[UUID] = None, timeout: int = 60) -> api.Quota:
     '''
     Gets a user's quota. Only admins can get other users' quota.
     '''
-
-    session = get_session()
 
     url = f'{session.server_url}/quota'
 
@@ -968,12 +1010,10 @@ def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> api.Quota:
     })
 
 
-def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> None:
+def update_quota(session: Session, user_id: UUID, new_available_quota: int, timeout: int = 60) -> None:
     '''
     Update a user's quota. Only admins can perform this operation.
     '''
-
-    session = get_session()
 
     req.post(
         f'{session.server_url}/quotas/{user_id}',

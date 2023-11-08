@@ -141,11 +141,19 @@ class TimeInterval:
     end: Optional[np.datetime64]
 
     def __init__(self,
-                 start: Union[datetime, np.datetime64],
-                 end: Optional[Union[datetime, np.datetime64]] = None) -> None:
+                 start: Union[datetime, np.datetime64, str],
+                 end: Optional[Union[datetime, np.datetime64, str]] = None,
+                 dt_format: Optional[str] = DEFAULT_ISO_TIME_FORMAT) -> None:
         '''Initialize a new `TimeInterval` object'''
 
-        if isinstance(start, np.datetime64):
+        # pylint: disable=too-many-branches
+        if dt_format is None:
+            dt_format = DEFAULT_ISO_TIME_FORMAT
+
+        if isinstance(start, str):
+            start_time = datetime.strptime(start, dt_format).astimezone(tz=timezone.utc).replace(tzinfo=None)
+            self.start = np.datetime64(start_time)
+        elif isinstance(start, np.datetime64):
             self.start = start
         elif isinstance(start, datetime):
             # We assume that a datetime without a timezone means UTC
@@ -153,10 +161,15 @@ class TimeInterval:
                 start = start.astimezone(tz=timezone.utc).replace(tzinfo=None)
             self.start = np.datetime64(start)
         else:
-            raise InputException("`start` must be of type `datetime.datetime` or `numpy.datetime64`")
+            raise InputException(
+                "`start` must be of type `datetime.datetime` or `numpy.datetime64` or a str parsable by strptime"
+            )
 
         if end is None:
             self.end = None
+        elif isinstance(end, str):
+            end_time = datetime.strptime(end, dt_format).astimezone(tz=timezone.utc).replace(tzinfo=None)
+            self.end = np.datetime64(end_time)
         elif isinstance(end, np.datetime64):
             self.end = end
         elif isinstance(end, datetime):
@@ -165,10 +178,12 @@ class TimeInterval:
                 end = end.astimezone(tz=timezone.utc).replace(tzinfo=None)
             self.end = np.datetime64(end)
         else:
-            raise InputException("`end` must be of type `datetime.datetime` or `numpy.datetime64`")
+            raise InputException(
+                "`end` must be of type `datetime.datetime` or `numpy.datetime64` or a str parsable by strptime"
+            )
 
         # Check validity of time interval if an `end` exists
-        if end is not None and start > end:
+        if self.end is not None and self.start > self.end:
             raise InputException("Time inverval: Start must be <= End")
 
     def is_instant(self) -> bool:

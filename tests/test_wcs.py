@@ -13,9 +13,6 @@ import geoengine as ge
 class WcsTests(unittest.TestCase):
     '''WCS test runner'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_ndvi(self):
         with requests_mock.Mocker() as m, open("tests/responses/ndvi.tiff", "rb") as ndvi_tiff:
             m.post('http://mock-instance/anonymous', json={
@@ -106,7 +103,7 @@ class WcsTests(unittest.TestCase):
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Raster",
@@ -121,7 +118,7 @@ class WcsTests(unittest.TestCase):
                 }
             }
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
@@ -132,7 +129,7 @@ class WcsTests(unittest.TestCase):
                 resolution=ge.SpatialResolution(360. / 8, 180. / 8),
             )
 
-            array = workflow.get_array(query)
+            array = workflow.get_array(client.get_session(), query)
 
             self.assertEqual(array.shape, (8, 8))
 
@@ -243,7 +240,7 @@ class WcsTests(unittest.TestCase):
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Raster",
@@ -258,7 +255,7 @@ class WcsTests(unittest.TestCase):
                 }
             }
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
@@ -270,7 +267,7 @@ class WcsTests(unittest.TestCase):
             )
 
             with self.assertRaises(owslib.util.ServiceException) as ctx:
-                workflow.get_array(query)
+                workflow.get_array(client.get_session(), query)
 
             self.assertEqual(str(ctx.exception),
                              '{"error": "Operator", "message": "Operator: Could not open gdal dataset for file path '
@@ -366,7 +363,7 @@ class WcsTests(unittest.TestCase):
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Raster",
@@ -381,7 +378,7 @@ class WcsTests(unittest.TestCase):
                 }
             }
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
@@ -392,7 +389,7 @@ class WcsTests(unittest.TestCase):
                 resolution=ge.SpatialResolution(360. / 8, 180. / 8),
             )
 
-            array = workflow.get_xarray(query)
+            array = workflow.get_xarray(client.get_session(), query)
 
             self.assertEqual(array.shape, (1, 8, 8))
 

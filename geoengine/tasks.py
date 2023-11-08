@@ -14,7 +14,7 @@ import datetime
 import requests as req
 
 from geoengine.types import DEFAULT_ISO_TIME_FORMAT
-from geoengine.auth import get_session
+from geoengine.auth import Session
 from geoengine.error import check_response_for_error, GeoEngineException
 from geoengine import backports
 
@@ -226,8 +226,10 @@ class Task:
     '''
     Holds a task id, allows querying and manipulating the task status
     '''
+    __session: Session
 
-    def __init__(self, task_id: TaskId):
+    def __init__(self, session: Session, task_id: TaskId):
+        self.__session = session
         self.__task_id = task_id
 
     def __eq__(self, other):
@@ -235,13 +237,16 @@ class Task:
         if not isinstance(other, self.__class__):
             return False
 
-        return self.__task_id == other.__task_id  # pylint: disable=protected-access
+        return self.__session == other.__session and self.__task_id == other.__task_id  # pylint: disable=protected-access
+
+    def get_session(self) -> Session:
+        return self.__session
 
     def get_status(self, timeout: int = 3600) -> TaskStatusInfo:
         '''
         Returns the status of a task in a Geo Engine instance
         '''
-        session = get_session()
+        session = self.get_session()
 
         task_id_str = str(self.__task_id)
 
@@ -259,7 +264,7 @@ class Task:
         '''
         Abort a running task in a Geo Engine instance
         '''
-        session = get_session()
+        session = self.get_session()
 
         task_id_str = str(self.__task_id)
 
@@ -318,7 +323,7 @@ class Task:
             check_response_for_error(response)
             return response.json()
 
-        session = get_session()
+        session = self.get_session()
         task_id_str = str(self.__task_id)
         url = f'{session.server_url}/tasks/{task_id_str}/status'
         headers = session.auth_header
@@ -338,11 +343,10 @@ class Task:
             await asyncio.sleep(request_interval)
 
 
-def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
+def get_task_list(session: Session, timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
     '''
     Returns the status of all tasks in a Geo Engine instance
     '''
-    session = get_session()
 
     response = req.get(
         url=f'{session.server_url}/tasks/list',
@@ -361,6 +365,6 @@ def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
 
         task_id = item['task_id'] if 'task_id' in item else item['taskId']
 
-        result.append((Task(TaskId(UUID(task_id))), TaskStatusInfo.from_response(item)))
+        result.append((Task(session, TaskId(UUID(task_id))), TaskStatusInfo.from_response(item)))
 
     return result

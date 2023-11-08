@@ -15,9 +15,6 @@ import geoengine as ge
 class WfsTests(unittest.TestCase):
     '''WFS test runner'''
 
-    def setUp(self) -> None:
-        ge.reset(False)
-
     def test_geopandas(self):
         with requests_mock.Mocker() as m:
             m.post('http://mock-instance/anonymous', json={
@@ -253,7 +250,7 @@ class WfsTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Vector",
@@ -290,9 +287,10 @@ class WfsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             df = workflow.get_dataframe(
+                client.get_session(),
                 ge.QueryRectangle(
                     ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
                     ge.TimeInterval(time, time),
@@ -414,7 +412,7 @@ class WfsTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Vector",
@@ -452,9 +450,9 @@ class WfsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
-            wfs_curl = workflow.get_wfs_get_feature_curl(ge.QueryRectangle(
+            wfs_curl = workflow.get_wfs_get_feature_curl(client.get_session(), ge.QueryRectangle(
                 ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
                 ge.TimeInterval(time),
                 ge.SpatialResolution(0.1, 0.1)
@@ -542,7 +540,7 @@ class WfsTests(unittest.TestCase):
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'}
                   )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Vector",
@@ -580,10 +578,11 @@ class WfsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             with self.assertRaises(ge.GeoEngineException) as ctx:
                 workflow.get_dataframe(
+                    client.get_session(),
                     ge.QueryRectangle(
                         ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
                         ge.TimeInterval(time),
@@ -655,11 +654,11 @@ class WfsTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            workflow = ge.workflow_by_id("foobar")
+            workflow = client.workflow_by_id("foobar")
 
-            self.assertEqual(repr(workflow), "foobar")
+            self.assertEqual(repr(workflow), "'foobar'")  # TODO: why does the UUID need the quotes?
 
     def test_result_descriptor(self):
         with requests_mock.Mocker() as m:
@@ -728,9 +727,9 @@ class WfsTests(unittest.TestCase):
                   },
                   request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064'})
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            workflow = ge.workflow_by_id(
+            workflow = client.workflow_by_id(
                 '4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd')
 
             result_descriptor = workflow.get_result_descriptor()
@@ -765,7 +764,7 @@ class WfsTests(unittest.TestCase):
             )
 
             with self.assertRaises(ge.GeoEngineException) as exception:
-                workflow = ge.workflow_by_id('foo')
+                workflow = client.workflow_by_id('foo')
 
                 result_descriptor = workflow.get_result_descriptor()
 
@@ -874,12 +873,12 @@ class WfsTests(unittest.TestCase):
                   json=workflow_definition,
                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             self.assertEqual(
-                workflow.workflow_definition(),
+                workflow.workflow_definition(client.get_session()),
                 workflow_definition
             )
 
@@ -942,7 +941,7 @@ class WfsTests(unittest.TestCase):
                                    'User-Agent': f'geoengine-python/{get_distribution("geoengine").version}'}
                   )
 
-            ge.initialize("http://mock-instance")
+            client = ge.create_client("http://mock-instance")
 
             workflow_definition = {
                 "type": "Vector",
@@ -962,9 +961,10 @@ class WfsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2004-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            workflow = ge.register_workflow(workflow_definition)
+            workflow = client.workflow_register(workflow_definition)
 
             df = workflow.get_dataframe(
+                client.get_session(),
                 ge.QueryRectangle(
                     ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
                     ge.TimeInterval(time),
