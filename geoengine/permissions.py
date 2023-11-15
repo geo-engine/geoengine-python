@@ -177,10 +177,10 @@ def add_role(name: str, timeout: int = 60) -> RoleId:
         ))
 
     # TODO: find out why JSON string is faulty
-    # response = json.loads(response)
-    response = ast.literal_eval(response)
+    # parsed_response = json.loads(response)
+    parsed_response: dict[str, str] = ast.literal_eval(response)
 
-    return RoleId.from_response(response)
+    return RoleId.from_response(parsed_response)
 
 
 def remove_role(role: RoleId, timeout: int = 60):
