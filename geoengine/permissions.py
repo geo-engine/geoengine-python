@@ -5,9 +5,9 @@ A wrapper for the GeoEngine permissions API.
 from __future__ import annotations
 from enum import Enum
 
+import ast
 from typing import Dict, Literal, Any
 from uuid import UUID
-import json
 
 import geoengine_openapi_client
 
@@ -166,7 +166,6 @@ def remove_permission(role: RoleId, resource: Resource, permission: Permission, 
 
 def add_role(name: str, timeout: int = 60) -> RoleId:
     """Add a new role. Requires admin role."""
-    import ast
 
     session = get_session()
 

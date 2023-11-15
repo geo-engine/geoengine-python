@@ -267,7 +267,8 @@ class LogarithmicGradientColorizer(Colorizer):
     under_color: Rgba
 
     @staticmethod
-    def from_response_logarithmic(response: geoengine_openapi_client.LogarithmicGradientWithType) -> LogarithmicGradientColorizer:
+    def from_response_logarithmic(
+            response: geoengine_openapi_client.LogarithmicGradientWithType) -> LogarithmicGradientColorizer:
         """Create a colorizer from a response."""
         breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response.breakpoints]
         return LogarithmicGradientColorizer(

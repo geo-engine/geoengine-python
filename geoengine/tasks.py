@@ -11,11 +11,11 @@ from uuid import UUID
 import asyncio
 import datetime
 
+import geoengine_openapi_client
 from geoengine.types import DEFAULT_ISO_TIME_FORMAT
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException
 from geoengine import backports
-import geoengine_openapi_client
 
 
 class TaskId:
@@ -75,7 +75,8 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         inner = response.actual_instance
         status = TaskStatus(inner.status)
         time_started = None
-        if isinstance(inner, (geoengine_openapi_client.RunningTaskStatus, geoengine_openapi_client.CompletedTaskStatus)) \
+        if isinstance(inner,
+                      (geoengine_openapi_client.RunningTaskStatus, geoengine_openapi_client.CompletedTaskStatus)) \
                 and inner.time_started is not None:
             time_started = datetime.datetime.strptime(inner.time_started, DEFAULT_ISO_TIME_FORMAT)
 

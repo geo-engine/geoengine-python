@@ -147,7 +147,9 @@ class Workflow:
             response = wfs_api.wfs_feature_handler(
                 workflow=str(self.__workflow_id),
                 service=geoengine_openapi_client.WfsService(geoengine_openapi_client.WfsService.WFS),
-                request=geoengine_openapi_client.GetFeatureRequest(geoengine_openapi_client.GetFeatureRequest.GETFEATURE),
+                request=geoengine_openapi_client.GetFeatureRequest(
+                    geoengine_openapi_client.GetFeatureRequest.GETFEATURE
+                ),
                 type_names=str(self.__workflow_id),
                 bbox=bbox.bbox_str,
                 version=geoengine_openapi_client.WfsVersion(geoengine_openapi_client.WfsVersion.ENUM_2_DOT_0_DOT_0),

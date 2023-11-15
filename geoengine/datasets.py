@@ -215,13 +215,15 @@ class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     end_format: OgrSourceTimeFormat
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceDatasetTimeType:
-        return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.StartEndOgrSourceDatasetTimeType(
-            type="startEnd",
-            start_field=self.start_field,
-            start_format=self.start_format.to_api_dict(),
-            end_field=self.end_field,
-            end_format=self.end_format.to_api_dict(),
-        ))
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(
+            geoengine_openapi_client.StartEndOgrSourceDatasetTimeType(
+                type="startEnd",
+                start_field=self.start_field,
+                start_format=self.start_format.to_api_dict(),
+                end_field=self.end_field,
+                end_format=self.end_format.to_api_dict(),
+            )
+        )
 
 
 @dataclass
@@ -233,12 +235,14 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     duration_field: str
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceDatasetTimeType:
-        return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.StartDurationOgrSourceDatasetTimeType(
-            type="startDuration",
-            start_field=self.start_field,
-            start_format=self.start_format.to_api_dict(),
-            duration_field=self.duration_field
-        ))
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(
+            geoengine_openapi_client.StartDurationOgrSourceDatasetTimeType(
+                type="startDuration",
+                start_field=self.start_field,
+                start_format=self.start_format.to_api_dict(),
+                duration_field=self.duration_field
+            )
+        )
 
 
 class OgrOnError(Enum):

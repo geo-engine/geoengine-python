@@ -12,9 +12,9 @@ from enum import Enum
 from typing import Any, Dict, Optional, Tuple, Union, cast, List, Literal
 from attr import dataclass
 import numpy as np
+import geoengine_openapi_client
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, TypeException
-import geoengine_openapi_client
 
 
 DEFAULT_ISO_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
@@ -509,7 +509,8 @@ class VectorResultDescriptor(ResultDescriptor):
         self.__spatial_bounds = spatial_bounds
 
     @staticmethod
-    def from_response_vector(response: geoengine_openapi_client.VectorResultDescriptorWithType) -> VectorResultDescriptor:
+    def from_response_vector(
+            response: geoengine_openapi_client.VectorResultDescriptorWithType) -> VectorResultDescriptor:
         '''Parse a vector result descriptor from an http response'''
         sref = response.spatial_reference
         data_type = VectorDataType.from_string(response.data_type)
@@ -663,7 +664,8 @@ class RasterResultDescriptor(ResultDescriptor):
         ))
 
     @staticmethod
-    def from_response_raster(response: geoengine_openapi_client.RasterResultDescriptorWithType) -> RasterResultDescriptor:
+    def from_response_raster(
+            response: geoengine_openapi_client.RasterResultDescriptorWithType) -> RasterResultDescriptor:
         '''Parse a raster result descriptor from an http response'''
         spatial_ref = response.spatial_reference
         data_type = response.data_type.value
@@ -1115,7 +1117,8 @@ class ContinuousMeasurement(Measurement):
         self.__unit = unit
 
     @staticmethod
-    def from_response_continuous(response: geoengine_openapi_client.ContinuousMeasurementWithType) -> ContinuousMeasurement:
+    def from_response_continuous(
+            response: geoengine_openapi_client.ContinuousMeasurementWithType) -> ContinuousMeasurement:
         '''Initialize a new `ContiuousMeasurement from a JSON response'''
 
         return ContinuousMeasurement(response.measurement, response.unit)
