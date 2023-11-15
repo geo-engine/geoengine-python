@@ -7,6 +7,7 @@ import owslib.util
 import requests_mock
 import numpy as np
 import xarray as xr
+from test_util import UrllibMocker
 import geoengine as ge
 
 
@@ -17,31 +18,49 @@ class WcsTests(unittest.TestCase):
         ge.reset(False)
 
     def test_ndvi(self):
-        with requests_mock.Mocker() as m, open("tests/responses/ndvi.tiff", "rb") as ndvi_tiff:
-            m.post('http://mock-instance/anonymous', json={
+        with UrllibMocker() as m_urllib:
+            m_urllib.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
                 "view": None
             })
 
-            m.post('http://mock-instance/workflow',
-                   json={
-                       "id": "8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62"
-                   },
-                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+            m_urllib.post('http://mock-instance/workflow',
+                          json={
+                              "id": "8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62"
+                          },
+                          request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            m.get('http://mock-instance/workflow/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/metadata',
-                  json={
-                      "type": "raster",
-                      "dataType": "U8",
-                      "spatialReference": "EPSG:4326",
-                      "measurement": {
-                              "type": "unitless"
-                      }
-                  },
-                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+            m_urllib.get('http://mock-instance/workflow/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/metadata',
+                         json={
+                             "type": "raster",
+                             "dataType": "U8",
+                             "spatialReference": "EPSG:4326",
+                             "measurement": {
+                                 "type": "unitless"
+                             }
+                         },
+                         request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            m.get(
+            ge.initialize("http://mock-instance")
+
+            workflow_definition = {
+                "type": "Raster",
+                "operator": {
+                    "type": "GdalSource",
+                    "params": {
+                        "data": {
+                            "type": "internal",
+                            "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                        }
+                    }
+                }
+            }
+
+            workflow = ge.register_workflow(workflow_definition)
+
+        with requests_mock.Mocker() as m_requests, open("tests/responses/ndvi.tiff", "rb") as ndvi_tiff:
+            m_requests.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?service=WCS&request=GetCapabilities&version=1.1.1',
                 text='''<?xml version="1.0" encoding="UTF-8"?>
@@ -99,29 +118,12 @@ class WcsTests(unittest.TestCase):
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
-            m.get(
+            m_requests.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0',
                 body=ndvi_tiff,
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
-
-            ge.initialize("http://mock-instance")
-
-            workflow_definition = {
-                "type": "Raster",
-                "operator": {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": {
-                            "type": "internal",
-                            "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
-                        }
-                    }
-                }
-            }
-
-            workflow = ge.register_workflow(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
@@ -149,31 +151,49 @@ class WcsTests(unittest.TestCase):
             self.assertTrue(np.array_equal(array, expected))
 
     def test_error(self):
-        with requests_mock.Mocker() as m:
-            m.post('http://mock-instance/anonymous', json={
+        with UrllibMocker() as m_urllib:
+            m_urllib.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
                 "view": None
             })
 
-            m.post('http://mock-instance/workflow',
-                   json={
-                       "id": "8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62"
-                   },
-                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+            m_urllib.post('http://mock-instance/workflow',
+                          json={
+                              "id": "8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62"
+                          },
+                          request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            m.get('http://mock-instance/workflow/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/metadata',
-                  json={
-                      "type": "raster",
-                      "dataType": "U8",
-                      "spatialReference": "EPSG:4326",
-                      "measurement": {
-                              "type": "unitless"
-                      }
-                  },
-                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+            m_urllib.get('http://mock-instance/workflow/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/metadata',
+                         json={
+                             "type": "raster",
+                             "dataType": "U8",
+                             "spatialReference": "EPSG:4326",
+                             "measurement": {
+                                 "type": "unitless"
+                             }
+                         },
+                         request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            m.get(
+            ge.initialize("http://mock-instance")
+
+            workflow_definition = {
+                "type": "Raster",
+                "operator": {
+                    "type": "GdalSource",
+                    "params": {
+                        "data": {
+                            "type": "internal",
+                            "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                        }
+                    }
+                }
+            }
+
+            workflow = ge.register_workflow(workflow_definition)
+
+        with requests_mock.Mocker() as m_requests:
+            m_requests.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?service=WCS&request=GetCapabilities&version=1.1.1',
                 text='''<?xml version="1.0" encoding="UTF-8"?>
@@ -231,7 +251,7 @@ class WcsTests(unittest.TestCase):
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
 
-            m.get(
+            m_requests.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0',
                 json={
@@ -242,23 +262,6 @@ class WcsTests(unittest.TestCase):
                 status_code=400,
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
-
-            ge.initialize("http://mock-instance")
-
-            workflow_definition = {
-                "type": "Raster",
-                "operator": {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": {
-                            "type": "internal",
-                            "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
-                        }
-                    }
-                }
-            }
-
-            workflow = ge.register_workflow(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
@@ -277,31 +280,56 @@ class WcsTests(unittest.TestCase):
                              '\\"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF\\""}')
 
     def test_ndvi_xarray(self):
-        with requests_mock.Mocker() as m, open("tests/responses/ndvi.tiff", "rb") as ndvi_tiff:
-            m.post('http://mock-instance/anonymous', json={
+        with UrllibMocker() as m_urllib:
+            m_urllib.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,
                 "view": None
             })
 
-            m.post('http://mock-instance/workflow',
-                   json={
-                       "id": "8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62"
-                   },
-                   request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+            m_urllib.post('http://mock-instance/workflow',
+                          json={
+                              "id": "8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62"
+                          },
+                          request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            m.get('http://mock-instance/workflow/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/metadata',
-                  json={
-                      "type": "raster",
-                      "dataType": "U8",
-                      "spatialReference": "EPSG:4326",
-                      "measurement": {
-                              "type": "unitless"
-                      }
-                  },
-                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+            m_urllib.get('http://mock-instance/workflow/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/metadata',
+                         json={
+                             "type": "raster",
+                             "dataType": "U8",
+                             "spatialReference": "EPSG:4326",
+                             "measurement": {
+                                 "type": "unitless"
+                             }
+                         },
+                         request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
-            m.get(
+            ge.initialize("http://mock-instance")
+
+            workflow_definition = {
+                "type": "Raster",
+                "operator": {
+                    "type": "GdalSource",
+                    "params": {
+                        "data": {
+                            "type": "internal",
+                            "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
+                        }
+                    }
+                }
+            }
+
+            workflow = ge.register_workflow(workflow_definition)
+
+        with requests_mock.Mocker() as m_requests, open("tests/responses/ndvi.tiff", "rb") as ndvi_tiff:
+            m_requests.get(
+                # pylint: disable=line-too-long
+                'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0',
+                body=ndvi_tiff,
+                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
+            )
+
+            m_requests.get(
                 # pylint: disable=line-too-long
                 'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?service=WCS&request=GetCapabilities&version=1.1.1',
                 text='''<?xml version="1.0" encoding="UTF-8"?>
@@ -358,30 +386,6 @@ class WcsTests(unittest.TestCase):
     </wcs:Capabilities>''',
                 request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
             )
-
-            m.get(
-                # pylint: disable=line-too-long
-                'http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0',
-                body=ndvi_tiff,
-                request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'},
-            )
-
-            ge.initialize("http://mock-instance")
-
-            workflow_definition = {
-                "type": "Raster",
-                "operator": {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": {
-                            "type": "internal",
-                            "datasetId": "36574dc3-560a-4b09-9d22-d5945f2b8093"
-                        }
-                    }
-                }
-            }
-
-            workflow = ge.register_workflow(workflow_definition)
 
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)

@@ -4,10 +4,10 @@ import unittest
 from uuid import UUID
 
 import datetime
-import requests_mock
+from test_util import UrllibMocker
 
 import geoengine as ge
-from geoengine import GeoEngineException, DEFAULT_ISO_TIME_FORMAT
+from geoengine import BadRequestException, ValidationError, DEFAULT_ISO_TIME_FORMAT
 from geoengine.tasks import CompletedTaskStatusInfo, TaskStatus, RunningTaskStatusInfo, \
     AbortedTaskStatusInfo, FailedTaskStatusInfo, TaskId, Task
 
@@ -19,7 +19,7 @@ class TaskTests(unittest.TestCase):
         ge.reset(False)
 
     def test_get_task_list_empty(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "26a4c585-8aa5-4de8-9ede-293d3cd3544a",
                 "project": None,
@@ -38,7 +38,7 @@ class TaskTests(unittest.TestCase):
             self.assertEqual(task_list, expected_result)
 
     def test_get_task_list_all_types(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "26a4c585-8aa5-4de8-9ede-293d3cd3544a",
                 "project": None,
@@ -104,7 +104,7 @@ class TaskTests(unittest.TestCase):
             self.assertEqual(task_list, expected_result)
 
     def test_get_task_list_unknown_status(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "26a4c585-8aa5-4de8-9ede-293d3cd3544a",
                 "project": None,
@@ -136,7 +136,7 @@ class TaskTests(unittest.TestCase):
             self.assertRaises(ValueError, ge.tasks.get_task_list, 0)
 
     def test_get_task_list_malformed(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "26a4c585-8aa5-4de8-9ede-293d3cd3544a",
                 "project": None,
@@ -163,10 +163,10 @@ class TaskTests(unittest.TestCase):
 
             ge.initialize('http://mock-instance')
 
-            self.assertRaises(GeoEngineException, ge.tasks.get_task_list, 0)
+            self.assertRaises(ValidationError, ge.tasks.get_task_list, 0)
 
     def test_get_task_status(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "26a4c585-8aa5-4de8-9ede-293d3cd3544a",
                 "project": None,
@@ -252,11 +252,11 @@ class TaskTests(unittest.TestCase):
 
             # Malformed
             malformed_status_task = Task(TaskId(UUID('ee4f1ed9-fd06-40be-90f5-d6289c154fcd')))
-            with self.assertRaises(GeoEngineException):
+            with self.assertRaises(ValidationError):
                 malformed_status_task.get_status()
 
     def test_get_abort_task(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "26a4c585-8aa5-4de8-9ede-293d3cd3544a",
                 "project": None,
@@ -277,7 +277,7 @@ class TaskTests(unittest.TestCase):
             self.assertEqual(None, abort_success_task.abort())
 
             abort_failed_task = Task(TaskId(UUID('9f008e47-645b-48de-a513-748a1d0c2a3f')))
-            with self.assertRaises(GeoEngineException):
+            with self.assertRaises(BadRequestException):
                 abort_failed_task.abort()
 
 

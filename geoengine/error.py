@@ -3,8 +3,9 @@ Package errors and backend mapped error types
 '''
 
 from typing import Any, Dict, Union
+import json
 from requests import Response, HTTPError
-from geoengine import api
+import geoengine_openapi_client
 
 
 class GeoEngineException(Exception):
@@ -15,11 +16,16 @@ class GeoEngineException(Exception):
     error: str
     message: str
 
-    def __init__(self, response: Union[api.GeoEngineExceptionResponse, Dict[str, str]]) -> None:
+    def __init__(self, response: Union[geoengine_openapi_client.ApiException, Dict[str, str]]) -> None:
         super().__init__()
 
-        self.error = response['error'] if 'error' in response else '?'
-        self.message = response['message'] if 'message' in response else '?'
+        if isinstance(response, geoengine_openapi_client.ApiException):
+            obj = json.loads(response.body)
+        else:
+            obj = response
+
+        self.error = obj['error'] if 'error' in obj else '?'
+        self.message = obj['message'] if 'message' in obj else '?'
 
     def __str__(self) -> str:
         return f"{self.error}: {self.message}"

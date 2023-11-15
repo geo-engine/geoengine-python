@@ -10,6 +10,7 @@ import pyarrow as pa
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+from test_util import UrllibMocker
 import geoengine as ge
 
 
@@ -125,9 +126,10 @@ class WorkflowVectorStreamTests(unittest.TestCase):
         ge.reset(False)
 
     def test_streaming_workflow(self):
-        with unittest.mock.patch("requests.get", return_value=MockRequestsGet(json_data={
-            "id": "00000000-0000-0000-0000-000000000000",
-        })):
+        with UrllibMocker() as m:
+            m.get("http://localhost:3030/session", json={
+                "id": "00000000-0000-0000-0000-000000000000",
+            })
             ge.initialize("http://localhost:3030", token="no_token")
 
         with unittest.mock.patch(
@@ -139,8 +141,7 @@ class WorkflowVectorStreamTests(unittest.TestCase):
                     "data": ge.VectorColumnInfo(
                         data_type='int',
                         measurement=ge.UnitlessMeasurement,
-                    )},
-                spatial_resolution=ge.SpatialResolution(0.5, 0.5)
+                    )}
             ),
         ):
             workflow = ge.Workflow(UUID("00000000-0000-0000-0000-000000000000"))

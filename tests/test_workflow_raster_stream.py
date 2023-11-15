@@ -1,7 +1,7 @@
 '''Tests for raster streaming workflows'''
 
 import asyncio
-from typing import Dict, List
+from typing import List
 import unittest
 import unittest.mock
 from uuid import UUID
@@ -10,17 +10,8 @@ import json
 import rioxarray
 import pyarrow as pa
 import xarray as xr
+from test_util import UrllibMocker
 import geoengine as ge
-
-
-class MockRequestsGet:
-    '''Mock for requests.get'''
-
-    def __init__(self, json_data: Dict[str, str]):
-        self.__json = json_data
-
-    def json(self) -> Dict[str, str]:
-        return self.__json
 
 
 class MockWebsocket:
@@ -108,9 +99,10 @@ class WorkflowRasterStreamTests(unittest.TestCase):
         ge.reset(False)
 
     def test_streaming_workflow(self):
-        with unittest.mock.patch("requests.get", return_value=MockRequestsGet(json_data={
-            "id": "00000000-0000-0000-0000-000000000000",
-        })):
+        with UrllibMocker() as m:
+            m.get("http://localhost:3030/session", json={
+                "id": "00000000-0000-0000-0000-000000000000",
+            })
             ge.initialize("http://localhost:3030", token="no_token")
 
         with unittest.mock.patch(

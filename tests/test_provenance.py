@@ -2,7 +2,7 @@
 
 import unittest
 from uuid import UUID
-import requests_mock
+from test_util import UrllibMocker
 
 from geoengine.types import InternalDataId, Provenance, ProvenanceEntry
 import geoengine as ge
@@ -15,7 +15,7 @@ class ProvenanceTests(unittest.TestCase):
         ge.reset(False)
 
     def test_provenance_call(self):
-        with requests_mock.Mocker() as m:
+        with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous', json={
                 "id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
                 "project": None,

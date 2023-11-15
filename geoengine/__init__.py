@@ -2,12 +2,15 @@
 
 from pkg_resources import get_distribution
 from requests import utils
+from pydantic import ValidationError
 
+from geoengine_openapi_client.exceptions import BadRequestException, OpenApiException, ApiTypeError, ApiValueError, \
+    ApiKeyError, ApiAttributeError, ApiException, NotFoundException
 from .auth import Session, get_session, initialize, reset
 from .colorizer import Colorizer, ColorBreakpoint, LinearGradientColorizer, PaletteColorizer, \
     LogarithmicGradientColorizer
 from .datasets import upload_dataframe, StoredDataset, add_dataset, volumes, AddDatasetProperties, \
-    delete_dataset, list_datasets, DatasetListOrder
+    delete_dataset, list_datasets, DatasetListOrder, OgrSourceDatasetTimeType, OgrOnError
 from .error import GeoEngineException, InputException, UninitializedException, TypeException, \
     MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, \
     SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \
@@ -18,7 +21,7 @@ from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing
 from .permissions import add_permission, remove_permission, add_role, remove_role, assign_role, revoke_role, \
     ADMIN_ROLE_ID, REGISTERED_USER_ROLE_ID, ANONYMOUS_USER_ROLE_ID, Permission, Resource, UserId, RoleId
 from .tasks import Task, TaskId
-from .types import QueryRectangle,  \
+from .types import QueryRectangle, GeoTransform, \
     RasterResultDescriptor, Provenance, UnitlessMeasurement, ContinuousMeasurement, \
     ClassificationMeasurement, BoundingBox2D, TimeInterval, SpatialResolution, SpatialPartition2D, \
     RasterSymbology, VectorSymbology, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \

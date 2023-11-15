@@ -9,11 +9,11 @@ from abc import abstractmethod
 from datetime import datetime, timezone
 from uuid import UUID
 from enum import Enum
-from typing import Dict, Optional, Tuple, Union, cast, List, Literal
+from typing import Any, Dict, Optional, Tuple, Union, cast, List, Literal
 from attr import dataclass
 import numpy as np
+import geoengine_openapi_client
 from geoengine.colorizer import Colorizer
-from geoengine import api
 from geoengine.error import GeoEngineException, InputException, TypeException
 
 
@@ -66,32 +66,29 @@ class SpatialBounds:
 class BoundingBox2D(SpatialBounds):
     ''''A 2D bounding box.'''
 
-    def to_api_dict(self) -> api.BoundingBox2D:
-        return api.BoundingBox2D({
-            'lowerLeftCoordinate': api.Coordinate2D({
-                "x": self.xmin,
-                "y": self.ymin,
-            }),
-            'upperRightCoordinate': api.Coordinate2D({
-                "x": self.xmax,
-                "y": self.ymax,
-            }),
-        })
+    def to_api_dict(self) -> geoengine_openapi_client.BoundingBox2D:
+        return geoengine_openapi_client.BoundingBox2D(
+            lower_left_coordinate=geoengine_openapi_client.Coordinate2D(
+                x=self.xmin,
+                y=self.ymin,
+            ),
+            upper_right_coordinate=geoengine_openapi_client.Coordinate2D(
+                x=self.xmax,
+                y=self.ymax,
+            ),
+        )
 
     @staticmethod
-    def from_response(response: api.BoundingBox2D) -> BoundingBox2D:
+    def from_response(response: geoengine_openapi_client.BoundingBox2D) -> BoundingBox2D:
         '''create a `BoundingBox2D` from an API response'''
-        if 'lowerLeftCoordinate' not in response or 'upperRightCoordinate' not in response:
-            raise TypeException('BoundingBox2D must have lowerLeftCoordinate and upperRightCoordinate')
-
-        lower_left = response['lowerLeftCoordinate']
-        upper_right = response['upperRightCoordinate']
+        lower_left = response.lower_left_coordinate
+        upper_right = response.upper_right_coordinate
 
         return BoundingBox2D(
-            lower_left['x'],
-            lower_left['y'],
-            upper_right['x'],
-            upper_right['y'],
+            lower_left.x,
+            lower_left.y,
+            upper_right.x,
+            upper_right.y,
         )
 
     def __repr__(self) -> str:
@@ -102,33 +99,30 @@ class SpatialPartition2D(SpatialBounds):
     '''A 2D spatial partition.'''
 
     @staticmethod
-    def from_response(response: api.SpatialPartition2D) -> SpatialPartition2D:
+    def from_response(response: geoengine_openapi_client.SpatialPartition2D) -> SpatialPartition2D:
         '''create a `SpatialPartition2D` from an API response'''
-        if 'upperLeftCoordinate' not in response or 'lowerRightCoordinate' not in response:
-            raise TypeException('SpatialPartition2D must have upperLeftCoordinate and lowerRightCoordinate')
-
-        upper_left = response['upperLeftCoordinate']
-        lower_right = response['lowerRightCoordinate']
+        upper_left = response.upper_left_coordinate
+        lower_right = response.lower_right_coordinate
 
         return SpatialPartition2D(
-            upper_left['x'],
-            lower_right['y'],
-            lower_right['x'],
-            upper_left['y'],
+            upper_left.x,
+            lower_right.y,
+            lower_right.x,
+            upper_left.y,
 
         )
 
-    def to_api_dict(self) -> api.SpatialPartition2D:
-        return api.SpatialPartition2D({
-            'upperLeftCoordinate': api.Coordinate2D({
-                "x": self.xmin,
-                "y": self.ymax,
-            }),
-            'lowerRightCoordinate': api.Coordinate2D({
-                "x": self.xmax,
-                "y": self.ymin,
-            }),
-        })
+    def to_api_dict(self) -> geoengine_openapi_client.SpatialPartition2D:
+        return geoengine_openapi_client.SpatialPartition2D(
+            upper_left_coordinate=geoengine_openapi_client.Coordinate2D(
+                x=self.xmin,
+                y=self.ymax,
+            ),
+            lower_right_coordinate=geoengine_openapi_client.Coordinate2D(
+                x=self.xmax,
+                y=self.ymin,
+            ),
+        )
 
     def to_bounding_box(self) -> BoundingBox2D:
         '''convert to a `BoundingBox2D`'''
@@ -174,19 +168,6 @@ class TimeInterval:
     def is_instant(self) -> bool:
         return self.end is None
 
-    def to_api_dict(self, as_millis=False) -> api.TimeInterval:
-        '''convert to a dict that can be used in the API'''
-        if as_millis:
-            return api.TimeInterval({
-                'start': TimeInterval.__datetime_to_unix(self.start),
-                'end': TimeInterval.__datetime_to_unix(self.end) if self.end is not None else None,
-            })
-
-        return api.TimeInterval({
-            'start': TimeInterval.__datetime_to_iso_str(self.start),
-            'end': TimeInterval.__datetime_to_iso_str(self.end) if self.end is not None else None,
-        })
-
     @property
     def time_str(self) -> str:
         '''
@@ -203,7 +184,7 @@ class TimeInterval:
         return start_iso + '/' + end_iso
 
     @staticmethod
-    def from_response(response: api.TimeInterval) -> TimeInterval:
+    def from_response(response: Any) -> TimeInterval:
         '''create a `TimeInterval` from an API response'''
 
         if 'start' not in response:
@@ -229,13 +210,15 @@ class TimeInterval:
     def __repr__(self) -> str:
         return f"TimeInterval(start={self.start}, end={self.end})"
 
+    def to_api_dict(self) -> geoengine_openapi_client.TimeInterval:
+        return geoengine_openapi_client.TimeInterval(
+            start=int(self.start.astype('datetime64[ms]').astype(int)),
+            end=int(self.end.astype('datetime64[ms]').astype(int)) if self.end is not None else None,
+        )
+
     @staticmethod
     def __datetime_to_iso_str(timestamp: np.datetime64) -> str:
         return str(np.datetime_as_string(timestamp, unit='ms', timezone='UTC')).replace('Z', '+00:00')
-
-    @staticmethod
-    def __datetime_to_unix(timestamp: np.datetime64) -> int:
-        return timestamp.astype('datetime64[ms]').astype('int')
 
 
 class SpatialResolution:
@@ -251,16 +234,16 @@ class SpatialResolution:
         self.x_resolution = x_resolution
         self.y_resolution = y_resolution
 
-    def to_api_dict(self) -> api.SpatialResolution:
-        return api.SpatialResolution({
-            'x': self.x_resolution,
-            'y': self.y_resolution,
-        })
+    def to_api_dict(self) -> geoengine_openapi_client.SpatialResolution:
+        return geoengine_openapi_client.SpatialResolution(
+            x=self.x_resolution,
+            y=self.y_resolution,
+        )
 
     @staticmethod
-    def from_response(response: api.SpatialResolution) -> SpatialResolution:
+    def from_response(response: geoengine_openapi_client.SpatialResolution) -> SpatialResolution:
         '''create a `SpatialResolution` from an API response'''
-        return SpatialResolution(x_resolution=response['x'], y_resolution=response['y'])
+        return SpatialResolution(x_resolution=response.x, y_resolution=response.y)
 
     def as_tuple(self) -> Tuple[float, float]:
         return (self.x_resolution, self.y_resolution)
@@ -399,6 +382,19 @@ class QueryRectangle:
         r += ')'
         return r
 
+    def as_raster_query_rectangle_api_dict(self) -> geoengine_openapi_client.RasterQueryRectangle:
+        '''Return the query rectangle as a dictionary for the API'''
+        return geoengine_openapi_client.RasterQueryRectangle(
+            spatial_bounds=SpatialPartition2D(
+                self.spatial_bounds.xmin,
+                self.spatial_bounds.ymin,
+                self.spatial_bounds.xmax,
+                self.spatial_bounds.ymax,
+            ).to_api_dict(),
+            spatial_resolution=self.spatial_resolution.to_api_dict(),
+            time_interval=self.time.to_api_dict(),
+        )
+
 
 class ResultDescriptor:  # pylint: disable=too-few-public-methods
     '''
@@ -426,28 +422,21 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
             raise TypeException('Spatial resolution must be of type `SpatialResolution` or `None`')
 
     @staticmethod
-    def from_response(response: api.ResultDescriptor) -> ResultDescriptor:
+    def from_response(response: geoengine_openapi_client.TypedResultDescriptor) -> ResultDescriptor:
         '''
         Parse a result descriptor from an http response
         '''
 
-        if 'error' in response:
-            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
+        inner = response.actual_instance
 
-        if 'type' not in response:
-            raise TypeException('Response does not contain a `type` field')
+        if isinstance(inner, geoengine_openapi_client.RasterResultDescriptorWithType):
+            return RasterResultDescriptor.from_response_raster(inner)
+        if isinstance(inner, geoengine_openapi_client.VectorResultDescriptorWithType):
+            return VectorResultDescriptor.from_response_vector(inner)
+        if isinstance(inner, geoengine_openapi_client.PlotResultDescriptorWithType):
+            return PlotResultDescriptor.from_response_plot(inner)
 
-        result_descriptor_type = response['type']
-
-        if result_descriptor_type == 'raster':
-            return RasterResultDescriptor.from_response_raster(cast(api.RasterResultDescriptor, response))
-        if result_descriptor_type == 'vector':
-            return VectorResultDescriptor.from_response_vector(cast(api.VectorResultDescriptor, response))
-        if result_descriptor_type == 'plot':
-            return PlotResultDescriptor.from_response_plot(cast(api.PlotResultDescriptor, response))
-
-        raise TypeException(
-            f'Unknown `ResultDescriptor` type: {result_descriptor_type}')
+        raise TypeException(f'Unknown `ResultDescriptor` type: {inner.type}')
 
     @classmethod
     def is_raster_result(cls) -> bool:
@@ -490,7 +479,7 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         return self.__spatial_resolution
 
     @abstractmethod
-    def to_api_dict(self) -> api.ResultDescriptor:
+    def to_api_dict(self) -> geoengine_openapi_client.TypedResultDescriptor:
         pass
 
     def __iter__(self):
@@ -511,36 +500,31 @@ class VectorResultDescriptor(ResultDescriptor):
         data_type: VectorDataType,
         columns: Dict[str, VectorColumnInfo],
         time_bounds: Optional[TimeInterval] = None,
-        spatial_bounds: Optional[BoundingBox2D] = None,
-        spatial_resolution: Optional[SpatialResolution] = None
+        spatial_bounds: Optional[BoundingBox2D] = None
     ) -> None:
         ''' Initialize a vector result descriptor '''
-        super().__init__(spatial_reference, time_bounds, spatial_resolution)
+        super().__init__(spatial_reference, time_bounds, None)
         self.__data_type = data_type
         self.__columns = columns
         self.__spatial_bounds = spatial_bounds
 
     @staticmethod
-    def from_response_vector(response: api.VectorResultDescriptor) -> VectorResultDescriptor:
+    def from_response_vector(
+            response: geoengine_openapi_client.VectorResultDescriptorWithType) -> VectorResultDescriptor:
         '''Parse a vector result descriptor from an http response'''
-        assert response['type'] == 'vector'  # TODO: throw exception
-
-        sref = response['spatialReference']
-        data_type = VectorDataType.from_string(response['dataType'])
-        columns = {name: VectorColumnInfo.from_response(info) for name, info in response['columns'].items()}
+        sref = response.spatial_reference
+        data_type = VectorDataType.from_string(response.data_type)
+        columns = {name: VectorColumnInfo.from_response(info) for name, info in response.columns.items()}
 
         time_bounds = None
         # FIXME: datetime can not represent our min max range
         # if 'time' in response and response['time'] is not None:
         #    time_bounds = TimeInterval.from_response(response['time'])
         spatial_bounds = None
-        if 'bbox' in response and response['bbox'] is not None:
-            spatial_bounds = BoundingBox2D.from_response(response['bbox'])
-        spatial_resolution = None
-        if 'resolution' in response and response['resolution'] is not None:
-            spatial_resolution = SpatialResolution.from_response(response['resolution'])
+        if response.bbox is not None:
+            spatial_bounds = BoundingBox2D.from_response(response.bbox)
 
-        return VectorResultDescriptor(sref, data_type, columns, time_bounds, spatial_bounds, spatial_resolution)
+        return VectorResultDescriptor(sref, data_type, columns, time_bounds, spatial_bounds)
 
     @classmethod
     def is_vector_result(cls) -> bool:
@@ -582,19 +566,18 @@ class VectorResultDescriptor(ResultDescriptor):
 
         return r
 
-    def to_api_dict(self) -> api.VectorResultDescriptor:
+    def to_api_dict(self) -> geoengine_openapi_client.TypedResultDescriptor:
         '''Convert the vector result descriptor to a dictionary'''
 
-        return api.VectorResultDescriptor({
-            'type': 'raster',
-            'dataType': self.data_type.to_api_enum(),
-            'spatialReference': self.spatial_reference,
-            'columns':
-                {name: column_info.to_api_dict() for name, column_info in self.columns.items()},
-            'time': self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
-            'bbox': self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
-            'resolution': self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
-        })
+        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.VectorResultDescriptorWithType(
+            type='vector',
+            data_type=self.data_type.to_api_enum(),
+            spatial_reference=self.spatial_reference,
+            columns={name: column_info.to_api_dict() for name, column_info in self.columns.items()},
+            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
+            resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
+        ))
 
 
 class FeatureDataType(str, Enum):
@@ -613,10 +596,10 @@ class FeatureDataType(str, Enum):
 
         return FeatureDataType(data_type)
 
-    def to_api_enum(self) -> api.FeatureDataType:
+    def to_api_enum(self) -> geoengine_openapi_client.FeatureDataType:
         '''Convert to an API enum'''
 
-        return api.FeatureDataType(self.value)
+        return geoengine_openapi_client.FeatureDataType(self.value)
 
 
 @dataclass
@@ -627,21 +610,21 @@ class VectorColumnInfo:
     measurement: Measurement
 
     @staticmethod
-    def from_response(response: api.VectorColumnInfo) -> VectorColumnInfo:
+    def from_response(response: geoengine_openapi_client.VectorColumnInfo) -> VectorColumnInfo:
         '''Create a new `VectorColumnInfo` from a JSON response'''
 
         return VectorColumnInfo(
-            FeatureDataType.from_string(response['dataType']),
-            Measurement.from_response(response['measurement'])
+            FeatureDataType.from_string(response.data_type),
+            Measurement.from_response(response.measurement)
         )
 
-    def to_api_dict(self) -> api.VectorColumnInfo:
+    def to_api_dict(self) -> geoengine_openapi_client.VectorColumnInfo:
         '''Convert to a dictionary'''
 
-        return api.VectorColumnInfo({
-            'dataType': self.data_type.to_api_enum(),
-            'measurement': self.measurement.to_api_dict(),
-        })
+        return geoengine_openapi_client.VectorColumnInfo(
+            data_type=self.data_type.to_api_enum(),
+            measurement=self.measurement.to_api_dict(),
+        )
 
 
 class RasterResultDescriptor(ResultDescriptor):
@@ -667,38 +650,37 @@ class RasterResultDescriptor(ResultDescriptor):
         self.__measurement = measurement
         self.__spatial_bounds = spatial_bounds
 
-    def to_api_dict(self) -> api.RasterResultDescriptor:
+    def to_api_dict(self) -> geoengine_openapi_client.TypedResultDescriptor:
         '''Convert the raster result descriptor to a dictionary'''
 
-        return {
-            'type': 'raster',
-            'dataType': self.data_type,
-            'measurement': self.measurement.to_api_dict(),
-            'spatialReference': self.spatial_reference,
-            'time': self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
-            'bbox': self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
-            'resolution': self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
-        }
+        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.RasterResultDescriptorWithType(
+            type='raster',
+            data_type=self.data_type,
+            measurement=self.measurement.to_api_dict(),
+            spatial_reference=self.spatial_reference,
+            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
+            resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
+        ))
 
     @staticmethod
-    def from_response_raster(response: api.RasterResultDescriptor) -> RasterResultDescriptor:
+    def from_response_raster(
+            response: geoengine_openapi_client.RasterResultDescriptorWithType) -> RasterResultDescriptor:
         '''Parse a raster result descriptor from an http response'''
-        assert response['type'] == 'raster'  # TODO: throw exception
-
-        spatial_ref = response['spatialReference']
-        data_type = response['dataType']
-        measurement = Measurement.from_response(response['measurement'])
+        spatial_ref = response.spatial_reference
+        data_type = response.data_type.value
+        measurement = Measurement.from_response(response.measurement)
 
         time_bounds = None
         # FIXME: datetime can not represent our min max range
         # if 'time' in response and response['time'] is not None:
         #    time_bounds = TimeInterval.from_response(response['time'])
         spatial_bounds = None
-        if 'bbox' in response and response['bbox'] is not None:
-            spatial_bounds = SpatialPartition2D.from_response(response['bbox'])
+        if response.bbox is not None:
+            spatial_bounds = SpatialPartition2D.from_response(response.bbox)
         spatial_resolution = None
-        if 'resolution' in response and response['resolution'] is not None:
-            spatial_resolution = SpatialResolution.from_response(response['resolution'])
+        if response.resolution is not None:
+            spatial_resolution = SpatialResolution.from_response(response.resolution)
 
         return RasterResultDescriptor(
             data_type=data_type,
@@ -740,9 +722,6 @@ class RasterResultDescriptor(ResultDescriptor):
 
         return r
 
-    def to_json(self) -> api.RasterResultDescriptor:
-        return self.to_api_dict()
-
 
 class PlotResultDescriptor(ResultDescriptor):
     '''
@@ -755,11 +734,10 @@ class PlotResultDescriptor(ResultDescriptor):
         self,
         spatial_reference: str,
         time_bounds: Optional[TimeInterval] = None,
-        spatial_bounds: Optional[BoundingBox2D] = None,
-        spatial_resolution: Optional[SpatialResolution] = None
+        spatial_bounds: Optional[BoundingBox2D] = None
     ) -> None:
         '''Initialize a new `PlotResultDescriptor`'''
-        super().__init__(spatial_reference, time_bounds, spatial_resolution)
+        super().__init__(spatial_reference, time_bounds, None)
         self.__spatial_bounds = spatial_bounds
 
     def __repr__(self) -> str:
@@ -769,28 +747,22 @@ class PlotResultDescriptor(ResultDescriptor):
         return r
 
     @staticmethod
-    def from_response_plot(response: api.PlotResultDescriptor) -> PlotResultDescriptor:
+    def from_response_plot(response: geoengine_openapi_client.PlotResultDescriptorWithType) -> PlotResultDescriptor:
         '''Create a new `PlotResultDescriptor` from a JSON response'''
-        assert response['type'] == 'plot'  # TODO: throw exception
-
-        spatial_ref = response['spatialReference']
+        spatial_ref = response.spatial_reference
 
         time_bounds = None
         # FIXME: datetime can not represent our min max range
         # if 'time' in response and response['time'] is not None:
         #    time_bounds = TimeInterval.from_response(response['time'])
         spatial_bounds = None
-        if 'bbox' in response and response['bbox'] is not None:
-            spatial_bounds = BoundingBox2D.from_response(response['bbox'])
-        spatial_resolution = None
-        if 'resolution' in response and response['resolution'] is not None:
-            spatial_resolution = SpatialResolution.from_response(response['resolution'])
+        if response.bbox is not None:
+            spatial_bounds = BoundingBox2D.from_response(response.bbox)
 
         return PlotResultDescriptor(
             spatial_reference=spatial_ref,
             time_bounds=time_bounds,
-            spatial_bounds=spatial_bounds,
-            spatial_resolution=spatial_resolution
+            spatial_bounds=spatial_bounds
         )
 
     @classmethod
@@ -806,17 +778,16 @@ class PlotResultDescriptor(ResultDescriptor):
     def spatial_bounds(self) -> Optional[BoundingBox2D]:
         return self.__spatial_bounds
 
-    def to_api_dict(self) -> api.PlotResultDescriptor:
+    def to_api_dict(self) -> geoengine_openapi_client.TypedResultDescriptor:
         '''Convert the plot result descriptor to a dictionary'''
 
-        return api.PlotResultDescriptor({
-            'type': 'plot',
-            'spatialReference': self.spatial_reference,
-            'dataType': 'Plot',
-            'time': self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
-            'bbox': self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
-            'resolution': self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
-        })
+        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.PlotResultDescriptorWithType(
+            type='plot',
+            spatial_reference=self.spatial_reference,
+            data_type='Plot',
+            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None
+        ))
 
 
 class VectorDataType(str, Enum):
@@ -845,8 +816,8 @@ class VectorDataType(str, Enum):
 
         raise InputException("Invalid vector data type")
 
-    def to_api_enum(self) -> api.VectorDataType:
-        return api.VectorDataType(self.value)
+    def to_api_enum(self) -> geoengine_openapi_client.VectorDataType:
+        return geoengine_openapi_client.VectorDataType(self.value)
 
     @staticmethod
     def from_literal(literal: Literal['Data', 'MultiPoint', 'MultiLineString', 'MultiPolygon']) -> VectorDataType:
@@ -854,7 +825,7 @@ class VectorDataType(str, Enum):
         return VectorDataType(literal)
 
     @staticmethod
-    def from_api_enum(data_type: api.VectorDataType) -> VectorDataType:
+    def from_api_enum(data_type: geoengine_openapi_client.VectorDataType) -> VectorDataType:
         '''Resolve vector data type from API enum'''
         return VectorDataType(data_type.value)
 
@@ -868,16 +839,16 @@ class VectorDataType(str, Enum):
 
 class TimeStepGranularity(Enum):
     '''An enum of time step granularities'''
-    MILLIS = 'Millis'
-    SECONDS = 'Seconds'
-    MINUTES = 'Minutes'
-    HOURS = 'Hours'
-    DAYS = 'Days'
-    MONTHS = 'Months'
-    YEARS = 'Years'
+    MILLIS = 'millis'
+    SECONDS = 'seconds'
+    MINUTES = 'minutes'
+    HOURS = 'hours'
+    DAYS = 'days'
+    MONTHS = 'months'
+    YEARS = 'years'
 
-    def to_api_enum(self) -> api.TimeStepGranularity:
-        return api.TimeStepGranularity(self.value)
+    def to_api_enum(self) -> geoengine_openapi_client.TimeGranularity:
+        return geoengine_openapi_client.TimeGranularity(self.value)
 
 
 @dataclass
@@ -886,11 +857,11 @@ class TimeStep:
     step: int
     granularity: TimeStepGranularity
 
-    def to_api_dict(self) -> api.TimeStep:
-        return api.TimeStep({
-            'step': self.step,
-            'granularity': self.granularity.to_api_enum(),
-        })
+    def to_api_dict(self) -> geoengine_openapi_client.TimeStep:
+        return geoengine_openapi_client.TimeStep(
+            step=self.step,
+            granularity=self.granularity.to_api_enum(),
+        )
 
 
 @dataclass
@@ -902,16 +873,16 @@ class Provenance:
     uri: str
 
     @classmethod
-    def from_response(cls, response: api.Provenance) -> Provenance:
+    def from_response(cls, response: geoengine_openapi_client.Provenance) -> Provenance:
         '''Parse an http response to a `Provenance` object'''
-        return Provenance(response['citation'], response['license'], response['uri'])
+        return Provenance(response.citation, response.license, response.uri)
 
-    def to_api_dict(self) -> api.Provenance:
-        return api.Provenance({
-            'citation': self.citation,
-            'license': self.license,
-            'uri': self.uri,
-        })
+    def to_api_dict(self) -> geoengine_openapi_client.Provenance:
+        return geoengine_openapi_client.Provenance(
+            citation=self.citation,
+            license=self.license,
+            uri=self.uri,
+        )
 
 
 @dataclass
@@ -922,11 +893,11 @@ class ProvenanceEntry:
     provenance: Provenance
 
     @classmethod
-    def from_response(cls, response: api.ProvenanceEntry) -> ProvenanceEntry:
+    def from_response(cls, response: geoengine_openapi_client.ProvenanceEntry) -> ProvenanceEntry:
         '''Parse an http response to a `ProvenanceEntry` object'''
 
-        dataset = [DataId.from_response(data) for data in response['data']]
-        provenance = Provenance.from_response(response['provenance'])
+        dataset = [DataId.from_response(data) for data in response.data]
+        provenance = Provenance.from_response(response.provenance)
 
         return ProvenanceEntry(dataset, provenance)
 
@@ -935,18 +906,22 @@ class Symbology:
     '''Base class for symbology'''
 
     @abstractmethod
-    def to_api_dict(self) -> api.Symbology:
+    def to_api_dict(self) -> geoengine_openapi_client.Symbology:
         pass
 
     @staticmethod
-    def from_response(response: api.Symbology) -> Symbology:
+    def from_response(response: geoengine_openapi_client.Symbology) -> Symbology:
         '''Parse an http response to a `Symbology` object'''
+        inner = response.actual_instance
 
-        if response['type'] == 'vector':
+        if isinstance(inner, (
+                geoengine_openapi_client.PointSymbologyWithType,
+                geoengine_openapi_client.LineSymbologyWithType,
+                geoengine_openapi_client.PolygonSymbologyWithType)):
             # return VectorSymbology.from_response_vector(response)
             return VectorSymbology()  # TODO: implement
-        if response['type'] == 'raster':
-            return RasterSymbology.from_response_raster(cast(api.RasterSymbology, response))
+        if isinstance(inner, geoengine_openapi_client.RasterSymbologyWithType):
+            return RasterSymbology.from_response_raster(inner)
 
         raise InputException("Invalid symbology type")
 
@@ -956,10 +931,8 @@ class VectorSymbology(Symbology):
 
     # TODO: implement
 
-    def to_api_dict(self) -> api.Symbology:
-        return api.Symbology({
-            'type': 'vector',
-        })
+    def to_api_dict(self) -> geoengine_openapi_client.Symbology:
+        return None  # type: ignore
 
 
 class RasterSymbology(Symbology):
@@ -973,22 +946,22 @@ class RasterSymbology(Symbology):
         self.__colorizer = colorizer
         self.__opacity = opacity
 
-    def to_api_dict(self) -> api.RasterSymbology:
+    def to_api_dict(self) -> geoengine_openapi_client.Symbology:
         '''Convert the raster symbology to a dictionary'''
 
-        return api.RasterSymbology({
-            'type': 'raster',
-            'colorizer': self.__colorizer.to_api_dict(),
-            'opacity': self.__opacity,
-        })
+        return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbologyWithType(
+            type='raster',
+            colorizer=self.__colorizer.to_api_dict(),
+            opacity=self.__opacity,
+        ))
 
     @staticmethod
-    def from_response_raster(response: api.RasterSymbology) -> RasterSymbology:
+    def from_response_raster(response: geoengine_openapi_client.RasterSymbologyWithType) -> RasterSymbology:
         '''Parse an http response to a `RasterSymbology` object'''
 
-        colorizer = Colorizer.from_response(response['colorizer'])
+        colorizer = Colorizer.from_response(response.colorizer)
 
-        return RasterSymbology(colorizer, response['opacity'])
+        return RasterSymbology(colorizer, response.opacity)
 
     def __repr__(self) -> str:
         return super().__repr__() + f"({self.__colorizer}, {self.__opacity})"
@@ -997,18 +970,19 @@ class RasterSymbology(Symbology):
 class DataId:  # pylint: disable=too-few-public-methods
     '''Base class for data ids'''
     @classmethod
-    def from_response(cls, response: api.DataId) -> DataId:
+    def from_response(cls, response: geoengine_openapi_client.DataId) -> DataId:
         '''Parse an http response to a `DataId` object'''
+        inner = response.actual_instance
 
-        if response["type"] == "internal":
-            return InternalDataId.from_response_internal(cast(api.InternalDataId, response))
-        if response["type"] == "external":
-            return ExternalDataId.from_response_external(cast(api.ExternalDataId, response))
+        if isinstance(inner, geoengine_openapi_client.InternalDataId):
+            return InternalDataId.from_response_internal(inner)
+        if isinstance(inner, geoengine_openapi_client.ExternalDataIdWithType):
+            return ExternalDataId.from_response_external(inner)
 
-        raise GeoEngineException({"message": f"Unknown DataId type: {response['type']}"})
+        raise GeoEngineException({"message": f"Unknown DataId type: {inner.type}"})
 
     @abstractmethod
-    def to_api_dict(self) -> api.DataId:
+    def to_api_dict(self) -> geoengine_openapi_client.DataId:
         pass
 
 
@@ -1021,15 +995,15 @@ class InternalDataId(DataId):
         self.__dataset_id = dataset_id
 
     @classmethod
-    def from_response_internal(cls, response: api.InternalDataId) -> InternalDataId:
+    def from_response_internal(cls, response: geoengine_openapi_client.InternalDataId) -> InternalDataId:
         '''Parse an http response to a `InternalDataId` object'''
-        return InternalDataId(UUID(response['datasetId']))
+        return InternalDataId(UUID(response.dataset_id))
 
-    def to_api_dict(self) -> api.InternalDataId:
-        return api.InternalDataId({
-            "type": "internal",
-            "datasetId": str(self.__dataset_id)
-        })
+    def to_api_dict(self) -> geoengine_openapi_client.DataId:
+        return geoengine_openapi_client.DataId(geoengine_openapi_client.InternalDataId(
+            type="internal",
+            dataset_id=str(self.__dataset_id)
+        ))
 
     def __str__(self) -> str:
         return str(self.__dataset_id)
@@ -1057,17 +1031,17 @@ class ExternalDataId(DataId):
         self.__layer_id = layer_id
 
     @classmethod
-    def from_response_external(cls, response: api.ExternalDataId) -> ExternalDataId:
+    def from_response_external(cls, response: geoengine_openapi_client.ExternalDataIdWithType) -> ExternalDataId:
         '''Parse an http response to a `ExternalDataId` object'''
 
-        return ExternalDataId(UUID(response['providerId']), response['layerId'])
+        return ExternalDataId(UUID(response.provider_id), response.layer_id)
 
-    def to_api_dict(self) -> api.ExternalDataId:
-        return api.ExternalDataId({
-            "type": "external",
-            "providerId": str(self.__provider_id),
-            "layerId": self.__layer_id,
-        })
+    def to_api_dict(self) -> geoengine_openapi_client.DataId:
+        return geoengine_openapi_client.DataId(geoengine_openapi_client.ExternalDataIdWithType(
+            type="external",
+            provider_id=str(self.__provider_id),
+            layer_id=self.__layer_id,
+        ))
 
     def __str__(self) -> str:
         return f'{self.__provider_id}:{self.__layer_id}'
@@ -1090,28 +1064,24 @@ class Measurement:  # pylint: disable=too-few-public-methods
     '''
 
     @staticmethod
-    def from_response(response: api.Measurement) -> Measurement:
+    def from_response(response: geoengine_openapi_client.Measurement) -> Measurement:
         '''
         Parse a result descriptor from an http response
         '''
+        inner = response.actual_instance
 
-        if 'error' in response:
-            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
-
-        measurement_type = response['type']
-
-        if measurement_type == 'unitless':
+        if isinstance(inner, geoengine_openapi_client.UnitlessMeasurement):
             return UnitlessMeasurement()
-        if measurement_type == 'continuous':
-            return ContinuousMeasurement.from_response_continuous(cast(api.ContinuousMeasurement, response))
-        if measurement_type == 'classification':
-            return ClassificationMeasurement.from_response_classification(cast(api.ClassificationMeasurement, response))
+        if isinstance(inner, geoengine_openapi_client.ContinuousMeasurementWithType):
+            return ContinuousMeasurement.from_response_continuous(inner)
+        if isinstance(inner, geoengine_openapi_client.ClassificationMeasurementWithType):
+            return ClassificationMeasurement.from_response_classification(inner)
 
         raise TypeException(
-            f'Unknown `Measurement` type: {measurement_type}')
+            f'Unknown `Measurement` type: {inner.type}')
 
     @abstractmethod
-    def to_api_dict(self) -> api.Measurement:
+    def to_api_dict(self) -> geoengine_openapi_client.Measurement:
         pass
 
 
@@ -1126,10 +1096,10 @@ class UnitlessMeasurement(Measurement):
         '''Display representation of a unitless measurement'''
         return str(self)
 
-    def to_api_dict(self) -> api.Measurement:
-        return api.Measurement({
-            'type': 'unitless'
-        })
+    def to_api_dict(self) -> geoengine_openapi_client.Measurement:
+        return geoengine_openapi_client.Measurement(geoengine_openapi_client.UnitlessMeasurement(
+            type='unitless'
+        ))
 
 
 class ContinuousMeasurement(Measurement):
@@ -1147,10 +1117,11 @@ class ContinuousMeasurement(Measurement):
         self.__unit = unit
 
     @staticmethod
-    def from_response_continuous(response: api.ContinuousMeasurement) -> ContinuousMeasurement:
+    def from_response_continuous(
+            response: geoengine_openapi_client.ContinuousMeasurementWithType) -> ContinuousMeasurement:
         '''Initialize a new `ContiuousMeasurement from a JSON response'''
 
-        return ContinuousMeasurement(response['measurement'], response.get('unit', None))
+        return ContinuousMeasurement(response.measurement, response.unit)
 
     def __str__(self) -> str:
         '''String representation of a continuous measurement'''
@@ -1164,12 +1135,12 @@ class ContinuousMeasurement(Measurement):
         '''Display representation of a continuous measurement'''
         return str(self)
 
-    def to_api_dict(self) -> api.ContinuousMeasurement:
-        return api.ContinuousMeasurement({
-            'type': 'continuous',
-            'measurement': self.__measurement,
-            'unit': self.__unit
-        })
+    def to_api_dict(self) -> geoengine_openapi_client.Measurement:
+        return geoengine_openapi_client.Measurement(geoengine_openapi_client.ContinuousMeasurementWithType(
+            type='continuous',
+            measurement=self.__measurement,
+            unit=self.__unit
+        ))
 
     @property
     def measurement(self) -> str:
@@ -1195,24 +1166,26 @@ class ClassificationMeasurement(Measurement):
         self.__classes = classes
 
     @staticmethod
-    def from_response_classification(response: api.ClassificationMeasurement) -> ClassificationMeasurement:
+    def from_response_classification(
+        response: geoengine_openapi_client.ClassificationMeasurementWithType
+    ) -> ClassificationMeasurement:
         '''Initialize a new `ClassificationMeasurement from a JSON response'''
 
-        measurement = response['measurement']
+        measurement = response.measurement
 
-        str_classes: Dict[str, str] = response['classes']
+        str_classes: Dict[str, str] = response.classes
         classes = {int(k): v for k, v in str_classes.items()}
 
         return ClassificationMeasurement(measurement, classes)
 
-    def to_api_dict(self) -> api.ClassificationMeasurement:
+    def to_api_dict(self) -> geoengine_openapi_client.Measurement:
         str_classes: Dict[str, str] = {str(k): v for k, v in self.__classes.items()}
 
-        return api.ClassificationMeasurement({
-            'type': 'classification',
-            'measurement': self.__measurement,
-            'classes': str_classes
-        })
+        return geoengine_openapi_client.Measurement(geoengine_openapi_client.ClassificationMeasurementWithType(
+            type='classification',
+            measurement=self.__measurement,
+            classes=str_classes
+        ))
 
     def __str__(self) -> str:
         '''String representation of a classification measurement'''
@@ -1254,25 +1227,25 @@ class GeoTransform:
         self.y_pixel_size = y_pixel_size
 
     @classmethod
-    def from_response(cls, response: api.GeoTransform) -> GeoTransform:
+    def from_response(cls, response: geoengine_openapi_client.GdalDatasetGeoTransform) -> GeoTransform:
         '''Parse a geotransform from an HTTP JSON response'''
 
         return GeoTransform(
-            x_min=response['originCoordinate']['x'],
-            y_max=response['originCoordinate']['y'],
-            x_pixel_size=response['xPixelSize'],
-            y_pixel_size=response['yPixelSize'],
+            x_min=response.origin_coordinate.x,
+            y_max=response.origin_coordinate.y,
+            x_pixel_size=response.x_pixel_size,
+            y_pixel_size=response.y_pixel_size,
         )
 
-    def to_api_dict(self) -> api.GeoTransform:
-        return api.GeoTransform({
-            'originCoordinate': {
-                'x': self.x_min,
-                'y': self.y_max,
-            },
-            'xPixelSize': self.x_pixel_size,
-            'yPixelSize': self.y_pixel_size
-        })
+    def to_api_dict(self) -> geoengine_openapi_client.GdalDatasetGeoTransform:
+        return geoengine_openapi_client.GdalDatasetGeoTransform(
+            origin_coordinate=geoengine_openapi_client.Coordinate2D(
+                x=self.x_min,
+                y=self.y_max,
+            ),
+            x_pixel_size=self.x_pixel_size,
+            y_pixel_size=self.y_pixel_size
+        )
 
     def to_gdal(self) -> Tuple[float, float, float, float, float, float]:
         '''Convert to a GDAL geotransform'''

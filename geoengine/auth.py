@@ -8,9 +8,11 @@ from uuid import UUID
 
 import os
 from dotenv import load_dotenv
-import requests as req
+from pkg_resources import get_distribution
 from requests.auth import AuthBase
+import urllib3
 
+import geoengine_openapi_client
 from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro, UninitializedException
 
 
@@ -37,6 +39,7 @@ class Session:
     __valid_until: Optional[str] = None
     __server_url: str
     __timeout: int = 60
+    __configuration: geoengine_openapi_client.Configuration
 
     session: ClassVar[Optional[Session]] = None
 
@@ -65,23 +68,54 @@ class Session:
         if credentials is not None and token is not None:
             raise GeoEngineException({'message': 'Cannot provide both credentials and token'})
 
+        # Auto-generated SessionApi cannot handle dynamically differing return types (SimpleSession or UserSession).
+        # Because of that requests must be send manually.
+        http = urllib3.PoolManager()
+        user_agent = f'geoengine-python/{get_distribution("geoengine").version}'
+
         if credentials is not None:
-            session = req.post(f'{server_url}/login', json={"email": credentials[0],
-                                                            "password": credentials[1]}, timeout=self.__timeout).json()
+            session = http.request(
+                "POST",
+                f'{server_url}/login',
+                headers={'User-Agent': user_agent},
+                json={"email": credentials[0], "password": credentials[1]},
+                timeout=self.__timeout
+            ).json()
         elif "GEOENGINE_EMAIL" in os.environ and "GEOENGINE_PASSWORD" in os.environ:
-            session = req.post(f'{server_url}/login',
-                               json={"email": os.environ.get("GEOENGINE_EMAIL"),
-                                     "password": os.environ.get("GEOENGINE_PASSWORD")},
-                               timeout=self.__timeout).json()
+            session = http.request(
+                "POST",
+                f'{server_url}/login',
+                headers={'User-Agent': user_agent},
+                json={"email": os.environ.get("GEOENGINE_EMAIL"), "password": os.environ.get("GEOENGINE_PASSWORD")},
+                timeout=self.__timeout
+            ).json()
         elif token is not None:
-            session = req.get(f'{server_url}/session', headers={'Authorization': f'Bearer {token}'},
-                              timeout=self.__timeout).json()
+            session = http.request(
+                "GET",
+                f'{server_url}/session',
+                headers={
+                    'User-Agent': user_agent,
+                    'Authorization': f'Bearer {token}'
+                },
+                timeout=self.__timeout
+            ).json()
         elif "GEOENGINE_TOKEN" in os.environ:
-            session = req.get(f'{server_url}/session',
-                              headers={'Authorization': f'Bearer {os.environ.get("GEOENGINE_TOKEN")}'},
-                              timeout=self.__timeout).json()
+            session = http.request(
+                "GET",
+                f'{server_url}/session',
+                headers={
+                    'User-Agent': user_agent,
+                    'Authorization': f'Bearer {os.environ.get("GEOENGINE_TOKEN")}'
+                },
+                timeout=self.__timeout
+            ).json()
         else:
-            session = req.post(f'{server_url}/anonymous', timeout=self.__timeout).json()
+            session = http.request(
+                "POST",
+                f'{server_url}/anonymous',
+                headers={'User-Agent': user_agent},
+                timeout=self.__timeout
+            ).json()
 
         if 'error' in session:
             raise GeoEngineException(session)
@@ -101,6 +135,10 @@ class Session:
             self.__valid_until = session['validUntil']
 
         self.__server_url = server_url
+        self.__configuration = geoengine_openapi_client.Configuration(
+            host=server_url,
+            access_token=session['id']
+        )
 
     def __repr__(self) -> str:
         '''Display representation of a session'''
@@ -134,6 +172,14 @@ class Session:
         return self.__server_url
 
     @property
+    def configuration(self) -> geoengine_openapi_client.Configuration:
+        '''
+        Return the current http configuration
+        '''
+
+        return self.__configuration
+
+    @property
     def user_id(self) -> UUID:
         '''
         Return the user id. Only works in Geo Engine Pro.
@@ -155,7 +201,9 @@ class Session:
         Logout the current session
         '''
 
-        req.post(f'{self.server_url}/logout', headers=self.auth_header, timeout=self.__timeout)
+        with geoengine_openapi_client.ApiClient(self.configuration) as api_client:
+            session_api = geoengine_openapi_client.SessionApi(api_client)
+            session_api.logout_handler(_request_timeout=self.__timeout)
 
 
 def get_session() -> Session:
