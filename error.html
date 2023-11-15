@@ -32,8 +32,9 @@ Package errors and backend mapped error types
 &#39;&#39;&#39;
 
 from typing import Any, Dict, Union
+import json
 from requests import Response, HTTPError
-from geoengine import api
+import geoengine_openapi_client
 
 
 class GeoEngineException(Exception):
@@ -44,11 +45,16 @@ class GeoEngineException(Exception):
     error: str
     message: str
 
-    def __init__(self, response: Union[api.GeoEngineExceptionResponse, Dict[str, str]]) -&gt; None:
+    def __init__(self, response: Union[geoengine_openapi_client.ApiException, Dict[str, str]]) -&gt; None:
         super().__init__()
 
-        self.error = response[&#39;error&#39;] if &#39;error&#39; in response else &#39;?&#39;
-        self.message = response[&#39;message&#39;] if &#39;message&#39; in response else &#39;?&#39;
+        if isinstance(response, geoengine_openapi_client.ApiException):
+            obj = json.loads(response.body)
+        else:
+            obj = response
+
+        self.error = obj[&#39;error&#39;] if &#39;error&#39; in obj else &#39;?&#39;
+        self.message = obj[&#39;message&#39;] if &#39;message&#39; in obj else &#39;?&#39;
 
     def __str__(self) -&gt; str:
         return f&#34;{self.error}: {self.message}&#34;
@@ -280,7 +286,7 @@ class MethodOnlyAvailableInGeoEnginePro(Exception):
 <dl>
 <dt id="geoengine.error.GeoEngineException"><code class="flex name class">
 <span>class <span class="ident">GeoEngineException</span></span>
-<span>(</span><span>response: Union[<a title="geoengine.api.GeoEngineExceptionResponse" href="api.html#geoengine.api.GeoEngineExceptionResponse">GeoEngineExceptionResponse</a>, Dict[str, str]])</span>
+<span>(</span><span>response: Union[geoengine_openapi_client.exceptions.ApiException, Dict[str, str]])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Base class for exceptions from the backend</p></div>
@@ -296,11 +302,16 @@ class MethodOnlyAvailableInGeoEnginePro(Exception):
     error: str
     message: str
 
-    def __init__(self, response: Union[api.GeoEngineExceptionResponse, Dict[str, str]]) -&gt; None:
+    def __init__(self, response: Union[geoengine_openapi_client.ApiException, Dict[str, str]]) -&gt; None:
         super().__init__()
 
-        self.error = response[&#39;error&#39;] if &#39;error&#39; in response else &#39;?&#39;
-        self.message = response[&#39;message&#39;] if &#39;message&#39; in response else &#39;?&#39;
+        if isinstance(response, geoengine_openapi_client.ApiException):
+            obj = json.loads(response.body)
+        else:
+            obj = response
+
+        self.error = obj[&#39;error&#39;] if &#39;error&#39; in obj else &#39;?&#39;
+        self.message = obj[&#39;message&#39;] if &#39;message&#39; in obj else &#39;?&#39;
 
     def __str__(self) -&gt; str:
         return f&#34;{self.error}: {self.message}&#34;</code></pre>

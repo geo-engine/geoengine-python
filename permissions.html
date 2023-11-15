@@ -34,12 +34,11 @@ A wrapper for the GeoEngine permissions API.
 from __future__ import annotations
 from enum import Enum
 
-from typing import Dict, Literal
+import ast
+from typing import Dict, Literal, Any
 from uuid import UUID
-import json
 
-import requests as req
-from geoengine import api
+import geoengine_openapi_client
 
 from geoengine.auth import get_session
 from geoengine.datasets import DatasetName
@@ -133,12 +132,20 @@ class Resource:
         &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
         return Resource(&#39;dataset&#39;, str(dataset_name))
 
-    def to_api_dict(self) -&gt; api.Resource:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.Resource:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
-        return api.Resource({
-            &#34;type&#34;: self.__type,
-            &#34;id&#34;: self.__id
-        })
+        inner: Any = None
+
+        if self.__type == &#34;layer&#34;:
+            inner = geoengine_openapi_client.LayerResource(type=&#34;layer&#34;, id=self.__id)
+        elif self.__type == &#34;layerCollection&#34;:
+            inner = geoengine_openapi_client.LayerCollectionResource(type=&#34;layerCollection&#34;, id=self.__id)
+        elif self.__type == &#34;project&#34;:
+            inner = geoengine_openapi_client.ProjectResource(type=&#34;project&#34;, id=self.__id)
+        elif self.__type == &#34;dataset&#34;:
+            inner = geoengine_openapi_client.DatasetResource(type=&#34;dataset&#34;, id=self.__id)
+
+        return geoengine_openapi_client.Resource(inner)
 
 
 class Permission(str, Enum):
@@ -146,9 +153,9 @@ class Permission(str, Enum):
     READ = &#39;Read&#39;
     OWNER = &#39;Owner&#39;
 
-    def to_api_dict(self) -&gt; api.Permission:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.Permission:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
-        return api.Permission(self.value)
+        return geoengine_openapi_client.Permission(self.value)
 
 
 ADMIN_ROLE_ID: RoleId = RoleId(UUID(&#34;d5328854-6190-4af9-ad69-4e74b0961ac9&#34;))
@@ -161,26 +168,14 @@ def add_permission(role: RoleId, resource: Resource, permission: Permission, tim
 
     session = get_session()
 
-    payload = json.dumps(api.PermissionRequest({
-        &#34;roleId&#34;: str(role),
-        &#34;resource&#34;: resource.to_api_dict(),
-        &#34;permission&#34;: permission.to_api_dict()
-    }), default=str)
-
-    print(payload)
-
-    headers = session.auth_header
-    headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
-
-    response = req.put(
-        url=f&#39;{session.server_url}/permissions&#39;,
-        headers=headers,
-        timeout=timeout,
-        data=payload
-    )
-
-    if not response.ok:
-        raise GeoEngineException(response.json())
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        permissions_api = geoengine_openapi_client.PermissionsApi(api_client)
+        permissions_api.add_permission_handler(geoengine_openapi_client.PermissionRequest(
+            role_id=str(role),
+            resource=resource.to_api_dict(),
+            permission=permission.to_api_dict(),
+            _request_timeout=timeout
+        ))
 
 
 def remove_permission(role: RoleId, resource: Resource, permission: Permission, timeout: int = 60):
@@ -188,24 +183,14 @@ def remove_permission(role: RoleId, resource: Resource, permission: Permission, 
 
     session = get_session()
 
-    payload = json.dumps(api.PermissionRequest({
-        &#34;roleId&#34;: str(role),
-        &#34;resource&#34;: resource.to_api_dict(),
-        &#34;permission&#34;: permission.to_api_dict()
-    }), default=str)
-
-    headers = session.auth_header
-    headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
-
-    response = req.delete(
-        url=f&#39;{session.server_url}/permissions&#39;,
-        headers=headers,
-        timeout=timeout,
-        data=payload
-    )
-
-    if not response.ok:
-        raise GeoEngineException(response.json())
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        permissions_api = geoengine_openapi_client.PermissionsApi(api_client)
+        permissions_api.remove_permission_handler(geoengine_openapi_client.PermissionRequest(
+            role_id=str(role),
+            resource=resource.to_api_dict(),
+            permission=permission.to_api_dict(),
+            _request_timeout=timeout
+        ))
 
 
 def add_role(name: str, timeout: int = 60) -&gt; RoleId:
@@ -213,21 +198,18 @@ def add_role(name: str, timeout: int = 60) -&gt; RoleId:
 
     session = get_session()
 
-    headers = session.auth_header
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        response = user_api.add_role_handler(geoengine_openapi_client.AddRole(
+            name=name,
+            _request_timeout=timeout
+        ))
 
-    response = req.put(
-        url=f&#39;{session.server_url}/roles&#39;,
-        headers=headers,
-        timeout=timeout,
-        json=api.AddRoleRequest({
-            &#34;name&#34;: name
-        })
-    )
+    # TODO: find out why JSON string is faulty
+    # parsed_response = json.loads(response)
+    parsed_response: dict[str, str] = ast.literal_eval(response)
 
-    if not response.ok:
-        raise GeoEngineException(response.json())
-
-    return RoleId.from_response(response.json())
+    return RoleId.from_response(parsed_response)
 
 
 def remove_role(role: RoleId, timeout: int = 60):
@@ -235,16 +217,9 @@ def remove_role(role: RoleId, timeout: int = 60):
 
     session = get_session()
 
-    headers = session.auth_header
-
-    response = req.delete(
-        url=f&#39;{session.server_url}/roles/{role}&#39;,
-        headers=headers,
-        timeout=timeout,
-    )
-
-    if not response.ok:
-        raise GeoEngineException(response.json())
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        user_api.remove_role_handler(str(role), _request_timeout=timeout)
 
 
 def assign_role(role: RoleId, user: UserId, timeout: int = 60):
@@ -252,16 +227,9 @@ def assign_role(role: RoleId, user: UserId, timeout: int = 60):
 
     session = get_session()
 
-    headers = session.auth_header
-
-    response = req.post(
-        url=f&#39;{session.server_url}/users/{user}/roles/{role}&#39;,
-        headers=headers,
-        timeout=timeout,
-    )
-
-    if not response.ok:
-        raise GeoEngineException(response.json())
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        user_api.assign_role_handler(str(user), str(role), _request_timeout=timeout)
 
 
 def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
@@ -269,16 +237,9 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 
     session = get_session()
 
-    headers = session.auth_header
-
-    response = req.delete(
-        url=f&#39;{session.server_url}/users/{user}/roles/{role}&#39;,
-        headers=headers,
-        timeout=timeout,
-    )
-
-    if not response.ok:
-        raise GeoEngineException(response.json())</code></pre>
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        user_api.revoke_role_handler(str(user), str(role), _request_timeout=timeout)</code></pre>
 </details>
 </section>
 <section>
@@ -302,26 +263,14 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 
     session = get_session()
 
-    payload = json.dumps(api.PermissionRequest({
-        &#34;roleId&#34;: str(role),
-        &#34;resource&#34;: resource.to_api_dict(),
-        &#34;permission&#34;: permission.to_api_dict()
-    }), default=str)
-
-    print(payload)
-
-    headers = session.auth_header
-    headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
-
-    response = req.put(
-        url=f&#39;{session.server_url}/permissions&#39;,
-        headers=headers,
-        timeout=timeout,
-        data=payload
-    )
-
-    if not response.ok:
-        raise GeoEngineException(response.json())</code></pre>
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        permissions_api = geoengine_openapi_client.PermissionsApi(api_client)
+        permissions_api.add_permission_handler(geoengine_openapi_client.PermissionRequest(
+            role_id=str(role),
+            resource=resource.to_api_dict(),
+            permission=permission.to_api_dict(),
+            _request_timeout=timeout
+        ))</code></pre>
 </details>
 </dd>
 <dt id="geoengine.permissions.add_role"><code class="name flex">
@@ -338,21 +287,18 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 
     session = get_session()
 
-    headers = session.auth_header
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        response = user_api.add_role_handler(geoengine_openapi_client.AddRole(
+            name=name,
+            _request_timeout=timeout
+        ))
 
-    response = req.put(
-        url=f&#39;{session.server_url}/roles&#39;,
-        headers=headers,
-        timeout=timeout,
-        json=api.AddRoleRequest({
-            &#34;name&#34;: name
-        })
-    )
+    # TODO: find out why JSON string is faulty
+    # parsed_response = json.loads(response)
+    parsed_response: dict[str, str] = ast.literal_eval(response)
 
-    if not response.ok:
-        raise GeoEngineException(response.json())
-
-    return RoleId.from_response(response.json())</code></pre>
+    return RoleId.from_response(parsed_response)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.permissions.assign_role"><code class="name flex">
@@ -369,16 +315,9 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 
     session = get_session()
 
-    headers = session.auth_header
-
-    response = req.post(
-        url=f&#39;{session.server_url}/users/{user}/roles/{role}&#39;,
-        headers=headers,
-        timeout=timeout,
-    )
-
-    if not response.ok:
-        raise GeoEngineException(response.json())</code></pre>
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        user_api.assign_role_handler(str(user), str(role), _request_timeout=timeout)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.permissions.remove_permission"><code class="name flex">
@@ -395,24 +334,14 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 
     session = get_session()
 
-    payload = json.dumps(api.PermissionRequest({
-        &#34;roleId&#34;: str(role),
-        &#34;resource&#34;: resource.to_api_dict(),
-        &#34;permission&#34;: permission.to_api_dict()
-    }), default=str)
-
-    headers = session.auth_header
-    headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
-
-    response = req.delete(
-        url=f&#39;{session.server_url}/permissions&#39;,
-        headers=headers,
-        timeout=timeout,
-        data=payload
-    )
-
-    if not response.ok:
-        raise GeoEngineException(response.json())</code></pre>
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        permissions_api = geoengine_openapi_client.PermissionsApi(api_client)
+        permissions_api.remove_permission_handler(geoengine_openapi_client.PermissionRequest(
+            role_id=str(role),
+            resource=resource.to_api_dict(),
+            permission=permission.to_api_dict(),
+            _request_timeout=timeout
+        ))</code></pre>
 </details>
 </dd>
 <dt id="geoengine.permissions.remove_role"><code class="name flex">
@@ -429,16 +358,9 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 
     session = get_session()
 
-    headers = session.auth_header
-
-    response = req.delete(
-        url=f&#39;{session.server_url}/roles/{role}&#39;,
-        headers=headers,
-        timeout=timeout,
-    )
-
-    if not response.ok:
-        raise GeoEngineException(response.json())</code></pre>
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        user_api.remove_role_handler(str(role), _request_timeout=timeout)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.permissions.revoke_role"><code class="name flex">
@@ -455,16 +377,9 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 
     session = get_session()
 
-    headers = session.auth_header
-
-    response = req.delete(
-        url=f&#39;{session.server_url}/users/{user}/roles/{role}&#39;,
-        headers=headers,
-        timeout=timeout,
-    )
-
-    if not response.ok:
-        raise GeoEngineException(response.json())</code></pre>
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        user_api.revoke_role_handler(str(user), str(role), _request_timeout=timeout)</code></pre>
 </details>
 </dd>
 </dl>
@@ -487,9 +402,9 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
     READ = &#39;Read&#39;
     OWNER = &#39;Owner&#39;
 
-    def to_api_dict(self) -&gt; api.Permission:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.Permission:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
-        return api.Permission(self.value)</code></pre>
+        return geoengine_openapi_client.Permission(self.value)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -510,7 +425,7 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.permissions.Permission.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.Permission" href="api.html#geoengine.api.Permission">Permission</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.permission.Permission</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert to a dict for the API</p></div>
@@ -518,9 +433,9 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.Permission:
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.Permission:
     &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
-    return api.Permission(self.value)</code></pre>
+    return geoengine_openapi_client.Permission(self.value)</code></pre>
 </details>
 </dd>
 </dl>
@@ -560,12 +475,20 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
         &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
         return Resource(&#39;dataset&#39;, str(dataset_name))
 
-    def to_api_dict(self) -&gt; api.Resource:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.Resource:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
-        return api.Resource({
-            &#34;type&#34;: self.__type,
-            &#34;id&#34;: self.__id
-        })</code></pre>
+        inner: Any = None
+
+        if self.__type == &#34;layer&#34;:
+            inner = geoengine_openapi_client.LayerResource(type=&#34;layer&#34;, id=self.__id)
+        elif self.__type == &#34;layerCollection&#34;:
+            inner = geoengine_openapi_client.LayerCollectionResource(type=&#34;layerCollection&#34;, id=self.__id)
+        elif self.__type == &#34;project&#34;:
+            inner = geoengine_openapi_client.ProjectResource(type=&#34;project&#34;, id=self.__id)
+        elif self.__type == &#34;dataset&#34;:
+            inner = geoengine_openapi_client.DatasetResource(type=&#34;dataset&#34;, id=self.__id)
+
+        return geoengine_openapi_client.Resource(inner)</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -618,7 +541,7 @@ def from_layer_id(cls, layer_id: LayerId) -&gt; Resource:
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.permissions.Resource.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.Resource" href="api.html#geoengine.api.Resource">Resource</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.resource.Resource</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert to a dict for the API</p></div>
@@ -626,12 +549,20 @@ def from_layer_id(cls, layer_id: LayerId) -&gt; Resource:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.Resource:
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.Resource:
     &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
-    return api.Resource({
-        &#34;type&#34;: self.__type,
-        &#34;id&#34;: self.__id
-    })</code></pre>
+    inner: Any = None
+
+    if self.__type == &#34;layer&#34;:
+        inner = geoengine_openapi_client.LayerResource(type=&#34;layer&#34;, id=self.__id)
+    elif self.__type == &#34;layerCollection&#34;:
+        inner = geoengine_openapi_client.LayerCollectionResource(type=&#34;layerCollection&#34;, id=self.__id)
+    elif self.__type == &#34;project&#34;:
+        inner = geoengine_openapi_client.ProjectResource(type=&#34;project&#34;, id=self.__id)
+    elif self.__type == &#34;dataset&#34;:
+        inner = geoengine_openapi_client.DatasetResource(type=&#34;dataset&#34;, id=self.__id)
+
+    return geoengine_openapi_client.Resource(inner)</code></pre>
 </details>
 </dd>
 </dl>

@@ -33,16 +33,15 @@ Module for working with datasets and source definitions
 
 from __future__ import annotations
 from abc import abstractmethod
-from typing import Dict, List, NamedTuple, Optional, Union, cast, Literal
+from typing import List, NamedTuple, Optional, Union, Literal
 from enum import Enum
 from uuid import UUID
-import json
 from attr import dataclass
 import numpy as np
 import geopandas as gpd
-import requests as req
+import geoengine_openapi_client
 from geoengine import api
-from geoengine.error import GeoEngineException, InputException, MissingFieldInResponseException
+from geoengine.error import InputException, MissingFieldInResponseException
 from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
@@ -54,15 +53,15 @@ class UnixTimeStampType(Enum):
     EPOCHSECONDS = &#39;epochSeconds&#39;
     EPOCHMILLISECONDS = &#39;epochMilliseconds&#39;
 
-    def to_api_enum(self) -&gt; api.UnixTimeStampType:
-        return api.UnixTimeStampType(self.value)
+    def to_api_enum(self) -&gt; geoengine_openapi_client.UnixTimeStampType:
+        return geoengine_openapi_client.UnixTimeStampType(self.value)
 
 
 class OgrSourceTimeFormat:
     &#39;&#39;&#39;Base class for OGR time formats&#39;&#39;&#39;
 
     @abstractmethod
-    def to_api_dict(self) -&gt; api.OgrSourceTimeFormat:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
         pass
 
     @classmethod
@@ -83,21 +82,21 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
     &#39;&#39;&#39;An OGR time format specified in seconds (UNIX time)&#39;&#39;&#39;
     timestampType: UnixTimeStampType
 
-    def to_api_dict(self) -&gt; api.UnixTimeStampOgrSourceTimeFormat:
-        return api.UnixTimeStampOgrSourceTimeFormat({
-            &#34;format&#34;: &#34;unixTimeStamp&#34;,
-            &#34;timestampType&#34;: self.timestampType.to_api_enum(),
-        })
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
+        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.UnixTimeStampOgrSourceTimeFormat(
+            format=&#34;unixTimeStamp&#34;,
+            timestamp_type=self.timestampType.to_api_enum(),
+        ))
 
 
 @dataclass
 class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
     &#39;&#39;&#39;An auto detection OGR time format&#39;&#39;&#39;
 
-    def to_api_dict(self) -&gt; api.OgrSourceTimeFormat:
-        return api.OgrSourceTimeFormat({
-            &#34;format&#34;: &#34;auto&#34;
-        })
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
+        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.AutoOgrSourceTimeFormat(
+            format=&#34;auto&#34;
+        ))
 
 
 @dataclass
@@ -106,18 +105,18 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 
     custom_format: str
 
-    def to_api_dict(self) -&gt; api.CustomOgrSourceTimeFormat:
-        return api.CustomOgrSourceTimeFormat({
-            &#34;format&#34;: &#34;custom&#34;,
-            &#34;customFormat&#34;: self.custom_format
-        })
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
+        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.CustomOgrSourceTimeFormat(
+            format=&#34;custom&#34;,
+            custom_format=self.custom_format
+        ))
 
 
 class OgrSourceDuration():
     &#39;&#39;&#39;Base class for the duration part of a OGR time format&#39;&#39;&#39;
 
     @abstractmethod
-    def to_api_dict(self) -&gt; api.OgrSourceDurationSpec:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
         pass
 
     @classmethod
@@ -145,37 +144,37 @@ class ValueOgrSourceDurationSpec(OgrSourceDuration):
     def __init__(self, step: TimeStep):
         self.step = step
 
-    def to_api_dict(self) -&gt; api.ValueOgrSourceDurationSpec:
-        return api.ValueOgrSourceDurationSpec({
-            &#34;type&#34;: &#34;value&#34;,
-            &#34;step&#34;: self.step.step,
-            &#34;granularity&#34;: self.step.granularity.to_api_enum(),
-        })
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
+        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.TimeStepWithType(
+            type=&#34;value&#34;,
+            step=self.step.step,
+            granularity=self.step.granularity.to_api_enum(),
+        ))
 
 
 class ZeroOgrSourceDurationSpec(OgrSourceDuration):
     &#39;&#39;&#39;An instant, i.e. no duration&#39;&#39;&#39;
 
-    def to_api_dict(self) -&gt; api.OgrSourceDurationSpec:
-        return api.OgrSourceDurationSpec({
-            &#34;type&#34;: &#34;zero&#34;,
-        })
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
+        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.ZeroOgrSourceDurationSpec(
+            type=&#34;zero&#34;,
+        ))
 
 
 class InfiniteOgrSourceDurationSpec(OgrSourceDuration):
     &#39;&#39;&#39;An open-ended time duration&#39;&#39;&#39;
 
-    def to_api_dict(self) -&gt; api.OgrSourceDurationSpec:
-        return api.OgrSourceDurationSpec({
-            &#34;type&#34;: &#34;infinite&#34;,
-        })
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
+        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.InfiniteOgrSourceDurationSpec(
+            type=&#34;infinite&#34;,
+        ))
 
 
 class OgrSourceDatasetTimeType:
     &#39;&#39;&#39;A time type specification for OGR dataset definitions&#39;&#39;&#39;
 
     @abstractmethod
-    def to_api_dict(self) -&gt; api.OgrSourceDatasetTimeType:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
         pass
 
     @classmethod
@@ -212,10 +211,10 @@ class OgrSourceDatasetTimeType:
 class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     &#39;&#39;&#39;Specify no time information&#39;&#39;&#39;
 
-    def to_api_dict(self) -&gt; api.OgrSourceDatasetTimeType:
-        return api.OgrSourceDatasetTimeType({
-            &#34;type&#34;: &#34;none&#34;,
-        })
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.NoneOgrSourceDatasetTimeType(
+            type=&#34;none&#34;,
+        ))
 
 
 @dataclass
@@ -226,13 +225,13 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     start_format: OgrSourceTimeFormat
     duration: OgrSourceDuration
 
-    def to_api_dict(self) -&gt; api.StartOgrSourceDatasetTimeType:
-        return api.StartOgrSourceDatasetTimeType({
-            &#34;type&#34;: &#34;start&#34;,
-            &#34;startField&#34;: self.start_field,
-            &#34;startFormat&#34;: self.start_format.to_api_dict(),
-            &#34;duration&#34;: self.duration.to_api_dict()
-        })
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.StartOgrSourceDatasetTimeType(
+            type=&#34;start&#34;,
+            start_field=self.start_field,
+            start_format=self.start_format.to_api_dict(),
+            duration=self.duration.to_api_dict()
+        ))
 
 
 @dataclass
@@ -244,14 +243,16 @@ class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     end_field: str
     end_format: OgrSourceTimeFormat
 
-    def to_api_dict(self) -&gt; api.StartEndOgrSourceDatasetTimeType:
-        return api.StartEndOgrSourceDatasetTimeType({
-            &#34;type&#34;: &#34;start+end&#34;,
-            &#34;startField&#34;: self.start_field,
-            &#34;startFormat&#34;: self.start_format.to_api_dict(),
-            &#34;endField&#34;: self.end_field,
-            &#34;endFormat&#34;: self.end_format.to_api_dict(),
-        })
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(
+            geoengine_openapi_client.StartEndOgrSourceDatasetTimeType(
+                type=&#34;startEnd&#34;,
+                start_field=self.start_field,
+                start_format=self.start_format.to_api_dict(),
+                end_field=self.end_field,
+                end_format=self.end_format.to_api_dict(),
+            )
+        )
 
 
 @dataclass
@@ -262,13 +263,15 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     start_format: OgrSourceTimeFormat
     duration_field: str
 
-    def to_api_dict(self) -&gt; api.StartDurationOgrSourceDatasetTimeType:
-        return api.StartDurationOgrSourceDatasetTimeType({
-            &#34;type&#34;: &#34;start+duration&#34;,
-            &#34;startField&#34;: self.start_field,
-            &#34;startFormat&#34;: self.start_format.to_api_dict(),
-            &#34;durationField&#34;: self.duration_field
-        })
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(
+            geoengine_openapi_client.StartDurationOgrSourceDatasetTimeType(
+                type=&#34;startDuration&#34;,
+                start_field=self.start_field,
+                start_format=self.start_format.to_api_dict(),
+                duration_field=self.duration_field
+            )
+        )
 
 
 class OgrOnError(Enum):
@@ -276,8 +279,8 @@ class OgrOnError(Enum):
     IGNORE = &#34;ignore&#34;
     ABORT = &#34;abort&#34;
 
-    def to_api_enum(self) -&gt; api.OgrOnError:
-        return api.OgrOnError(self.value)
+    def to_api_enum(self) -&gt; geoengine_openapi_client.OgrSourceErrorSpec:
+        return geoengine_openapi_client.OgrSourceErrorSpec(self.value)
 
 
 class DatasetName:
@@ -289,15 +292,9 @@ class DatasetName:
         self.__dataset_name = dataset_name
 
     @classmethod
-    def from_response(cls, response: api.DatasetName) -&gt; DatasetName:
+    def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
         &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
-        if &#39;error&#39; in response:
-            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
-
-        if &#39;datasetName&#39; not in response:
-            raise MissingFieldInResponseException(&#39;datasetName&#39;, response)
-
-        return DatasetName(response[&#39;datasetName&#39;])
+        return DatasetName(response.dataset_name)
 
     def __str__(self) -&gt; str:
         return self.__dataset_name
@@ -312,10 +309,10 @@ class DatasetName:
 
         return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
 
-    def to_api_dict(self) -&gt; api.DatasetName:
-        return {
-            &#39;datasetName&#39;: str(self.__dataset_name)
-        }
+    def to_api_dict(self) -&gt; geoengine_openapi_client.CreateDatasetHandler200Response:
+        return geoengine_openapi_client.CreateDatasetHandler200Response(
+            dataset_name=str(self.__dataset_name)
+        )
 
 
 class UploadId:
@@ -327,15 +324,9 @@ class UploadId:
         self.__upload_id = upload_id
 
     @classmethod
-    def from_response(cls, response: api.UploadId) -&gt; UploadId:
+    def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -&gt; UploadId:
         &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
-        if &#39;error&#39; in response:
-            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
-
-        if &#39;id&#39; not in response:  # TODO: improve error handling
-            raise MissingFieldInResponseException(&#39;id&#39;, response)
-
-        return UploadId(UUID(response[&#39;id&#39;]))
+        return UploadId(UUID(response.id))
 
     def __str__(self) -&gt; str:
         return str(self.__upload_id)
@@ -350,11 +341,11 @@ class UploadId:
 
         return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
 
-    def to_api_dict(self) -&gt; api.UploadId:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.AddCollection200Response:
         &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
-        return {
-            &#39;id&#39;: str(self.__upload_id)
-        }
+        return geoengine_openapi_client.AddCollection200Response(
+            id=str(self.__upload_id)
+        )
 
 
 class AddDatasetProperties():
@@ -384,16 +375,16 @@ class AddDatasetProperties():
         self.symbology = symbology
         self.provenance = provenance
 
-    def to_api_dict(self) -&gt; api.AddDatasetProperties:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.AddDataset:
         &#39;&#39;&#39;Converts the properties to a dictionary&#39;&#39;&#39;
-        return {
-            &#39;name&#39;: str(self.name) if self.name is not None else None,
-            &#39;displayName&#39;: self.display_name,
-            &#39;description&#39;: self.description,
-            &#39;sourceOperator&#39;: self.source_operator,
-            &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
-            &#39;provenance&#39;: [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
-        }
+        return geoengine_openapi_client.AddDataset(
+            name=str(self.name) if self.name is not None else None,
+            display_name=self.display_name,
+            description=self.description,
+            source_operator=self.source_operator,
+            symbology=self.symbology.to_api_dict() if self.symbology is not None else None,
+            provenance=[p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
+        )
 
 
 class VolumeId:
@@ -403,17 +394,6 @@ class VolumeId:
 
     def __init__(self, volume_id: UUID) -&gt; None:
         self.__volume_id = volume_id
-
-    @classmethod
-    def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
-        &#39;&#39;&#39;Parse a http response to an `ColumeId`&#39;&#39;&#39;
-        if &#39;error&#39; in response:
-            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
-
-        if &#39;id&#39; not in response:  # TODO: improve error handling
-            raise MissingFieldInResponseException(&#39;id&#39;, response)
-
-        return VolumeId(UUID(response[&#39;id&#39;]))
 
     def __str__(self) -&gt; str:
         return str(self.__volume_id)
@@ -427,12 +407,6 @@ class VolumeId:
             return False
 
         return self.__volume_id == other.__volume_id  # pylint: disable=protected-access
-
-    def to_api_dict(self) -&gt; api.VolumeId:
-        &#39;&#39;&#39;Converts the volume id to a dictionary containing the id&#39;&#39;&#39;
-        return {
-            &#39;id&#39;: str(self.__volume_id)
-        }
 
 
 def pandas_dtype_to_column_type(dtype: np.dtype) -&gt; FeatureDataType:
@@ -498,13 +472,9 @@ def upload_dataframe(
 
     df_json = df.to_json()
 
-    response = req.post(f&#39;{session.server_url}/upload&#39;,
-                        files={&#34;geo.json&#34;: df_json},
-                        headers=session.auth_header,
-                        timeout=timeout).json()
-
-    if &#39;error&#39; in response:
-        raise GeoEngineException(response)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        uploads_api = geoengine_openapi_client.UploadsApi(api_client)
+        response = uploads_api.upload_handler([(&#34;geo.json&#34;, df_json)], _request_timeout=timeout)
 
     upload_id = UploadId.from_response(response)
 
@@ -518,52 +488,47 @@ def upload_dataframe(
     ints = [key for (key, value) in columns.items() if value.data_type == &#39;int&#39;]
     texts = [key for (key, value) in columns.items() if value.data_type == &#39;text&#39;]
 
-    create = api.CreateDataset({
-        &#39;dataPath&#39;: api.DatasetPath({
-            &#39;upload&#39;: str(upload_id)
-        }),
-        &#39;definition&#39;: api.DatasetDefinition({
-            &#39;properties&#39;: AddDatasetProperties(
+    create = geoengine_openapi_client.CreateDataset(
+        data_path=geoengine_openapi_client.DataPath(geoengine_openapi_client.DataPathOneOf1(
+            upload=str(upload_id)
+        )),
+        definition=geoengine_openapi_client.DatasetDefinition(
+            properties=AddDatasetProperties(
                 display_name=display_name,
                 name=name,
                 description=&#39;Upload from Python&#39;,
                 source_operator=&#39;OgrSource&#39;,
             ).to_api_dict(),
-            &#39;metaData&#39;: api.OgrMetadata({
-                &#39;type&#39;: &#39;OgrMetaData&#39;,
-                &#39;loadingInfo&#39;: api.OgrLoadingInfo({
-                    &#39;fileName&#39;: &#39;geo.json&#39;,
-                    &#34;layerName&#34;: &#39;geo&#39;,
-                    &#34;dataType&#34;: vector_type.to_api_enum(),
-                    &#34;time&#34;: time.to_api_dict(),
-                    &#34;columns&#34;: api.OgrLoadingInfoColumns({
-                        &#39;y&#39;: &#39;&#39;,
-                        &#34;x&#34;: &#39;&#39;,
-                        &#34;float&#34;: floats,
-                        &#34;int&#34;: ints,
-                        &#34;text&#34;: texts,
-                    }),
-                    &#34;onError&#34;: on_error.to_api_enum(),
-
-                }),
-                &#39;resultDescriptor&#39;: VectorResultDescriptor(
+            meta_data=geoengine_openapi_client.MetaDataDefinition(geoengine_openapi_client.OgrMetaDataWithType(
+                type=&#39;OgrMetaData&#39;,
+                loading_info=geoengine_openapi_client.OgrSourceDataset(
+                    file_name=&#39;geo.json&#39;,
+                    layer_name=&#39;geo&#39;,
+                    data_type=vector_type.to_api_enum(),
+                    time=time.to_api_dict(),
+                    columns=geoengine_openapi_client.OgrSourceColumnSpec(
+                        y=&#39;&#39;,
+                        x=&#39;&#39;,
+                        float=floats,
+                        int=ints,
+                        text=texts,
+                    ),
+                    on_error=on_error.to_api_enum(),
+                ),
+                result_descriptor=VectorResultDescriptor(
                     data_type=vector_type,
                     spatial_reference=df.crs.to_string(),
                     columns=columns,
-                ).to_api_dict()
-            }),
-        })
-    })
+                ).to_api_dict().actual_instance
+            )),
+        )
+    )
 
-    response = req.post(f&#39;{session.server_url}/dataset&#39;,
-                        json=create, headers=session.auth_header,
-                        timeout=timeout
-                        ).json()
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        response2 = datasets_api.create_dataset_handler(create, _request_timeout=timeout)
 
-    if &#39;error&#39; in response:
-        raise GeoEngineException(response)
-
-    return DatasetName.from_response(response)
+    return DatasetName.from_response(response2)
 
 
 class StoredDataset(NamedTuple):
@@ -575,8 +540,6 @@ class StoredDataset(NamedTuple):
     @classmethod
     def from_response(cls, response: api.StoredDataset) -&gt; StoredDataset:
         &#39;&#39;&#39;Parse a http response to an `StoredDataset`&#39;&#39;&#39;
-        if &#39;error&#39; in response:
-            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         if &#39;dataset&#39; not in response:  # TODO: improve error handling
             raise MissingFieldInResponseException(&#39;dataset&#39;, response)
@@ -600,12 +563,12 @@ class Volume:
     path: str
 
     @classmethod
-    def from_response(cls, response: api.Volume) -&gt; Volume:
+    def from_response(cls, response: geoengine_openapi_client.Volume) -&gt; Volume:
         &#39;&#39;&#39;Parse a http response to an `Volume`&#39;&#39;&#39;
-        return Volume(response[&#39;name&#39;], response[&#39;path&#39;])
+        return Volume(response.name, response.path)
 
-    def to_api_dict(self) -&gt; api.Volume:
-        return api.Volume(name=self.name, path=self.path)
+    def to_api_dict(self) -&gt; geoengine_openapi_client.Volume:
+        return geoengine_openapi_client.Volume(name=self.name, path=self.path)
 
 
 def volumes(timeout: int = 60) -&gt; List[Volume]:
@@ -613,59 +576,41 @@ def volumes(timeout: int = 60) -&gt; List[Volume]:
 
     session = get_session()
 
-    response = req.get(f&#39;{session.server_url}/dataset/volumes&#39;,
-                       headers=session.auth_header,
-                       timeout=timeout
-                       ).json()
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        response = datasets_api.list_volumes_handler(_request_timeout=timeout)
 
     return [Volume.from_response(v) for v in response]
 
 
 def add_dataset(data_store: Union[Volume, UploadId],
                 properties: AddDatasetProperties,
-                meta_data: api.MetaDataDefinition,
+                meta_data: geoengine_openapi_client.MetaDataDefinition,
                 timeout: int = 60) -&gt; DatasetName:
     &#39;&#39;&#39;Adds a dataset to the Geo Engine&#39;&#39;&#39;
-    dataset_path: api.DatasetStorage
-    headers: Dict[str, str]
-
-    session = get_session()
-
-    headers = session.auth_header
 
     if isinstance(data_store, Volume):
-        dataset_path = api.DatasetVolume(
+        dataset_path = geoengine_openapi_client.DataPath(geoengine_openapi_client.DataPathOneOf(
             volume=data_store.name
-        )
+        ))
     else:
-        dataset_path = api.DatasetPath(
+        dataset_path = geoengine_openapi_client.DataPath(geoengine_openapi_client.DataPathOneOf1(
             upload=str(data_store)
+        ))
+
+    create = geoengine_openapi_client.CreateDataset(
+        data_path=dataset_path,
+        definition=geoengine_openapi_client.DatasetDefinition(
+            properties=properties.to_api_dict(),
+            meta_data=meta_data
         )
-
-    create = api.CreateDataset(
-
-        {
-            &#34;dataPath&#34;: dataset_path,
-            &#34;definition&#34;: {
-                &#34;properties&#34;: properties.to_api_dict(),
-                &#34;metaData&#34;: meta_data
-            }
-        })
-
-    data = json.dumps(create, default=dict)
+    )
 
     session = get_session()
 
-    headers = session.auth_header
-    headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
-
-    response = req.post(f&#39;{session.server_url}/dataset&#39;,
-                        data=data, headers=headers,
-                        timeout=timeout
-                        ).json()
-
-    if &#39;error&#39; in response:
-        raise GeoEngineException(response)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        response = datasets_api.create_dataset_handler(create, _request_timeout=timeout)
 
     return DatasetName.from_response(response)
 
@@ -675,13 +620,9 @@ def delete_dataset(dataset_name: DatasetName, timeout: int = 60) -&gt; None:
 
     session = get_session()
 
-    response = req.delete(f&#39;{session.server_url}/dataset/{dataset_name}&#39;,
-                          headers=session.auth_header,
-                          timeout=timeout)
-
-    if response.status_code != 200:
-        error_json = response.json()
-        raise GeoEngineException(error_json)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        datasets_api.delete_dataset_handler(str(dataset_name), _request_timeout=timeout)
 
 
 class DatasetListOrder(Enum):
@@ -693,26 +634,22 @@ def list_datasets(offset: int = 0,
                   limit: int = 20,
                   order: DatasetListOrder = DatasetListOrder.NAME_ASC,
                   name_filter: Optional[str] = None,
-                  timeout: int = 60) -&gt; List[api.DatasetListing]:
+                  timeout: int = 60) -&gt; List[geoengine_openapi_client.DatasetListing]:
     &#39;&#39;&#39;List datasets&#39;&#39;&#39;
 
     session = get_session()
 
-    response = req.get(f&#39;{session.server_url}/datasets&#39;,
-                       params={
-                           &#39;offset&#39;: offset,
-                           &#39;limit&#39;: limit,
-                           &#39;order&#39;: order.value,
-                           &#39;filter&#39;: name_filter,
-                       },
-                       headers=session.auth_header,
-                       timeout=timeout)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        response = datasets_api.list_datasets_handler(
+            offset=offset,
+            limit=limit,
+            order=geoengine_openapi_client.OrderBy(order.value),
+            filter=name_filter,
+            _request_timeout=timeout
+        )
 
-    if response.status_code != 200:
-        error_json = response.json()
-        raise GeoEngineException(error_json)
-
-    return response.json()</code></pre>
+    return response</code></pre>
 </details>
 </section>
 <section>
@@ -723,7 +660,7 @@ def list_datasets(offset: int = 0,
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="geoengine.datasets.add_dataset"><code class="name flex">
-<span>def <span class="ident">add_dataset</span></span>(<span>data_store: Union[<a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a>, <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>], properties: <a title="geoengine.datasets.AddDatasetProperties" href="#geoengine.datasets.AddDatasetProperties">AddDatasetProperties</a>, meta_data: api.MetaDataDefinition, timeout: int = 60) ‑> <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></span>
+<span>def <span class="ident">add_dataset</span></span>(<span>data_store: Union[<a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a>, <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>], properties: <a title="geoengine.datasets.AddDatasetProperties" href="#geoengine.datasets.AddDatasetProperties">AddDatasetProperties</a>, meta_data: geoengine_openapi_client.MetaDataDefinition, timeout: int = 60) ‑> <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds a dataset to the Geo Engine</p></div>
@@ -733,49 +670,32 @@ def list_datasets(offset: int = 0,
 </summary>
 <pre><code class="python">def add_dataset(data_store: Union[Volume, UploadId],
                 properties: AddDatasetProperties,
-                meta_data: api.MetaDataDefinition,
+                meta_data: geoengine_openapi_client.MetaDataDefinition,
                 timeout: int = 60) -&gt; DatasetName:
     &#39;&#39;&#39;Adds a dataset to the Geo Engine&#39;&#39;&#39;
-    dataset_path: api.DatasetStorage
-    headers: Dict[str, str]
-
-    session = get_session()
-
-    headers = session.auth_header
 
     if isinstance(data_store, Volume):
-        dataset_path = api.DatasetVolume(
+        dataset_path = geoengine_openapi_client.DataPath(geoengine_openapi_client.DataPathOneOf(
             volume=data_store.name
-        )
+        ))
     else:
-        dataset_path = api.DatasetPath(
+        dataset_path = geoengine_openapi_client.DataPath(geoengine_openapi_client.DataPathOneOf1(
             upload=str(data_store)
+        ))
+
+    create = geoengine_openapi_client.CreateDataset(
+        data_path=dataset_path,
+        definition=geoengine_openapi_client.DatasetDefinition(
+            properties=properties.to_api_dict(),
+            meta_data=meta_data
         )
-
-    create = api.CreateDataset(
-
-        {
-            &#34;dataPath&#34;: dataset_path,
-            &#34;definition&#34;: {
-                &#34;properties&#34;: properties.to_api_dict(),
-                &#34;metaData&#34;: meta_data
-            }
-        })
-
-    data = json.dumps(create, default=dict)
+    )
 
     session = get_session()
 
-    headers = session.auth_header
-    headers[&#39;Content-Type&#39;] = &#39;application/json&#39;
-
-    response = req.post(f&#39;{session.server_url}/dataset&#39;,
-                        data=data, headers=headers,
-                        timeout=timeout
-                        ).json()
-
-    if &#39;error&#39; in response:
-        raise GeoEngineException(response)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        response = datasets_api.create_dataset_handler(create, _request_timeout=timeout)
 
     return DatasetName.from_response(response)</code></pre>
 </details>
@@ -794,17 +714,13 @@ def list_datasets(offset: int = 0,
 
     session = get_session()
 
-    response = req.delete(f&#39;{session.server_url}/dataset/{dataset_name}&#39;,
-                          headers=session.auth_header,
-                          timeout=timeout)
-
-    if response.status_code != 200:
-        error_json = response.json()
-        raise GeoEngineException(error_json)</code></pre>
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        datasets_api.delete_dataset_handler(str(dataset_name), _request_timeout=timeout)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.datasets.list_datasets"><code class="name flex">
-<span>def <span class="ident">list_datasets</span></span>(<span>offset: int = 0, limit: int = 20, order: <a title="geoengine.datasets.DatasetListOrder" href="#geoengine.datasets.DatasetListOrder">DatasetListOrder</a> = DatasetListOrder.NAME_ASC, name_filter: Optional[str] = None, timeout: int = 60) ‑> List[<a title="geoengine.api.DatasetListing" href="api.html#geoengine.api.DatasetListing">DatasetListing</a>]</span>
+<span>def <span class="ident">list_datasets</span></span>(<span>offset: int = 0, limit: int = 20, order: <a title="geoengine.datasets.DatasetListOrder" href="#geoengine.datasets.DatasetListOrder">DatasetListOrder</a> = DatasetListOrder.NAME_ASC, name_filter: Optional[str] = None, timeout: int = 60) ‑> List[geoengine_openapi_client.models.dataset_listing.DatasetListing]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>List datasets</p></div>
@@ -816,26 +732,22 @@ def list_datasets(offset: int = 0,
                   limit: int = 20,
                   order: DatasetListOrder = DatasetListOrder.NAME_ASC,
                   name_filter: Optional[str] = None,
-                  timeout: int = 60) -&gt; List[api.DatasetListing]:
+                  timeout: int = 60) -&gt; List[geoengine_openapi_client.DatasetListing]:
     &#39;&#39;&#39;List datasets&#39;&#39;&#39;
 
     session = get_session()
 
-    response = req.get(f&#39;{session.server_url}/datasets&#39;,
-                       params={
-                           &#39;offset&#39;: offset,
-                           &#39;limit&#39;: limit,
-                           &#39;order&#39;: order.value,
-                           &#39;filter&#39;: name_filter,
-                       },
-                       headers=session.auth_header,
-                       timeout=timeout)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        response = datasets_api.list_datasets_handler(
+            offset=offset,
+            limit=limit,
+            order=geoengine_openapi_client.OrderBy(order.value),
+            filter=name_filter,
+            _request_timeout=timeout
+        )
 
-    if response.status_code != 200:
-        error_json = response.json()
-        raise GeoEngineException(error_json)
-
-    return response.json()</code></pre>
+    return response</code></pre>
 </details>
 </dd>
 <dt id="geoengine.datasets.pandas_dtype_to_column_type"><code class="name flex">
@@ -944,13 +856,9 @@ def list_datasets(offset: int = 0,
 
     df_json = df.to_json()
 
-    response = req.post(f&#39;{session.server_url}/upload&#39;,
-                        files={&#34;geo.json&#34;: df_json},
-                        headers=session.auth_header,
-                        timeout=timeout).json()
-
-    if &#39;error&#39; in response:
-        raise GeoEngineException(response)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        uploads_api = geoengine_openapi_client.UploadsApi(api_client)
+        response = uploads_api.upload_handler([(&#34;geo.json&#34;, df_json)], _request_timeout=timeout)
 
     upload_id = UploadId.from_response(response)
 
@@ -964,52 +872,47 @@ def list_datasets(offset: int = 0,
     ints = [key for (key, value) in columns.items() if value.data_type == &#39;int&#39;]
     texts = [key for (key, value) in columns.items() if value.data_type == &#39;text&#39;]
 
-    create = api.CreateDataset({
-        &#39;dataPath&#39;: api.DatasetPath({
-            &#39;upload&#39;: str(upload_id)
-        }),
-        &#39;definition&#39;: api.DatasetDefinition({
-            &#39;properties&#39;: AddDatasetProperties(
+    create = geoengine_openapi_client.CreateDataset(
+        data_path=geoengine_openapi_client.DataPath(geoengine_openapi_client.DataPathOneOf1(
+            upload=str(upload_id)
+        )),
+        definition=geoengine_openapi_client.DatasetDefinition(
+            properties=AddDatasetProperties(
                 display_name=display_name,
                 name=name,
                 description=&#39;Upload from Python&#39;,
                 source_operator=&#39;OgrSource&#39;,
             ).to_api_dict(),
-            &#39;metaData&#39;: api.OgrMetadata({
-                &#39;type&#39;: &#39;OgrMetaData&#39;,
-                &#39;loadingInfo&#39;: api.OgrLoadingInfo({
-                    &#39;fileName&#39;: &#39;geo.json&#39;,
-                    &#34;layerName&#34;: &#39;geo&#39;,
-                    &#34;dataType&#34;: vector_type.to_api_enum(),
-                    &#34;time&#34;: time.to_api_dict(),
-                    &#34;columns&#34;: api.OgrLoadingInfoColumns({
-                        &#39;y&#39;: &#39;&#39;,
-                        &#34;x&#34;: &#39;&#39;,
-                        &#34;float&#34;: floats,
-                        &#34;int&#34;: ints,
-                        &#34;text&#34;: texts,
-                    }),
-                    &#34;onError&#34;: on_error.to_api_enum(),
-
-                }),
-                &#39;resultDescriptor&#39;: VectorResultDescriptor(
+            meta_data=geoengine_openapi_client.MetaDataDefinition(geoengine_openapi_client.OgrMetaDataWithType(
+                type=&#39;OgrMetaData&#39;,
+                loading_info=geoengine_openapi_client.OgrSourceDataset(
+                    file_name=&#39;geo.json&#39;,
+                    layer_name=&#39;geo&#39;,
+                    data_type=vector_type.to_api_enum(),
+                    time=time.to_api_dict(),
+                    columns=geoengine_openapi_client.OgrSourceColumnSpec(
+                        y=&#39;&#39;,
+                        x=&#39;&#39;,
+                        float=floats,
+                        int=ints,
+                        text=texts,
+                    ),
+                    on_error=on_error.to_api_enum(),
+                ),
+                result_descriptor=VectorResultDescriptor(
                     data_type=vector_type,
                     spatial_reference=df.crs.to_string(),
                     columns=columns,
-                ).to_api_dict()
-            }),
-        })
-    })
+                ).to_api_dict().actual_instance
+            )),
+        )
+    )
 
-    response = req.post(f&#39;{session.server_url}/dataset&#39;,
-                        json=create, headers=session.auth_header,
-                        timeout=timeout
-                        ).json()
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        response2 = datasets_api.create_dataset_handler(create, _request_timeout=timeout)
 
-    if &#39;error&#39; in response:
-        raise GeoEngineException(response)
-
-    return DatasetName.from_response(response)</code></pre>
+    return DatasetName.from_response(response2)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.datasets.volumes"><code class="name flex">
@@ -1026,10 +929,9 @@ def list_datasets(offset: int = 0,
 
     session = get_session()
 
-    response = req.get(f&#39;{session.server_url}/dataset/volumes&#39;,
-                       headers=session.auth_header,
-                       timeout=timeout
-                       ).json()
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        response = datasets_api.list_volumes_handler(_request_timeout=timeout)
 
     return [Volume.from_response(v) for v in response]</code></pre>
 </details>
@@ -1077,16 +979,16 @@ def list_datasets(offset: int = 0,
         self.symbology = symbology
         self.provenance = provenance
 
-    def to_api_dict(self) -&gt; api.AddDatasetProperties:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.AddDataset:
         &#39;&#39;&#39;Converts the properties to a dictionary&#39;&#39;&#39;
-        return {
-            &#39;name&#39;: str(self.name) if self.name is not None else None,
-            &#39;displayName&#39;: self.display_name,
-            &#39;description&#39;: self.description,
-            &#39;sourceOperator&#39;: self.source_operator,
-            &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
-            &#39;provenance&#39;: [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
-        }</code></pre>
+        return geoengine_openapi_client.AddDataset(
+            name=str(self.name) if self.name is not None else None,
+            display_name=self.display_name,
+            description=self.description,
+            source_operator=self.source_operator,
+            symbology=self.symbology.to_api_dict() if self.symbology is not None else None,
+            provenance=[p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
+        )</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -1118,7 +1020,7 @@ def list_datasets(offset: int = 0,
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.AddDatasetProperties.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.AddDatasetProperties" href="api.html#geoengine.api.AddDatasetProperties">AddDatasetProperties</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.add_dataset.AddDataset</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts the properties to a dictionary</p></div>
@@ -1126,16 +1028,16 @@ def list_datasets(offset: int = 0,
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.AddDatasetProperties:
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.AddDataset:
     &#39;&#39;&#39;Converts the properties to a dictionary&#39;&#39;&#39;
-    return {
-        &#39;name&#39;: str(self.name) if self.name is not None else None,
-        &#39;displayName&#39;: self.display_name,
-        &#39;description&#39;: self.description,
-        &#39;sourceOperator&#39;: self.source_operator,
-        &#39;symbology&#39;: self.symbology.to_api_dict() if self.symbology is not None else None,
-        &#39;provenance&#39;: [p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
-    }</code></pre>
+    return geoengine_openapi_client.AddDataset(
+        name=str(self.name) if self.name is not None else None,
+        display_name=self.display_name,
+        description=self.description,
+        source_operator=self.source_operator,
+        symbology=self.symbology.to_api_dict() if self.symbology is not None else None,
+        provenance=[p.to_api_dict() for p in self.provenance] if self.provenance is not None else None
+    )</code></pre>
 </details>
 </dd>
 </dl>
@@ -1154,10 +1056,10 @@ def list_datasets(offset: int = 0,
 class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
     &#39;&#39;&#39;An auto detection OGR time format&#39;&#39;&#39;
 
-    def to_api_dict(self) -&gt; api.OgrSourceTimeFormat:
-        return api.OgrSourceTimeFormat({
-            &#34;format&#34;: &#34;auto&#34;
-        })</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
+        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.AutoOgrSourceTimeFormat(
+            format=&#34;auto&#34;
+        ))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1166,7 +1068,7 @@ class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.AutoOgrSourceTimeFormat.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.OgrSourceTimeFormat" href="api.html#geoengine.api.OgrSourceTimeFormat">OgrSourceTimeFormat</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_time_format.OgrSourceTimeFormat</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1174,10 +1076,10 @@ class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.OgrSourceTimeFormat:
-    return api.OgrSourceTimeFormat({
-        &#34;format&#34;: &#34;auto&#34;
-    })</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
+    return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.AutoOgrSourceTimeFormat(
+        format=&#34;auto&#34;
+    ))</code></pre>
 </details>
 </dd>
 </dl>
@@ -1199,11 +1101,11 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 
     custom_format: str
 
-    def to_api_dict(self) -&gt; api.CustomOgrSourceTimeFormat:
-        return api.CustomOgrSourceTimeFormat({
-            &#34;format&#34;: &#34;custom&#34;,
-            &#34;customFormat&#34;: self.custom_format
-        })</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
+        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.CustomOgrSourceTimeFormat(
+            format=&#34;custom&#34;,
+            custom_format=self.custom_format
+        ))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1219,7 +1121,7 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.CustomOgrSourceTimeFormat.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.CustomOgrSourceTimeFormat" href="api.html#geoengine.api.CustomOgrSourceTimeFormat">CustomOgrSourceTimeFormat</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_time_format.OgrSourceTimeFormat</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1227,11 +1129,11 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.CustomOgrSourceTimeFormat:
-    return api.CustomOgrSourceTimeFormat({
-        &#34;format&#34;: &#34;custom&#34;,
-        &#34;customFormat&#34;: self.custom_format
-    })</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
+    return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.CustomOgrSourceTimeFormat(
+        format=&#34;custom&#34;,
+        custom_format=self.custom_format
+    ))</code></pre>
 </details>
 </dd>
 </dl>
@@ -1285,15 +1187,9 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
         self.__dataset_name = dataset_name
 
     @classmethod
-    def from_response(cls, response: api.DatasetName) -&gt; DatasetName:
+    def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
         &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
-        if &#39;error&#39; in response:
-            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
-
-        if &#39;datasetName&#39; not in response:
-            raise MissingFieldInResponseException(&#39;datasetName&#39;, response)
-
-        return DatasetName(response[&#39;datasetName&#39;])
+        return DatasetName(response.dataset_name)
 
     def __str__(self) -&gt; str:
         return self.__dataset_name
@@ -1308,15 +1204,15 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 
         return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
 
-    def to_api_dict(self) -&gt; api.DatasetName:
-        return {
-            &#39;datasetName&#39;: str(self.__dataset_name)
-        }</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.CreateDatasetHandler200Response:
+        return geoengine_openapi_client.CreateDatasetHandler200Response(
+            dataset_name=str(self.__dataset_name)
+        )</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.datasets.DatasetName.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: api.DatasetName) ‑> <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></span>
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.CreateDatasetHandler200Response) ‑> <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse a http response to an <code>DatasetId</code></p></div>
@@ -1325,22 +1221,16 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response: api.DatasetName) -&gt; DatasetName:
+def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
     &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
-    if &#39;error&#39; in response:
-        raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
-
-    if &#39;datasetName&#39; not in response:
-        raise MissingFieldInResponseException(&#39;datasetName&#39;, response)
-
-    return DatasetName(response[&#39;datasetName&#39;])</code></pre>
+    return DatasetName(response.dataset_name)</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.DatasetName.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.DatasetName" href="api.html#geoengine.api.DatasetName">DatasetName</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.create_dataset_handler200_response.CreateDatasetHandler200Response</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1348,10 +1238,10 @@ def from_response(cls, response: api.DatasetName) -&gt; DatasetName:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.DatasetName:
-    return {
-        &#39;datasetName&#39;: str(self.__dataset_name)
-    }</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.CreateDatasetHandler200Response:
+    return geoengine_openapi_client.CreateDatasetHandler200Response(
+        dataset_name=str(self.__dataset_name)
+    )</code></pre>
 </details>
 </dd>
 </dl>
@@ -1368,10 +1258,10 @@ def from_response(cls, response: api.DatasetName) -&gt; DatasetName:
 <pre><code class="python">class InfiniteOgrSourceDurationSpec(OgrSourceDuration):
     &#39;&#39;&#39;An open-ended time duration&#39;&#39;&#39;
 
-    def to_api_dict(self) -&gt; api.OgrSourceDurationSpec:
-        return api.OgrSourceDurationSpec({
-            &#34;type&#34;: &#34;infinite&#34;,
-        })</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
+        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.InfiniteOgrSourceDurationSpec(
+            type=&#34;infinite&#34;,
+        ))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1380,7 +1270,7 @@ def from_response(cls, response: api.DatasetName) -&gt; DatasetName:
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.InfiniteOgrSourceDurationSpec.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.OgrSourceDurationSpec" href="api.html#geoengine.api.OgrSourceDurationSpec">OgrSourceDurationSpec</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_duration_spec.OgrSourceDurationSpec</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1388,10 +1278,10 @@ def from_response(cls, response: api.DatasetName) -&gt; DatasetName:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.OgrSourceDurationSpec:
-    return api.OgrSourceDurationSpec({
-        &#34;type&#34;: &#34;infinite&#34;,
-    })</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
+    return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.InfiniteOgrSourceDurationSpec(
+        type=&#34;infinite&#34;,
+    ))</code></pre>
 </details>
 </dd>
 </dl>
@@ -1418,10 +1308,10 @@ def from_response(cls, response: api.DatasetName) -&gt; DatasetName:
 class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     &#39;&#39;&#39;Specify no time information&#39;&#39;&#39;
 
-    def to_api_dict(self) -&gt; api.OgrSourceDatasetTimeType:
-        return api.OgrSourceDatasetTimeType({
-            &#34;type&#34;: &#34;none&#34;,
-        })</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.NoneOgrSourceDatasetTimeType(
+            type=&#34;none&#34;,
+        ))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1430,7 +1320,7 @@ class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.NoneOgrSourceDatasetTimeType.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.OgrSourceDatasetTimeType" href="api.html#geoengine.api.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_dataset_time_type.OgrSourceDatasetTimeType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1438,10 +1328,10 @@ class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.OgrSourceDatasetTimeType:
-    return api.OgrSourceDatasetTimeType({
-        &#34;type&#34;: &#34;none&#34;,
-    })</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+    return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.NoneOgrSourceDatasetTimeType(
+        type=&#34;none&#34;,
+    ))</code></pre>
 </details>
 </dd>
 </dl>
@@ -1471,8 +1361,8 @@ class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     IGNORE = &#34;ignore&#34;
     ABORT = &#34;abort&#34;
 
-    def to_api_enum(self) -&gt; api.OgrOnError:
-        return api.OgrOnError(self.value)</code></pre>
+    def to_api_enum(self) -&gt; geoengine_openapi_client.OgrSourceErrorSpec:
+        return geoengine_openapi_client.OgrSourceErrorSpec(self.value)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1492,7 +1382,7 @@ class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.OgrOnError.to_api_enum"><code class="name flex">
-<span>def <span class="ident">to_api_enum</span></span>(<span>self) ‑> <a title="geoengine.api.OgrOnError" href="api.html#geoengine.api.OgrOnError">OgrOnError</a></span>
+<span>def <span class="ident">to_api_enum</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_error_spec.OgrSourceErrorSpec</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1500,8 +1390,8 @@ class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_enum(self) -&gt; api.OgrOnError:
-    return api.OgrOnError(self.value)</code></pre>
+<pre><code class="python">def to_api_enum(self) -&gt; geoengine_openapi_client.OgrSourceErrorSpec:
+    return geoengine_openapi_client.OgrSourceErrorSpec(self.value)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1519,7 +1409,7 @@ class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     &#39;&#39;&#39;A time type specification for OGR dataset definitions&#39;&#39;&#39;
 
     @abstractmethod
-    def to_api_dict(self) -&gt; api.OgrSourceDatasetTimeType:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
         pass
 
     @classmethod
@@ -1633,7 +1523,7 @@ def start_end(cls,
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.OgrSourceDatasetTimeType.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.OgrSourceDatasetTimeType" href="api.html#geoengine.api.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_dataset_time_type.OgrSourceDatasetTimeType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1642,7 +1532,7 @@ def start_end(cls,
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@abstractmethod
-def to_api_dict(self) -&gt; api.OgrSourceDatasetTimeType:
+def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
     pass</code></pre>
 </details>
 </dd>
@@ -1661,7 +1551,7 @@ def to_api_dict(self) -&gt; api.OgrSourceDatasetTimeType:
     &#39;&#39;&#39;Base class for the duration part of a OGR time format&#39;&#39;&#39;
 
     @abstractmethod
-    def to_api_dict(self) -&gt; api.OgrSourceDurationSpec:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
         pass
 
     @classmethod
@@ -1738,7 +1628,7 @@ def zero(cls) -&gt; ZeroOgrSourceDurationSpec:
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.OgrSourceDuration.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.OgrSourceDurationSpec" href="api.html#geoengine.api.OgrSourceDurationSpec">OgrSourceDurationSpec</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_duration_spec.OgrSourceDurationSpec</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1747,7 +1637,7 @@ def zero(cls) -&gt; ZeroOgrSourceDurationSpec:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@abstractmethod
-def to_api_dict(self) -&gt; api.OgrSourceDurationSpec:
+def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
     pass</code></pre>
 </details>
 </dd>
@@ -1766,7 +1656,7 @@ def to_api_dict(self) -&gt; api.OgrSourceDurationSpec:
     &#39;&#39;&#39;Base class for OGR time formats&#39;&#39;&#39;
 
     @abstractmethod
-    def to_api_dict(self) -&gt; api.OgrSourceTimeFormat:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
         pass
 
     @classmethod
@@ -1835,7 +1725,7 @@ def seconds(cls, timestamp_type: UnixTimeStampType) -&gt; UnixTimeStampOgrSource
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.OgrSourceTimeFormat.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.OgrSourceTimeFormat" href="api.html#geoengine.api.OgrSourceTimeFormat">OgrSourceTimeFormat</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_time_format.OgrSourceTimeFormat</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1844,7 +1734,7 @@ def seconds(cls, timestamp_type: UnixTimeStampType) -&gt; UnixTimeStampOgrSource
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@abstractmethod
-def to_api_dict(self) -&gt; api.OgrSourceTimeFormat:
+def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
     pass</code></pre>
 </details>
 </dd>
@@ -1869,13 +1759,15 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     start_format: OgrSourceTimeFormat
     duration_field: str
 
-    def to_api_dict(self) -&gt; api.StartDurationOgrSourceDatasetTimeType:
-        return api.StartDurationOgrSourceDatasetTimeType({
-            &#34;type&#34;: &#34;start+duration&#34;,
-            &#34;startField&#34;: self.start_field,
-            &#34;startFormat&#34;: self.start_format.to_api_dict(),
-            &#34;durationField&#34;: self.duration_field
-        })</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(
+            geoengine_openapi_client.StartDurationOgrSourceDatasetTimeType(
+                type=&#34;startDuration&#34;,
+                start_field=self.start_field,
+                start_format=self.start_format.to_api_dict(),
+                duration_field=self.duration_field
+            )
+        )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1899,7 +1791,7 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.StartDurationOgrSourceDatasetTimeType.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.StartDurationOgrSourceDatasetTimeType" href="api.html#geoengine.api.StartDurationOgrSourceDatasetTimeType">StartDurationOgrSourceDatasetTimeType</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_dataset_time_type.OgrSourceDatasetTimeType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1907,13 +1799,15 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.StartDurationOgrSourceDatasetTimeType:
-    return api.StartDurationOgrSourceDatasetTimeType({
-        &#34;type&#34;: &#34;start+duration&#34;,
-        &#34;startField&#34;: self.start_field,
-        &#34;startFormat&#34;: self.start_format.to_api_dict(),
-        &#34;durationField&#34;: self.duration_field
-    })</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+    return geoengine_openapi_client.OgrSourceDatasetTimeType(
+        geoengine_openapi_client.StartDurationOgrSourceDatasetTimeType(
+            type=&#34;startDuration&#34;,
+            start_field=self.start_field,
+            start_format=self.start_format.to_api_dict(),
+            duration_field=self.duration_field
+        )
+    )</code></pre>
 </details>
 </dd>
 </dl>
@@ -1948,14 +1842,16 @@ class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     end_field: str
     end_format: OgrSourceTimeFormat
 
-    def to_api_dict(self) -&gt; api.StartEndOgrSourceDatasetTimeType:
-        return api.StartEndOgrSourceDatasetTimeType({
-            &#34;type&#34;: &#34;start+end&#34;,
-            &#34;startField&#34;: self.start_field,
-            &#34;startFormat&#34;: self.start_format.to_api_dict(),
-            &#34;endField&#34;: self.end_field,
-            &#34;endFormat&#34;: self.end_format.to_api_dict(),
-        })</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(
+            geoengine_openapi_client.StartEndOgrSourceDatasetTimeType(
+                type=&#34;startEnd&#34;,
+                start_field=self.start_field,
+                start_format=self.start_format.to_api_dict(),
+                end_field=self.end_field,
+                end_format=self.end_format.to_api_dict(),
+            )
+        )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1983,7 +1879,7 @@ class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.StartEndOgrSourceDatasetTimeType.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.StartEndOgrSourceDatasetTimeType" href="api.html#geoengine.api.StartEndOgrSourceDatasetTimeType">StartEndOgrSourceDatasetTimeType</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_dataset_time_type.OgrSourceDatasetTimeType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1991,14 +1887,16 @@ class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.StartEndOgrSourceDatasetTimeType:
-    return api.StartEndOgrSourceDatasetTimeType({
-        &#34;type&#34;: &#34;start+end&#34;,
-        &#34;startField&#34;: self.start_field,
-        &#34;startFormat&#34;: self.start_format.to_api_dict(),
-        &#34;endField&#34;: self.end_field,
-        &#34;endFormat&#34;: self.end_format.to_api_dict(),
-    })</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+    return geoengine_openapi_client.OgrSourceDatasetTimeType(
+        geoengine_openapi_client.StartEndOgrSourceDatasetTimeType(
+            type=&#34;startEnd&#34;,
+            start_field=self.start_field,
+            start_format=self.start_format.to_api_dict(),
+            end_field=self.end_field,
+            end_format=self.end_format.to_api_dict(),
+        )
+    )</code></pre>
 </details>
 </dd>
 </dl>
@@ -2032,13 +1930,13 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     start_format: OgrSourceTimeFormat
     duration: OgrSourceDuration
 
-    def to_api_dict(self) -&gt; api.StartOgrSourceDatasetTimeType:
-        return api.StartOgrSourceDatasetTimeType({
-            &#34;type&#34;: &#34;start&#34;,
-            &#34;startField&#34;: self.start_field,
-            &#34;startFormat&#34;: self.start_format.to_api_dict(),
-            &#34;duration&#34;: self.duration.to_api_dict()
-        })</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.StartOgrSourceDatasetTimeType(
+            type=&#34;start&#34;,
+            start_field=self.start_field,
+            start_format=self.start_format.to_api_dict(),
+            duration=self.duration.to_api_dict()
+        ))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2062,7 +1960,7 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.StartOgrSourceDatasetTimeType.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.StartOgrSourceDatasetTimeType" href="api.html#geoengine.api.StartOgrSourceDatasetTimeType">StartOgrSourceDatasetTimeType</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_dataset_time_type.OgrSourceDatasetTimeType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2070,13 +1968,13 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.StartOgrSourceDatasetTimeType:
-    return api.StartOgrSourceDatasetTimeType({
-        &#34;type&#34;: &#34;start&#34;,
-        &#34;startField&#34;: self.start_field,
-        &#34;startFormat&#34;: self.start_format.to_api_dict(),
-        &#34;duration&#34;: self.duration.to_api_dict()
-    })</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDatasetTimeType:
+    return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.StartOgrSourceDatasetTimeType(
+        type=&#34;start&#34;,
+        start_field=self.start_field,
+        start_format=self.start_format.to_api_dict(),
+        duration=self.duration.to_api_dict()
+    ))</code></pre>
 </details>
 </dd>
 </dl>
@@ -2110,8 +2008,6 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     @classmethod
     def from_response(cls, response: api.StoredDataset) -&gt; StoredDataset:
         &#39;&#39;&#39;Parse a http response to an `StoredDataset`&#39;&#39;&#39;
-        if &#39;error&#39; in response:
-            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
         if &#39;dataset&#39; not in response:  # TODO: improve error handling
             raise MissingFieldInResponseException(&#39;dataset&#39;, response)
@@ -2144,8 +2040,6 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 <pre><code class="python">@classmethod
 def from_response(cls, response: api.StoredDataset) -&gt; StoredDataset:
     &#39;&#39;&#39;Parse a http response to an `StoredDataset`&#39;&#39;&#39;
-    if &#39;error&#39; in response:
-        raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
 
     if &#39;dataset&#39; not in response:  # TODO: improve error handling
         raise MissingFieldInResponseException(&#39;dataset&#39;, response)
@@ -2203,11 +2097,11 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
     &#39;&#39;&#39;An OGR time format specified in seconds (UNIX time)&#39;&#39;&#39;
     timestampType: UnixTimeStampType
 
-    def to_api_dict(self) -&gt; api.UnixTimeStampOgrSourceTimeFormat:
-        return api.UnixTimeStampOgrSourceTimeFormat({
-            &#34;format&#34;: &#34;unixTimeStamp&#34;,
-            &#34;timestampType&#34;: self.timestampType.to_api_enum(),
-        })</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
+        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.UnixTimeStampOgrSourceTimeFormat(
+            format=&#34;unixTimeStamp&#34;,
+            timestamp_type=self.timestampType.to_api_enum(),
+        ))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2223,7 +2117,7 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.UnixTimeStampOgrSourceTimeFormat.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.UnixTimeStampOgrSourceTimeFormat" href="api.html#geoengine.api.UnixTimeStampOgrSourceTimeFormat">UnixTimeStampOgrSourceTimeFormat</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_time_format.OgrSourceTimeFormat</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2231,11 +2125,11 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.UnixTimeStampOgrSourceTimeFormat:
-    return api.UnixTimeStampOgrSourceTimeFormat({
-        &#34;format&#34;: &#34;unixTimeStamp&#34;,
-        &#34;timestampType&#34;: self.timestampType.to_api_enum(),
-    })</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceTimeFormat:
+    return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.UnixTimeStampOgrSourceTimeFormat(
+        format=&#34;unixTimeStamp&#34;,
+        timestamp_type=self.timestampType.to_api_enum(),
+    ))</code></pre>
 </details>
 </dd>
 </dl>
@@ -2255,8 +2149,8 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
     EPOCHSECONDS = &#39;epochSeconds&#39;
     EPOCHMILLISECONDS = &#39;epochMilliseconds&#39;
 
-    def to_api_enum(self) -&gt; api.UnixTimeStampType:
-        return api.UnixTimeStampType(self.value)</code></pre>
+    def to_api_enum(self) -&gt; geoengine_openapi_client.UnixTimeStampType:
+        return geoengine_openapi_client.UnixTimeStampType(self.value)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2276,7 +2170,7 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.UnixTimeStampType.to_api_enum"><code class="name flex">
-<span>def <span class="ident">to_api_enum</span></span>(<span>self) ‑> <a title="geoengine.api.UnixTimeStampType" href="api.html#geoengine.api.UnixTimeStampType">UnixTimeStampType</a></span>
+<span>def <span class="ident">to_api_enum</span></span>(<span>self) ‑> geoengine_openapi_client.models.unix_time_stamp_type.UnixTimeStampType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2284,8 +2178,8 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_enum(self) -&gt; api.UnixTimeStampType:
-    return api.UnixTimeStampType(self.value)</code></pre>
+<pre><code class="python">def to_api_enum(self) -&gt; geoengine_openapi_client.UnixTimeStampType:
+    return geoengine_openapi_client.UnixTimeStampType(self.value)</code></pre>
 </details>
 </dd>
 </dl>
@@ -2309,15 +2203,9 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
         self.__upload_id = upload_id
 
     @classmethod
-    def from_response(cls, response: api.UploadId) -&gt; UploadId:
+    def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -&gt; UploadId:
         &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
-        if &#39;error&#39; in response:
-            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
-
-        if &#39;id&#39; not in response:  # TODO: improve error handling
-            raise MissingFieldInResponseException(&#39;id&#39;, response)
-
-        return UploadId(UUID(response[&#39;id&#39;]))
+        return UploadId(UUID(response.id))
 
     def __str__(self) -&gt; str:
         return str(self.__upload_id)
@@ -2332,16 +2220,16 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
 
         return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
 
-    def to_api_dict(self) -&gt; api.UploadId:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.AddCollection200Response:
         &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
-        return {
-            &#39;id&#39;: str(self.__upload_id)
-        }</code></pre>
+        return geoengine_openapi_client.AddCollection200Response(
+            id=str(self.__upload_id)
+        )</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.datasets.UploadId.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: api.UploadId) ‑> <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a></span>
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.AddCollection200Response) ‑> <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse a http response to an <code><a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a></code></p></div>
@@ -2350,22 +2238,16 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response: api.UploadId) -&gt; UploadId:
+def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -&gt; UploadId:
     &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
-    if &#39;error&#39; in response:
-        raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
-
-    if &#39;id&#39; not in response:  # TODO: improve error handling
-        raise MissingFieldInResponseException(&#39;id&#39;, response)
-
-    return UploadId(UUID(response[&#39;id&#39;]))</code></pre>
+    return UploadId(UUID(response.id))</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.UploadId.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.UploadId" href="api.html#geoengine.api.UploadId">UploadId</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.add_collection200_response.AddCollection200Response</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts the upload id to a dict for the api</p></div>
@@ -2373,11 +2255,11 @@ def from_response(cls, response: api.UploadId) -&gt; UploadId:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.UploadId:
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.AddCollection200Response:
     &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
-    return {
-        &#39;id&#39;: str(self.__upload_id)
-    }</code></pre>
+    return geoengine_openapi_client.AddCollection200Response(
+        id=str(self.__upload_id)
+    )</code></pre>
 </details>
 </dd>
 </dl>
@@ -2400,12 +2282,12 @@ def from_response(cls, response: api.UploadId) -&gt; UploadId:
     def __init__(self, step: TimeStep):
         self.step = step
 
-    def to_api_dict(self) -&gt; api.ValueOgrSourceDurationSpec:
-        return api.ValueOgrSourceDurationSpec({
-            &#34;type&#34;: &#34;value&#34;,
-            &#34;step&#34;: self.step.step,
-            &#34;granularity&#34;: self.step.granularity.to_api_enum(),
-        })</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
+        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.TimeStepWithType(
+            type=&#34;value&#34;,
+            step=self.step.step,
+            granularity=self.step.granularity.to_api_enum(),
+        ))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2421,7 +2303,7 @@ def from_response(cls, response: api.UploadId) -&gt; UploadId:
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.ValueOgrSourceDurationSpec.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.ValueOgrSourceDurationSpec" href="api.html#geoengine.api.ValueOgrSourceDurationSpec">ValueOgrSourceDurationSpec</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_duration_spec.OgrSourceDurationSpec</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2429,12 +2311,12 @@ def from_response(cls, response: api.UploadId) -&gt; UploadId:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.ValueOgrSourceDurationSpec:
-    return api.ValueOgrSourceDurationSpec({
-        &#34;type&#34;: &#34;value&#34;,
-        &#34;step&#34;: self.step.step,
-        &#34;granularity&#34;: self.step.granularity.to_api_enum(),
-    })</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
+    return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.TimeStepWithType(
+        type=&#34;value&#34;,
+        step=self.step.step,
+        granularity=self.step.granularity.to_api_enum(),
+    ))</code></pre>
 </details>
 </dd>
 </dl>
@@ -2466,12 +2348,12 @@ class Volume:
     path: str
 
     @classmethod
-    def from_response(cls, response: api.Volume) -&gt; Volume:
+    def from_response(cls, response: geoengine_openapi_client.Volume) -&gt; Volume:
         &#39;&#39;&#39;Parse a http response to an `Volume`&#39;&#39;&#39;
-        return Volume(response[&#39;name&#39;], response[&#39;path&#39;])
+        return Volume(response.name, response.path)
 
-    def to_api_dict(self) -&gt; api.Volume:
-        return api.Volume(name=self.name, path=self.path)</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.Volume:
+        return geoengine_openapi_client.Volume(name=self.name, path=self.path)</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -2487,7 +2369,7 @@ class Volume:
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.datasets.Volume.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: api.Volume) ‑> <a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a></span>
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.Volume) ‑> <a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse a http response to an <code><a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a></code></p></div>
@@ -2496,16 +2378,16 @@ class Volume:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response: api.Volume) -&gt; Volume:
+def from_response(cls, response: geoengine_openapi_client.Volume) -&gt; Volume:
     &#39;&#39;&#39;Parse a http response to an `Volume`&#39;&#39;&#39;
-    return Volume(response[&#39;name&#39;], response[&#39;path&#39;])</code></pre>
+    return Volume(response.name, response.path)</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.Volume.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.Volume" href="api.html#geoengine.api.Volume">Volume</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.volume.Volume</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2513,8 +2395,8 @@ def from_response(cls, response: api.Volume) -&gt; Volume:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.Volume:
-    return api.Volume(name=self.name, path=self.path)</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.Volume:
+    return geoengine_openapi_client.Volume(name=self.name, path=self.path)</code></pre>
 </details>
 </dd>
 </dl>
@@ -2537,17 +2419,6 @@ def from_response(cls, response: api.Volume) -&gt; Volume:
     def __init__(self, volume_id: UUID) -&gt; None:
         self.__volume_id = volume_id
 
-    @classmethod
-    def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
-        &#39;&#39;&#39;Parse a http response to an `ColumeId`&#39;&#39;&#39;
-        if &#39;error&#39; in response:
-            raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
-
-        if &#39;id&#39; not in response:  # TODO: improve error handling
-            raise MissingFieldInResponseException(&#39;id&#39;, response)
-
-        return VolumeId(UUID(response[&#39;id&#39;]))
-
     def __str__(self) -&gt; str:
         return str(self.__volume_id)
 
@@ -2559,57 +2430,8 @@ def from_response(cls, response: api.Volume) -&gt; Volume:
         if not isinstance(other, self.__class__):
             return False
 
-        return self.__volume_id == other.__volume_id  # pylint: disable=protected-access
-
-    def to_api_dict(self) -&gt; api.VolumeId:
-        &#39;&#39;&#39;Converts the volume id to a dictionary containing the id&#39;&#39;&#39;
-        return {
-            &#39;id&#39;: str(self.__volume_id)
-        }</code></pre>
+        return self.__volume_id == other.__volume_id  # pylint: disable=protected-access</code></pre>
 </details>
-<h3>Static methods</h3>
-<dl>
-<dt id="geoengine.datasets.VolumeId.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: api.VolumeId) ‑> <a title="geoengine.datasets.VolumeId" href="#geoengine.datasets.VolumeId">VolumeId</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Parse a http response to an <code>ColumeId</code></p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
-    &#39;&#39;&#39;Parse a http response to an `ColumeId`&#39;&#39;&#39;
-    if &#39;error&#39; in response:
-        raise GeoEngineException(cast(api.GeoEngineExceptionResponse, response))
-
-    if &#39;id&#39; not in response:  # TODO: improve error handling
-        raise MissingFieldInResponseException(&#39;id&#39;, response)
-
-    return VolumeId(UUID(response[&#39;id&#39;]))</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="geoengine.datasets.VolumeId.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.VolumeId" href="api.html#geoengine.api.VolumeId">VolumeId</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Converts the volume id to a dictionary containing the id</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.VolumeId:
-    &#39;&#39;&#39;Converts the volume id to a dictionary containing the id&#39;&#39;&#39;
-    return {
-        &#39;id&#39;: str(self.__volume_id)
-    }</code></pre>
-</details>
-</dd>
-</dl>
 </dd>
 <dt id="geoengine.datasets.ZeroOgrSourceDurationSpec"><code class="flex name class">
 <span>class <span class="ident">ZeroOgrSourceDurationSpec</span></span>
@@ -2623,10 +2445,10 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 <pre><code class="python">class ZeroOgrSourceDurationSpec(OgrSourceDuration):
     &#39;&#39;&#39;An instant, i.e. no duration&#39;&#39;&#39;
 
-    def to_api_dict(self) -&gt; api.OgrSourceDurationSpec:
-        return api.OgrSourceDurationSpec({
-            &#34;type&#34;: &#34;zero&#34;,
-        })</code></pre>
+    def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
+        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.ZeroOgrSourceDurationSpec(
+            type=&#34;zero&#34;,
+        ))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2635,7 +2457,7 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.datasets.ZeroOgrSourceDurationSpec.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> <a title="geoengine.api.OgrSourceDurationSpec" href="api.html#geoengine.api.OgrSourceDurationSpec">OgrSourceDurationSpec</a></span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ogr_source_duration_spec.OgrSourceDurationSpec</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2643,10 +2465,10 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; api.OgrSourceDurationSpec:
-    return api.OgrSourceDurationSpec({
-        &#34;type&#34;: &#34;zero&#34;,
-    })</code></pre>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.OgrSourceDurationSpec:
+    return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.ZeroOgrSourceDurationSpec(
+        type=&#34;zero&#34;,
+    ))</code></pre>
 </details>
 </dd>
 </dl>
@@ -2849,10 +2671,6 @@ def from_response(cls, response: api.VolumeId) -&gt; VolumeId:
 </li>
 <li>
 <h4><code><a title="geoengine.datasets.VolumeId" href="#geoengine.datasets.VolumeId">VolumeId</a></code></h4>
-<ul class="">
-<li><code><a title="geoengine.datasets.VolumeId.from_response" href="#geoengine.datasets.VolumeId.from_response">from_response</a></code></li>
-<li><code><a title="geoengine.datasets.VolumeId.to_api_dict" href="#geoengine.datasets.VolumeId.to_api_dict">to_api_dict</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="geoengine.datasets.ZeroOgrSourceDurationSpec" href="#geoengine.datasets.ZeroOgrSourceDurationSpec">ZeroOgrSourceDurationSpec</a></code></h4>
