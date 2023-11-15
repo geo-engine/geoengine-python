@@ -12,7 +12,7 @@ from pkg_resources import get_distribution
 from requests.auth import AuthBase
 import urllib3
 
-import openapi_client
+import geoengine_openapi_client
 from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro, UninitializedException
 
 
@@ -39,7 +39,7 @@ class Session:
     __valid_until: Optional[str] = None
     __server_url: str
     __timeout: int = 60
-    __configuration: openapi_client.Configuration
+    __configuration: geoengine_openapi_client.Configuration
 
     session: ClassVar[Optional[Session]] = None
 
@@ -135,7 +135,7 @@ class Session:
             self.__valid_until = session['validUntil']
 
         self.__server_url = server_url
-        self.__configuration = openapi_client.Configuration(
+        self.__configuration = geoengine_openapi_client.Configuration(
             host=server_url,
             access_token=session['id']
         )
@@ -172,7 +172,7 @@ class Session:
         return self.__server_url
 
     @property
-    def configuration(self) -> openapi_client.Configuration:
+    def configuration(self) -> geoengine_openapi_client.Configuration:
         '''
         Return the current http configuration
         '''
@@ -201,8 +201,8 @@ class Session:
         Logout the current session
         '''
 
-        with openapi_client.ApiClient(self.configuration) as api_client:
-            session_api = openapi_client.SessionApi(api_client)
+        with geoengine_openapi_client.ApiClient(self.configuration) as api_client:
+            session_api = geoengine_openapi_client.SessionApi(api_client)
             session_api.logout_handler(_request_timeout=self.__timeout)
 
 

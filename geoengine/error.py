@@ -5,7 +5,7 @@ Package errors and backend mapped error types
 from typing import Any, Dict, Union
 import json
 from requests import Response, HTTPError
-import openapi_client
+import geoengine_openapi_client
 
 
 class GeoEngineException(Exception):
@@ -16,10 +16,10 @@ class GeoEngineException(Exception):
     error: str
     message: str
 
-    def __init__(self, response: Union[openapi_client.ApiException, Dict[str, str]]) -> None:
+    def __init__(self, response: Union[geoengine_openapi_client.ApiException, Dict[str, str]]) -> None:
         super().__init__()
 
-        if isinstance(response, openapi_client.ApiException):
+        if isinstance(response, geoengine_openapi_client.ApiException):
             obj = json.loads(response.body)
         else:
             obj = response

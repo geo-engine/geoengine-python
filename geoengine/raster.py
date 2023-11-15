@@ -5,7 +5,7 @@ from typing import Optional, Tuple, Union, cast
 import numpy as np
 import pyarrow as pa
 import xarray as xr
-import openapi_client
+import geoengine_openapi_client
 import geoengine.types as gety
 
 
@@ -179,7 +179,7 @@ class RasterTile2D:
         '''Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine'''
         metadata = record_batch.schema.metadata
         geo_transform = gety.GeoTransform.from_response(
-            openapi_client.GdalDatasetGeoTransform.from_json(metadata[b'geoTransform'])
+            geoengine_openapi_client.GdalDatasetGeoTransform.from_json(metadata[b'geoTransform'])
         )
         x_size = int(metadata[b'xSize'])
         y_size = int(metadata[b'ySize'])

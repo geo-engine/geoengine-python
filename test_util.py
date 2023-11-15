@@ -13,7 +13,7 @@ class UrllibMocker:
     def __enter__(self):
         self._matchers = []
         self.request_history = []
-        self._mock_context = patch("openapi_client.rest.urllib3.PoolManager.request")
+        self._mock_context = patch("geoengine_openapi_client.rest.urllib3.PoolManager.request")
         mock_request = self._mock_context.__enter__()
         mock_request.side_effect = self._handle_request
         return self

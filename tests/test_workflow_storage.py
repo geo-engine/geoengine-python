@@ -5,6 +5,7 @@ from uuid import UUID
 from test_util import UrllibMocker
 from geoengine.datasets import DatasetName, UploadId, StoredDataset
 import geoengine as ge
+import geoengine_openapi_client
 
 
 class WorkflowStorageTests(unittest.TestCase):
@@ -91,22 +92,22 @@ class WorkflowStorageTests(unittest.TestCase):
                 }
             }
 
-            query = ge.api.RasterQueryRectangle(
-                spatial_bounds=ge.api.SpatialPartition2D(
-                    upper_left_coordinate=ge.api.Coordinate2D(
+            query = geoengine_openapi_client.RasterQueryRectangle(
+                spatial_bounds=geoengine_openapi_client.SpatialPartition2D(
+                    upper_left_coordinate=geoengine_openapi_client.Coordinate2D(
                         x=-180.0,
                         y=90.0
                     ),
-                    lower_right_coordinate=ge.api.Coordinate2D(
+                    lower_right_coordinate=geoengine_openapi_client.Coordinate2D(
                         x=180.0,
                         y=-90.0
                     )
                 ),
-                time_interval=ge.api.TimeInterval(
+                time_interval=geoengine_openapi_client.TimeInterval(
                     start=1396353600000,
                     end=1396353600000
                 ),
-                spatial_resolution=ge.api.SpatialResolution(
+                spatial_resolution=geoengine_openapi_client.SpatialResolution(
                     x=1.8,
                     y=1.8
                 )

@@ -11,7 +11,7 @@ from typing import Any, Dict, Generic, List, NewType, Optional, TypeVar, Union, 
 from uuid import UUID
 import json
 from strenum import LowercaseStrEnum
-import openapi_client
+import geoengine_openapi_client
 from geoengine.auth import get_session
 from geoengine.error import ModificationNotOnLayerDbException
 from geoengine.tasks import Task, TaskId
@@ -176,17 +176,17 @@ class LayerCollection:
         self.items = items
 
     @classmethod
-    def from_response(cls, response_pages: List[openapi_client.LayerCollection]) -> LayerCollection:
+    def from_response(cls, response_pages: List[geoengine_openapi_client.LayerCollection]) -> LayerCollection:
         '''Parse an HTTP JSON response to an `LayerCollection`'''
 
         assert len(response_pages) > 0, 'No response pages'
 
-        def parse_listing(response: openapi_client.CollectionItem) -> Listing:
+        def parse_listing(response: geoengine_openapi_client.CollectionItem) -> Listing:
             inner = response.actual_instance
             item_type = LayerCollectionListingType(inner.type)
 
             if item_type is LayerCollectionListingType.LAYER:
-                layer_id_response = cast(openapi_client.ProviderLayerId, inner.id)
+                layer_id_response = cast(geoengine_openapi_client.ProviderLayerId, inner.id)
                 return LayerListing(
                     listing_id=LayerId(layer_id_response.layer_id),
                     provider_id=LayerProviderId(UUID(layer_id_response.provider_id)),
@@ -195,7 +195,7 @@ class LayerCollection:
                 )
 
             if item_type is LayerCollectionListingType.COLLECTION:
-                collection_id_response = cast(openapi_client.ProviderLayerCollectionId, inner.id)
+                collection_id_response = cast(geoengine_openapi_client.ProviderLayerCollectionId, inner.id)
                 return LayerCollectionListing(
                     listing_id=LayerCollectionId(collection_id_response.collection_id),
                     provider_id=LayerProviderId(UUID(collection_id_response.provider_id)),
@@ -436,7 +436,7 @@ class Layer:
         self.metadata = metadata
 
     @classmethod
-    def from_response(cls, response: openapi_client.Layer) -> Layer:
+    def from_response(cls, response: geoengine_openapi_client.Layer) -> Layer:
         '''Parse an HTTP JSON response to an `Layer`'''
         symbology = None
         if response.symbology is not None:
@@ -510,18 +510,18 @@ class Layer:
         '''
         session = get_session()
 
-        with openapi_client.ApiClient(session.configuration) as api_client:
-            layers_api = openapi_client.LayersApi(api_client)
+        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+            layers_api = geoengine_openapi_client.LayersApi(api_client)
             response = layers_api.layer_to_dataset(str(self.provider_id), str(self.layer_id), _request_timeout=timeout)
 
         return Task(TaskId.from_response(response))
 
-    def to_api_dict(self) -> openapi_client.Layer:
+    def to_api_dict(self) -> geoengine_openapi_client.Layer:
         '''Convert to a dictionary that can be serialized to JSON'''
-        return openapi_client.Layer(
+        return geoengine_openapi_client.Layer(
             name=self.name,
             description=self.description,
-            id=openapi_client.ProviderLayerId(
+            id=geoengine_openapi_client.ProviderLayerId(
                 layer_id=str(self.layer_id),
                 provider_id=str(self.provider_id),
             ),
@@ -537,8 +537,8 @@ class Layer:
         '''
         session = get_session()
 
-        with openapi_client.ApiClient(session.configuration) as api_client:
-            layers_api = openapi_client.LayersApi(api_client)
+        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+            layers_api = geoengine_openapi_client.LayersApi(api_client)
             response = layers_api.layer_to_workflow_id_handler(
                 str(self.provider_id),
                 self.layer_id,
@@ -566,12 +566,12 @@ def layer_collection(layer_collection_id: Optional[LayerCollectionId] = None,
     session = get_session()
 
     page_limit = 20
-    pages: List[openapi_client.LayerCollection] = []
+    pages: List[geoengine_openapi_client.LayerCollection] = []
 
     offset = 0
     while True:
-        with openapi_client.ApiClient(session.configuration) as api_client:
-            layers_api = openapi_client.LayersApi(api_client)
+        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+            layers_api = geoengine_openapi_client.LayersApi(api_client)
 
             if layer_collection_id is None:
                 page = layers_api.list_root_collections_handler(offset, page_limit, _request_timeout=timeout)
@@ -604,8 +604,8 @@ def layer(layer_id: LayerId,
 
     session = get_session()
 
-    with openapi_client.ApiClient(session.configuration) as api_client:
-        layers_api = openapi_client.LayersApi(api_client)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        layers_api = geoengine_openapi_client.LayersApi(api_client)
         response = layers_api.layer_handler(str(layer_provider_id), layer_id, _request_timeout=timeout)
 
     return Layer.from_response(response)
@@ -618,8 +618,8 @@ def _delete_layer_from_collection(collection_id: LayerCollectionId,
 
     session = get_session()
 
-    with openapi_client.ApiClient(session.configuration) as api_client:
-        layers_api = openapi_client.LayersApi(api_client)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        layers_api = geoengine_openapi_client.LayersApi(api_client)
         layers_api.remove_layer_from_collection(collection_id, layer_id, _request_timeout=timeout)
 
 
@@ -630,8 +630,8 @@ def _delete_layer_collection_from_collection(parent_id: LayerCollectionId,
 
     session = get_session()
 
-    with openapi_client.ApiClient(session.configuration) as api_client:
-        layers_api = openapi_client.LayersApi(api_client)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        layers_api = geoengine_openapi_client.LayersApi(api_client)
         layers_api.remove_collection_from_collection(parent_id, collection_id, _request_timeout=timeout)
 
 
@@ -641,8 +641,8 @@ def _delete_layer_collection(collection_id: LayerCollectionId,
 
     session = get_session()
 
-    with openapi_client.ApiClient(session.configuration) as api_client:
-        layers_api = openapi_client.LayersApi(api_client)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        layers_api = geoengine_openapi_client.LayersApi(api_client)
         layers_api.remove_collection(collection_id, _request_timeout=timeout)
 
 
@@ -654,11 +654,11 @@ def _add_layer_collection_to_collection(name: str,
 
     session = get_session()
 
-    with openapi_client.ApiClient(session.configuration) as api_client:
-        layers_api = openapi_client.LayersApi(api_client)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        layers_api = geoengine_openapi_client.LayersApi(api_client)
         response = layers_api.add_collection(
             parent_collection_id,
-            openapi_client.AddLayerCollection(
+            geoengine_openapi_client.AddLayerCollection(
                 name=name,
                 description=description,
             ),
@@ -675,8 +675,8 @@ def _add_existing_layer_collection_to_collection(collection_id: LayerCollectionI
 
     session = get_session()
 
-    with openapi_client.ApiClient(session.configuration) as api_client:
-        layers_api = openapi_client.LayersApi(api_client)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        layers_api = geoengine_openapi_client.LayersApi(api_client)
         layers_api.add_existing_collection_to_collection(parent_collection_id, collection_id, _request_timeout=timeout)
 
 
@@ -697,11 +697,11 @@ def _add_layer_to_collection(name: str,
 
     session = get_session()
 
-    with openapi_client.ApiClient(session.configuration) as api_client:
-        layers_api = openapi_client.LayersApi(api_client)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        layers_api = geoengine_openapi_client.LayersApi(api_client)
         response = layers_api.add_layer(
             collection_id,
-            openapi_client.AddLayer(
+            geoengine_openapi_client.AddLayer(
                 name=name,
                 description=description,
                 workflow=workflow,
@@ -720,6 +720,6 @@ def _add_existing_layer_to_collection(layer_id: LayerId,
 
     session = get_session()
 
-    with openapi_client.ApiClient(session.configuration) as api_client:
-        layers_api = openapi_client.LayersApi(api_client)
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        layers_api = geoengine_openapi_client.LayersApi(api_client)
         layers_api.add_existing_layer_to_collection(collection_id, layer_id, _request_timeout=timeout)
