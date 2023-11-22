@@ -451,8 +451,6 @@ def upload_dataframe(
         with open(json_file_name, 'w', encoding='utf8') as json_file:
             json_file.write(df_json)
 
-        print(json_file_name, str(json_file_name))
-
         uploads_api = geoengine_openapi_client.UploadsApi(api_client)
         response = uploads_api.upload_handler([str(json_file_name)], _request_timeout=timeout)
 
