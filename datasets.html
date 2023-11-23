@@ -33,9 +33,11 @@ Module for working with datasets and source definitions
 
 from __future__ import annotations
 from abc import abstractmethod
+from pathlib import Path
 from typing import List, NamedTuple, Optional, Union, Literal
 from enum import Enum
 from uuid import UUID
+import tempfile
 from attr import dataclass
 import numpy as np
 import geopandas as gpd
@@ -472,9 +474,14 @@ def upload_dataframe(
 
     df_json = df.to_json()
 
-    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+    with tempfile.TemporaryDirectory() as temp_dir, \
+            geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        json_file_name = Path(temp_dir) / &#39;geo.json&#39;
+        with open(json_file_name, &#39;w&#39;, encoding=&#39;utf8&#39;) as json_file:
+            json_file.write(df_json)
+
         uploads_api = geoengine_openapi_client.UploadsApi(api_client)
-        response = uploads_api.upload_handler([(&#34;geo.json&#34;, df_json)], _request_timeout=timeout)
+        response = uploads_api.upload_handler([str(json_file_name)], _request_timeout=timeout)
 
     upload_id = UploadId.from_response(response)
 
@@ -856,9 +863,14 @@ def list_datasets(offset: int = 0,
 
     df_json = df.to_json()
 
-    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+    with tempfile.TemporaryDirectory() as temp_dir, \
+            geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        json_file_name = Path(temp_dir) / &#39;geo.json&#39;
+        with open(json_file_name, &#39;w&#39;, encoding=&#39;utf8&#39;) as json_file:
+            json_file.write(df_json)
+
         uploads_api = geoengine_openapi_client.UploadsApi(api_client)
-        response = uploads_api.upload_handler([(&#34;geo.json&#34;, df_json)], _request_timeout=timeout)
+        response = uploads_api.upload_handler([str(json_file_name)], _request_timeout=timeout)
 
     upload_id = UploadId.from_response(response)
 
