@@ -627,18 +627,41 @@ class VectorColumnInfo:
         )
 
 
+@dataclass(repr=False)
+class RasterBandDescriptor:
+    '''A raster band descriptor'''
+
+    name: str
+    measurement: Measurement
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.RasterBandDescriptor) -> RasterBandDescriptor:
+        '''Parse an http response to a `Provenance` object'''
+        return RasterBandDescriptor(response.name, Measurement.from_response(response.measurement))
+
+    def to_api_dict(self) -> geoengine_openapi_client.RasterBandDescriptor:
+        return geoengine_openapi_client.RasterBandDescriptor(
+            name=self.name,
+            measurement=self.measurement.to_api_dict(),
+        )
+
+    def __repr__(self) -> str:
+        '''Display representation of a raster band descriptor'''
+        return f'{self.name}: {self.measurement}'
+
+
 class RasterResultDescriptor(ResultDescriptor):
     '''
     A raster result descriptor
     '''
     __data_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']
-    __measurement: Measurement
+    __bands: List[RasterBandDescriptor]
     __spatial_bounds: Optional[SpatialPartition2D]
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
         data_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64'],
-        measurement: Measurement,
+        bands: List[RasterBandDescriptor],
         spatial_reference: str,
         time_bounds: Optional[TimeInterval] = None,
         spatial_bounds: Optional[SpatialPartition2D] = None,
@@ -647,7 +670,7 @@ class RasterResultDescriptor(ResultDescriptor):
         '''Initialize a new `RasterResultDescriptor`'''
         super().__init__(spatial_reference, time_bounds, spatial_resolution)
         self.__data_type = data_type
-        self.__measurement = measurement
+        self.__bands = bands
         self.__spatial_bounds = spatial_bounds
 
     def to_api_dict(self) -> geoengine_openapi_client.TypedResultDescriptor:
@@ -656,7 +679,7 @@ class RasterResultDescriptor(ResultDescriptor):
         return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.RasterResultDescriptorWithType(
             type='raster',
             data_type=self.data_type,
-            measurement=self.measurement.to_api_dict(),
+            bands=[band.to_api_dict() for band in self.__bands],
             spatial_reference=self.spatial_reference,
             time=self.time_bounds.time_str if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
@@ -669,7 +692,7 @@ class RasterResultDescriptor(ResultDescriptor):
         '''Parse a raster result descriptor from an http response'''
         spatial_ref = response.spatial_reference
         data_type = response.data_type.value
-        measurement = Measurement.from_response(response.measurement)
+        bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
         # FIXME: datetime can not represent our min max range
@@ -684,7 +707,7 @@ class RasterResultDescriptor(ResultDescriptor):
 
         return RasterResultDescriptor(
             data_type=data_type,
-            measurement=measurement,
+            bands=bands,
             spatial_reference=spatial_ref,
             time_bounds=time_bounds,
             spatial_bounds=spatial_bounds,
@@ -700,8 +723,8 @@ class RasterResultDescriptor(ResultDescriptor):
         return self.__data_type
 
     @property
-    def measurement(self) -> Measurement:
-        return self.__measurement
+    def bands(self) -> List[RasterBandDescriptor]:
+        return self.__bands
 
     @property
     def spatial_bounds(self) -> Optional[SpatialPartition2D]:
@@ -718,7 +741,10 @@ class RasterResultDescriptor(ResultDescriptor):
         r = ''
         r += f'Data type:         {self.data_type}\n'
         r += f'Spatial Reference: {self.spatial_reference}\n'
-        r += f'Measurement:       {self.measurement}\n'
+        r += 'Bands:\n'
+
+        for band in self.__bands:
+            r += f'    {band}\n'
 
         return r
 

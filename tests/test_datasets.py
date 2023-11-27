@@ -1,8 +1,9 @@
 """Tests for the datasets module."""
 
 import unittest
-from test_util import UrllibMocker
+
 import geoengine as ge
+from test_util import UrllibMocker
 
 
 class DatasetsTests(unittest.TestCase):
@@ -35,28 +36,30 @@ class DatasetsTests(unittest.TestCase):
                     'resultDescriptor': {'type': 'raster',
                                          'dataType': 'U8',
                                          'spatialReference': 'EPSG:4326',
-                                         'measurement': {'type': 'classification',
-                                                         'measurement': 'Land Cover',
-                                                         'classes': {'0': 'Water Bodies',
-                                                                        '1': 'Evergreen Needleleaf Forests',
-                                                                        '10': 'Grasslands',
-                                                                        '11': 'Permanent Wtlands',
-                                                                        '12': 'Croplands',
-                                                                        '13': 'Urban and Built-Up',
-                                                                        '14': 'Cropland-Natural Vegetation Mosaics',
-                                                                        '15': 'Snow and Ice',
-                                                                        '16': 'Barren or Sparsely Vegetated',
-                                                                        '2': 'Evergreen Broadleaf Forests',
-                                                                        '3': 'Deciduous Needleleaf Forests',
-                                                                        '4': 'Deciduous Broadleleaf Forests',
-                                                                        '5': 'Mixed Forests',
-                                                                        '6': 'Closed Shrublands',
-                                                                        '7': 'Open Shrublands',
-                                                                        '8': 'Woody Savannas',
-                                                                        '9': 'Savannas'}},
+                                         'bands': [{'name': 'band',
+                                                    'measurement':
+                                                    {'type': 'classification',
+                                                     'measurement': 'Land Cover',
+                                                        'classes': {'0': 'Water Bodies',
+                                                                    '1': 'Evergreen Needleleaf Forests',
+                                                                    '10': 'Grasslands',
+                                                                    '11': 'Permanent Wtlands',
+                                                                    '12': 'Croplands',
+                                                                    '13': 'Urban and Built-Up',
+                                                                    '14': 'Cropland-Natural Vegetation Mosaics',
+                                                                    '15': 'Snow and Ice',
+                                                                    '16': 'Barren or Sparsely Vegetated',
+                                                                    '2': 'Evergreen Broadleaf Forests',
+                                                                    '3': 'Deciduous Needleleaf Forests',
+                                                                    '4': 'Deciduous Broadleleaf Forests',
+                                                                    '5': 'Mixed Forests',
+                                                                    '6': 'Closed Shrublands',
+                                                                    '7': 'Open Shrublands',
+                                                                    '8': 'Woody Savannas',
+                                                                    '9': 'Savannas'}}}],
                                          'time': None,
                                          'bbox': {'upperLeftCoordinate': {'x': -180.0, 'y': 90.0},
-                                                     'lowerRightCoordinate': {'x': 180.0, 'y': -90.0}},
+                                                  'lowerRightCoordinate': {'x': 180.0, 'y': -90.0}},
                                          'resolution': {'x': 0.1, 'y': 0.1}},
                     'symbology': {'type': 'raster',
                                   'opacity': 1.0,

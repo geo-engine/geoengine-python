@@ -10,6 +10,7 @@ import json
 import rioxarray
 import pyarrow as pa
 import xarray as xr
+from geoengine.types import RasterBandDescriptor
 from test_util import UrllibMocker
 import geoengine as ge
 
@@ -109,7 +110,7 @@ class WorkflowRasterStreamTests(unittest.TestCase):
             "geoengine.Workflow._Workflow__query_result_descriptor",
             return_value=ge.RasterResultDescriptor(
                 "U8",
-                ge.UnitlessMeasurement(),
+                [RasterBandDescriptor("band", ge.UnitlessMeasurement())],
                 "EPSG:4326",
                 spatial_bounds=ge.SpatialPartition2D(-180.0, -90.0, 180.0, 90.0),
                 spatial_resolution=ge.SpatialResolution(45.0, 22.5)
