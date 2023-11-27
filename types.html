@@ -656,18 +656,41 @@ class VectorColumnInfo:
         )
 
 
+@dataclass(repr=False)
+class RasterBandDescriptor:
+    &#39;&#39;&#39;A raster band descriptor&#39;&#39;&#39;
+
+    name: str
+    measurement: Measurement
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.RasterBandDescriptor) -&gt; RasterBandDescriptor:
+        &#39;&#39;&#39;Parse an http response to a `Provenance` object&#39;&#39;&#39;
+        return RasterBandDescriptor(response.name, Measurement.from_response(response.measurement))
+
+    def to_api_dict(self) -&gt; geoengine_openapi_client.RasterBandDescriptor:
+        return geoengine_openapi_client.RasterBandDescriptor(
+            name=self.name,
+            measurement=self.measurement.to_api_dict(),
+        )
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of a raster band descriptor&#39;&#39;&#39;
+        return f&#39;{self.name}: {self.measurement}&#39;
+
+
 class RasterResultDescriptor(ResultDescriptor):
     &#39;&#39;&#39;
     A raster result descriptor
     &#39;&#39;&#39;
     __data_type: Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;]
-    __measurement: Measurement
+    __bands: List[RasterBandDescriptor]
     __spatial_bounds: Optional[SpatialPartition2D]
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
         data_type: Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;],
-        measurement: Measurement,
+        bands: List[RasterBandDescriptor],
         spatial_reference: str,
         time_bounds: Optional[TimeInterval] = None,
         spatial_bounds: Optional[SpatialPartition2D] = None,
@@ -676,7 +699,7 @@ class RasterResultDescriptor(ResultDescriptor):
         &#39;&#39;&#39;Initialize a new `RasterResultDescriptor`&#39;&#39;&#39;
         super().__init__(spatial_reference, time_bounds, spatial_resolution)
         self.__data_type = data_type
-        self.__measurement = measurement
+        self.__bands = bands
         self.__spatial_bounds = spatial_bounds
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
@@ -685,7 +708,7 @@ class RasterResultDescriptor(ResultDescriptor):
         return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.RasterResultDescriptorWithType(
             type=&#39;raster&#39;,
             data_type=self.data_type,
-            measurement=self.measurement.to_api_dict(),
+            bands=[band.to_api_dict() for band in self.__bands],
             spatial_reference=self.spatial_reference,
             time=self.time_bounds.time_str if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
@@ -698,7 +721,7 @@ class RasterResultDescriptor(ResultDescriptor):
         &#39;&#39;&#39;Parse a raster result descriptor from an http response&#39;&#39;&#39;
         spatial_ref = response.spatial_reference
         data_type = response.data_type.value
-        measurement = Measurement.from_response(response.measurement)
+        bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
         # FIXME: datetime can not represent our min max range
@@ -713,7 +736,7 @@ class RasterResultDescriptor(ResultDescriptor):
 
         return RasterResultDescriptor(
             data_type=data_type,
-            measurement=measurement,
+            bands=bands,
             spatial_reference=spatial_ref,
             time_bounds=time_bounds,
             spatial_bounds=spatial_bounds,
@@ -729,8 +752,8 @@ class RasterResultDescriptor(ResultDescriptor):
         return self.__data_type
 
     @property
-    def measurement(self) -&gt; Measurement:
-        return self.__measurement
+    def bands(self) -&gt; List[RasterBandDescriptor]:
+        return self.__bands
 
     @property
     def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
@@ -747,7 +770,10 @@ class RasterResultDescriptor(ResultDescriptor):
         r = &#39;&#39;
         r += f&#39;Data type:         {self.data_type}\n&#39;
         r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
-        r += f&#39;Measurement:       {self.measurement}\n&#39;
+        r += &#39;Bands:\n&#39;
+
+        for band in self.__bands:
+            r += f&#39;    {band}\n&#39;
 
         return r
 
@@ -3131,9 +3157,91 @@ def time_str(self) -&gt; str:
 </dd>
 </dl>
 </dd>
+<dt id="geoengine.types.RasterBandDescriptor"><code class="flex name class">
+<span>class <span class="ident">RasterBandDescriptor</span></span>
+<span>(</span><span>name: str, measurement: <a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A raster band descriptor</p>
+<p>Method generated by attrs for class RasterBandDescriptor.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(repr=False)
+class RasterBandDescriptor:
+    &#39;&#39;&#39;A raster band descriptor&#39;&#39;&#39;
+
+    name: str
+    measurement: Measurement
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.RasterBandDescriptor) -&gt; RasterBandDescriptor:
+        &#39;&#39;&#39;Parse an http response to a `Provenance` object&#39;&#39;&#39;
+        return RasterBandDescriptor(response.name, Measurement.from_response(response.measurement))
+
+    def to_api_dict(self) -&gt; geoengine_openapi_client.RasterBandDescriptor:
+        return geoengine_openapi_client.RasterBandDescriptor(
+            name=self.name,
+            measurement=self.measurement.to_api_dict(),
+        )
+
+    def __repr__(self) -&gt; str:
+        &#39;&#39;&#39;Display representation of a raster band descriptor&#39;&#39;&#39;
+        return f&#39;{self.name}: {self.measurement}&#39;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.RasterBandDescriptor.measurement"><code class="name">var <span class="ident">measurement</span> : <a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.RasterBandDescriptor.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.RasterBandDescriptor.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.RasterBandDescriptor) ‑> <a title="geoengine.types.RasterBandDescriptor" href="#geoengine.types.RasterBandDescriptor">RasterBandDescriptor</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.Provenance" href="#geoengine.types.Provenance">Provenance</a></code> object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: geoengine_openapi_client.RasterBandDescriptor) -&gt; RasterBandDescriptor:
+    &#39;&#39;&#39;Parse an http response to a `Provenance` object&#39;&#39;&#39;
+    return RasterBandDescriptor(response.name, Measurement.from_response(response.measurement))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.RasterBandDescriptor.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.raster_band_descriptor.RasterBandDescriptor</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.RasterBandDescriptor:
+    return geoengine_openapi_client.RasterBandDescriptor(
+        name=self.name,
+        measurement=self.measurement.to_api_dict(),
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.types.RasterResultDescriptor"><code class="flex name class">
 <span>class <span class="ident">RasterResultDescriptor</span></span>
-<span>(</span><span>data_type: "Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']", measurement: <a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a>, spatial_reference: str, time_bounds: Optional[<a title="geoengine.types.TimeInterval" href="#geoengine.types.TimeInterval">TimeInterval</a>] = None, spatial_bounds: Optional[<a title="geoengine.types.SpatialPartition2D" href="#geoengine.types.SpatialPartition2D">SpatialPartition2D</a>] = None, spatial_resolution: Optional[<a title="geoengine.types.SpatialResolution" href="#geoengine.types.SpatialResolution">SpatialResolution</a>] = None)</span>
+<span>(</span><span>data_type: "Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']", bands: List[<a title="geoengine.types.RasterBandDescriptor" href="#geoengine.types.RasterBandDescriptor">RasterBandDescriptor</a>], spatial_reference: str, time_bounds: Optional[<a title="geoengine.types.TimeInterval" href="#geoengine.types.TimeInterval">TimeInterval</a>] = None, spatial_bounds: Optional[<a title="geoengine.types.SpatialPartition2D" href="#geoengine.types.SpatialPartition2D">SpatialPartition2D</a>] = None, spatial_resolution: Optional[<a title="geoengine.types.SpatialResolution" href="#geoengine.types.SpatialResolution">SpatialResolution</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A raster result descriptor</p>
@@ -3147,13 +3255,13 @@ def time_str(self) -&gt; str:
     A raster result descriptor
     &#39;&#39;&#39;
     __data_type: Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;]
-    __measurement: Measurement
+    __bands: List[RasterBandDescriptor]
     __spatial_bounds: Optional[SpatialPartition2D]
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
         data_type: Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;],
-        measurement: Measurement,
+        bands: List[RasterBandDescriptor],
         spatial_reference: str,
         time_bounds: Optional[TimeInterval] = None,
         spatial_bounds: Optional[SpatialPartition2D] = None,
@@ -3162,7 +3270,7 @@ def time_str(self) -&gt; str:
         &#39;&#39;&#39;Initialize a new `RasterResultDescriptor`&#39;&#39;&#39;
         super().__init__(spatial_reference, time_bounds, spatial_resolution)
         self.__data_type = data_type
-        self.__measurement = measurement
+        self.__bands = bands
         self.__spatial_bounds = spatial_bounds
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
@@ -3171,7 +3279,7 @@ def time_str(self) -&gt; str:
         return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.RasterResultDescriptorWithType(
             type=&#39;raster&#39;,
             data_type=self.data_type,
-            measurement=self.measurement.to_api_dict(),
+            bands=[band.to_api_dict() for band in self.__bands],
             spatial_reference=self.spatial_reference,
             time=self.time_bounds.time_str if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
@@ -3184,7 +3292,7 @@ def time_str(self) -&gt; str:
         &#39;&#39;&#39;Parse a raster result descriptor from an http response&#39;&#39;&#39;
         spatial_ref = response.spatial_reference
         data_type = response.data_type.value
-        measurement = Measurement.from_response(response.measurement)
+        bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
         # FIXME: datetime can not represent our min max range
@@ -3199,7 +3307,7 @@ def time_str(self) -&gt; str:
 
         return RasterResultDescriptor(
             data_type=data_type,
-            measurement=measurement,
+            bands=bands,
             spatial_reference=spatial_ref,
             time_bounds=time_bounds,
             spatial_bounds=spatial_bounds,
@@ -3215,8 +3323,8 @@ def time_str(self) -&gt; str:
         return self.__data_type
 
     @property
-    def measurement(self) -&gt; Measurement:
-        return self.__measurement
+    def bands(self) -&gt; List[RasterBandDescriptor]:
+        return self.__bands
 
     @property
     def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
@@ -3233,7 +3341,10 @@ def time_str(self) -&gt; str:
         r = &#39;&#39;
         r += f&#39;Data type:         {self.data_type}\n&#39;
         r += f&#39;Spatial Reference: {self.spatial_reference}\n&#39;
-        r += f&#39;Measurement:       {self.measurement}\n&#39;
+        r += &#39;Bands:\n&#39;
+
+        for band in self.__bands:
+            r += f&#39;    {band}\n&#39;
 
         return r</code></pre>
 </details>
@@ -3258,7 +3369,7 @@ def from_response_raster(
     &#39;&#39;&#39;Parse a raster result descriptor from an http response&#39;&#39;&#39;
     spatial_ref = response.spatial_reference
     data_type = response.data_type.value
-    measurement = Measurement.from_response(response.measurement)
+    bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
     time_bounds = None
     # FIXME: datetime can not represent our min max range
@@ -3273,7 +3384,7 @@ def from_response_raster(
 
     return RasterResultDescriptor(
         data_type=data_type,
-        measurement=measurement,
+        bands=bands,
         spatial_reference=spatial_ref,
         time_bounds=time_bounds,
         spatial_bounds=spatial_bounds,
@@ -3284,6 +3395,18 @@ def from_response_raster(
 </dl>
 <h3>Instance variables</h3>
 <dl>
+<dt id="geoengine.types.RasterResultDescriptor.bands"><code class="name">var <span class="ident">bands</span> : List[<a title="geoengine.types.RasterBandDescriptor" href="#geoengine.types.RasterBandDescriptor">RasterBandDescriptor</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def bands(self) -&gt; List[RasterBandDescriptor]:
+    return self.__bands</code></pre>
+</details>
+</dd>
 <dt id="geoengine.types.RasterResultDescriptor.data_type"><code class="name">var <span class="ident">data_type</span> : Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']</code></dt>
 <dd>
 <div class="desc"></div>
@@ -3294,18 +3417,6 @@ def from_response_raster(
 <pre><code class="python">@property
 def data_type(self) -&gt; Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;]:
     return self.__data_type</code></pre>
-</details>
-</dd>
-<dt id="geoengine.types.RasterResultDescriptor.measurement"><code class="name">var <span class="ident">measurement</span> : <a title="geoengine.types.Measurement" href="#geoengine.types.Measurement">Measurement</a></code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def measurement(self) -&gt; Measurement:
-    return self.__measurement</code></pre>
 </details>
 </dd>
 <dt id="geoengine.types.RasterResultDescriptor.spatial_bounds"><code class="name">var <span class="ident">spatial_bounds</span> : Optional[<a title="geoengine.types.SpatialPartition2D" href="#geoengine.types.SpatialPartition2D">SpatialPartition2D</a>]</code></dt>
@@ -3338,7 +3449,7 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
     return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.RasterResultDescriptorWithType(
         type=&#39;raster&#39;,
         data_type=self.data_type,
-        measurement=self.measurement.to_api_dict(),
+        bands=[band.to_api_dict() for band in self.__bands],
         spatial_reference=self.spatial_reference,
         time=self.time_bounds.time_str if self.time_bounds is not None else None,
         bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
@@ -5267,11 +5378,20 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
 </ul>
 </li>
 <li>
+<h4><code><a title="geoengine.types.RasterBandDescriptor" href="#geoengine.types.RasterBandDescriptor">RasterBandDescriptor</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.RasterBandDescriptor.from_response" href="#geoengine.types.RasterBandDescriptor.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.RasterBandDescriptor.measurement" href="#geoengine.types.RasterBandDescriptor.measurement">measurement</a></code></li>
+<li><code><a title="geoengine.types.RasterBandDescriptor.name" href="#geoengine.types.RasterBandDescriptor.name">name</a></code></li>
+<li><code><a title="geoengine.types.RasterBandDescriptor.to_api_dict" href="#geoengine.types.RasterBandDescriptor.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.types.RasterResultDescriptor" href="#geoengine.types.RasterResultDescriptor">RasterResultDescriptor</a></code></h4>
 <ul class="">
+<li><code><a title="geoengine.types.RasterResultDescriptor.bands" href="#geoengine.types.RasterResultDescriptor.bands">bands</a></code></li>
 <li><code><a title="geoengine.types.RasterResultDescriptor.data_type" href="#geoengine.types.RasterResultDescriptor.data_type">data_type</a></code></li>
 <li><code><a title="geoengine.types.RasterResultDescriptor.from_response_raster" href="#geoengine.types.RasterResultDescriptor.from_response_raster">from_response_raster</a></code></li>
-<li><code><a title="geoengine.types.RasterResultDescriptor.measurement" href="#geoengine.types.RasterResultDescriptor.measurement">measurement</a></code></li>
 <li><code><a title="geoengine.types.RasterResultDescriptor.spatial_bounds" href="#geoengine.types.RasterResultDescriptor.spatial_bounds">spatial_bounds</a></code></li>
 <li><code><a title="geoengine.types.RasterResultDescriptor.to_api_dict" href="#geoengine.types.RasterResultDescriptor.to_api_dict">to_api_dict</a></code></li>
 </ul>
