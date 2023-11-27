@@ -1,5 +1,6 @@
 """Tests for the colorizer module."""
 
+import json
 import sys
 import unittest
 import matplotlib.pyplot as plt
@@ -339,7 +340,7 @@ class ColorizerTests(unittest.TestCase):
         geo_colorizer = colorizer.Colorizer.linear_with_mpl_cmap(color_map="viridis", min_max=(0.0, 255.0), n_steps=2)
         jsonstr = geo_colorizer.to_api_dict().to_json()
 
-        assert jsonstr == expected
+        self.assertDictEqual(json.loads(jsonstr), json.loads(expected))
 
     def test_palette_with_too_small_colormap(self):
         """Tests, if the warning is emitted if an unappropriate color map is chosen."""
