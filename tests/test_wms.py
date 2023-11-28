@@ -59,7 +59,7 @@ class WmsTests(unittest.TestCase):
 
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?version=1.3.0&service=WMS&request=GetMap&width=200&height=100&bbox=-90.0%2C-180.0%2C90.0%2C180.0&format=image/png&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&crs=EPSG%3A4326&styles=custom%3A%7B%22overColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22underColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22breakpoints%22%3A%20%5B%7B%22color%22%3A%20%5B0%2C%200%2C%200%2C%20255%5D%2C%20%22value%22%3A%200.0%7D%2C%20%7B%22color%22%3A%20%5B255%2C%20255%2C%20255%2C%20255%5D%2C%20%22value%22%3A%20255.0%7D%5D%2C%20%22noDataColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22type%22%3A%20%22linearGradient%22%7D&time=2014-04-01T12%3A00%3A00.000%2B00%3A00',
+                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?version=1.3.0&service=WMS&request=GetMap&width=200&height=100&bbox=-90.0%2C-180.0%2C90.0%2C180.0&format=image/png&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&crs=EPSG%3A4326&styles=custom%3A%7B%22breakpoints%22%3A%20%5B%7B%22color%22%3A%20%5B0%2C%200%2C%200%2C%20255%5D%2C%20%22value%22%3A%200.0%7D%2C%20%7B%22color%22%3A%20%5B255%2C%20255%2C%20255%2C%20255%5D%2C%20%22value%22%3A%20255.0%7D%5D%2C%20%22noDataColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22overColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22type%22%3A%20%22linearGradient%22%2C%20%22underColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%7D&time=2014-04-01T12%3A00%3A00.000%2B00%3A00',
                 body=ndvi_png,
             )
 
@@ -128,7 +128,7 @@ class WmsTests(unittest.TestCase):
             # Unfortunately, we need a separate library to catch the request from the WMS call
             m.get(
                 # pylint: disable=line-too-long
-                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?version=1.3.0&service=WMS&request=GetMap&width=200&height=100&bbox=-90.0%2C-180.0%2C90.0%2C180.0&format=image/png&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&crs=EPSG%3A4326&styles=custom%3A%7B%22overColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22underColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22breakpoints%22%3A%20%5B%7B%22color%22%3A%20%5B0%2C%200%2C%200%2C%20255%5D%2C%20%22value%22%3A%200.0%7D%2C%20%7B%22color%22%3A%20%5B255%2C%20255%2C%20255%2C%20255%5D%2C%20%22value%22%3A%20255.0%7D%5D%2C%20%22noDataColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22type%22%3A%20%22linearGradient%22%7D&time=2004-04-01T12%3A00%3A00.000%2B00%3A00',
+                'http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?version=1.3.0&service=WMS&request=GetMap&width=200&height=100&bbox=-90.0%2C-180.0%2C90.0%2C180.0&format=image/png&layers=5b9508a8-bd34-5a1c-acd6-75bb832d2d38&crs=EPSG%3A4326&styles=custom%3A%7B%22breakpoints%22%3A%20%5B%7B%22color%22%3A%20%5B0%2C%200%2C%200%2C%20255%5D%2C%20%22value%22%3A%200.0%7D%2C%20%7B%22color%22%3A%20%5B255%2C%20255%2C%20255%2C%20255%5D%2C%20%22value%22%3A%20255.0%7D%5D%2C%20%22noDataColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22overColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%2C%20%22type%22%3A%20%22linearGradient%22%2C%20%22underColor%22%3A%20%5B0%2C%200%2C%200%2C%200%5D%7D&time=2004-04-01T12%3A00%3A00.000%2B00%3A00',
                 json={
                     "error": "Operator",
                     "message": 'Operator: Could not open gdal dataset for file path '
