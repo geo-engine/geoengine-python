@@ -211,9 +211,13 @@ class TimeInterval:
         return f"TimeInterval(start={self.start}, end={self.end})"
 
     def to_api_dict(self) -> geoengine_openapi_client.TimeInterval:
+        '''Convert the time interval to a dictionary'''
+
+        start = int(self.start.astype('datetime64[ms]').astype(int))
+        end = int(self.end.astype('datetime64[ms]').astype(int)) if self.end is not None else start
         return geoengine_openapi_client.TimeInterval(
-            start=int(self.start.astype('datetime64[ms]').astype(int)),
-            end=int(self.end.astype('datetime64[ms]').astype(int)) if self.end is not None else None,
+            start=start,
+            end=end,
         )
 
     @staticmethod
@@ -681,7 +685,7 @@ class RasterResultDescriptor(ResultDescriptor):
             data_type=self.data_type,
             bands=[band.to_api_dict() for band in self.__bands],
             spatial_reference=self.spatial_reference,
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
         ))
