@@ -970,7 +970,7 @@ class RasterColorizer:
         inner = response.actual_instance
 
         if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
-            return SingeBandRasterColorizer.from_single_band_response(inner)
+            return SingleBandRasterColorizer.from_single_band_response(inner)
 
         raise GeoEngineException({"message": f"Unknown RasterColorizer type: {inner.type}"})
 
@@ -980,7 +980,7 @@ class RasterColorizer:
 
 
 @dataclass
-class SingeBandRasterColorizer(RasterColorizer):
+class SingleBandRasterColorizer(RasterColorizer):
     '''A raster colorizer for a specified band'''
 
     band: int
@@ -988,16 +988,17 @@ class SingeBandRasterColorizer(RasterColorizer):
 
     @staticmethod
     def from_single_band_response(response: geoengine_openapi_client.SingleBandRasterColorizer) -> RasterColorizer:
-        return SingeBandRasterColorizer(
+        return SingleBandRasterColorizer(
             response.band,
             Colorizer.from_response(response.band_colorizer)
         )
 
     def to_api_dict(self) -> geoengine_openapi_client.RasterColorizer:
-        return geoengine_openapi_client.RasterColorizer(
+        return geoengine_openapi_client.RasterColorizer(geoengine_openapi_client.SingleBandRasterColorizer(
+            type='singleBand',
             band=self.band,
             band_colorizer=self.band_colorizer.to_api_dict(),
-        )
+        ))
 
 
 class RasterSymbology(Symbology):

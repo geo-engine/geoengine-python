@@ -100,7 +100,7 @@ class LayerTests(unittest.TestCase):
                     properties=[],
                     symbology=api.Symbology(api.RasterSymbologyWithType(
                         opacity=1,
-                        raster_colorizer=api.SingleBandRasterColorizer(
+                        raster_colorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
                             type='singleBand',
                             band=0,
                             band_colorizer=api.Colorizer(api.PaletteColorizer(
@@ -126,7 +126,7 @@ class LayerTests(unittest.TestCase):
                                 default_color=[0, 0, 0, 0],
                                 no_data_color=[0, 0, 0, 0],
                                 type="palette"
-                            ))),
+                            )))),
                         type="raster"
                     )),
                     workflow={
@@ -602,16 +602,19 @@ class LayerTests(unittest.TestCase):
             symbology=RasterSymbology.from_response(api.Symbology(api.RasterSymbologyWithType(
                 type='raster',
                 opacity=1,
-                rasterColorizer=api.RasterColorizer(api.SingleBandRasterColorizer(type='singleBand', band=0, bandColorizer=api.Colorizer(api.LinearGradientWithType(
-                    type='linearGradient',
-                    no_data_color=[0, 0, 0, 0],
-                    over_color=[0, 0, 0, 0],
-                    under_color=[0, 0, 0, 0],
-                    breakpoints=[
-                        api.Breakpoint(value=0., color=[0, 0, 0, 0]),
-                        api.Breakpoint(value=1., color=[0, 0, 0, 0]),
-                    ],
-                )),
+                rasterColorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
+                    type='singleBand',
+                    band=0,
+                    bandColorizer=api.Colorizer(api.LinearGradientWithType(
+                        type='linearGradient',
+                        no_data_color=[0, 0, 0, 0],
+                        over_color=[0, 0, 0, 0],
+                        under_color=[0, 0, 0, 0],
+                        breakpoints=[
+                            api.Breakpoint(value=0., color=[0, 0, 0, 0]),
+                            api.Breakpoint(value=1., color=[0, 0, 0, 0]),
+                        ],
+                    )),
                 ))))),
             properties=[],
             metadata={},
