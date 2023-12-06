@@ -63,13 +63,17 @@ class DatasetsTests(unittest.TestCase):
                                          'resolution': {'x': 0.1, 'y': 0.1}},
                     'symbology': {'type': 'raster',
                                   'opacity': 1.0,
-                                  'colorizer': {'type': 'linearGradient',
-                                                'breakpoints': [{'value': 0.0, 'color': [0, 0, 255, 255]},
-                                                                {'value': 8.0, 'color': [0, 255, 0, 255]},
-                                                                {'value': 16.0, 'color': [255, 0, 0, 255]}],
-                                                'noDataColor': [0, 0, 0, 0],
-                                                'overColor': [0, 0, 0, 0],
-                                                'underColor': [0, 0, 0, 0]}}}
+                                  'rasterColorizer': {
+                                      'type': 'singleBand',
+                                      'band': 0,
+                                      'bandColorizer': {
+                                          'type': 'linearGradient',
+                                          'breakpoints': [{'value': 0.0, 'color': [0, 0, 255, 255]},
+                                                          {'value': 8.0, 'color': [0, 255, 0, 255]},
+                                                          {'value': 16.0, 'color': [255, 0, 0, 255]}],
+                                          'noDataColor': [0, 0, 0, 0],
+                                          'overColor': [0, 0, 0, 0],
+                                          'underColor': [0, 0, 0, 0]}}}}
                       ])
 
             ge.initialize("http://mock-instance")

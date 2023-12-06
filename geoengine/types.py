@@ -961,15 +961,54 @@ class VectorSymbology(Symbology):
         return None  # type: ignore
 
 
+class RasterColorizer:
+    '''Base class for raster colorizer'''
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.RasterColorizer) -> RasterColorizer:
+        '''Parse an http response to a `RasterColorizer` object'''
+        inner = response.actual_instance
+
+        if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
+            return SingeBandRasterColorizer.from_single_band_response(inner)
+
+        raise GeoEngineException({"message": f"Unknown RasterColorizer type: {inner.type}"})
+
+    @abstractmethod
+    def to_api_dict(self) -> geoengine_openapi_client.RasterColorizer:
+        pass
+
+
+@dataclass
+class SingeBandRasterColorizer(RasterColorizer):
+    '''A raster colorizer for a specified band'''
+
+    band: int
+    band_colorizer: Colorizer
+
+    @staticmethod
+    def from_single_band_response(response: geoengine_openapi_client.SingleBandRasterColorizer) -> RasterColorizer:
+        return SingeBandRasterColorizer(
+            response.band,
+            Colorizer.from_response(response.band_colorizer)
+        )
+
+    def to_api_dict(self) -> geoengine_openapi_client.RasterColorizer:
+        return geoengine_openapi_client.RasterColorizer(
+            band=self.band,
+            band_colorizer=self.band_colorizer.to_api_dict(),
+        )
+
+
 class RasterSymbology(Symbology):
     '''A raster symbology'''
     __opacity: float
-    __colorizer: Colorizer
+    __raster_colorizer: RasterColorizer
 
-    def __init__(self, colorizer: Colorizer, opacity: float = 1.0) -> None:
+    def __init__(self, raster_colorizer: RasterColorizer, opacity: float = 1.0) -> None:
         '''Initialize a new `RasterSymbology`'''
 
-        self.__colorizer = colorizer
+        self.__raster_colorizer = raster_colorizer
         self.__opacity = opacity
 
     def to_api_dict(self) -> geoengine_openapi_client.Symbology:
@@ -977,7 +1016,7 @@ class RasterSymbology(Symbology):
 
         return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbologyWithType(
             type='raster',
-            colorizer=self.__colorizer.to_api_dict(),
+            raster_colorizer=self.__raster_colorizer.to_api_dict(),
             opacity=self.__opacity,
         ))
 
@@ -985,12 +1024,12 @@ class RasterSymbology(Symbology):
     def from_response_raster(response: geoengine_openapi_client.RasterSymbologyWithType) -> RasterSymbology:
         '''Parse an http response to a `RasterSymbology` object'''
 
-        colorizer = Colorizer.from_response(response.colorizer)
+        raster_colorizer = RasterColorizer.from_response(response.raster_colorizer)
 
-        return RasterSymbology(colorizer, response.opacity)
+        return RasterSymbology(raster_colorizer, response.opacity)
 
     def __repr__(self) -> str:
-        return super().__repr__() + f"({self.__colorizer}, {self.__opacity})"
+        return super().__repr__() + f"({self.__raster_colorizer}, {self.__opacity})"
 
 
 class DataId:  # pylint: disable=too-few-public-methods
