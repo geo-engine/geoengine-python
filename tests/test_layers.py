@@ -41,29 +41,33 @@ class LayerTests(unittest.TestCase):
                     "name": "Land Cover",
                     "properties": [],
                     "symbology": {
-                        "colorizer": {
-                            "colors": {
-                                "0": [134, 201, 227, 255],
-                                "1": [30, 129, 62, 255],
-                                "2": [59, 194, 212, 255],
-                                "3": [157, 194, 63, 255],
-                                "4": [159, 225, 127, 255],
-                                "5": [125, 194, 127, 255],
-                                "6": [195, 127, 126, 255],
-                                "7": [188, 221, 190, 255],
-                                "8": [224, 223, 133, 255],
-                                "9": [226, 221, 7, 255],
-                                "10": [223, 192, 125, 255],
-                                "11": [66, 128, 189, 255],
-                                "12": [225, 222, 127, 255],
-                                "13": [253, 2, 0, 255],
-                                "14": [162, 159, 66, 255],
-                                "15": [255, 255, 255, 255],
-                                "16": [192, 192, 192, 255]
-                            },
-                            "defaultColor": [0, 0, 0, 0],
-                            "noDataColor": [0, 0, 0, 0],
-                            "type": "palette"
+                        "rasterColorizer": {
+                            "type": "singleBand",
+                            "band": 0,
+                            "bandColorizer": {
+                                "colors": {
+                                    "0": [134, 201, 227, 255],
+                                    "1": [30, 129, 62, 255],
+                                    "2": [59, 194, 212, 255],
+                                    "3": [157, 194, 63, 255],
+                                    "4": [159, 225, 127, 255],
+                                    "5": [125, 194, 127, 255],
+                                    "6": [195, 127, 126, 255],
+                                    "7": [188, 221, 190, 255],
+                                    "8": [224, 223, 133, 255],
+                                    "9": [226, 221, 7, 255],
+                                    "10": [223, 192, 125, 255],
+                                    "11": [66, 128, 189, 255],
+                                    "12": [225, 222, 127, 255],
+                                    "13": [253, 2, 0, 255],
+                                    "14": [162, 159, 66, 255],
+                                    "15": [255, 255, 255, 255],
+                                    "16": [192, 192, 192, 255]
+                                },
+                                "defaultColor": [0, 0, 0, 0],
+                                "noDataColor": [0, 0, 0, 0],
+                                "type": "palette"
+                            }
                         },
                         "opacity": 1,
                         "type": "raster"
@@ -95,31 +99,34 @@ class LayerTests(unittest.TestCase):
                     metadata={},
                     properties=[],
                     symbology=api.Symbology(api.RasterSymbologyWithType(
-                        colorizer=api.Colorizer(api.PaletteColorizer(
-                            colors={
-                                "0.0": [134, 201, 227, 255],
-                                "1.0": [30, 129, 62, 255],
-                                "2.0": [59, 194, 212, 255],
-                                "3.0": [157, 194, 63, 255],
-                                "4.0": [159, 225, 127, 255],
-                                "5.0": [125, 194, 127, 255],
-                                "6.0": [195, 127, 126, 255],
-                                "7.0": [188, 221, 190, 255],
-                                "8.0": [224, 223, 133, 255],
-                                "9.0": [226, 221, 7, 255],
-                                "10.0": [223, 192, 125, 255],
-                                "11.0": [66, 128, 189, 255],
-                                "12.0": [225, 222, 127, 255],
-                                "13.0": [253, 2, 0, 255],
-                                "14.0": [162, 159, 66, 255],
-                                "15.0": [255, 255, 255, 255],
-                                "16.0": [192, 192, 192, 255]
-                            },
-                            default_color=[0, 0, 0, 0],
-                            no_data_color=[0, 0, 0, 0],
-                            type="palette"
-                        )),
                         opacity=1,
+                        raster_colorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
+                            type='singleBand',
+                            band=0,
+                            band_colorizer=api.Colorizer(api.PaletteColorizer(
+                                colors={
+                                    "0.0": [134, 201, 227, 255],
+                                    "1.0": [30, 129, 62, 255],
+                                    "2.0": [59, 194, 212, 255],
+                                    "3.0": [157, 194, 63, 255],
+                                    "4.0": [159, 225, 127, 255],
+                                    "5.0": [125, 194, 127, 255],
+                                    "6.0": [195, 127, 126, 255],
+                                    "7.0": [188, 221, 190, 255],
+                                    "8.0": [224, 223, 133, 255],
+                                    "9.0": [226, 221, 7, 255],
+                                    "10.0": [223, 192, 125, 255],
+                                    "11.0": [66, 128, 189, 255],
+                                    "12.0": [225, 222, 127, 255],
+                                    "13.0": [253, 2, 0, 255],
+                                    "14.0": [162, 159, 66, 255],
+                                    "15.0": [255, 255, 255, 255],
+                                    "16.0": [192, 192, 192, 255]
+                                },
+                                default_color=[0, 0, 0, 0],
+                                no_data_color=[0, 0, 0, 0],
+                                type="palette"
+                            )))),
                         type="raster"
                     )),
                     workflow={
@@ -594,18 +601,21 @@ class LayerTests(unittest.TestCase):
             },
             symbology=RasterSymbology.from_response(api.Symbology(api.RasterSymbologyWithType(
                 type='raster',
-                colorizer=api.Colorizer(api.LinearGradientWithType(
-                    type='linearGradient',
-                    no_data_color=[0, 0, 0, 0],
-                    over_color=[0, 0, 0, 0],
-                    under_color=[0, 0, 0, 0],
-                    breakpoints=[
-                        api.Breakpoint(value=0., color=[0, 0, 0, 0]),
-                        api.Breakpoint(value=1., color=[0, 0, 0, 0]),
-                    ],
-                )),
                 opacity=1,
-            ))),
+                rasterColorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
+                    type='singleBand',
+                    band=0,
+                    bandColorizer=api.Colorizer(api.LinearGradientWithType(
+                        type='linearGradient',
+                        no_data_color=[0, 0, 0, 0],
+                        over_color=[0, 0, 0, 0],
+                        under_color=[0, 0, 0, 0],
+                        breakpoints=[
+                            api.Breakpoint(value=0., color=[0, 0, 0, 0]),
+                            api.Breakpoint(value=1., color=[0, 0, 0, 0]),
+                        ],
+                    )),
+                ))))),
             properties=[],
             metadata={},
         )
@@ -614,16 +624,20 @@ class LayerTests(unittest.TestCase):
 
         layer.symbology = RasterSymbology.from_response(api.Symbology(api.RasterSymbologyWithType(
             type='raster',
-            colorizer=api.Colorizer(api.PaletteColorizer(
-                type='palette',
-                no_data_color=[0, 0, 0, 0],
-                colors={
-                    0.: [0, 0, 0, 0],
-                    1.: [0, 0, 0, 0],
-                },
-                default_color=[0, 0, 0, 0],
-            )),
             opacity=1,
+            raster_colorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
+                type='singleBand',
+                band=0,
+                band_colorizer=api.Colorizer(api.PaletteColorizer(
+                    type='palette',
+                    no_data_color=[0, 0, 0, 0],
+                    colors={
+                        0.: [0, 0, 0, 0],
+                        1.: [0, 0, 0, 0],
+                    },
+                    default_color=[0, 0, 0, 0],
+                )),
+            ))
         )))
 
         _html = layer._repr_html_()  # pylint: disable=protected-access
