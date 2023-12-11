@@ -990,15 +990,55 @@ class VectorSymbology(Symbology):
         return None  # type: ignore
 
 
+class RasterColorizer:
+    &#39;&#39;&#39;Base class for raster colorizer&#39;&#39;&#39;
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.RasterColorizer) -&gt; RasterColorizer:
+        &#39;&#39;&#39;Parse an http response to a `RasterColorizer` object&#39;&#39;&#39;
+        inner = response.actual_instance
+
+        if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
+            return SingleBandRasterColorizer.from_single_band_response(inner)
+
+        raise GeoEngineException({&#34;message&#34;: f&#34;Unknown RasterColorizer type: {inner.type}&#34;})
+
+    @abstractmethod
+    def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
+        pass
+
+
+@dataclass
+class SingleBandRasterColorizer(RasterColorizer):
+    &#39;&#39;&#39;A raster colorizer for a specified band&#39;&#39;&#39;
+
+    band: int
+    band_colorizer: Colorizer
+
+    @staticmethod
+    def from_single_band_response(response: geoengine_openapi_client.SingleBandRasterColorizer) -&gt; RasterColorizer:
+        return SingleBandRasterColorizer(
+            response.band,
+            Colorizer.from_response(response.band_colorizer)
+        )
+
+    def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
+        return geoengine_openapi_client.RasterColorizer(geoengine_openapi_client.SingleBandRasterColorizer(
+            type=&#39;singleBand&#39;,
+            band=self.band,
+            band_colorizer=self.band_colorizer.to_api_dict(),
+        ))
+
+
 class RasterSymbology(Symbology):
     &#39;&#39;&#39;A raster symbology&#39;&#39;&#39;
     __opacity: float
-    __colorizer: Colorizer
+    __raster_colorizer: RasterColorizer
 
-    def __init__(self, colorizer: Colorizer, opacity: float = 1.0) -&gt; None:
+    def __init__(self, raster_colorizer: RasterColorizer, opacity: float = 1.0) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterSymbology`&#39;&#39;&#39;
 
-        self.__colorizer = colorizer
+        self.__raster_colorizer = raster_colorizer
         self.__opacity = opacity
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
@@ -1006,7 +1046,7 @@ class RasterSymbology(Symbology):
 
         return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbologyWithType(
             type=&#39;raster&#39;,
-            colorizer=self.__colorizer.to_api_dict(),
+            raster_colorizer=self.__raster_colorizer.to_api_dict(),
             opacity=self.__opacity,
         ))
 
@@ -1014,12 +1054,12 @@ class RasterSymbology(Symbology):
     def from_response_raster(response: geoengine_openapi_client.RasterSymbologyWithType) -&gt; RasterSymbology:
         &#39;&#39;&#39;Parse an http response to a `RasterSymbology` object&#39;&#39;&#39;
 
-        colorizer = Colorizer.from_response(response.colorizer)
+        raster_colorizer = RasterColorizer.from_response(response.raster_colorizer)
 
-        return RasterSymbology(colorizer, response.opacity)
+        return RasterSymbology(raster_colorizer, response.opacity)
 
     def __repr__(self) -&gt; str:
-        return super().__repr__() + f&#34;({self.__colorizer}, {self.__opacity})&#34;
+        return super().__repr__() + f&#34;({self.__raster_colorizer}, {self.__opacity})&#34;
 
 
 class DataId:  # pylint: disable=too-few-public-methods
@@ -3239,6 +3279,77 @@ def from_response(cls, response: geoengine_openapi_client.RasterBandDescriptor) 
 </dd>
 </dl>
 </dd>
+<dt id="geoengine.types.RasterColorizer"><code class="flex name class">
+<span>class <span class="ident">RasterColorizer</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for raster colorizer</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterColorizer:
+    &#39;&#39;&#39;Base class for raster colorizer&#39;&#39;&#39;
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.RasterColorizer) -&gt; RasterColorizer:
+        &#39;&#39;&#39;Parse an http response to a `RasterColorizer` object&#39;&#39;&#39;
+        inner = response.actual_instance
+
+        if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
+            return SingleBandRasterColorizer.from_single_band_response(inner)
+
+        raise GeoEngineException({&#34;message&#34;: f&#34;Unknown RasterColorizer type: {inner.type}&#34;})
+
+    @abstractmethod
+    def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
+        pass</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.SingleBandRasterColorizer" href="#geoengine.types.SingleBandRasterColorizer">SingleBandRasterColorizer</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.RasterColorizer.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.RasterColorizer) ‑> <a title="geoengine.types.RasterColorizer" href="#geoengine.types.RasterColorizer">RasterColorizer</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.RasterColorizer" href="#geoengine.types.RasterColorizer">RasterColorizer</a></code> object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: geoengine_openapi_client.RasterColorizer) -&gt; RasterColorizer:
+    &#39;&#39;&#39;Parse an http response to a `RasterColorizer` object&#39;&#39;&#39;
+    inner = response.actual_instance
+
+    if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
+        return SingleBandRasterColorizer.from_single_band_response(inner)
+
+    raise GeoEngineException({&#34;message&#34;: f&#34;Unknown RasterColorizer type: {inner.type}&#34;})</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.RasterColorizer.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.raster_colorizer.RasterColorizer</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.types.RasterResultDescriptor"><code class="flex name class">
 <span>class <span class="ident">RasterResultDescriptor</span></span>
 <span>(</span><span>data_type: "Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']", bands: List[<a title="geoengine.types.RasterBandDescriptor" href="#geoengine.types.RasterBandDescriptor">RasterBandDescriptor</a>], spatial_reference: str, time_bounds: Optional[<a title="geoengine.types.TimeInterval" href="#geoengine.types.TimeInterval">TimeInterval</a>] = None, spatial_bounds: Optional[<a title="geoengine.types.SpatialPartition2D" href="#geoengine.types.SpatialPartition2D">SpatialPartition2D</a>] = None, spatial_resolution: Optional[<a title="geoengine.types.SpatialResolution" href="#geoengine.types.SpatialResolution">SpatialResolution</a>] = None)</span>
@@ -3475,7 +3586,7 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
 </dd>
 <dt id="geoengine.types.RasterSymbology"><code class="flex name class">
 <span>class <span class="ident">RasterSymbology</span></span>
-<span>(</span><span>colorizer: Colorizer, opacity: float = 1.0)</span>
+<span>(</span><span>raster_colorizer: <a title="geoengine.types.RasterColorizer" href="#geoengine.types.RasterColorizer">RasterColorizer</a>, opacity: float = 1.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A raster symbology</p>
@@ -3487,12 +3598,12 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
 <pre><code class="python">class RasterSymbology(Symbology):
     &#39;&#39;&#39;A raster symbology&#39;&#39;&#39;
     __opacity: float
-    __colorizer: Colorizer
+    __raster_colorizer: RasterColorizer
 
-    def __init__(self, colorizer: Colorizer, opacity: float = 1.0) -&gt; None:
+    def __init__(self, raster_colorizer: RasterColorizer, opacity: float = 1.0) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterSymbology`&#39;&#39;&#39;
 
-        self.__colorizer = colorizer
+        self.__raster_colorizer = raster_colorizer
         self.__opacity = opacity
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
@@ -3500,7 +3611,7 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
 
         return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbologyWithType(
             type=&#39;raster&#39;,
-            colorizer=self.__colorizer.to_api_dict(),
+            raster_colorizer=self.__raster_colorizer.to_api_dict(),
             opacity=self.__opacity,
         ))
 
@@ -3508,12 +3619,12 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
     def from_response_raster(response: geoengine_openapi_client.RasterSymbologyWithType) -&gt; RasterSymbology:
         &#39;&#39;&#39;Parse an http response to a `RasterSymbology` object&#39;&#39;&#39;
 
-        colorizer = Colorizer.from_response(response.colorizer)
+        raster_colorizer = RasterColorizer.from_response(response.raster_colorizer)
 
-        return RasterSymbology(colorizer, response.opacity)
+        return RasterSymbology(raster_colorizer, response.opacity)
 
     def __repr__(self) -&gt; str:
-        return super().__repr__() + f&#34;({self.__colorizer}, {self.__opacity})&#34;</code></pre>
+        return super().__repr__() + f&#34;({self.__raster_colorizer}, {self.__opacity})&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -3534,9 +3645,9 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
 def from_response_raster(response: geoengine_openapi_client.RasterSymbologyWithType) -&gt; RasterSymbology:
     &#39;&#39;&#39;Parse an http response to a `RasterSymbology` object&#39;&#39;&#39;
 
-    colorizer = Colorizer.from_response(response.colorizer)
+    raster_colorizer = RasterColorizer.from_response(response.raster_colorizer)
 
-    return RasterSymbology(colorizer, response.opacity)</code></pre>
+    return RasterSymbology(raster_colorizer, response.opacity)</code></pre>
 </details>
 </dd>
 </dl>
@@ -3556,7 +3667,7 @@ def from_response_raster(response: geoengine_openapi_client.RasterSymbologyWithT
 
     return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbologyWithType(
         type=&#39;raster&#39;,
-        colorizer=self.__colorizer.to_api_dict(),
+        raster_colorizer=self.__raster_colorizer.to_api_dict(),
         opacity=self.__opacity,
     ))</code></pre>
 </details>
@@ -3821,6 +3932,102 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
 </details>
 </dd>
 </dl>
+</dd>
+<dt id="geoengine.types.SingleBandRasterColorizer"><code class="flex name class">
+<span>class <span class="ident">SingleBandRasterColorizer</span></span>
+<span>(</span><span>band: int, band_colorizer: Colorizer)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A raster colorizer for a specified band</p>
+<p>Method generated by attrs for class SingleBandRasterColorizer.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class SingleBandRasterColorizer(RasterColorizer):
+    &#39;&#39;&#39;A raster colorizer for a specified band&#39;&#39;&#39;
+
+    band: int
+    band_colorizer: Colorizer
+
+    @staticmethod
+    def from_single_band_response(response: geoengine_openapi_client.SingleBandRasterColorizer) -&gt; RasterColorizer:
+        return SingleBandRasterColorizer(
+            response.band,
+            Colorizer.from_response(response.band_colorizer)
+        )
+
+    def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
+        return geoengine_openapi_client.RasterColorizer(geoengine_openapi_client.SingleBandRasterColorizer(
+            type=&#39;singleBand&#39;,
+            band=self.band,
+            band_colorizer=self.band_colorizer.to_api_dict(),
+        ))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.types.RasterColorizer" href="#geoengine.types.RasterColorizer">RasterColorizer</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.SingleBandRasterColorizer.band"><code class="name">var <span class="ident">band</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.SingleBandRasterColorizer.band_colorizer"><code class="name">var <span class="ident">band_colorizer</span> : <a title="geoengine.colorizer.Colorizer" href="colorizer.html#geoengine.colorizer.Colorizer">Colorizer</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.types.SingleBandRasterColorizer.from_single_band_response"><code class="name flex">
+<span>def <span class="ident">from_single_band_response</span></span>(<span>response: geoengine_openapi_client.SingleBandRasterColorizer) ‑> <a title="geoengine.types.RasterColorizer" href="#geoengine.types.RasterColorizer">RasterColorizer</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_single_band_response(response: geoengine_openapi_client.SingleBandRasterColorizer) -&gt; RasterColorizer:
+    return SingleBandRasterColorizer(
+        response.band,
+        Colorizer.from_response(response.band_colorizer)
+    )</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.types.SingleBandRasterColorizer.to_api_dict"><code class="name flex">
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.raster_colorizer.RasterColorizer</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
+    return geoengine_openapi_client.RasterColorizer(geoengine_openapi_client.SingleBandRasterColorizer(
+        type=&#39;singleBand&#39;,
+        band=self.band,
+        band_colorizer=self.band_colorizer.to_api_dict(),
+    ))</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.types.RasterColorizer" href="#geoengine.types.RasterColorizer">RasterColorizer</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.types.RasterColorizer.from_response" href="#geoengine.types.RasterColorizer.from_response">from_response</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="geoengine.types.SpatialBounds"><code class="flex name class">
 <span>class <span class="ident">SpatialBounds</span></span>
@@ -5387,6 +5594,13 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
 </ul>
 </li>
 <li>
+<h4><code><a title="geoengine.types.RasterColorizer" href="#geoengine.types.RasterColorizer">RasterColorizer</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.RasterColorizer.from_response" href="#geoengine.types.RasterColorizer.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.types.RasterColorizer.to_api_dict" href="#geoengine.types.RasterColorizer.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.types.RasterResultDescriptor" href="#geoengine.types.RasterResultDescriptor">RasterResultDescriptor</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.types.RasterResultDescriptor.bands" href="#geoengine.types.RasterResultDescriptor.bands">bands</a></code></li>
@@ -5414,6 +5628,15 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
 <li><code><a title="geoengine.types.ResultDescriptor.spatial_resolution" href="#geoengine.types.ResultDescriptor.spatial_resolution">spatial_resolution</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.time_bounds" href="#geoengine.types.ResultDescriptor.time_bounds">time_bounds</a></code></li>
 <li><code><a title="geoengine.types.ResultDescriptor.to_api_dict" href="#geoengine.types.ResultDescriptor.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.types.SingleBandRasterColorizer" href="#geoengine.types.SingleBandRasterColorizer">SingleBandRasterColorizer</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.types.SingleBandRasterColorizer.band" href="#geoengine.types.SingleBandRasterColorizer.band">band</a></code></li>
+<li><code><a title="geoengine.types.SingleBandRasterColorizer.band_colorizer" href="#geoengine.types.SingleBandRasterColorizer.band_colorizer">band_colorizer</a></code></li>
+<li><code><a title="geoengine.types.SingleBandRasterColorizer.from_single_band_response" href="#geoengine.types.SingleBandRasterColorizer.from_single_band_response">from_single_band_response</a></code></li>
+<li><code><a title="geoengine.types.SingleBandRasterColorizer.to_api_dict" href="#geoengine.types.SingleBandRasterColorizer.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>
 <li>
