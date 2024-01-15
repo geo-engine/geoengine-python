@@ -72,6 +72,8 @@ class RasterOperator(Operator):
             return TimeShift.from_operator_dict(operator_dict).as_raster()
         if operator_dict['type'] == 'TemporalRasterAggregation':
             return TemporalRasterAggregation.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'RasterStacker':
+            return RasterStacker.from_operator_dict(operator_dict)
 
         raise NotImplementedError(f"Unknown operator type {operator_dict['type']}")
 
@@ -558,7 +560,7 @@ class Expression(RasterOperator):
     '''An Expression operator.'''
 
     expression: str
-    sources: Dict[str, RasterOperator]
+    source: RasterOperator
     output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32"
     map_no_data: bool = False
     output_measurement: Optional[Measurement] = None
@@ -566,14 +568,14 @@ class Expression(RasterOperator):
     # pylint: disable=too-many-arguments
     def __init__(self,
                  expression: str,
-                 sources: Dict[str, RasterOperator],
+                 source: RasterOperator,
                  output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
                  map_no_data: bool = False,
                  output_measurement: Optional[Measurement] = None,
                  ):
         '''Creates a new Expression operator.'''
         self.expression = expression
-        self.sources = sources
+        self.source = source
         self.output_type = output_type
         self.map_no_data = map_no_data
         self.output_measurement = output_measurement
@@ -593,9 +595,9 @@ class Expression(RasterOperator):
         return {
             "type": self.name(),
             "params": params,
-            "sources":
-                {i: raster_source.to_dict() for i, raster_source in self.sources.items()}
-
+            "sources": {
+                "raster": self.source.to_dict()             
+            }                
         }
 
     @classmethod
@@ -603,17 +605,13 @@ class Expression(RasterOperator):
         if operator_dict["type"] != "Expression":
             raise ValueError("Invalid operator type")
 
-        sources = {}
-        for key, source in operator_dict["sources"].items():
-            sources[key] = RasterOperator.from_operator_dict(source)
-
         output_measurement = None
         if "outputMeasurement" in operator_dict["params"]:
             output_measurement = Measurement.from_response(operator_dict["params"]["outputMeasurement"])
 
         return Expression(
             expression=operator_dict["params"]["expression"],
-            sources=sources,
+            source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
             output_type=operator_dict["params"]["outputType"],
             map_no_data=operator_dict["params"]["mapNoData"],
             output_measurement=output_measurement
@@ -755,4 +753,41 @@ class TimeShift(Operator):
             shift_type=operator_dict["params"]["type"],
             granularity=operator_dict["params"]["granularity"],
             value=operator_dict["params"]["value"]
+        )
+
+class RasterStacker(RasterOperator):
+    '''The RasterStacker operator.'''
+
+    sources: List[RasterOperator]
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 sources: List[RasterOperator],
+                 ):
+        '''Creates a new RasterStacker operator.'''
+        self.sources = sources
+
+    def name(self) -> str:
+        return 'RasterStacker'
+
+    def to_dict(self) -> Dict[str, Any]:
+        params = {}
+
+        return {
+            "type": self.name(),
+            "params": params,
+            "sources": {
+                "rasters": [raster_source.to_dict() for raster_source in self.sources]                
+            }            
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterStacker':
+        if operator_dict["type"] != "RasterStacker":
+            raise ValueError("Invalid operator type")
+
+        sources = [RasterOperator.from_operator_dict(source) for source in operator_dict["sources"]["rasters"]]
+
+        return RasterStacker(
+            sources=sources,
         )

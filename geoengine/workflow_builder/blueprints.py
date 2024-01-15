@@ -46,10 +46,7 @@ def sentinel2_cloud_free_band_custom_input(band_dataset: str, scl_dataset: str):
     cloud_free = operators.Expression(
         expression="if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { A }",
         output_type="U16",
-        sources={
-            "a": band_source,
-            "b": scl_source,
-        }
+        source=operators.RasterStacker([band_source, scl_source]),
     )
 
     return cloud_free
@@ -70,11 +67,7 @@ def sentinel2_cloud_free_ndvi_custom_input(nir_dataset: str, red_dataset: str, s
     cloud_free = operators.Expression(
         expression="if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { (A - B) / (A + B) }",
         output_type="F32",
-        sources={
-            "a": nir_source,
-            "b": red_source,
-            "c": scl_source,
-        }
+        source=operators.RasterStacker([nir_source, red_source, scl_source]),
     )
 
     return cloud_free
