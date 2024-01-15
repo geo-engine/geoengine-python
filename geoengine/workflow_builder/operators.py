@@ -596,8 +596,8 @@ class Expression(RasterOperator):
             "type": self.name(),
             "params": params,
             "sources": {
-                "raster": self.source.to_dict()             
-            }                
+                "raster": self.source.to_dict()
+            }
         }
 
     @classmethod
@@ -755,6 +755,7 @@ class TimeShift(Operator):
             value=operator_dict["params"]["value"]
         )
 
+
 class RasterStacker(RasterOperator):
     '''The RasterStacker operator.'''
 
@@ -771,14 +772,12 @@ class RasterStacker(RasterOperator):
         return 'RasterStacker'
 
     def to_dict(self) -> Dict[str, Any]:
-        params = {}
-
         return {
             "type": self.name(),
-            "params": params,
+            "params": {},
             "sources": {
-                "rasters": [raster_source.to_dict() for raster_source in self.sources]                
-            }            
+                "rasters": [raster_source.to_dict() for raster_source in self.sources]
+            }
         }
 
     @classmethod
