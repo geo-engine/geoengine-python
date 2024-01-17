@@ -400,8 +400,6 @@ class LayerCollection:
         return [item for item in self.items if item.name == name]
 
     def search(self, search_string: str, *,
-               #    search_type: geoengine_openapi_client.SearchType
-               #    = geoengine_openapi_client.SearchType(geoengine_openapi_client.SearchType.FULLTEXT),
                search_type: Literal['fulltext', 'prefix'] = 'fulltext',
                offset: int = 0,
                limit: int = 20,
@@ -410,7 +408,10 @@ class LayerCollection:
 
         session = get_session()
 
-        if search_type not in [geoengine_openapi_client.SearchType.FULLTEXT, geoengine_openapi_client.SearchType.PREFIX]:
+        if search_type not in [
+                geoengine_openapi_client.SearchType.FULLTEXT,
+                geoengine_openapi_client.SearchType.PREFIX,
+        ]:
             raise ValueError(f'Invalid search type {search_type}')
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
