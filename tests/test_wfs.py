@@ -829,7 +829,7 @@ class WfsTests(unittest.TestCase):
                     }]
                 },
                 request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064',
-                                 'User-Agent': f'geoengine-python/{get_distribution("geoengine").version}'}
+                                 'User-Agent': f'geoengine/openapi-client/python/{get_distribution("geoengine-openapi-client").version}'}
             )
 
             ge.initialize("http://mock-instance")
