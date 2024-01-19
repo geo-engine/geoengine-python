@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import auto
 from io import StringIO
 import os
-from typing import Any, Dict, Generic, List, NewType, Optional, TypeVar, Union, cast
+from typing import Any, Dict, Generic, List, Literal, NewType, Optional, TypeVar, Union, cast
 from uuid import UUID
 import json
 from strenum import LowercaseStrEnum
@@ -398,6 +398,54 @@ class LayerCollection:
         '''Get all children with the given name'''
 
         return [item for item in self.items if item.name == name]
+
+    def search(self, search_string: str, *,
+               search_type: Literal['fulltext', 'prefix'] = 'fulltext',
+               offset: int = 0,
+               limit: int = 20,
+               timeout: int = 60) -> List[Listing]:
+        '''Search for a string in the layer collection'''
+
+        session = get_session()
+
+        if search_type not in [
+                geoengine_openapi_client.SearchType.FULLTEXT,
+                geoengine_openapi_client.SearchType.PREFIX,
+        ]:
+            raise ValueError(f'Invalid search type {search_type}')
+
+        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+            layers_api = geoengine_openapi_client.LayersApi(api_client)
+            layer_collection_response = layers_api.search_handler(
+                provider=str(self.provider_id),
+                collection=str(self.collection_id),
+                search_string=search_string,
+                search_type=geoengine_openapi_client.SearchType(search_type),
+                offset=offset,
+                limit=limit,
+                _request_timeout=timeout)
+
+        listings: List[Listing] = []
+        for item in layer_collection_response.items:
+            item = item.actual_instance
+            if isinstance(item, geoengine_openapi_client.LayerCollectionListingWithType):
+                listings.append(LayerCollectionListing(
+                    listing_id=LayerCollectionId(item.id.collection_id),
+                    provider_id=LayerProviderId(UUID(item.id.provider_id)),
+                    name=item.name,
+                    description=item.description,
+                ))
+            elif isinstance(item, geoengine_openapi_client.LayerListingWithType):
+                listings.append(LayerListing(
+                    listing_id=LayerId(item.id.layer_id),
+                    provider_id=LayerProviderId(UUID(item.id.provider_id)),
+                    name=item.name,
+                    description=item.description,
+                ))
+            else:
+                pass  # ignore, should not happen
+
+        return listings
 
 
 @dataclass(repr=False)
