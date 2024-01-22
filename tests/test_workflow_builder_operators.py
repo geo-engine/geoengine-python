@@ -249,7 +249,7 @@ class OperatorsTests(unittest.TestCase):
         source_operator = wb.operators.GdalSource("ndvi")
 
         workflow = wb.operators.Expression(
-            sources={'a': source_operator},
+            source=source_operator,
             expression="x + 1",
             output_type="U8",
         )
@@ -263,7 +263,7 @@ class OperatorsTests(unittest.TestCase):
 
             },
             'sources': {
-                'a': {
+                'raster': {
                     'type': 'GdalSource',
                     'params': {
                         'data': "ndvi"

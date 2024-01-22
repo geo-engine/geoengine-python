@@ -28,16 +28,23 @@ class BlueprintsTests(unittest.TestCase):
                 "mapNoData": False,
             },
             "sources": {
-                'a': {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B02`"
-                    }
-                },
-                'b': {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                "raster": {
+                    "type": "RasterStacker",
+                    "params": {},
+                    "sources": {
+                        "rasters": [
+                            {
+                                "type": "GdalSource",
+                                "params": {
+                                    "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B02`"
+                                }
+                            }, {
+                                "type": "GdalSource",
+                                "params": {
+                                    "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                                }
+                            }
+                        ]
                     }
                 }
             }
@@ -54,22 +61,28 @@ class BlueprintsTests(unittest.TestCase):
                 "mapNoData": False,
             },
             "sources": {
-                'a': {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B08`"
-                    }
-                },
-                'b': {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B04`"
-                    }
-                },
-                'c': {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                "raster": {
+                    "type": "RasterStacker",
+                    "params": {},
+                    "sources": {
+                        "rasters": [
+                            {
+                                "type": "GdalSource",
+                                "params": {
+                                    "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B08`"
+                                }
+                            }, {
+                                "type": "GdalSource",
+                                "params": {
+                                    "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B04`"
+                                }
+                            }, {
+                                "type": "GdalSource",
+                                "params": {
+                                    "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                                }
+                            }
+                        ]
                     }
                 }
             }
@@ -86,16 +99,23 @@ class BlueprintsTests(unittest.TestCase):
                 "mapNoData": False,
             },
             "sources": {
-                'a': {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": "data_band"
-                    }
-                },
-                'b': {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": "scl_band"
+                "raster": {
+                    "type": "RasterStacker",
+                    "params": {},
+                    "sources": {
+                        "rasters": [
+                            {
+                                "type": "GdalSource",
+                                "params": {
+                                    "data": "data_band"
+                                }
+                            }, {
+                                "type": "GdalSource",
+                                "params": {
+                                    "data": "scl_band"
+                                }
+                            }
+                        ]
                     }
                 }
             }
@@ -112,22 +132,28 @@ class BlueprintsTests(unittest.TestCase):
                 "mapNoData": False,
             },
             "sources": {
-                'a': {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": "band8"
-                    }
-                },
-                'b': {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": "band4"
-                    }
-                },
-                'c': {
-                    "type": "GdalSource",
-                    "params": {
-                        "data": "scl_band"
+                "raster": {
+                    "type": "RasterStacker",
+                    "params": {},
+                    "sources": {
+                        "rasters": [
+                            {
+                                "type": "GdalSource",
+                                "params": {
+                                    "data": "band8"
+                                }
+                            }, {
+                                "type": "GdalSource",
+                                "params": {
+                                    "data": "band4"
+                                }
+                            }, {
+                                "type": "GdalSource",
+                                "params": {
+                                    "data": "scl_band"
+                                }
+                            }
+                        ]
                     }
                 }
             }
@@ -158,16 +184,23 @@ class BlueprintsTests(unittest.TestCase):
                         "mapNoData": False,
                     },
                     "sources": {
-                        'a': {
-                            "type": "GdalSource",
-                            "params": {
-                                "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B04`"
-                            }
-                        },
-                        'b': {
-                            "type": "GdalSource",
-                            "params": {
-                                "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                        "raster": {
+                            "type": "RasterStacker",
+                            "params": {},
+                            "sources": {
+                                "rasters": [
+                                    {
+                                        "type": "GdalSource",
+                                        "params": {
+                                            "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B04`"
+                                        }
+                                    }, {
+                                        "type": "GdalSource",
+                                        "params": {
+                                            "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                                        }
+                                    }
+                                ]
                             }
                         }
                     }
@@ -200,16 +233,23 @@ class BlueprintsTests(unittest.TestCase):
                         "mapNoData": False,
                     },
                     "sources": {
-                        'a': {
-                            "type": "GdalSource",
-                            "params": {
-                                "data": "band8"
-                            }
-                        },
-                        'b': {
-                            "type": "GdalSource",
-                            "params": {
-                                "data": "scl_band"
+                        "raster": {
+                            "type": "RasterStacker",
+                            "params": {},
+                            "sources": {
+                                "rasters": [
+                                    {
+                                        "type": "GdalSource",
+                                        "params": {
+                                            "data": "band8"
+                                        }
+                                    }, {
+                                        "type": "GdalSource",
+                                        "params": {
+                                            "data": "scl_band"
+                                        }
+                                    }
+                                ]
                             }
                         }
                     }
@@ -242,22 +282,28 @@ class BlueprintsTests(unittest.TestCase):
                         "mapNoData": False,
                     },
                     "sources": {
-                        'a': {
-                            "type": "GdalSource",
-                            "params": {
-                                "data": "band8"
-                            }
-                        },
-                        'b': {
-                            "type": "GdalSource",
-                            "params": {
-                                "data": "band4"
-                            }
-                        },
-                        'c': {
-                            "type": "GdalSource",
-                            "params": {
-                                "data": "scl_band"
+                        "raster": {
+                            "type": "RasterStacker",
+                            "params": {},
+                            "sources": {
+                                "rasters": [
+                                    {
+                                        "type": "GdalSource",
+                                        "params": {
+                                            "data": "band8"
+                                        }
+                                    }, {
+                                        "type": "GdalSource",
+                                        "params": {
+                                            "data": "band4"
+                                        }
+                                    }, {
+                                        "type": "GdalSource",
+                                        "params": {
+                                            "data": "scl_band"
+                                        }
+                                    }
+                                ]
                             }
                         }
                     }
