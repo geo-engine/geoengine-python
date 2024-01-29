@@ -7,11 +7,12 @@ A workflow representation and methods on workflows
 from __future__ import annotations
 
 import asyncio
+from collections import defaultdict
 import json
 from io import BytesIO
 from logging import debug
 from os import PathLike
-from typing import Any, AsyncIterator, Dict, List, Optional, Union, Type, cast, TypedDict
+from typing import Any, AsyncIterator, Dict, List, Optional, Tuple, Union, Type, cast, TypedDict
 from uuid import UUID
 
 import geopandas as gpd
@@ -467,7 +468,9 @@ class Workflow:
     async def raster_stream(
             self,
             query_rectangle: QueryRectangle,
-            open_timeout: int = 60) -> AsyncIterator[RasterTile2D]:
+            open_timeout: int = 60,
+            bands: List[int] = [0] # TODO: move into query rectangle? would need to distinguish between raster/query first
+            ) -> AsyncIterator[RasterTile2D]:
         '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
 
         def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
@@ -500,6 +503,7 @@ class Workflow:
                 'spatialBounds': query_rectangle.bbox_str,
                 'timeInterval': query_rectangle.time_str,
                 'spatialResolution': str(query_rectangle.spatial_resolution),
+                'attributes': ','.join(map(str, bands))
             },
         ).prepare().url
 
@@ -555,7 +559,9 @@ class Workflow:
             self,
             query_rectangle: QueryRectangle,
             clip_to_query_rectangle: bool = False,
-            open_timeout: int = 60) -> xr.DataArray:
+            open_timeout: int = 60,
+            bands: List[int] = [0] # TODO: move into query rectangle? would need to distinguish between raster/query first
+            ) -> xr.DataArray:
         '''
         Stream the workflow result into memory and output a single xarray.
 
@@ -564,10 +570,11 @@ class Workflow:
 
         tile_stream = self.raster_stream(
             query_rectangle,
-            open_timeout=open_timeout
+            open_timeout=open_timeout,
+            bands = bands
         )
 
-        timesteps: List[xr.DataArray] = []
+        timestep_xarrays: List[xr.DataArray] = []
 
         spatial_clip_bounds = query_rectangle.spatial_bounds if clip_to_query_rectangle else None
 
@@ -598,8 +605,20 @@ class Workflow:
         def merge_tiles(tiles: List[xr.DataArray]) -> Optional[xr.DataArray]:
             if len(tiles) == 0:
                 return None
+            
+            # combine the bands of the tiles into multi-band tiles
+            tiles_by_tile_idx: Dict[Tuple[int, int], List[xr.DataArray]] = defaultdict(list)
 
-            combined_tiles = xr.combine_by_coords(tiles)
+            for tile in tiles:
+                tile_idx = (tile.tile_idx_y.values.item(), tile.tile_idx_x.values.item())
+                tiles_by_tile_idx[tile_idx].append(tile)
+            
+            multi_band_tiles = []
+            for tile_idx, tiles in tiles_by_tile_idx.items():
+                multi_band_tiles.append(xr.concat(tiles, dim='band'))
+
+            # combine the multi-band tiles into a single xarray
+            combined_tiles = xr.combine_by_coords(multi_band_tiles)
 
             if isinstance(combined_tiles, xr.Dataset):
                 raise TypeException('Internal error: Merging data arrays should result in a data array.')
@@ -609,7 +628,7 @@ class Workflow:
         (tiles, remainder_tile) = await read_tiles(None)
 
         while len(tiles):
-            ((new_tiles, new_remainder_tile), new_timestep) = await asyncio.gather(
+            ((new_tiles, new_remainder_tile), new_timestep_xarray) = await asyncio.gather(
                 read_tiles(remainder_tile),
                 backports.to_thread(merge_tiles, tiles)
                 # asyncio.to_thread(merge_tiles, tiles), # TODO: use this when min Python version is 3.9
@@ -618,8 +637,8 @@ class Workflow:
             tiles = new_tiles
             remainder_tile = new_remainder_tile
 
-            if new_timestep is not None:
-                timesteps.append(new_timestep)
+            if new_timestep_xarray is not None:
+                timestep_xarrays.append(new_timestep_xarray)
 
         output: xr.DataArray = cast(
             xr.DataArray,
@@ -627,7 +646,7 @@ class Workflow:
             await backports.to_thread(
                 xr.concat,
                 # TODO: This is a typings error, since the method accepts also a `xr.DataArray` and returns one
-                cast(List[xr.Dataset], timesteps),
+                cast(List[xr.Dataset], timestep_xarrays),
                 dim='time'
             )
         )

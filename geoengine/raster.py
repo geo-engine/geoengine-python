@@ -17,6 +17,8 @@ class RasterTile2D:
     geo_transform: gety.GeoTransform
     crs: str
     time: gety.TimeInterval
+    band: int
+    tile_idx: Tuple[int, int]
 
     # pylint: disable=too-many-arguments
     def __init__(
@@ -25,7 +27,9 @@ class RasterTile2D:
             data: pa.Array,
             geo_transform: gety.GeoTransform,
             crs: str,
-            time: gety.TimeInterval
+            time: gety.TimeInterval,
+            band: int,
+            tile_idx: Tuple[int, int]
     ):
         '''Create a RasterTile2D object'''
         self.size_y, self.size_x = shape
@@ -33,6 +37,8 @@ class RasterTile2D:
         self.geo_transform = geo_transform
         self.crs = crs
         self.time = time
+        self.band = band
+        self.tile_idx = tile_idx
 
     @property
     def shape(self) -> Tuple[int, int]:
@@ -152,6 +158,9 @@ class RasterTile2D:
                 'x': self.coords_x(pixel_center=True),
                 'y': self.coords_y(pixel_center=True),
                 'time': self.time_start_ms,  # TODO: incorporate time end?
+                'band': self.band,
+                'tile_idx_y': self.tile_idx[0],
+                'tile_idx_x': self.tile_idx[1],
             }
         )
         array.rio.write_crs(self.crs, inplace=True)
@@ -189,10 +198,16 @@ class RasterTile2D:
 
         time = gety.TimeInterval.from_response(json.loads(metadata[b'time']))
 
+        band = int(metadata[b'band'])
+
+        tile_idx = tuple((int(i) for i in metadata[b'tileIdx'].decode('utf-8').split(',')))
+
         return RasterTile2D(
             (y_size, x_size),
             arrow_array,
             geo_transform,
             spatial_reference,
-            time
+            time,
+            band,
+            tile_idx
         )
