@@ -160,11 +160,12 @@ class RasterTile2D:
                 'y': self.coords_y(pixel_center=True),
                 'time': self.time_start_ms,  # TODO: incorporate time end?
                 'band': self.band,
-                'tile_idx_y': self.tile_idx[0],
-                'tile_idx_x': self.tile_idx[1],
             }
         )
         array.rio.write_crs(self.crs, inplace=True)
+
+        array.attrs['tile_idx_y'] = self.tile_idx[0]
+        array.attrs['tile_idx_x'] = self.tile_idx[1]
 
         if clip_with_bounds is not None:
             array = array.rio.clip_box(*clip_with_bounds.as_bbox_tuple())

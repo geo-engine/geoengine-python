@@ -617,15 +617,15 @@ class Workflow:
             tiles_by_tile_idx: Dict[Tuple[int, int], List[xr.DataArray]] = defaultdict(list)
 
             for tile in tiles:
-                tile_idx = (tile.tile_idx_y.values.item(), tile.tile_idx_x.values.item())
+                tile_idx = (tile.attrs['tile_idx_y'], tile.attrs['tile_idx_x'])
                 tiles_by_tile_idx[tile_idx].append(tile)
 
             multi_band_tiles = []
             for tile_idx, tiles_for_idx in tiles_by_tile_idx.items():
                 multi_band_tiles.append(xr.concat(tiles_for_idx, dim='band'))
 
-            # combine the multi-band tiles into a single xarray
-            combined_tiles = xr.combine_by_coords(multi_band_tiles)
+            # combine the multi-band tiles into a single xarray (dropping the tile_idxs)
+            combined_tiles = xr.combine_by_coords(multi_band_tiles, combine_attrs='drop_conflicts')
 
             if isinstance(combined_tiles, xr.Dataset):
                 raise TypeException('Internal error: Merging data arrays should result in a data array.')

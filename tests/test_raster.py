@@ -121,6 +121,8 @@ class RasterTests(unittest.TestCase):
             "time": json.dumps({
                 "start": time
             }),
+            "band": "0",
+            "tileIdx": "0,0",
         }
 
         batch = pa.RecordBatch.from_arrays([array], names=['data'], metadata=metadata)

@@ -1,7 +1,7 @@
 '''Tests for raster streaming workflows'''
 
 import asyncio
-from typing import List
+from typing import List, Tuple
 import unittest
 import unittest.mock
 from uuid import UUID
@@ -23,9 +23,10 @@ class MockWebsocket:
 
         self.__tiles = []
 
+        tile_idxs = [(-1, -1), (-1, 0), (0, -1), (0, 0)]
         for time in ["2014-01-01T00:00:00", "2014-01-02T00:00:00"]:
-            for tiles in read_data():
-                self.__tiles.append(arrow_bytes(tiles, time))
+            for (i, tiles) in enumerate(read_data()):
+                self.__tiles.append(arrow_bytes(tiles, time, 0, tile_idxs[i]))
 
     async def __aenter__(self):
         return self
@@ -62,7 +63,7 @@ def read_data() -> List[xr.DataArray]:
     return parts
 
 
-def arrow_bytes(data: xr.DataArray, time: str) -> bytes:
+def arrow_bytes(data: xr.DataArray, time: str, band: int, tile_idx: Tuple[int, int]) -> bytes:
     '''Convert a xarray.DataArray into an Arrow record batch within an IPC file'''
 
     array = pa.array(data.to_numpy().reshape(-1))
@@ -83,6 +84,8 @@ def arrow_bytes(data: xr.DataArray, time: str) -> bytes:
             "start": time,
             "end": time,
         }),
+        "band": str(band),
+        "tileIdx": ",".join(map(str, tile_idx)),
     })
 
     sink = pa.BufferOutputStream()
@@ -138,14 +141,13 @@ class WorkflowRasterStreamTests(unittest.TestCase):
         with unittest.mock.patch("websockets.client.connect", return_value=MockWebsocket()):
             async def inner2():
                 array = await workflow.raster_stream_into_xarray(query_rect)
-
-                assert array.shape == (2, 8, 8)
+                assert array.shape == (2, 1, 8, 8)  # time, band, y, x
 
                 original_array = rioxarray.open_rasterio("tests/responses/ndvi.tiff").isel(band=0, drop=True)
 
                 # Let's check that the output is the same as if we would
                 # have read the whole raster with rioxarray
 
-                assert array.isel(time=0, drop=True).equals(original_array)
+                assert array.isel({'band': 0, 'time': 0}, drop=True).equals(original_array)
 
             asyncio.run(inner2())
