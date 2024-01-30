@@ -9,6 +9,7 @@ import geoengine_openapi_client
 import geoengine.types as gety
 
 
+# pylint: disable=R0902
 class RasterTile2D:
     '''A 2D raster tile as produced by the Geo Engine'''
     size_x: int

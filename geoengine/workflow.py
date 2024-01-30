@@ -465,13 +465,17 @@ class Workflow:
 
         return Task(TaskId.from_response(response))
 
+    # pylint: disable=too-many-locals
     async def raster_stream(
         self,
         query_rectangle: QueryRectangle,
         open_timeout: int = 60,
-        bands: List[int] = [0]  # TODO: move into query rectangle? would need to distinguish between raster/query first
+        bands: List[int] = None  # TODO: move into query rectangle? would need to distinguish between raster/query first
     ) -> AsyncIterator[RasterTile2D]:
         '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
+
+        if bands is None:
+            bands = [0]
 
         def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
             reader = pa.ipc.open_file(arrow_ipc)
@@ -560,13 +564,16 @@ class Workflow:
         query_rectangle: QueryRectangle,
         clip_to_query_rectangle: bool = False,
         open_timeout: int = 60,
-        bands: List[int] = [0]  # TODO: move into query rectangle? would need to distinguish between raster/query first
+        bands: List[int] = None  # TODO: move into query rectangle? would need to distinguish between raster/query first
     ) -> xr.DataArray:
         '''
         Stream the workflow result into memory and output a single xarray.
 
         NOTE: You can run out of memory if the query rectangle is too large.
         '''
+
+        if bands is None:
+            bands = [0]
 
         tile_stream = self.raster_stream(
             query_rectangle,
@@ -614,8 +621,8 @@ class Workflow:
                 tiles_by_tile_idx[tile_idx].append(tile)
 
             multi_band_tiles = []
-            for tile_idx, tiles in tiles_by_tile_idx.items():
-                multi_band_tiles.append(xr.concat(tiles, dim='band'))
+            for tile_idx, tiles_for_idx in tiles_by_tile_idx.items():
+                multi_band_tiles.append(xr.concat(tiles_for_idx, dim='band'))
 
             # combine the multi-band tiles into a single xarray
             combined_tiles = xr.combine_by_coords(multi_band_tiles)
