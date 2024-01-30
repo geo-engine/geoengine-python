@@ -466,11 +466,11 @@ class Workflow:
         return Task(TaskId.from_response(response))
 
     async def raster_stream(
-            self,
-            query_rectangle: QueryRectangle,
-            open_timeout: int = 60,
-            bands: List[int] = [0] # TODO: move into query rectangle? would need to distinguish between raster/query first
-            ) -> AsyncIterator[RasterTile2D]:
+        self,
+        query_rectangle: QueryRectangle,
+        open_timeout: int = 60,
+        bands: List[int] = [0]  # TODO: move into query rectangle? would need to distinguish between raster/query first
+    ) -> AsyncIterator[RasterTile2D]:
         '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
 
         def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
@@ -556,12 +556,12 @@ class Workflow:
                 yield tile
 
     async def raster_stream_into_xarray(
-            self,
-            query_rectangle: QueryRectangle,
-            clip_to_query_rectangle: bool = False,
-            open_timeout: int = 60,
-            bands: List[int] = [0] # TODO: move into query rectangle? would need to distinguish between raster/query first
-            ) -> xr.DataArray:
+        self,
+        query_rectangle: QueryRectangle,
+        clip_to_query_rectangle: bool = False,
+        open_timeout: int = 60,
+        bands: List[int] = [0]  # TODO: move into query rectangle? would need to distinguish between raster/query first
+    ) -> xr.DataArray:
         '''
         Stream the workflow result into memory and output a single xarray.
 
@@ -571,7 +571,7 @@ class Workflow:
         tile_stream = self.raster_stream(
             query_rectangle,
             open_timeout=open_timeout,
-            bands = bands
+            bands=bands
         )
 
         timestep_xarrays: List[xr.DataArray] = []
@@ -605,14 +605,14 @@ class Workflow:
         def merge_tiles(tiles: List[xr.DataArray]) -> Optional[xr.DataArray]:
             if len(tiles) == 0:
                 return None
-            
+
             # combine the bands of the tiles into multi-band tiles
             tiles_by_tile_idx: Dict[Tuple[int, int], List[xr.DataArray]] = defaultdict(list)
 
             for tile in tiles:
                 tile_idx = (tile.tile_idx_y.values.item(), tile.tile_idx_x.values.item())
                 tiles_by_tile_idx[tile_idx].append(tile)
-            
+
             multi_band_tiles = []
             for tile_idx, tiles in tiles_by_tile_idx.items():
                 multi_band_tiles.append(xr.concat(tiles, dim='band'))
