@@ -35,6 +35,8 @@ class RasterTests(unittest.TestCase):
             time=ge.TimeInterval(
                 start=time
             ),
+            band=0,
+            tile_idx=(0, 0),
         )
 
     def test_shape(self) -> None:

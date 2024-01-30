@@ -201,7 +201,10 @@ class RasterTile2D:
 
         band = int(metadata[b'band'])
 
-        tile_idx = tuple((int(i) for i in metadata[b'tileIdx'].decode('utf-8').split(',')))
+        tile_idx_split = metadata[b'tileIdx'].decode('utf-8').split(',')
+        if len(tile_idx_split) != 2:
+            raise ValueError(f"Expected tile_idx to have exactly 2 elements, but got {len(tile_idx_split)}")
+        tile_idx = (int(tile_idx_split[0]), int(tile_idx_split[1]))
 
         return RasterTile2D(
             (y_size, x_size),

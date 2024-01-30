@@ -470,7 +470,7 @@ class Workflow:
         self,
         query_rectangle: QueryRectangle,
         open_timeout: int = 60,
-        bands: List[int] = None  # TODO: move into query rectangle? would need to distinguish between raster/query first
+        bands: Optional[List[int]] = None  # TODO: move into query rectangle?
     ) -> AsyncIterator[RasterTile2D]:
         '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
 
@@ -564,7 +564,7 @@ class Workflow:
         query_rectangle: QueryRectangle,
         clip_to_query_rectangle: bool = False,
         open_timeout: int = 60,
-        bands: List[int] = None  # TODO: move into query rectangle? would need to distinguish between raster/query first
+        bands: Optional[List[int]] = None  # TODO: move into query rectangle?
     ) -> xr.DataArray:
         '''
         Stream the workflow result into memory and output a single xarray.
