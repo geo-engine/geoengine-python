@@ -477,6 +477,9 @@ class Workflow:
         if bands is None:
             bands = [0]
 
+        if len(bands) == 0:
+            raise InputException('At least one band must be specified')
+
         def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
             reader = pa.ipc.open_file(arrow_ipc)
             # We know from the backend that there is only one record batch
@@ -574,6 +577,9 @@ class Workflow:
 
         if bands is None:
             bands = [0]
+
+        if len(bands) == 0:
+            raise InputException('At least one band must be specified')
 
         tile_stream = self.raster_stream(
             query_rectangle,
