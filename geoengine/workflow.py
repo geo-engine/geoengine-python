@@ -35,7 +35,7 @@ from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
-    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException
+    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException
 from geoengine import backports
 from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
 from geoengine.tasks import Task, TaskId
