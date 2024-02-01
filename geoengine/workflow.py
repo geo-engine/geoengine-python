@@ -618,25 +618,23 @@ class Workflow:
         def merge_tiles(tiles: List[xr.DataArray]) -> Optional[xr.DataArray]:
             if len(tiles) == 0:
                 return None
-
-            # combine the bands of the tiles into multi-band tiles
-            tiles_by_tile_idx: Dict[Tuple[int, int], List[xr.DataArray]] = defaultdict(list)
-
+            
+            # group the tiles by band
+            tiles_by_band: Dict[int, int, List[xr.DataArray]] = defaultdict(list)
             for tile in tiles:
-                tile_idx = (tile.attrs['tile_idx_y'], tile.attrs['tile_idx_x'])
-                tiles_by_tile_idx[tile_idx].append(tile)
+                band = tile.band.item()  # assuming 'band' is a coordinate with a single value
+                tiles_by_band[band].append(tile)
 
-            multi_band_tiles = []
-            for tile_idx, tiles_for_idx in tiles_by_tile_idx.items():
-                multi_band_tiles.append(xr.concat(tiles_for_idx, dim='band'))
+            # build one spatial tile per band
+            combined_by_band = [xr.combine_by_coords(band_tiles) for band_tiles in tiles_by_band.values()]
 
-            # combine the multi-band tiles into a single xarray (dropping the tile_idxs)
-            combined_tiles = xr.combine_by_coords(multi_band_tiles, combine_attrs='drop_conflicts')
+            # build one array with all bands and geo coordinates
+            combined_tile = xr.concat(combined_by_band, dim='band')
 
-            if isinstance(combined_tiles, xr.Dataset):
+            if isinstance(combined_tile, xr.Dataset):
                 raise TypeException('Internal error: Merging data arrays should result in a data array.')
 
-            return combined_tiles
+            return combined_tile
 
         (tiles, remainder_tile) = await read_tiles(None)
 
