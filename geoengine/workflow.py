@@ -12,7 +12,7 @@ import json
 from io import BytesIO
 from logging import debug
 from os import PathLike
-from typing import Any, AsyncIterator, Dict, List, Optional, Tuple, Union, Type, cast, TypedDict
+from typing import Any, AsyncIterator, Dict, List, Optional, Union, Type, cast, TypedDict
 from uuid import UUID
 
 import geopandas as gpd
@@ -80,6 +80,61 @@ class WorkflowId:
 
     def __repr__(self) -> str:
         return str(self)
+
+
+class RasterStreamProcessing:
+    '''
+    Helper class to process raster stream data
+    '''
+
+    @classmethod
+    def read_arrow_ipc(cls, arrow_ipc: bytes) -> pa.RecordBatch:
+        '''Read an Arrow IPC file from a byte array'''
+
+        reader = pa.ipc.open_file(arrow_ipc)
+        # We know from the backend that there is only one record batch
+        record_batch = reader.get_record_batch(0)
+        return record_batch
+
+    @classmethod
+    def process_bytes(cls, tile_bytes: Optional[bytes]) -> Optional[RasterTile2D]:
+        '''Process a tile from a byte array'''
+
+        if tile_bytes is None:
+            return None
+
+        # process the received data
+        record_batch = RasterStreamProcessing.read_arrow_ipc(tile_bytes)
+        tile = RasterTile2D.from_ge_record_batch(record_batch)
+
+        return tile
+
+    @classmethod
+    def merge_tiles(cls, tiles: List[xr.DataArray]) -> Optional[xr.DataArray]:
+        '''Merge a list of tiles into a single xarray'''
+
+        if len(tiles) == 0:
+            return None
+
+        # group the tiles by band
+        tiles_by_band: Dict[int, List[xr.DataArray]] = defaultdict(list)
+        for tile in tiles:
+            band = tile.band.item()  # assuming 'band' is a coordinate with a single value
+            tiles_by_band[band].append(tile)
+
+        # build one spatial tile per band
+        combined_by_band = []
+        for band_tiles in tiles_by_band.values():
+            combined = xr.combine_by_coords(band_tiles)
+            # `combine_by_coords` always returns a `DataArray` for single variable input arrays.
+            # This assertion verifies this for mypy
+            assert isinstance(combined, xr.DataArray)
+            combined_by_band.append(combined)
+
+        # build one array with all bands and geo coordinates
+        combined_tile = xr.concat(combined_by_band, dim='band')
+
+        return combined_tile
 
 
 class Workflow:
@@ -465,7 +520,6 @@ class Workflow:
 
         return Task(TaskId.from_response(response))
 
-    # pylint: disable=too-many-locals
     async def raster_stream(
         self,
         query_rectangle: QueryRectangle,
@@ -479,22 +533,6 @@ class Workflow:
 
         if len(bands) == 0:
             raise InputException('At least one band must be specified')
-
-        def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
-            reader = pa.ipc.open_file(arrow_ipc)
-            # We know from the backend that there is only one record batch
-            record_batch = reader.get_record_batch(0)
-            return record_batch
-
-        def process_bytes(tile_bytes: Optional[bytes]) -> Optional[RasterTile2D]:
-            if tile_bytes is None:
-                return None
-
-            # process the received data
-            record_batch = read_arrow_ipc(tile_bytes)
-            tile = RasterTile2D.from_ge_record_batch(record_batch)
-
-            return tile
 
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
@@ -550,14 +588,14 @@ class Workflow:
                 (tile_bytes, tile) = await asyncio.gather(
                     read_new_bytes(),
                     # asyncio.to_thread(process_bytes, tile_bytes), # TODO: use this when min Python version is 3.9
-                    backports.to_thread(process_bytes, tile_bytes),
+                    backports.to_thread(RasterStreamProcessing.process_bytes, tile_bytes),
                 )
 
                 if tile is not None:
                     yield tile
 
             # process the last tile
-            tile = process_bytes(tile_bytes)
+            tile = RasterStreamProcessing.process_bytes(tile_bytes)
 
             if tile is not None:
                 yield tile
@@ -615,33 +653,12 @@ class Workflow:
             # this seems to be the last time step, so just return tiles
             return tiles, None
 
-        def merge_tiles(tiles: List[xr.DataArray]) -> Optional[xr.DataArray]:
-            if len(tiles) == 0:
-                return None
-            
-            # group the tiles by band
-            tiles_by_band: Dict[int, int, List[xr.DataArray]] = defaultdict(list)
-            for tile in tiles:
-                band = tile.band.item()  # assuming 'band' is a coordinate with a single value
-                tiles_by_band[band].append(tile)
-
-            # build one spatial tile per band
-            combined_by_band = [xr.combine_by_coords(band_tiles) for band_tiles in tiles_by_band.values()]
-
-            # build one array with all bands and geo coordinates
-            combined_tile = xr.concat(combined_by_band, dim='band')
-
-            if isinstance(combined_tile, xr.Dataset):
-                raise TypeException('Internal error: Merging data arrays should result in a data array.')
-
-            return combined_tile
-
         (tiles, remainder_tile) = await read_tiles(None)
 
         while len(tiles):
             ((new_tiles, new_remainder_tile), new_timestep_xarray) = await asyncio.gather(
                 read_tiles(remainder_tile),
-                backports.to_thread(merge_tiles, tiles)
+                backports.to_thread(RasterStreamProcessing.merge_tiles, tiles)
                 # asyncio.to_thread(merge_tiles, tiles), # TODO: use this when min Python version is 3.9
             )
 
