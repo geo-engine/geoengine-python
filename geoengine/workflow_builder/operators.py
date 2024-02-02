@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
 
 from geoengine.datasets import DatasetName
@@ -101,6 +102,8 @@ class VectorOperator(Operator):
             return PointInPolygonFilter.from_operator_dict(operator_dict)
         if operator_dict['type'] == 'TimeShift':
             return TimeShift.from_operator_dict(operator_dict).as_vector()
+        if operator_dict['type'] == 'VectorExpression':
+            return VectorExpression.from_operator_dict(operator_dict)
         raise NotImplementedError(f"Unknown operator type {operator_dict['type']}")
 
 
@@ -615,6 +618,102 @@ class Expression(RasterOperator):
             output_type=operator_dict["params"]["outputType"],
             map_no_data=operator_dict["params"]["mapNoData"],
             output_measurement=output_measurement
+        )
+
+
+class GeoVectorDataType(Enum):
+    '''The output type of geometry vector data.'''
+    MULTI_POINT = "MultiPoint"
+    MULTI_LINE_STRING = "MultiLineString"
+    MULTI_POLYGON = "MultiPolygon"
+
+
+class VectorExpression(VectorOperator):
+    '''The `VectorExpression` operator.'''
+
+    source: VectorOperator
+
+    expression: str
+    input_columns: List[str]
+    output_column: str | GeoVectorDataType
+    geometry_column_name = None
+    output_measurement: Optional[Measurement] = None
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 source: VectorOperator,
+                 *,
+                 expression: str,
+                 input_columns: List[str],
+                 output_column: str | GeoVectorDataType,
+                 geometry_column_name: Optional[str] = None,
+                 output_measurement: Optional[Measurement] = None,
+                 ):
+        '''Creates a new VectorExpression operator.'''
+        self.source = source
+
+        self.expression = expression
+        self.input_columns = input_columns
+        self.output_column = output_column
+
+        self.geometry_column_name = geometry_column_name
+        self.output_measurement = output_measurement
+
+    def name(self) -> str:
+        return 'VectorExpression'
+
+    def to_dict(self) -> Dict[str, Any]:
+        if isinstance(self.output_column, GeoVectorDataType):
+            output_column_dict = {
+                "type": "geometry",
+                "value": self.output_column.value,
+            }
+        elif isinstance(self.output_column, str):
+            output_column_dict = {
+                "type": "column",
+                "value": self.output_column,
+            }
+
+        params = {
+            "expression": self.expression,
+            "inputColumns": self.input_columns,
+            "outputColumn": output_column_dict,
+        }
+
+        if self.geometry_column_name:
+            params["geometryColumnName"] = self.geometry_column_name
+
+        if self.output_measurement:
+            params["outputMeasurement"] = self.output_measurement.to_api_dict().to_dict()
+
+        return {
+            "type": self.name(),
+            "params": params,
+            "sources": {
+                "vector": self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> VectorExpression:
+        if operator_dict["type"] != "Expression":
+            raise ValueError("Invalid operator type")
+
+        geometry_column_name = None
+        if "geometryColumnName" in operator_dict["params"]:
+            geometry_column_name = operator_dict["params"]["geometryColumnName"]
+
+        output_measurement = None
+        if "outputMeasurement" in operator_dict["params"]:
+            output_measurement = Measurement.from_response(operator_dict["params"]["outputMeasurement"])
+
+        return VectorExpression(
+            source=VectorOperator.from_operator_dict(operator_dict["sources"]["vector"]),
+            expression=operator_dict["params"]["expression"],
+            input_columns=operator_dict["params"]["inputColumns"],
+            output_column=operator_dict["params"]["outputColumn"],
+            geometry_column_name=geometry_column_name,
+            output_measurement=output_measurement,
         )
 
 
