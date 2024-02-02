@@ -19,7 +19,6 @@ class RasterTile2D:
     crs: str
     time: gety.TimeInterval
     band: int
-    tile_idx: Tuple[int, int]
 
     # pylint: disable=too-many-arguments
     def __init__(
@@ -30,7 +29,6 @@ class RasterTile2D:
             crs: str,
             time: gety.TimeInterval,
             band: int,
-            tile_idx: Tuple[int, int]
     ):
         '''Create a RasterTile2D object'''
         self.size_y, self.size_x = shape
@@ -39,7 +37,6 @@ class RasterTile2D:
         self.crs = crs
         self.time = time
         self.band = band
-        self.tile_idx = tile_idx
 
     @property
     def shape(self) -> Tuple[int, int]:
@@ -199,11 +196,6 @@ class RasterTile2D:
 
         band = int(metadata[b'band'])
 
-        tile_idx_split = metadata[b'tileIdx'].decode('utf-8').split(',')
-        if len(tile_idx_split) != 2:
-            raise ValueError(f"Expected tile_idx to have exactly 2 elements, but got {len(tile_idx_split)}")
-        tile_idx = (int(tile_idx_split[0]), int(tile_idx_split[1]))
-
         return RasterTile2D(
             (y_size, x_size),
             arrow_array,
@@ -211,5 +203,4 @@ class RasterTile2D:
             spatial_reference,
             time,
             band,
-            tile_idx
         )

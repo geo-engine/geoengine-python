@@ -36,7 +36,6 @@ class RasterTests(unittest.TestCase):
                 start=time
             ),
             band=0,
-            tile_idx=(0, 0),
         )
 
     def test_shape(self) -> None:
@@ -122,7 +121,6 @@ class RasterTests(unittest.TestCase):
                 "start": time
             }),
             "band": "0",
-            "tileIdx": "0,0",
         }
 
         batch = pa.RecordBatch.from_arrays([array], names=['data'], metadata=metadata)

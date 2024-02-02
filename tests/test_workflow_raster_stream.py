@@ -1,7 +1,7 @@
 '''Tests for raster streaming workflows'''
 
 import asyncio
-from typing import List, Tuple
+from typing import List
 import unittest
 import unittest.mock
 from uuid import UUID
@@ -23,10 +23,9 @@ class MockWebsocket:
 
         self.__tiles = []
 
-        tile_idxs = [(-1, -1), (-1, 0), (0, -1), (0, 0)]
         for time in ["2014-01-01T00:00:00", "2014-01-02T00:00:00"]:
-            for (i, tiles) in enumerate(read_data()):
-                self.__tiles.append(arrow_bytes(tiles, time, 0, tile_idxs[i]))
+            for tiles in read_data():
+                self.__tiles.append(arrow_bytes(tiles, time, 0))
 
     async def __aenter__(self):
         return self
@@ -63,7 +62,7 @@ def read_data() -> List[xr.DataArray]:
     return parts
 
 
-def arrow_bytes(data: xr.DataArray, time: str, band: int, tile_idx: Tuple[int, int]) -> bytes:
+def arrow_bytes(data: xr.DataArray, time: str, band: int) -> bytes:
     '''Convert a xarray.DataArray into an Arrow record batch within an IPC file'''
 
     array = pa.array(data.to_numpy().reshape(-1))
@@ -85,7 +84,6 @@ def arrow_bytes(data: xr.DataArray, time: str, band: int, tile_idx: Tuple[int, i
             "end": time,
         }),
         "band": str(band),
-        "tileIdx": ",".join(map(str, tile_idx)),
     })
 
     sink = pa.BufferOutputStream()
