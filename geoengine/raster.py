@@ -146,16 +146,28 @@ class RasterTile2D:
     def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -> xr.DataArray:
         '''
         Return the raster tile as an xarray.DataArray.
-        Xarray does not support masked arrays.
-        Masked pixels are converted to NaNs and the nodata value is set to NaN as well.
+
+        Note:
+            - Xarray does not support masked arrays.
+                - Masked pixels are converted to NaNs and the nodata value is set to NaN as well.
+            - Xarray uses numpy's datetime64[ns] which only covers the years from 1678 to 2262.
+                - Date times that are outside of the defined range are clipped to the limits of the range.
         '''
+
+        # Define the min and max dates. There is no straightforward way to compute this, so we hardocde it.
+        min_date = np.datetime64('1678-09-21 00:12:43.145224192', 'ns')
+        max_date = np.datetime64('2262-04-11 23:47:16.854775807', 'ns')
+
+        # Clip the dates to the min and max range
+        clipped_date = np.clip(self.time_start_ms, min_date, max_date)
+
         array = xr.DataArray(
             self.to_numpy_masked_array(),
             dims=["y", "x"],
             coords={
                 'x': self.coords_x(pixel_center=True),
                 'y': self.coords_y(pixel_center=True),
-                'time': self.time_start_ms,  # TODO: incorporate time end?
+                'time': clipped_date,  # TODO: incorporate time end?
                 'band': self.band,
             }
         )
