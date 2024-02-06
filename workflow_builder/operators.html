@@ -31,6 +31,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
 
 from geoengine.datasets import DatasetName
@@ -130,6 +131,8 @@ class VectorOperator(Operator):
             return PointInPolygonFilter.from_operator_dict(operator_dict)
         if operator_dict[&#39;type&#39;] == &#39;TimeShift&#39;:
             return TimeShift.from_operator_dict(operator_dict).as_vector()
+        if operator_dict[&#39;type&#39;] == &#39;VectorExpression&#39;:
+            return VectorExpression.from_operator_dict(operator_dict)
         raise NotImplementedError(f&#34;Unknown operator type {operator_dict[&#39;type&#39;]}&#34;)
 
 
@@ -647,6 +650,102 @@ class Expression(RasterOperator):
         )
 
 
+class GeoVectorDataType(Enum):
+    &#39;&#39;&#39;The output type of geometry vector data.&#39;&#39;&#39;
+    MULTI_POINT = &#34;MultiPoint&#34;
+    MULTI_LINE_STRING = &#34;MultiLineString&#34;
+    MULTI_POLYGON = &#34;MultiPolygon&#34;
+
+
+class VectorExpression(VectorOperator):
+    &#39;&#39;&#39;The `VectorExpression` operator.&#39;&#39;&#39;
+
+    source: VectorOperator
+
+    expression: str
+    input_columns: List[str]
+    output_column: str | GeoVectorDataType
+    geometry_column_name = None
+    output_measurement: Optional[Measurement] = None
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 source: VectorOperator,
+                 *,
+                 expression: str,
+                 input_columns: List[str],
+                 output_column: str | GeoVectorDataType,
+                 geometry_column_name: Optional[str] = None,
+                 output_measurement: Optional[Measurement] = None,
+                 ):
+        &#39;&#39;&#39;Creates a new VectorExpression operator.&#39;&#39;&#39;
+        self.source = source
+
+        self.expression = expression
+        self.input_columns = input_columns
+        self.output_column = output_column
+
+        self.geometry_column_name = geometry_column_name
+        self.output_measurement = output_measurement
+
+    def name(self) -&gt; str:
+        return &#39;VectorExpression&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        if isinstance(self.output_column, GeoVectorDataType):
+            output_column_dict = {
+                &#34;type&#34;: &#34;geometry&#34;,
+                &#34;value&#34;: self.output_column.value,
+            }
+        elif isinstance(self.output_column, str):
+            output_column_dict = {
+                &#34;type&#34;: &#34;column&#34;,
+                &#34;value&#34;: self.output_column,
+            }
+
+        params = {
+            &#34;expression&#34;: self.expression,
+            &#34;inputColumns&#34;: self.input_columns,
+            &#34;outputColumn&#34;: output_column_dict,
+        }
+
+        if self.geometry_column_name:
+            params[&#34;geometryColumnName&#34;] = self.geometry_column_name
+
+        if self.output_measurement:
+            params[&#34;outputMeasurement&#34;] = self.output_measurement.to_api_dict().to_dict()
+
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: params,
+            &#34;sources&#34;: {
+                &#34;vector&#34;: self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; VectorExpression:
+        if operator_dict[&#34;type&#34;] != &#34;Expression&#34;:
+            raise ValueError(&#34;Invalid operator type&#34;)
+
+        geometry_column_name = None
+        if &#34;geometryColumnName&#34; in operator_dict[&#34;params&#34;]:
+            geometry_column_name = operator_dict[&#34;params&#34;][&#34;geometryColumnName&#34;]
+
+        output_measurement = None
+        if &#34;outputMeasurement&#34; in operator_dict[&#34;params&#34;]:
+            output_measurement = Measurement.from_response(operator_dict[&#34;params&#34;][&#34;outputMeasurement&#34;])
+
+        return VectorExpression(
+            source=VectorOperator.from_operator_dict(operator_dict[&#34;sources&#34;][&#34;vector&#34;]),
+            expression=operator_dict[&#34;params&#34;][&#34;expression&#34;],
+            input_columns=operator_dict[&#34;params&#34;][&#34;inputColumns&#34;],
+            output_column=operator_dict[&#34;params&#34;][&#34;outputColumn&#34;],
+            geometry_column_name=geometry_column_name,
+            output_measurement=output_measurement,
+        )
+
+
 class TemporalRasterAggregation(RasterOperator):
     &#39;&#39;&#39;A TemporalRasterAggregation operator.&#39;&#39;&#39;
 
@@ -1009,6 +1108,42 @@ class RasterStacker(RasterOperator):
 </ul>
 </li>
 </ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.GeoVectorDataType"><code class="flex name class">
+<span>class <span class="ident">GeoVectorDataType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The output type of geometry vector data.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GeoVectorDataType(Enum):
+    &#39;&#39;&#39;The output type of geometry vector data.&#39;&#39;&#39;
+    MULTI_POINT = &#34;MultiPoint&#34;
+    MULTI_LINE_STRING = &#34;MultiLineString&#34;
+    MULTI_POLYGON = &#34;MultiPolygon&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.GeoVectorDataType.MULTI_LINE_STRING"><code class="name">var <span class="ident">MULTI_LINE_STRING</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.GeoVectorDataType.MULTI_POINT"><code class="name">var <span class="ident">MULTI_POINT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.GeoVectorDataType.MULTI_POLYGON"><code class="name">var <span class="ident">MULTI_POLYGON</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="geoengine.workflow_builder.operators.Interpolation"><code class="flex name class">
 <span>class <span class="ident">Interpolation</span></span>
@@ -2444,6 +2579,151 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;TimeShift&
 </li>
 </ul>
 </dd>
+<dt id="geoengine.workflow_builder.operators.VectorExpression"><code class="flex name class">
+<span>class <span class="ident">VectorExpression</span></span>
+<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>, *, expression: str, input_columns: List[str], output_column: str | <a title="geoengine.workflow_builder.operators.GeoVectorDataType" href="#geoengine.workflow_builder.operators.GeoVectorDataType">GeoVectorDataType</a>, geometry_column_name: Optional[str] = None, output_measurement: Optional[Measurement] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The <code><a title="geoengine.workflow_builder.operators.VectorExpression" href="#geoengine.workflow_builder.operators.VectorExpression">VectorExpression</a></code> operator.</p>
+<p>Creates a new VectorExpression operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VectorExpression(VectorOperator):
+    &#39;&#39;&#39;The `VectorExpression` operator.&#39;&#39;&#39;
+
+    source: VectorOperator
+
+    expression: str
+    input_columns: List[str]
+    output_column: str | GeoVectorDataType
+    geometry_column_name = None
+    output_measurement: Optional[Measurement] = None
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 source: VectorOperator,
+                 *,
+                 expression: str,
+                 input_columns: List[str],
+                 output_column: str | GeoVectorDataType,
+                 geometry_column_name: Optional[str] = None,
+                 output_measurement: Optional[Measurement] = None,
+                 ):
+        &#39;&#39;&#39;Creates a new VectorExpression operator.&#39;&#39;&#39;
+        self.source = source
+
+        self.expression = expression
+        self.input_columns = input_columns
+        self.output_column = output_column
+
+        self.geometry_column_name = geometry_column_name
+        self.output_measurement = output_measurement
+
+    def name(self) -&gt; str:
+        return &#39;VectorExpression&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        if isinstance(self.output_column, GeoVectorDataType):
+            output_column_dict = {
+                &#34;type&#34;: &#34;geometry&#34;,
+                &#34;value&#34;: self.output_column.value,
+            }
+        elif isinstance(self.output_column, str):
+            output_column_dict = {
+                &#34;type&#34;: &#34;column&#34;,
+                &#34;value&#34;: self.output_column,
+            }
+
+        params = {
+            &#34;expression&#34;: self.expression,
+            &#34;inputColumns&#34;: self.input_columns,
+            &#34;outputColumn&#34;: output_column_dict,
+        }
+
+        if self.geometry_column_name:
+            params[&#34;geometryColumnName&#34;] = self.geometry_column_name
+
+        if self.output_measurement:
+            params[&#34;outputMeasurement&#34;] = self.output_measurement.to_api_dict().to_dict()
+
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: params,
+            &#34;sources&#34;: {
+                &#34;vector&#34;: self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; VectorExpression:
+        if operator_dict[&#34;type&#34;] != &#34;Expression&#34;:
+            raise ValueError(&#34;Invalid operator type&#34;)
+
+        geometry_column_name = None
+        if &#34;geometryColumnName&#34; in operator_dict[&#34;params&#34;]:
+            geometry_column_name = operator_dict[&#34;params&#34;][&#34;geometryColumnName&#34;]
+
+        output_measurement = None
+        if &#34;outputMeasurement&#34; in operator_dict[&#34;params&#34;]:
+            output_measurement = Measurement.from_response(operator_dict[&#34;params&#34;][&#34;outputMeasurement&#34;])
+
+        return VectorExpression(
+            source=VectorOperator.from_operator_dict(operator_dict[&#34;sources&#34;][&#34;vector&#34;]),
+            expression=operator_dict[&#34;params&#34;][&#34;expression&#34;],
+            input_columns=operator_dict[&#34;params&#34;][&#34;inputColumns&#34;],
+            output_column=operator_dict[&#34;params&#34;][&#34;outputColumn&#34;],
+            geometry_column_name=geometry_column_name,
+            output_measurement=output_measurement,
+        )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.VectorExpression.expression"><code class="name">var <span class="ident">expression</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.VectorExpression.geometry_column_name"><code class="name">var <span class="ident">geometry_column_name</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.VectorExpression.input_columns"><code class="name">var <span class="ident">input_columns</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.VectorExpression.output_column"><code class="name">var <span class="ident">output_column</span> : str | <a title="geoengine.workflow_builder.operators.GeoVectorDataType" href="#geoengine.workflow_builder.operators.GeoVectorDataType">GeoVectorDataType</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.VectorExpression.output_measurement"><code class="name">var <span class="ident">output_measurement</span> : Optional[Measurement]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.VectorExpression.source"><code class="name">var <span class="ident">source</span> : <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.from_operator_dict" href="#geoengine.workflow_builder.operators.VectorOperator.from_operator_dict">from_operator_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.from_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.from_workflow_dict">from_workflow_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="geoengine.workflow_builder.operators.VectorOperator"><code class="flex name class">
 <span>class <span class="ident">VectorOperator</span></span>
 </code></dt>
@@ -2476,6 +2756,8 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;TimeShift&
             return PointInPolygonFilter.from_operator_dict(operator_dict)
         if operator_dict[&#39;type&#39;] == &#39;TimeShift&#39;:
             return TimeShift.from_operator_dict(operator_dict).as_vector()
+        if operator_dict[&#39;type&#39;] == &#39;VectorExpression&#39;:
+            return VectorExpression.from_operator_dict(operator_dict)
         raise NotImplementedError(f&#34;Unknown operator type {operator_dict[&#39;type&#39;]}&#34;)</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2487,6 +2769,7 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;TimeShift&
 <li><a title="geoengine.workflow_builder.operators.OgrSource" href="#geoengine.workflow_builder.operators.OgrSource">OgrSource</a></li>
 <li><a title="geoengine.workflow_builder.operators.PointInPolygonFilter" href="#geoengine.workflow_builder.operators.PointInPolygonFilter">PointInPolygonFilter</a></li>
 <li><a title="geoengine.workflow_builder.operators.RasterVectorJoin" href="#geoengine.workflow_builder.operators.RasterVectorJoin">RasterVectorJoin</a></li>
+<li><a title="geoengine.workflow_builder.operators.VectorExpression" href="#geoengine.workflow_builder.operators.VectorExpression">VectorExpression</a></li>
 </ul>
 <h3>Static methods</h3>
 <dl>
@@ -2512,6 +2795,8 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; VectorOperator:
         return PointInPolygonFilter.from_operator_dict(operator_dict)
     if operator_dict[&#39;type&#39;] == &#39;TimeShift&#39;:
         return TimeShift.from_operator_dict(operator_dict).as_vector()
+    if operator_dict[&#39;type&#39;] == &#39;VectorExpression&#39;:
+        return VectorExpression.from_operator_dict(operator_dict)
     raise NotImplementedError(f&#34;Unknown operator type {operator_dict[&#39;type&#39;]}&#34;)</code></pre>
 </details>
 </dd>
@@ -2559,6 +2844,14 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; VectorOperator:
 <h4><code><a title="geoengine.workflow_builder.operators.GdalSource" href="#geoengine.workflow_builder.operators.GdalSource">GdalSource</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.workflow_builder.operators.GdalSource.dataset" href="#geoengine.workflow_builder.operators.GdalSource.dataset">dataset</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.GeoVectorDataType" href="#geoengine.workflow_builder.operators.GeoVectorDataType">GeoVectorDataType</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.GeoVectorDataType.MULTI_LINE_STRING" href="#geoengine.workflow_builder.operators.GeoVectorDataType.MULTI_LINE_STRING">MULTI_LINE_STRING</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.GeoVectorDataType.MULTI_POINT" href="#geoengine.workflow_builder.operators.GeoVectorDataType.MULTI_POINT">MULTI_POINT</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.GeoVectorDataType.MULTI_POLYGON" href="#geoengine.workflow_builder.operators.GeoVectorDataType.MULTI_POLYGON">MULTI_POLYGON</a></code></li>
 </ul>
 </li>
 <li>
@@ -2666,6 +2959,17 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; VectorOperator:
 <li><code><a title="geoengine.workflow_builder.operators.TimeShift.shift_type" href="#geoengine.workflow_builder.operators.TimeShift.shift_type">shift_type</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.TimeShift.source" href="#geoengine.workflow_builder.operators.TimeShift.source">source</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.TimeShift.value" href="#geoengine.workflow_builder.operators.TimeShift.value">value</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.VectorExpression" href="#geoengine.workflow_builder.operators.VectorExpression">VectorExpression</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.VectorExpression.expression" href="#geoengine.workflow_builder.operators.VectorExpression.expression">expression</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorExpression.geometry_column_name" href="#geoengine.workflow_builder.operators.VectorExpression.geometry_column_name">geometry_column_name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorExpression.input_columns" href="#geoengine.workflow_builder.operators.VectorExpression.input_columns">input_columns</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorExpression.output_column" href="#geoengine.workflow_builder.operators.VectorExpression.output_column">output_column</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorExpression.output_measurement" href="#geoengine.workflow_builder.operators.VectorExpression.output_measurement">output_measurement</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.VectorExpression.source" href="#geoengine.workflow_builder.operators.VectorExpression.source">source</a></code></li>
 </ul>
 </li>
 <li>
