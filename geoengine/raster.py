@@ -7,6 +7,7 @@ import pyarrow as pa
 import xarray as xr
 import geoengine_openapi_client
 import geoengine.types as gety
+from geoengine.util import clamp_datetime_ms_ns
 
 
 # pylint: disable=R0902
@@ -154,12 +155,8 @@ class RasterTile2D:
                 - Date times that are outside of the defined range are clipped to the limits of the range.
         '''
 
-        # Define the min and max dates. There is no straightforward way to compute this, so we hardocde it.
-        min_date = np.datetime64('1678-09-21 00:12:43.145224192', 'ns')
-        max_date = np.datetime64('2262-04-11 23:47:16.854775807', 'ns')
-
-        # Clip the dates to the min and max range
-        clipped_date = np.clip(self.time_start_ms, min_date, max_date)
+        # clamp the dates to the min and max range
+        clamped_date = clamp_datetime_ms_ns(self.time_start_ms)
 
         array = xr.DataArray(
             self.to_numpy_masked_array(),
@@ -167,7 +164,7 @@ class RasterTile2D:
             coords={
                 'x': self.coords_x(pixel_center=True),
                 'y': self.coords_y(pixel_center=True),
-                'time': clipped_date,  # TODO: incorporate time end?
+                'time': clamped_date,  # TODO: incorporate time end?
                 'band': self.band,
             }
         )
