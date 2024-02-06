@@ -171,7 +171,7 @@ class RasterTile2D:
         array.rio.write_crs(self.crs, inplace=True)
 
         if clip_with_bounds is not None:
-            array = array.rio.clip_box(*clip_with_bounds.as_bbox_tuple())
+            array = array.rio.clip_box(*clip_with_bounds.as_bbox_tuple(), auto_expand=True)
             array = cast(xr.DataArray, array)
 
         return array
