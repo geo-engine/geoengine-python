@@ -195,8 +195,8 @@ class TimeInterval:
             end = cast(int, response['end']) if 'end' in response and response['end'] is not None else None
 
             return TimeInterval(
-                datetime.fromtimestamp(start / 1000),
-                datetime.fromtimestamp(end / 1000) if end is not None else None,
+                np.datetime64(start, 'ms'),
+                np.datetime64(end, 'ms') if end is not None else None,
             )
 
         start_str = cast(str, response['start'])

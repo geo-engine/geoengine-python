@@ -35,6 +35,7 @@ class RasterTests(unittest.TestCase):
             time=ge.TimeInterval(
                 start=time
             ),
+            band=0,
         )
 
     def test_shape(self) -> None:
@@ -119,6 +120,7 @@ class RasterTests(unittest.TestCase):
             "time": json.dumps({
                 "start": time
             }),
+            "band": "0",
         }
 
         batch = pa.RecordBatch.from_arrays([array], names=['data'], metadata=metadata)

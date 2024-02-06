@@ -7,6 +7,7 @@ import pyarrow as pa
 import xarray as xr
 import geoengine_openapi_client
 import geoengine.types as gety
+from geoengine.util import clamp_datetime_ms_ns
 
 
 class RasterTile2D:
@@ -17,6 +18,7 @@ class RasterTile2D:
     geo_transform: gety.GeoTransform
     crs: str
     time: gety.TimeInterval
+    band: int
 
     # pylint: disable=too-many-arguments
     def __init__(
@@ -25,7 +27,8 @@ class RasterTile2D:
             data: pa.Array,
             geo_transform: gety.GeoTransform,
             crs: str,
-            time: gety.TimeInterval
+            time: gety.TimeInterval,
+            band: int,
     ):
         '''Create a RasterTile2D object'''
         self.size_y, self.size_x = shape
@@ -33,6 +36,7 @@ class RasterTile2D:
         self.geo_transform = geo_transform
         self.crs = crs
         self.time = time
+        self.band = band
 
     @property
     def shape(self) -> Tuple[int, int]:
@@ -142,22 +146,31 @@ class RasterTile2D:
     def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -> xr.DataArray:
         '''
         Return the raster tile as an xarray.DataArray.
-        Xarray does not support masked arrays.
-        Masked pixels are converted to NaNs and the nodata value is set to NaN as well.
+
+        Note:
+            - Xarray does not support masked arrays.
+                - Masked pixels are converted to NaNs and the nodata value is set to NaN as well.
+            - Xarray uses numpy's datetime64[ns] which only covers the years from 1678 to 2262.
+                - Date times that are outside of the defined range are clipped to the limits of the range.
         '''
+
+        # clamp the dates to the min and max range
+        clamped_date = clamp_datetime_ms_ns(self.time_start_ms)
+
         array = xr.DataArray(
             self.to_numpy_masked_array(),
             dims=["y", "x"],
             coords={
                 'x': self.coords_x(pixel_center=True),
                 'y': self.coords_y(pixel_center=True),
-                'time': self.time_start_ms,  # TODO: incorporate time end?
+                'time': clamped_date,  # TODO: incorporate time end?
+                'band': self.band,
             }
         )
         array.rio.write_crs(self.crs, inplace=True)
 
         if clip_with_bounds is not None:
-            array = array.rio.clip_box(*clip_with_bounds.as_bbox_tuple())
+            array = array.rio.clip_box(*clip_with_bounds.as_bbox_tuple(), auto_expand=True)
             array = cast(xr.DataArray, array)
 
         return array
@@ -189,10 +202,13 @@ class RasterTile2D:
 
         time = gety.TimeInterval.from_response(json.loads(metadata[b'time']))
 
+        band = int(metadata[b'band'])
+
         return RasterTile2D(
             (y_size, x_size),
             arrow_array,
             geo_transform,
             spatial_reference,
-            time
+            time,
+            band,
         )

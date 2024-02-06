@@ -7,6 +7,7 @@ A workflow representation and methods on workflows
 from __future__ import annotations
 
 import asyncio
+from collections import defaultdict
 import json
 from io import BytesIO
 from logging import debug
@@ -34,7 +35,7 @@ from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
-    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException
+    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException
 from geoengine import backports
 from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
 from geoengine.tasks import Task, TaskId
@@ -79,6 +80,61 @@ class WorkflowId:
 
     def __repr__(self) -> str:
         return str(self)
+
+
+class RasterStreamProcessing:
+    '''
+    Helper class to process raster stream data
+    '''
+
+    @classmethod
+    def read_arrow_ipc(cls, arrow_ipc: bytes) -> pa.RecordBatch:
+        '''Read an Arrow IPC file from a byte array'''
+
+        reader = pa.ipc.open_file(arrow_ipc)
+        # We know from the backend that there is only one record batch
+        record_batch = reader.get_record_batch(0)
+        return record_batch
+
+    @classmethod
+    def process_bytes(cls, tile_bytes: Optional[bytes]) -> Optional[RasterTile2D]:
+        '''Process a tile from a byte array'''
+
+        if tile_bytes is None:
+            return None
+
+        # process the received data
+        record_batch = RasterStreamProcessing.read_arrow_ipc(tile_bytes)
+        tile = RasterTile2D.from_ge_record_batch(record_batch)
+
+        return tile
+
+    @classmethod
+    def merge_tiles(cls, tiles: List[xr.DataArray]) -> Optional[xr.DataArray]:
+        '''Merge a list of tiles into a single xarray'''
+
+        if len(tiles) == 0:
+            return None
+
+        # group the tiles by band
+        tiles_by_band: Dict[int, List[xr.DataArray]] = defaultdict(list)
+        for tile in tiles:
+            band = tile.band.item()  # assuming 'band' is a coordinate with a single value
+            tiles_by_band[band].append(tile)
+
+        # build one spatial tile per band
+        combined_by_band = []
+        for band_tiles in tiles_by_band.values():
+            combined = xr.combine_by_coords(band_tiles)
+            # `combine_by_coords` always returns a `DataArray` for single variable input arrays.
+            # This assertion verifies this for mypy
+            assert isinstance(combined, xr.DataArray)
+            combined_by_band.append(combined)
+
+        # build one array with all bands and geo coordinates
+        combined_tile = xr.concat(combined_by_band, dim='band')
+
+        return combined_tile
 
 
 class Workflow:
@@ -465,26 +521,18 @@ class Workflow:
         return Task(TaskId.from_response(response))
 
     async def raster_stream(
-            self,
-            query_rectangle: QueryRectangle,
-            open_timeout: int = 60) -> AsyncIterator[RasterTile2D]:
+        self,
+        query_rectangle: QueryRectangle,
+        open_timeout: int = 60,
+        bands: Optional[List[int]] = None  # TODO: move into query rectangle?
+    ) -> AsyncIterator[RasterTile2D]:
         '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
 
-        def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
-            reader = pa.ipc.open_file(arrow_ipc)
-            # We know from the backend that there is only one record batch
-            record_batch = reader.get_record_batch(0)
-            return record_batch
+        if bands is None:
+            bands = [0]
 
-        def process_bytes(tile_bytes: Optional[bytes]) -> Optional[RasterTile2D]:
-            if tile_bytes is None:
-                return None
-
-            # process the received data
-            record_batch = read_arrow_ipc(tile_bytes)
-            tile = RasterTile2D.from_ge_record_batch(record_batch)
-
-            return tile
+        if len(bands) == 0:
+            raise InputException('At least one band must be specified')
 
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
@@ -500,6 +548,7 @@ class Workflow:
                 'spatialBounds': query_rectangle.bbox_str,
                 'timeInterval': query_rectangle.time_str,
                 'spatialResolution': str(query_rectangle.spatial_resolution),
+                'attributes': ','.join(map(str, bands))
             },
         ).prepare().url
 
@@ -539,35 +588,44 @@ class Workflow:
                 (tile_bytes, tile) = await asyncio.gather(
                     read_new_bytes(),
                     # asyncio.to_thread(process_bytes, tile_bytes), # TODO: use this when min Python version is 3.9
-                    backports.to_thread(process_bytes, tile_bytes),
+                    backports.to_thread(RasterStreamProcessing.process_bytes, tile_bytes),
                 )
 
                 if tile is not None:
                     yield tile
 
             # process the last tile
-            tile = process_bytes(tile_bytes)
+            tile = RasterStreamProcessing.process_bytes(tile_bytes)
 
             if tile is not None:
                 yield tile
 
     async def raster_stream_into_xarray(
-            self,
-            query_rectangle: QueryRectangle,
-            clip_to_query_rectangle: bool = False,
-            open_timeout: int = 60) -> xr.DataArray:
+        self,
+        query_rectangle: QueryRectangle,
+        clip_to_query_rectangle: bool = False,
+        open_timeout: int = 60,
+        bands: Optional[List[int]] = None  # TODO: move into query rectangle?
+    ) -> xr.DataArray:
         '''
         Stream the workflow result into memory and output a single xarray.
 
         NOTE: You can run out of memory if the query rectangle is too large.
         '''
 
+        if bands is None:
+            bands = [0]
+
+        if len(bands) == 0:
+            raise InputException('At least one band must be specified')
+
         tile_stream = self.raster_stream(
             query_rectangle,
-            open_timeout=open_timeout
+            open_timeout=open_timeout,
+            bands=bands
         )
 
-        timesteps: List[xr.DataArray] = []
+        timestep_xarrays: List[xr.DataArray] = []
 
         spatial_clip_bounds = query_rectangle.spatial_bounds if clip_to_query_rectangle else None
 
@@ -595,31 +653,20 @@ class Workflow:
             # this seems to be the last time step, so just return tiles
             return tiles, None
 
-        def merge_tiles(tiles: List[xr.DataArray]) -> Optional[xr.DataArray]:
-            if len(tiles) == 0:
-                return None
-
-            combined_tiles = xr.combine_by_coords(tiles)
-
-            if isinstance(combined_tiles, xr.Dataset):
-                raise TypeException('Internal error: Merging data arrays should result in a data array.')
-
-            return combined_tiles
-
         (tiles, remainder_tile) = await read_tiles(None)
 
         while len(tiles):
-            ((new_tiles, new_remainder_tile), new_timestep) = await asyncio.gather(
+            ((new_tiles, new_remainder_tile), new_timestep_xarray) = await asyncio.gather(
                 read_tiles(remainder_tile),
-                backports.to_thread(merge_tiles, tiles)
+                backports.to_thread(RasterStreamProcessing.merge_tiles, tiles)
                 # asyncio.to_thread(merge_tiles, tiles), # TODO: use this when min Python version is 3.9
             )
 
             tiles = new_tiles
             remainder_tile = new_remainder_tile
 
-            if new_timestep is not None:
-                timesteps.append(new_timestep)
+            if new_timestep_xarray is not None:
+                timestep_xarrays.append(new_timestep_xarray)
 
         output: xr.DataArray = cast(
             xr.DataArray,
@@ -627,7 +674,7 @@ class Workflow:
             await backports.to_thread(
                 xr.concat,
                 # TODO: This is a typings error, since the method accepts also a `xr.DataArray` and returns one
-                cast(List[xr.Dataset], timesteps),
+                cast(List[xr.Dataset], timestep_xarrays),
                 dim='time'
             )
         )
