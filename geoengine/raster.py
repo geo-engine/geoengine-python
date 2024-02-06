@@ -10,7 +10,6 @@ import geoengine.types as gety
 from geoengine.util import clamp_datetime_ms_ns
 
 
-# pylint: disable=R0902
 class RasterTile2D:
     '''A 2D raster tile as produced by the Geo Engine'''
     size_x: int

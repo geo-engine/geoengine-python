@@ -26,7 +26,7 @@ from .types import QueryRectangle, GeoTransform, \
     ClassificationMeasurement, BoundingBox2D, TimeInterval, SpatialResolution, SpatialPartition2D, \
     RasterSymbology, VectorSymbology, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
     FeatureDataType, RasterBandDescriptor, DEFAULT_ISO_TIME_FORMAT, RasterColorizer, SingleBandRasterColorizer \
-    
+
 from .util import clamp_datetime_ms_ns
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow, get_quota, update_quota
 from .raster import RasterTile2D
