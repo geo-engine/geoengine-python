@@ -224,8 +224,8 @@ class TimeInterval:
             end = cast(int, response[&#39;end&#39;]) if &#39;end&#39; in response and response[&#39;end&#39;] is not None else None
 
             return TimeInterval(
-                datetime.fromtimestamp(start / 1000),
-                datetime.fromtimestamp(end / 1000) if end is not None else None,
+                np.datetime64(start, &#39;ms&#39;),
+                np.datetime64(end, &#39;ms&#39;) if end is not None else None,
             )
 
         start_str = cast(str, response[&#39;start&#39;])
@@ -4587,8 +4587,8 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
             end = cast(int, response[&#39;end&#39;]) if &#39;end&#39; in response and response[&#39;end&#39;] is not None else None
 
             return TimeInterval(
-                datetime.fromtimestamp(start / 1000),
-                datetime.fromtimestamp(end / 1000) if end is not None else None,
+                np.datetime64(start, &#39;ms&#39;),
+                np.datetime64(end, &#39;ms&#39;) if end is not None else None,
             )
 
         start_str = cast(str, response[&#39;start&#39;])
@@ -4646,8 +4646,8 @@ def from_response(response: Any) -&gt; TimeInterval:
         end = cast(int, response[&#39;end&#39;]) if &#39;end&#39; in response and response[&#39;end&#39;] is not None else None
 
         return TimeInterval(
-            datetime.fromtimestamp(start / 1000),
-            datetime.fromtimestamp(end / 1000) if end is not None else None,
+            np.datetime64(start, &#39;ms&#39;),
+            np.datetime64(end, &#39;ms&#39;) if end is not None else None,
         )
 
     start_str = cast(str, response[&#39;start&#39;])

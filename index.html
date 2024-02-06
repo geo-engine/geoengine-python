@@ -56,6 +56,7 @@ from .types import QueryRectangle, GeoTransform, \
     RasterSymbology, VectorSymbology, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
     FeatureDataType, RasterBandDescriptor, DEFAULT_ISO_TIME_FORMAT, RasterColorizer, SingleBandRasterColorizer \
 
+from .util import clamp_datetime_ms_ns
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow, get_quota, update_quota
 from .raster import RasterTile2D
 
@@ -119,6 +120,10 @@ utils.default_user_agent = default_user_agent</code></pre>
 <dd>
 <div class="desc"><p>Different type mappings of geo engine types</p></div>
 </dd>
+<dt><code class="name"><a title="geoengine.util" href="util.html">geoengine.util</a></code></dt>
+<dd>
+<div class="desc"><p>Module for utility functions</p></div>
+</dd>
 <dt><code class="name"><a title="geoengine.workflow" href="workflow.html">geoengine.workflow</a></code></dt>
 <dd>
 <div class="desc"><p>A workflow representation and methods on workflows</p></div>
@@ -171,6 +176,7 @@ utils.default_user_agent = default_user_agent</code></pre>
 <li><code><a title="geoengine.raster" href="raster.html">geoengine.raster</a></code></li>
 <li><code><a title="geoengine.tasks" href="tasks.html">geoengine.tasks</a></code></li>
 <li><code><a title="geoengine.types" href="types.html">geoengine.types</a></code></li>
+<li><code><a title="geoengine.util" href="util.html">geoengine.util</a></code></li>
 <li><code><a title="geoengine.workflow" href="workflow.html">geoengine.workflow</a></code></li>
 <li><code><a title="geoengine.workflow_builder" href="workflow_builder/index.html">geoengine.workflow_builder</a></code></li>
 </ul>

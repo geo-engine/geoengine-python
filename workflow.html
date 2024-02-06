@@ -36,6 +36,7 @@ A workflow representation and methods on workflows
 from __future__ import annotations
 
 import asyncio
+from collections import defaultdict
 import json
 from io import BytesIO
 from logging import debug
@@ -63,7 +64,7 @@ from geoengine import api
 from geoengine.auth import get_session
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
-    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, TypeException
+    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException
 from geoengine import backports
 from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
 from geoengine.tasks import Task, TaskId
@@ -108,6 +109,61 @@ class WorkflowId:
 
     def __repr__(self) -&gt; str:
         return str(self)
+
+
+class RasterStreamProcessing:
+    &#39;&#39;&#39;
+    Helper class to process raster stream data
+    &#39;&#39;&#39;
+
+    @classmethod
+    def read_arrow_ipc(cls, arrow_ipc: bytes) -&gt; pa.RecordBatch:
+        &#39;&#39;&#39;Read an Arrow IPC file from a byte array&#39;&#39;&#39;
+
+        reader = pa.ipc.open_file(arrow_ipc)
+        # We know from the backend that there is only one record batch
+        record_batch = reader.get_record_batch(0)
+        return record_batch
+
+    @classmethod
+    def process_bytes(cls, tile_bytes: Optional[bytes]) -&gt; Optional[RasterTile2D]:
+        &#39;&#39;&#39;Process a tile from a byte array&#39;&#39;&#39;
+
+        if tile_bytes is None:
+            return None
+
+        # process the received data
+        record_batch = RasterStreamProcessing.read_arrow_ipc(tile_bytes)
+        tile = RasterTile2D.from_ge_record_batch(record_batch)
+
+        return tile
+
+    @classmethod
+    def merge_tiles(cls, tiles: List[xr.DataArray]) -&gt; Optional[xr.DataArray]:
+        &#39;&#39;&#39;Merge a list of tiles into a single xarray&#39;&#39;&#39;
+
+        if len(tiles) == 0:
+            return None
+
+        # group the tiles by band
+        tiles_by_band: Dict[int, List[xr.DataArray]] = defaultdict(list)
+        for tile in tiles:
+            band = tile.band.item()  # assuming &#39;band&#39; is a coordinate with a single value
+            tiles_by_band[band].append(tile)
+
+        # build one spatial tile per band
+        combined_by_band = []
+        for band_tiles in tiles_by_band.values():
+            combined = xr.combine_by_coords(band_tiles)
+            # `combine_by_coords` always returns a `DataArray` for single variable input arrays.
+            # This assertion verifies this for mypy
+            assert isinstance(combined, xr.DataArray)
+            combined_by_band.append(combined)
+
+        # build one array with all bands and geo coordinates
+        combined_tile = xr.concat(combined_by_band, dim=&#39;band&#39;)
+
+        return combined_tile
 
 
 class Workflow:
@@ -494,26 +550,18 @@ class Workflow:
         return Task(TaskId.from_response(response))
 
     async def raster_stream(
-            self,
-            query_rectangle: QueryRectangle,
-            open_timeout: int = 60) -&gt; AsyncIterator[RasterTile2D]:
+        self,
+        query_rectangle: QueryRectangle,
+        open_timeout: int = 60,
+        bands: Optional[List[int]] = None  # TODO: move into query rectangle?
+    ) -&gt; AsyncIterator[RasterTile2D]:
         &#39;&#39;&#39;Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)&#39;&#39;&#39;
 
-        def read_arrow_ipc(arrow_ipc: bytes) -&gt; pa.RecordBatch:
-            reader = pa.ipc.open_file(arrow_ipc)
-            # We know from the backend that there is only one record batch
-            record_batch = reader.get_record_batch(0)
-            return record_batch
+        if bands is None:
+            bands = [0]
 
-        def process_bytes(tile_bytes: Optional[bytes]) -&gt; Optional[RasterTile2D]:
-            if tile_bytes is None:
-                return None
-
-            # process the received data
-            record_batch = read_arrow_ipc(tile_bytes)
-            tile = RasterTile2D.from_ge_record_batch(record_batch)
-
-            return tile
+        if len(bands) == 0:
+            raise InputException(&#39;At least one band must be specified&#39;)
 
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
@@ -529,6 +577,7 @@ class Workflow:
                 &#39;spatialBounds&#39;: query_rectangle.bbox_str,
                 &#39;timeInterval&#39;: query_rectangle.time_str,
                 &#39;spatialResolution&#39;: str(query_rectangle.spatial_resolution),
+                &#39;attributes&#39;: &#39;,&#39;.join(map(str, bands))
             },
         ).prepare().url
 
@@ -568,35 +617,44 @@ class Workflow:
                 (tile_bytes, tile) = await asyncio.gather(
                     read_new_bytes(),
                     # asyncio.to_thread(process_bytes, tile_bytes), # TODO: use this when min Python version is 3.9
-                    backports.to_thread(process_bytes, tile_bytes),
+                    backports.to_thread(RasterStreamProcessing.process_bytes, tile_bytes),
                 )
 
                 if tile is not None:
                     yield tile
 
             # process the last tile
-            tile = process_bytes(tile_bytes)
+            tile = RasterStreamProcessing.process_bytes(tile_bytes)
 
             if tile is not None:
                 yield tile
 
     async def raster_stream_into_xarray(
-            self,
-            query_rectangle: QueryRectangle,
-            clip_to_query_rectangle: bool = False,
-            open_timeout: int = 60) -&gt; xr.DataArray:
+        self,
+        query_rectangle: QueryRectangle,
+        clip_to_query_rectangle: bool = False,
+        open_timeout: int = 60,
+        bands: Optional[List[int]] = None  # TODO: move into query rectangle?
+    ) -&gt; xr.DataArray:
         &#39;&#39;&#39;
         Stream the workflow result into memory and output a single xarray.
 
         NOTE: You can run out of memory if the query rectangle is too large.
         &#39;&#39;&#39;
 
+        if bands is None:
+            bands = [0]
+
+        if len(bands) == 0:
+            raise InputException(&#39;At least one band must be specified&#39;)
+
         tile_stream = self.raster_stream(
             query_rectangle,
-            open_timeout=open_timeout
+            open_timeout=open_timeout,
+            bands=bands
         )
 
-        timesteps: List[xr.DataArray] = []
+        timestep_xarrays: List[xr.DataArray] = []
 
         spatial_clip_bounds = query_rectangle.spatial_bounds if clip_to_query_rectangle else None
 
@@ -624,31 +682,20 @@ class Workflow:
             # this seems to be the last time step, so just return tiles
             return tiles, None
 
-        def merge_tiles(tiles: List[xr.DataArray]) -&gt; Optional[xr.DataArray]:
-            if len(tiles) == 0:
-                return None
-
-            combined_tiles = xr.combine_by_coords(tiles)
-
-            if isinstance(combined_tiles, xr.Dataset):
-                raise TypeException(&#39;Internal error: Merging data arrays should result in a data array.&#39;)
-
-            return combined_tiles
-
         (tiles, remainder_tile) = await read_tiles(None)
 
         while len(tiles):
-            ((new_tiles, new_remainder_tile), new_timestep) = await asyncio.gather(
+            ((new_tiles, new_remainder_tile), new_timestep_xarray) = await asyncio.gather(
                 read_tiles(remainder_tile),
-                backports.to_thread(merge_tiles, tiles)
+                backports.to_thread(RasterStreamProcessing.merge_tiles, tiles)
                 # asyncio.to_thread(merge_tiles, tiles), # TODO: use this when min Python version is 3.9
             )
 
             tiles = new_tiles
             remainder_tile = new_remainder_tile
 
-            if new_timestep is not None:
-                timesteps.append(new_timestep)
+            if new_timestep_xarray is not None:
+                timestep_xarrays.append(new_timestep_xarray)
 
         output: xr.DataArray = cast(
             xr.DataArray,
@@ -656,7 +703,7 @@ class Workflow:
             await backports.to_thread(
                 xr.concat,
                 # TODO: This is a typings error, since the method accepts also a `xr.DataArray` and returns one
-                cast(List[xr.Dataset], timesteps),
+                cast(List[xr.Dataset], timestep_xarrays),
                 dim=&#39;time&#39;
             )
         )
@@ -1188,6 +1235,152 @@ dict(one=1, two=2)</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="geoengine.workflow.RasterStreamProcessing"><code class="flex name class">
+<span>class <span class="ident">RasterStreamProcessing</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Helper class to process raster stream data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterStreamProcessing:
+    &#39;&#39;&#39;
+    Helper class to process raster stream data
+    &#39;&#39;&#39;
+
+    @classmethod
+    def read_arrow_ipc(cls, arrow_ipc: bytes) -&gt; pa.RecordBatch:
+        &#39;&#39;&#39;Read an Arrow IPC file from a byte array&#39;&#39;&#39;
+
+        reader = pa.ipc.open_file(arrow_ipc)
+        # We know from the backend that there is only one record batch
+        record_batch = reader.get_record_batch(0)
+        return record_batch
+
+    @classmethod
+    def process_bytes(cls, tile_bytes: Optional[bytes]) -&gt; Optional[RasterTile2D]:
+        &#39;&#39;&#39;Process a tile from a byte array&#39;&#39;&#39;
+
+        if tile_bytes is None:
+            return None
+
+        # process the received data
+        record_batch = RasterStreamProcessing.read_arrow_ipc(tile_bytes)
+        tile = RasterTile2D.from_ge_record_batch(record_batch)
+
+        return tile
+
+    @classmethod
+    def merge_tiles(cls, tiles: List[xr.DataArray]) -&gt; Optional[xr.DataArray]:
+        &#39;&#39;&#39;Merge a list of tiles into a single xarray&#39;&#39;&#39;
+
+        if len(tiles) == 0:
+            return None
+
+        # group the tiles by band
+        tiles_by_band: Dict[int, List[xr.DataArray]] = defaultdict(list)
+        for tile in tiles:
+            band = tile.band.item()  # assuming &#39;band&#39; is a coordinate with a single value
+            tiles_by_band[band].append(tile)
+
+        # build one spatial tile per band
+        combined_by_band = []
+        for band_tiles in tiles_by_band.values():
+            combined = xr.combine_by_coords(band_tiles)
+            # `combine_by_coords` always returns a `DataArray` for single variable input arrays.
+            # This assertion verifies this for mypy
+            assert isinstance(combined, xr.DataArray)
+            combined_by_band.append(combined)
+
+        # build one array with all bands and geo coordinates
+        combined_tile = xr.concat(combined_by_band, dim=&#39;band&#39;)
+
+        return combined_tile</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.workflow.RasterStreamProcessing.merge_tiles"><code class="name flex">
+<span>def <span class="ident">merge_tiles</span></span>(<span>tiles: List[xr.DataArray]) ‑> Optional[xarray.core.dataarray.DataArray]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Merge a list of tiles into a single xarray</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def merge_tiles(cls, tiles: List[xr.DataArray]) -&gt; Optional[xr.DataArray]:
+    &#39;&#39;&#39;Merge a list of tiles into a single xarray&#39;&#39;&#39;
+
+    if len(tiles) == 0:
+        return None
+
+    # group the tiles by band
+    tiles_by_band: Dict[int, List[xr.DataArray]] = defaultdict(list)
+    for tile in tiles:
+        band = tile.band.item()  # assuming &#39;band&#39; is a coordinate with a single value
+        tiles_by_band[band].append(tile)
+
+    # build one spatial tile per band
+    combined_by_band = []
+    for band_tiles in tiles_by_band.values():
+        combined = xr.combine_by_coords(band_tiles)
+        # `combine_by_coords` always returns a `DataArray` for single variable input arrays.
+        # This assertion verifies this for mypy
+        assert isinstance(combined, xr.DataArray)
+        combined_by_band.append(combined)
+
+    # build one array with all bands and geo coordinates
+    combined_tile = xr.concat(combined_by_band, dim=&#39;band&#39;)
+
+    return combined_tile</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.RasterStreamProcessing.process_bytes"><code class="name flex">
+<span>def <span class="ident">process_bytes</span></span>(<span>tile_bytes: Optional[bytes]) ‑> Optional[<a title="geoengine.raster.RasterTile2D" href="raster.html#geoengine.raster.RasterTile2D">RasterTile2D</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Process a tile from a byte array</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def process_bytes(cls, tile_bytes: Optional[bytes]) -&gt; Optional[RasterTile2D]:
+    &#39;&#39;&#39;Process a tile from a byte array&#39;&#39;&#39;
+
+    if tile_bytes is None:
+        return None
+
+    # process the received data
+    record_batch = RasterStreamProcessing.read_arrow_ipc(tile_bytes)
+    tile = RasterTile2D.from_ge_record_batch(record_batch)
+
+    return tile</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.RasterStreamProcessing.read_arrow_ipc"><code class="name flex">
+<span>def <span class="ident">read_arrow_ipc</span></span>(<span>arrow_ipc: bytes) ‑> pyarrow.lib.RecordBatch</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read an Arrow IPC file from a byte array</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def read_arrow_ipc(cls, arrow_ipc: bytes) -&gt; pa.RecordBatch:
+    &#39;&#39;&#39;Read an Arrow IPC file from a byte array&#39;&#39;&#39;
+
+    reader = pa.ipc.open_file(arrow_ipc)
+    # We know from the backend that there is only one record batch
+    record_batch = reader.get_record_batch(0)
+    return record_batch</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.workflow.Values"><code class="flex name class">
 <span>class <span class="ident">Values</span></span>
 <span>(</span><span>*args, **kwargs)</span>
@@ -1658,26 +1851,18 @@ dict(one=1, two=2)</p></div>
         return Task(TaskId.from_response(response))
 
     async def raster_stream(
-            self,
-            query_rectangle: QueryRectangle,
-            open_timeout: int = 60) -&gt; AsyncIterator[RasterTile2D]:
+        self,
+        query_rectangle: QueryRectangle,
+        open_timeout: int = 60,
+        bands: Optional[List[int]] = None  # TODO: move into query rectangle?
+    ) -&gt; AsyncIterator[RasterTile2D]:
         &#39;&#39;&#39;Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)&#39;&#39;&#39;
 
-        def read_arrow_ipc(arrow_ipc: bytes) -&gt; pa.RecordBatch:
-            reader = pa.ipc.open_file(arrow_ipc)
-            # We know from the backend that there is only one record batch
-            record_batch = reader.get_record_batch(0)
-            return record_batch
+        if bands is None:
+            bands = [0]
 
-        def process_bytes(tile_bytes: Optional[bytes]) -&gt; Optional[RasterTile2D]:
-            if tile_bytes is None:
-                return None
-
-            # process the received data
-            record_batch = read_arrow_ipc(tile_bytes)
-            tile = RasterTile2D.from_ge_record_batch(record_batch)
-
-            return tile
+        if len(bands) == 0:
+            raise InputException(&#39;At least one band must be specified&#39;)
 
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
@@ -1693,6 +1878,7 @@ dict(one=1, two=2)</p></div>
                 &#39;spatialBounds&#39;: query_rectangle.bbox_str,
                 &#39;timeInterval&#39;: query_rectangle.time_str,
                 &#39;spatialResolution&#39;: str(query_rectangle.spatial_resolution),
+                &#39;attributes&#39;: &#39;,&#39;.join(map(str, bands))
             },
         ).prepare().url
 
@@ -1732,35 +1918,44 @@ dict(one=1, two=2)</p></div>
                 (tile_bytes, tile) = await asyncio.gather(
                     read_new_bytes(),
                     # asyncio.to_thread(process_bytes, tile_bytes), # TODO: use this when min Python version is 3.9
-                    backports.to_thread(process_bytes, tile_bytes),
+                    backports.to_thread(RasterStreamProcessing.process_bytes, tile_bytes),
                 )
 
                 if tile is not None:
                     yield tile
 
             # process the last tile
-            tile = process_bytes(tile_bytes)
+            tile = RasterStreamProcessing.process_bytes(tile_bytes)
 
             if tile is not None:
                 yield tile
 
     async def raster_stream_into_xarray(
-            self,
-            query_rectangle: QueryRectangle,
-            clip_to_query_rectangle: bool = False,
-            open_timeout: int = 60) -&gt; xr.DataArray:
+        self,
+        query_rectangle: QueryRectangle,
+        clip_to_query_rectangle: bool = False,
+        open_timeout: int = 60,
+        bands: Optional[List[int]] = None  # TODO: move into query rectangle?
+    ) -&gt; xr.DataArray:
         &#39;&#39;&#39;
         Stream the workflow result into memory and output a single xarray.
 
         NOTE: You can run out of memory if the query rectangle is too large.
         &#39;&#39;&#39;
 
+        if bands is None:
+            bands = [0]
+
+        if len(bands) == 0:
+            raise InputException(&#39;At least one band must be specified&#39;)
+
         tile_stream = self.raster_stream(
             query_rectangle,
-            open_timeout=open_timeout
+            open_timeout=open_timeout,
+            bands=bands
         )
 
-        timesteps: List[xr.DataArray] = []
+        timestep_xarrays: List[xr.DataArray] = []
 
         spatial_clip_bounds = query_rectangle.spatial_bounds if clip_to_query_rectangle else None
 
@@ -1788,31 +1983,20 @@ dict(one=1, two=2)</p></div>
             # this seems to be the last time step, so just return tiles
             return tiles, None
 
-        def merge_tiles(tiles: List[xr.DataArray]) -&gt; Optional[xr.DataArray]:
-            if len(tiles) == 0:
-                return None
-
-            combined_tiles = xr.combine_by_coords(tiles)
-
-            if isinstance(combined_tiles, xr.Dataset):
-                raise TypeException(&#39;Internal error: Merging data arrays should result in a data array.&#39;)
-
-            return combined_tiles
-
         (tiles, remainder_tile) = await read_tiles(None)
 
         while len(tiles):
-            ((new_tiles, new_remainder_tile), new_timestep) = await asyncio.gather(
+            ((new_tiles, new_remainder_tile), new_timestep_xarray) = await asyncio.gather(
                 read_tiles(remainder_tile),
-                backports.to_thread(merge_tiles, tiles)
+                backports.to_thread(RasterStreamProcessing.merge_tiles, tiles)
                 # asyncio.to_thread(merge_tiles, tiles), # TODO: use this when min Python version is 3.9
             )
 
             tiles = new_tiles
             remainder_tile = new_remainder_tile
 
-            if new_timestep is not None:
-                timesteps.append(new_timestep)
+            if new_timestep_xarray is not None:
+                timestep_xarrays.append(new_timestep_xarray)
 
         output: xr.DataArray = cast(
             xr.DataArray,
@@ -1820,7 +2004,7 @@ dict(one=1, two=2)</p></div>
             await backports.to_thread(
                 xr.concat,
                 # TODO: This is a typings error, since the method accepts also a `xr.DataArray` and returns one
-                cast(List[xr.Dataset], timesteps),
+                cast(List[xr.Dataset], timestep_xarrays),
                 dim=&#39;time&#39;
             )
         )
@@ -2338,7 +2522,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.raster_stream"><code class="name flex">
-<span>async def <span class="ident">raster_stream</span></span>(<span>self, query_rectangle: QueryRectangle, open_timeout: int = 60) ‑> AsyncIterator[<a title="geoengine.raster.RasterTile2D" href="raster.html#geoengine.raster.RasterTile2D">RasterTile2D</a>]</span>
+<span>async def <span class="ident">raster_stream</span></span>(<span>self, query_rectangle: QueryRectangle, open_timeout: int = 60, bands: Optional[List[int]] = None) ‑> AsyncIterator[<a title="geoengine.raster.RasterTile2D" href="raster.html#geoengine.raster.RasterTile2D">RasterTile2D</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)</p></div>
@@ -2347,26 +2531,18 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">async def raster_stream(
-        self,
-        query_rectangle: QueryRectangle,
-        open_timeout: int = 60) -&gt; AsyncIterator[RasterTile2D]:
+    self,
+    query_rectangle: QueryRectangle,
+    open_timeout: int = 60,
+    bands: Optional[List[int]] = None  # TODO: move into query rectangle?
+) -&gt; AsyncIterator[RasterTile2D]:
     &#39;&#39;&#39;Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)&#39;&#39;&#39;
 
-    def read_arrow_ipc(arrow_ipc: bytes) -&gt; pa.RecordBatch:
-        reader = pa.ipc.open_file(arrow_ipc)
-        # We know from the backend that there is only one record batch
-        record_batch = reader.get_record_batch(0)
-        return record_batch
+    if bands is None:
+        bands = [0]
 
-    def process_bytes(tile_bytes: Optional[bytes]) -&gt; Optional[RasterTile2D]:
-        if tile_bytes is None:
-            return None
-
-        # process the received data
-        record_batch = read_arrow_ipc(tile_bytes)
-        tile = RasterTile2D.from_ge_record_batch(record_batch)
-
-        return tile
+    if len(bands) == 0:
+        raise InputException(&#39;At least one band must be specified&#39;)
 
     # Currently, it only works for raster results
     if not self.__result_descriptor.is_raster_result():
@@ -2382,6 +2558,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
             &#39;spatialBounds&#39;: query_rectangle.bbox_str,
             &#39;timeInterval&#39;: query_rectangle.time_str,
             &#39;spatialResolution&#39;: str(query_rectangle.spatial_resolution),
+            &#39;attributes&#39;: &#39;,&#39;.join(map(str, bands))
         },
     ).prepare().url
 
@@ -2421,21 +2598,21 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
             (tile_bytes, tile) = await asyncio.gather(
                 read_new_bytes(),
                 # asyncio.to_thread(process_bytes, tile_bytes), # TODO: use this when min Python version is 3.9
-                backports.to_thread(process_bytes, tile_bytes),
+                backports.to_thread(RasterStreamProcessing.process_bytes, tile_bytes),
             )
 
             if tile is not None:
                 yield tile
 
         # process the last tile
-        tile = process_bytes(tile_bytes)
+        tile = RasterStreamProcessing.process_bytes(tile_bytes)
 
         if tile is not None:
             yield tile</code></pre>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.raster_stream_into_xarray"><code class="name flex">
-<span>async def <span class="ident">raster_stream_into_xarray</span></span>(<span>self, query_rectangle: QueryRectangle, clip_to_query_rectangle: bool = False, open_timeout: int = 60) ‑> xarray.core.dataarray.DataArray</span>
+<span>async def <span class="ident">raster_stream_into_xarray</span></span>(<span>self, query_rectangle: QueryRectangle, clip_to_query_rectangle: bool = False, open_timeout: int = 60, bands: Optional[List[int]] = None) ‑> xarray.core.dataarray.DataArray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Stream the workflow result into memory and output a single xarray.</p>
@@ -2445,22 +2622,31 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">async def raster_stream_into_xarray(
-        self,
-        query_rectangle: QueryRectangle,
-        clip_to_query_rectangle: bool = False,
-        open_timeout: int = 60) -&gt; xr.DataArray:
+    self,
+    query_rectangle: QueryRectangle,
+    clip_to_query_rectangle: bool = False,
+    open_timeout: int = 60,
+    bands: Optional[List[int]] = None  # TODO: move into query rectangle?
+) -&gt; xr.DataArray:
     &#39;&#39;&#39;
     Stream the workflow result into memory and output a single xarray.
 
     NOTE: You can run out of memory if the query rectangle is too large.
     &#39;&#39;&#39;
 
+    if bands is None:
+        bands = [0]
+
+    if len(bands) == 0:
+        raise InputException(&#39;At least one band must be specified&#39;)
+
     tile_stream = self.raster_stream(
         query_rectangle,
-        open_timeout=open_timeout
+        open_timeout=open_timeout,
+        bands=bands
     )
 
-    timesteps: List[xr.DataArray] = []
+    timestep_xarrays: List[xr.DataArray] = []
 
     spatial_clip_bounds = query_rectangle.spatial_bounds if clip_to_query_rectangle else None
 
@@ -2488,31 +2674,20 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
         # this seems to be the last time step, so just return tiles
         return tiles, None
 
-    def merge_tiles(tiles: List[xr.DataArray]) -&gt; Optional[xr.DataArray]:
-        if len(tiles) == 0:
-            return None
-
-        combined_tiles = xr.combine_by_coords(tiles)
-
-        if isinstance(combined_tiles, xr.Dataset):
-            raise TypeException(&#39;Internal error: Merging data arrays should result in a data array.&#39;)
-
-        return combined_tiles
-
     (tiles, remainder_tile) = await read_tiles(None)
 
     while len(tiles):
-        ((new_tiles, new_remainder_tile), new_timestep) = await asyncio.gather(
+        ((new_tiles, new_remainder_tile), new_timestep_xarray) = await asyncio.gather(
             read_tiles(remainder_tile),
-            backports.to_thread(merge_tiles, tiles)
+            backports.to_thread(RasterStreamProcessing.merge_tiles, tiles)
             # asyncio.to_thread(merge_tiles, tiles), # TODO: use this when min Python version is 3.9
         )
 
         tiles = new_tiles
         remainder_tile = new_remainder_tile
 
-        if new_timestep is not None:
-            timesteps.append(new_timestep)
+        if new_timestep_xarray is not None:
+            timestep_xarrays.append(new_timestep_xarray)
 
     output: xr.DataArray = cast(
         xr.DataArray,
@@ -2520,7 +2695,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
         await backports.to_thread(
             xr.concat,
             # TODO: This is a typings error, since the method accepts also a `xr.DataArray` and returns one
-            cast(List[xr.Dataset], timesteps),
+            cast(List[xr.Dataset], timestep_xarrays),
             dim=&#39;time&#39;
         )
     )
@@ -3035,6 +3210,14 @@ dict(one=1, two=2)</p></div>
 <h4><code><a title="geoengine.workflow.Field" href="#geoengine.workflow.Field">Field</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.workflow.Field.field" href="#geoengine.workflow.Field.field">field</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow.RasterStreamProcessing" href="#geoengine.workflow.RasterStreamProcessing">RasterStreamProcessing</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow.RasterStreamProcessing.merge_tiles" href="#geoengine.workflow.RasterStreamProcessing.merge_tiles">merge_tiles</a></code></li>
+<li><code><a title="geoengine.workflow.RasterStreamProcessing.process_bytes" href="#geoengine.workflow.RasterStreamProcessing.process_bytes">process_bytes</a></code></li>
+<li><code><a title="geoengine.workflow.RasterStreamProcessing.read_arrow_ipc" href="#geoengine.workflow.RasterStreamProcessing.read_arrow_ipc">read_arrow_ipc</a></code></li>
 </ul>
 </li>
 <li>
