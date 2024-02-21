@@ -1,7 +1,7 @@
 '''Raster data types'''
 from __future__ import annotations
 import json
-from typing import Optional, Tuple, Union, cast
+from typing import AsyncIterator, List, Optional, Tuple, Union, cast
 import numpy as np
 import pyarrow as pa
 import xarray as xr
@@ -212,3 +212,64 @@ class RasterTile2D:
             time,
             band,
         )
+
+class RasterNumpyStack2D:
+    '''A np.ndarray with all the bands of a raster tile as produced by the Geo Engine'''
+    geo_transform: gety.GeoTransform
+    crs: str
+    time: gety.TimeInterval
+    data: np.ndarray
+    crs: str
+    bands: List[int]
+
+    def __init__(
+            self,
+            data: np.ndarray,
+            geo_transform: gety.GeoTransform,
+            crs: str,
+            time: gety.TimeInterval,
+            bands: List[int],
+    ):
+        '''Create a RasterNumpyStack2D object'''
+        self.data = data
+        self.geo_transform = geo_transform
+        self.crs = crs
+        self.time = time
+        self.bands = bands
+
+async def tile_stream_to_np_stack(raster_stream: AsyncIterator[RasterTile2D]) -> AsyncIterator[RasterNumpyStack2D]:
+
+    ''' Convert a stream of raster tiles to stream of numpy stack '''
+    store: List[RasterTile2D] = []
+    first_band: int = -1
+
+    async for tile in raster_stream:
+        print(tile.band, first_band)
+
+        if len(store) == 0:
+            first_band = tile.band
+            store.append(tile)
+
+        elif tile.band == first_band:
+            arrays = [t.to_numpy_masked_array() for t in store]
+            stack = np.stack(arrays, axis=0)
+            bands = [tile.band for tile in store]
+            geo_transforms = store[0].geo_transform
+            crs = store[0].crs
+            time = store[0].time
+
+            store = [tile]
+
+            yield RasterNumpyStack2D(stack, geo_transforms, crs, time, bands)
+
+        else :
+            store.append(tile)
+
+    if len(store) > 0:
+        arrays = [t.to_numpy_masked_array() for t in store]
+        stack = np.stack(arrays, axis=0)
+        bands = [tile.band for tile in store]
+        geo_transforms = store[0].geo_transform
+        crs = store[0].crs
+        time = store[0].time
+        yield RasterNumpyStack2D(stack, geo_transforms, crs, time, bands)
