@@ -818,7 +818,7 @@ class Workflow:
 
         NOTE: You can run out of memory if the query rectangle is too large.
         '''
-
+        print("here we go")
         chunk_stream = self.vector_stream(
             query_rectangle,
             time_start_column=time_start_column,
@@ -831,6 +831,7 @@ class Workflow:
 
         async def read_dataframe() -> Optional[gpd.GeoDataFrame]:
             try:
+                print("read something")
                 return await chunk_stream.__anext__()
             except StopAsyncIteration:
                 return None
@@ -839,6 +840,7 @@ class Workflow:
             df_a: Optional[gpd.GeoDataFrame],
             df_b: Optional[gpd.GeoDataFrame]
         ) -> Optional[gpd.GeoDataFrame]:
+            print("merge something")
             if df_a is None:
                 return df_b
 
