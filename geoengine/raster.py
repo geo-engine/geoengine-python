@@ -213,6 +213,7 @@ class RasterTile2D:
             band,
         )
 
+
 class RasterTileStack2D:
     '''A stack of all the bands of a raster tile as produced by the Geo Engine'''
     size_y: int
@@ -224,6 +225,7 @@ class RasterTileStack2D:
     crs: str
     bands: List[int]
 
+    # pylint: disable=too-many-arguments
     def __init__(
             self,
             tile_shape: Tuple[int, int],
@@ -254,16 +256,15 @@ class RasterTileStack2D:
 
     def to_numpy_masked_array_stack(self) -> np.ma.MaskedArray:
         '''Return the raster stack as a 3D masked numpy array'''
-        arrays = [self.single_band(i).to_numpy_masked_array() for i in range(0, len(self.data)) ]
+        arrays = [self.single_band(i).to_numpy_masked_array() for i in range(0, len(self.data))]
         stack = np.stack(arrays, axis=0)
         return stack
 
     def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -> xr.DataArray:
         '''Return the raster stack as an xarray.DataArray'''
-        arrays = [self.single_band(i).to_xarray(clip_with_bounds) for i in range(0, len(self.data)) ]
+        arrays = [self.single_band(i).to_xarray(clip_with_bounds) for i in range(0, len(self.data))]
         stack = xr.concat(arrays, dim='band')
         return stack
-
 
 
 async def tile_stream_to_np_stack(raster_stream: AsyncIterator[RasterTile2D]) -> AsyncIterator[RasterTileStack2D]:
@@ -288,7 +289,7 @@ async def tile_stream_to_np_stack(raster_stream: AsyncIterator[RasterTile2D]) ->
             store = [tile]
             yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)
 
-        else :
+        else:
             store.append(tile)
 
     if len(store) > 0:

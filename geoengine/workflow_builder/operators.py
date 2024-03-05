@@ -462,7 +462,7 @@ class RasterTypeConversion(RasterOperator):
     '''A RasterTypeConversion operator.'''
 
     source: RasterOperator
-    output_data_type:Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]
+    output_data_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]
 
     def __init__(self,
                  source: RasterOperator,
