@@ -273,8 +273,6 @@ async def tile_stream_to_np_stack(raster_stream: AsyncIterator[RasterTile2D]) ->
     first_band: int = -1
 
     async for tile in raster_stream:
-        print(tile.band, first_band)
-
         if len(store) == 0:
             first_band = tile.band
             store.append(tile)
