@@ -221,15 +221,14 @@ class RasterTileStack2D:
     geo_transform: gety.GeoTransform
     crs: str
     time: gety.TimeInterval
-    data: list[pa.Array]
-    crs: str
+    data: List[pa.Array]
     bands: List[int]
 
     # pylint: disable=too-many-arguments
     def __init__(
             self,
             tile_shape: Tuple[int, int],
-            data: np.ndarray,
+            data: List[pa.Array],
             geo_transform: gety.GeoTransform,
             crs: str,
             time: gety.TimeInterval,
@@ -300,6 +299,6 @@ async def tile_stream_to_np_stack(raster_stream: AsyncIterator[RasterTile2D]) ->
         crs = store[0].crs
         time = store[0].time
 
-        store = None
+        store = []
 
         yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)
