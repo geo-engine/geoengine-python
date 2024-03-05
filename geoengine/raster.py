@@ -213,33 +213,62 @@ class RasterTile2D:
             band,
         )
 
-class RasterNumpyStack2D:
-    '''A np.ndarray with all the bands of a raster tile as produced by the Geo Engine'''
+class RasterTileStack2D:
+    '''A stack of all the bands of a raster tile as produced by the Geo Engine'''
+    size_y: int
+    size_x: int
     geo_transform: gety.GeoTransform
     crs: str
     time: gety.TimeInterval
-    data: np.ndarray
+    data: list[pa.Array]
     crs: str
     bands: List[int]
 
     def __init__(
             self,
+            tile_shape: Tuple[int, int],
             data: np.ndarray,
             geo_transform: gety.GeoTransform,
             crs: str,
             time: gety.TimeInterval,
             bands: List[int],
     ):
-        '''Create a RasterNumpyStack2D object'''
+        '''Create a RasterTileStack2D object'''
+        (self.size_y, self.size_x) = tile_shape
         self.data = data
         self.geo_transform = geo_transform
         self.crs = crs
         self.time = time
         self.bands = bands
 
-async def tile_stream_to_np_stack(raster_stream: AsyncIterator[RasterTile2D]) -> AsyncIterator[RasterNumpyStack2D]:
+    def single_band(self, index: int) -> RasterTile2D:
+        '''Return a single band from the stack'''
+        return RasterTile2D(
+            (self.size_y, self.size_x),
+            self.data[index],
+            self.geo_transform,
+            self.crs,
+            self.time,
+            self.bands[index],
+        )
 
-    ''' Convert a stream of raster tiles to stream of numpy stack '''
+    def to_numpy_masked_array_stack(self) -> np.ma.MaskedArray:
+        '''Return the raster stack as a 3D masked numpy array'''
+        arrays = [self.single_band(i).to_numpy_masked_array() for i in range(0, len(self.data)) ]
+        stack = np.stack(arrays, axis=0)
+        return stack
+
+    def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -> xr.DataArray:
+        '''Return the raster stack as an xarray.DataArray'''
+        arrays = [self.single_band(i).to_xarray(clip_with_bounds) for i in range(0, len(self.data)) ]
+        stack = xr.concat(arrays, dim='band')
+        return stack
+
+
+
+async def tile_stream_to_np_stack(raster_stream: AsyncIterator[RasterTile2D]) -> AsyncIterator[RasterTileStack2D]:
+
+    ''' Convert a stream of raster tiles to stream of stacked tiles '''
     store: List[RasterTile2D] = []
     first_band: int = -1
 
@@ -251,25 +280,27 @@ async def tile_stream_to_np_stack(raster_stream: AsyncIterator[RasterTile2D]) ->
             store.append(tile)
 
         elif tile.band == first_band:
-            arrays = [t.to_numpy_masked_array() for t in store]
-            stack = np.stack(arrays, axis=0)
+            stack = [tile.data for tile in store]
+            tile_shape = store[0].shape
             bands = [tile.band for tile in store]
             geo_transforms = store[0].geo_transform
             crs = store[0].crs
             time = store[0].time
 
             store = [tile]
-
-            yield RasterNumpyStack2D(stack, geo_transforms, crs, time, bands)
+            yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)
 
         else :
             store.append(tile)
 
     if len(store) > 0:
-        arrays = [t.to_numpy_masked_array() for t in store]
-        stack = np.stack(arrays, axis=0)
+        tile_shape = store[0].shape
+        stack = [tile.data for tile in store]
         bands = [tile.band for tile in store]
         geo_transforms = store[0].geo_transform
         crs = store[0].crs
         time = store[0].time
-        yield RasterNumpyStack2D(stack, geo_transforms, crs, time, bands)
+
+        store = None
+
+        yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)
