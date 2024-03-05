@@ -44,7 +44,7 @@ class BlueprintsTests(unittest.TestCase):
                                     "outputDataType": "U16"
                                 },
                                 "sources": {
-                                    "raster":{
+                                    "raster": {
                                         "type": "GdalSource",
                                         "params": {
                                             "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
@@ -90,7 +90,7 @@ class BlueprintsTests(unittest.TestCase):
                                     "outputDataType": "U16"
                                 },
                                 "sources": {
-                                    "raster":{
+                                    "raster": {
                                         "type": "GdalSource",
                                         "params": {
                                             "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
@@ -131,7 +131,7 @@ class BlueprintsTests(unittest.TestCase):
                                     "outputDataType": "U16"
                                 },
                                 "sources": {
-                                    "raster":{
+                                    "raster": {
                                         "type": "GdalSource",
                                         "params": {
                                             "data": "scl_band"
@@ -177,7 +177,7 @@ class BlueprintsTests(unittest.TestCase):
                                     "outputDataType": "U16"
                                 },
                                 "sources": {
-                                    "raster":{
+                                    "raster": {
                                         "type": "GdalSource",
                                         "params": {
                                             "data": "scl_band"
@@ -232,7 +232,7 @@ class BlueprintsTests(unittest.TestCase):
                                             "outputDataType": "U16"
                                         },
                                         "sources": {
-                                            "raster":{
+                                            "raster": {
                                                 "type": "GdalSource",
                                                 "params": {
                                                     "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
@@ -289,7 +289,7 @@ class BlueprintsTests(unittest.TestCase):
                                             "outputDataType": "U16"
                                         },
                                         "sources": {
-                                            "raster":{
+                                            "raster": {
                                                 "type": "GdalSource",
                                                 "params": {
                                                     "data": "scl_band"
@@ -351,7 +351,7 @@ class BlueprintsTests(unittest.TestCase):
                                             "outputDataType": "U16"
                                         },
                                         "sources": {
-                                            "raster":{
+                                            "raster": {
                                                 "type": "GdalSource",
                                                 "params": {
                                                     "data": "scl_band"
