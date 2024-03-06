@@ -491,11 +491,11 @@ class RasterTypeConversion(RasterOperator):
     &#39;&#39;&#39;A RasterTypeConversion operator.&#39;&#39;&#39;
 
     source: RasterOperator
-    output_data_type: Literal[&#34;u8&#34;, &#34;u16&#34;, &#34;u32&#34;, &#34;u64&#34;, &#34;i8&#34;, &#34;i16&#34;, &#34;i32&#34;, &#34;i64&#34;, &#34;f32&#34;, &#34;f64&#34;]
+    output_data_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]
 
     def __init__(self,
                  source: RasterOperator,
-                 output_data_type: Literal[&#34;u8&#34;, &#34;u16&#34;, &#34;u32&#34;, &#34;u64&#34;, &#34;i8&#34;, &#34;i16&#34;, &#34;i32&#34;, &#34;i64&#34;, &#34;f32&#34;, &#34;f64&#34;]
+                 output_data_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]
                  ):
         &#39;&#39;&#39;Creates a new RasterTypeConversion operator.&#39;&#39;&#39;
         self.source = source
@@ -1897,7 +1897,7 @@ x = y * slope + offset</p>
 </dd>
 <dt id="geoengine.workflow_builder.operators.RasterTypeConversion"><code class="flex name class">
 <span>class <span class="ident">RasterTypeConversion</span></span>
-<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, output_data_type: "Literal['u8', 'u16', 'u32', 'u64', 'i8', 'i16', 'i32', 'i64', 'f32', 'f64']")</span>
+<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, output_data_type: "Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']")</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A RasterTypeConversion operator.</p>
@@ -1910,11 +1910,11 @@ x = y * slope + offset</p>
     &#39;&#39;&#39;A RasterTypeConversion operator.&#39;&#39;&#39;
 
     source: RasterOperator
-    output_data_type: Literal[&#34;u8&#34;, &#34;u16&#34;, &#34;u32&#34;, &#34;u64&#34;, &#34;i8&#34;, &#34;i16&#34;, &#34;i32&#34;, &#34;i64&#34;, &#34;f32&#34;, &#34;f64&#34;]
+    output_data_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]
 
     def __init__(self,
                  source: RasterOperator,
-                 output_data_type: Literal[&#34;u8&#34;, &#34;u16&#34;, &#34;u32&#34;, &#34;u64&#34;, &#34;i8&#34;, &#34;i16&#34;, &#34;i32&#34;, &#34;i64&#34;, &#34;f32&#34;, &#34;f64&#34;]
+                 output_data_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]
                  ):
         &#39;&#39;&#39;Creates a new RasterTypeConversion operator.&#39;&#39;&#39;
         self.source = source
@@ -1953,7 +1953,7 @@ x = y * slope + offset</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.workflow_builder.operators.RasterTypeConversion.output_data_type"><code class="name">var <span class="ident">output_data_type</span> : Literal['u8', 'u16', 'u32', 'u64', 'i8', 'i16', 'i32', 'i64', 'f32', 'f64']</code></dt>
+<dt id="geoengine.workflow_builder.operators.RasterTypeConversion.output_data_type"><code class="name">var <span class="ident">output_data_type</span> : Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

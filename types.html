@@ -249,6 +249,12 @@ class TimeInterval:
     def __datetime_to_iso_str(timestamp: np.datetime64) -&gt; str:
         return str(np.datetime_as_string(timestamp, unit=&#39;ms&#39;, timezone=&#39;UTC&#39;)).replace(&#39;Z&#39;, &#39;+00:00&#39;)
 
+    def __eq__(self, other: Any) -&gt; bool:
+        &#39;&#39;&#39;Check if two `TimeInterval` objects are equal.&#39;&#39;&#39;
+        if not isinstance(other, TimeInterval):
+            return False
+        return self.start == other.start and self.end == other.end
+
 
 class SpatialResolution:
     &#39;&#39;&#39;&#39;A spatial resolution.&#39;&#39;&#39;
@@ -1382,7 +1388,15 @@ class GeoTransform:
         return SpatialResolution(
             x_resolution=abs(self.x_pixel_size),
             y_resolution=abs(self.y_pixel_size)
-        )</code></pre>
+        )
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Check if two geotransforms are equal&#39;&#39;&#39;
+        if not isinstance(other, GeoTransform):
+            return False
+
+        return self.x_min == other.x_min and self.y_max == other.y_max and \
+            self.x_pixel_size == other.x_pixel_size and self.y_pixel_size == other.y_pixel_size</code></pre>
 </details>
 </section>
 <section>
@@ -2181,7 +2195,15 @@ def from_string(data_type: str) -&gt; FeatureDataType:
         return SpatialResolution(
             x_resolution=abs(self.x_pixel_size),
             y_resolution=abs(self.y_pixel_size)
-        )</code></pre>
+        )
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Check if two geotransforms are equal&#39;&#39;&#39;
+        if not isinstance(other, GeoTransform):
+            return False
+
+        return self.x_min == other.x_min and self.y_max == other.y_max and \
+            self.x_pixel_size == other.x_pixel_size and self.y_pixel_size == other.y_pixel_size</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -4610,7 +4632,13 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
 
     @staticmethod
     def __datetime_to_iso_str(timestamp: np.datetime64) -&gt; str:
-        return str(np.datetime_as_string(timestamp, unit=&#39;ms&#39;, timezone=&#39;UTC&#39;)).replace(&#39;Z&#39;, &#39;+00:00&#39;)</code></pre>
+        return str(np.datetime_as_string(timestamp, unit=&#39;ms&#39;, timezone=&#39;UTC&#39;)).replace(&#39;Z&#39;, &#39;+00:00&#39;)
+
+    def __eq__(self, other: Any) -&gt; bool:
+        &#39;&#39;&#39;Check if two `TimeInterval` objects are equal.&#39;&#39;&#39;
+        if not isinstance(other, TimeInterval):
+            return False
+        return self.start == other.start and self.end == other.end</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>

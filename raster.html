@@ -30,7 +30,7 @@
 <pre><code class="python">&#39;&#39;&#39;Raster data types&#39;&#39;&#39;
 from __future__ import annotations
 import json
-from typing import Optional, Tuple, Union, cast
+from typing import AsyncIterator, List, Optional, Tuple, Union, cast
 import numpy as np
 import pyarrow as pa
 import xarray as xr
@@ -240,7 +240,109 @@ class RasterTile2D:
             spatial_reference,
             time,
             band,
-        )</code></pre>
+        )
+
+
+class RasterTileStack2D:
+    &#39;&#39;&#39;A stack of all the bands of a raster tile as produced by the Geo Engine&#39;&#39;&#39;
+    size_y: int
+    size_x: int
+    geo_transform: gety.GeoTransform
+    crs: str
+    time: gety.TimeInterval
+    data: List[pa.Array]
+    bands: List[int]
+
+    # pylint: disable=too-many-arguments
+    def __init__(
+            self,
+            tile_shape: Tuple[int, int],
+            data: List[pa.Array],
+            geo_transform: gety.GeoTransform,
+            crs: str,
+            time: gety.TimeInterval,
+            bands: List[int],
+    ):
+        &#39;&#39;&#39;Create a RasterTileStack2D object&#39;&#39;&#39;
+        (self.size_y, self.size_x) = tile_shape
+        self.data = data
+        self.geo_transform = geo_transform
+        self.crs = crs
+        self.time = time
+        self.bands = bands
+
+    def single_band(self, index: int) -&gt; RasterTile2D:
+        &#39;&#39;&#39;Return a single band from the stack&#39;&#39;&#39;
+        return RasterTile2D(
+            (self.size_y, self.size_x),
+            self.data[index],
+            self.geo_transform,
+            self.crs,
+            self.time,
+            self.bands[index],
+        )
+
+    def to_numpy_masked_array_stack(self) -&gt; np.ma.MaskedArray:
+        &#39;&#39;&#39;Return the raster stack as a 3D masked numpy array&#39;&#39;&#39;
+        arrays = [self.single_band(i).to_numpy_masked_array() for i in range(0, len(self.data))]
+        stack = np.stack(arrays, axis=0)
+        return stack
+
+    def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -&gt; xr.DataArray:
+        &#39;&#39;&#39;Return the raster stack as an xarray.DataArray&#39;&#39;&#39;
+        arrays = [self.single_band(i).to_xarray(clip_with_bounds) for i in range(0, len(self.data))]
+        stack = xr.concat(arrays, dim=&#39;band&#39;)
+        return stack
+
+
+async def tile_stream_to_stack_stream(raster_stream: AsyncIterator[RasterTile2D]) -&gt; AsyncIterator[RasterTileStack2D]:
+
+    &#39;&#39;&#39; Convert a stream of raster tiles to stream of stacked tiles &#39;&#39;&#39;
+    store: List[RasterTile2D] = []
+    first_band: int = -1
+
+    async for tile in raster_stream:
+        if len(store) == 0:
+            first_band = tile.band
+            store.append(tile)
+
+        else:
+            # check things that should be the same for all tiles
+            assert tile.shape == store[0].shape, &#39;Tile shapes do not match&#39;
+            # TODO: geo transform should be the same for all tiles
+            #       tiles should have a tile position or global pixel position
+
+            # assert tile.geo_transform == store[0].geo_transform, &#39;Tile geo_transforms do not match&#39;
+            assert tile.crs == store[0].crs, &#39;Tile crs do not match&#39;
+
+            if tile.band == first_band:
+                assert tile.time.start &gt;= store[0].time.start, &#39;Tile time intervals must be equal or increasing&#39;
+
+                stack = [tile.data for tile in store]
+                tile_shape = store[0].shape
+                bands = [tile.band for tile in store]
+                geo_transforms = store[0].geo_transform
+                crs = store[0].crs
+                time = store[0].time
+
+                store = [tile]
+                yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)
+
+            else:
+                assert tile.time == store[0].time, &#39;Time missmatch. &#39; + str(store[0].time) + &#39; != &#39; + str(tile.time)
+                store.append(tile)
+
+    if len(store) &gt; 0:
+        tile_shape = store[0].shape
+        stack = [tile.data for tile in store]
+        bands = [tile.band for tile in store]
+        geo_transforms = store[0].geo_transform
+        crs = store[0].crs
+        time = store[0].time
+
+        store = []
+
+        yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)</code></pre>
 </details>
 </section>
 <section>
@@ -248,6 +350,68 @@ class RasterTile2D:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="geoengine.raster.tile_stream_to_stack_stream"><code class="name flex">
+<span>async def <span class="ident">tile_stream_to_stack_stream</span></span>(<span>raster_stream: AsyncIterator[<a title="geoengine.raster.RasterTile2D" href="#geoengine.raster.RasterTile2D">RasterTile2D</a>]) ‑> AsyncIterator[<a title="geoengine.raster.RasterTileStack2D" href="#geoengine.raster.RasterTileStack2D">RasterTileStack2D</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a stream of raster tiles to stream of stacked tiles</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def tile_stream_to_stack_stream(raster_stream: AsyncIterator[RasterTile2D]) -&gt; AsyncIterator[RasterTileStack2D]:
+
+    &#39;&#39;&#39; Convert a stream of raster tiles to stream of stacked tiles &#39;&#39;&#39;
+    store: List[RasterTile2D] = []
+    first_band: int = -1
+
+    async for tile in raster_stream:
+        if len(store) == 0:
+            first_band = tile.band
+            store.append(tile)
+
+        else:
+            # check things that should be the same for all tiles
+            assert tile.shape == store[0].shape, &#39;Tile shapes do not match&#39;
+            # TODO: geo transform should be the same for all tiles
+            #       tiles should have a tile position or global pixel position
+
+            # assert tile.geo_transform == store[0].geo_transform, &#39;Tile geo_transforms do not match&#39;
+            assert tile.crs == store[0].crs, &#39;Tile crs do not match&#39;
+
+            if tile.band == first_band:
+                assert tile.time.start &gt;= store[0].time.start, &#39;Tile time intervals must be equal or increasing&#39;
+
+                stack = [tile.data for tile in store]
+                tile_shape = store[0].shape
+                bands = [tile.band for tile in store]
+                geo_transforms = store[0].geo_transform
+                crs = store[0].crs
+                time = store[0].time
+
+                store = [tile]
+                yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)
+
+            else:
+                assert tile.time == store[0].time, &#39;Time missmatch. &#39; + str(store[0].time) + &#39; != &#39; + str(tile.time)
+                store.append(tile)
+
+    if len(store) &gt; 0:
+        tile_shape = store[0].shape
+        stack = [tile.data for tile in store]
+        bands = [tile.band for tile in store]
+        geo_transforms = store[0].geo_transform
+        crs = store[0].crs
+        time = store[0].time
+
+        store = []
+
+        yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -847,6 +1011,156 @@ It is possible to specify whether NaN values should be considered as no data whe
 </dd>
 </dl>
 </dd>
+<dt id="geoengine.raster.RasterTileStack2D"><code class="flex name class">
+<span>class <span class="ident">RasterTileStack2D</span></span>
+<span>(</span><span>tile_shape: Tuple[int, int], data: List[pa.Array], geo_transform: gety.GeoTransform, crs: str, time: gety.TimeInterval, bands: List[int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A stack of all the bands of a raster tile as produced by the Geo Engine</p>
+<p>Create a RasterTileStack2D object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RasterTileStack2D:
+    &#39;&#39;&#39;A stack of all the bands of a raster tile as produced by the Geo Engine&#39;&#39;&#39;
+    size_y: int
+    size_x: int
+    geo_transform: gety.GeoTransform
+    crs: str
+    time: gety.TimeInterval
+    data: List[pa.Array]
+    bands: List[int]
+
+    # pylint: disable=too-many-arguments
+    def __init__(
+            self,
+            tile_shape: Tuple[int, int],
+            data: List[pa.Array],
+            geo_transform: gety.GeoTransform,
+            crs: str,
+            time: gety.TimeInterval,
+            bands: List[int],
+    ):
+        &#39;&#39;&#39;Create a RasterTileStack2D object&#39;&#39;&#39;
+        (self.size_y, self.size_x) = tile_shape
+        self.data = data
+        self.geo_transform = geo_transform
+        self.crs = crs
+        self.time = time
+        self.bands = bands
+
+    def single_band(self, index: int) -&gt; RasterTile2D:
+        &#39;&#39;&#39;Return a single band from the stack&#39;&#39;&#39;
+        return RasterTile2D(
+            (self.size_y, self.size_x),
+            self.data[index],
+            self.geo_transform,
+            self.crs,
+            self.time,
+            self.bands[index],
+        )
+
+    def to_numpy_masked_array_stack(self) -&gt; np.ma.MaskedArray:
+        &#39;&#39;&#39;Return the raster stack as a 3D masked numpy array&#39;&#39;&#39;
+        arrays = [self.single_band(i).to_numpy_masked_array() for i in range(0, len(self.data))]
+        stack = np.stack(arrays, axis=0)
+        return stack
+
+    def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -&gt; xr.DataArray:
+        &#39;&#39;&#39;Return the raster stack as an xarray.DataArray&#39;&#39;&#39;
+        arrays = [self.single_band(i).to_xarray(clip_with_bounds) for i in range(0, len(self.data))]
+        stack = xr.concat(arrays, dim=&#39;band&#39;)
+        return stack</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.raster.RasterTileStack2D.bands"><code class="name">var <span class="ident">bands</span> : List[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.raster.RasterTileStack2D.crs"><code class="name">var <span class="ident">crs</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.raster.RasterTileStack2D.data"><code class="name">var <span class="ident">data</span> : List[pyarrow.lib.Array]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.raster.RasterTileStack2D.geo_transform"><code class="name">var <span class="ident">geo_transform</span> : <a title="geoengine.types.GeoTransform" href="types.html#geoengine.types.GeoTransform">GeoTransform</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.raster.RasterTileStack2D.size_x"><code class="name">var <span class="ident">size_x</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.raster.RasterTileStack2D.size_y"><code class="name">var <span class="ident">size_y</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.raster.RasterTileStack2D.time"><code class="name">var <span class="ident">time</span> : <a title="geoengine.types.TimeInterval" href="types.html#geoengine.types.TimeInterval">TimeInterval</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.raster.RasterTileStack2D.single_band"><code class="name flex">
+<span>def <span class="ident">single_band</span></span>(<span>self, index: int) ‑> <a title="geoengine.raster.RasterTile2D" href="#geoengine.raster.RasterTile2D">RasterTile2D</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return a single band from the stack</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def single_band(self, index: int) -&gt; RasterTile2D:
+    &#39;&#39;&#39;Return a single band from the stack&#39;&#39;&#39;
+    return RasterTile2D(
+        (self.size_y, self.size_x),
+        self.data[index],
+        self.geo_transform,
+        self.crs,
+        self.time,
+        self.bands[index],
+    )</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTileStack2D.to_numpy_masked_array_stack"><code class="name flex">
+<span>def <span class="ident">to_numpy_masked_array_stack</span></span>(<span>self) ‑> numpy.ma.core.MaskedArray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the raster stack as a 3D masked numpy array</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_numpy_masked_array_stack(self) -&gt; np.ma.MaskedArray:
+    &#39;&#39;&#39;Return the raster stack as a 3D masked numpy array&#39;&#39;&#39;
+    arrays = [self.single_band(i).to_numpy_masked_array() for i in range(0, len(self.data))]
+    stack = np.stack(arrays, axis=0)
+    return stack</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTileStack2D.to_xarray"><code class="name flex">
+<span>def <span class="ident">to_xarray</span></span>(<span>self, clip_with_bounds: Optional[gety.SpatialBounds] = None) ‑> xarray.core.dataarray.DataArray</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the raster stack as an xarray.DataArray</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -&gt; xr.DataArray:
+    &#39;&#39;&#39;Return the raster stack as an xarray.DataArray&#39;&#39;&#39;
+    arrays = [self.single_band(i).to_xarray(clip_with_bounds) for i in range(0, len(self.data))]
+    stack = xr.concat(arrays, dim=&#39;band&#39;)
+    return stack</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -859,6 +1173,11 @@ It is possible to specify whether NaN values should be considered as no data whe
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="geoengine" href="index.html">geoengine</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="geoengine.raster.tile_stream_to_stack_stream" href="#geoengine.raster.tile_stream_to_stack_stream">tile_stream_to_stack_stream</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -889,6 +1208,21 @@ It is possible to specify whether NaN values should be considered as no data whe
 <li><code><a title="geoengine.raster.RasterTile2D.to_numpy_mask_array" href="#geoengine.raster.RasterTile2D.to_numpy_mask_array">to_numpy_mask_array</a></code></li>
 <li><code><a title="geoengine.raster.RasterTile2D.to_numpy_masked_array" href="#geoengine.raster.RasterTile2D.to_numpy_masked_array">to_numpy_masked_array</a></code></li>
 <li><code><a title="geoengine.raster.RasterTile2D.to_xarray" href="#geoengine.raster.RasterTile2D.to_xarray">to_xarray</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.raster.RasterTileStack2D" href="#geoengine.raster.RasterTileStack2D">RasterTileStack2D</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.raster.RasterTileStack2D.bands" href="#geoengine.raster.RasterTileStack2D.bands">bands</a></code></li>
+<li><code><a title="geoengine.raster.RasterTileStack2D.crs" href="#geoengine.raster.RasterTileStack2D.crs">crs</a></code></li>
+<li><code><a title="geoengine.raster.RasterTileStack2D.data" href="#geoengine.raster.RasterTileStack2D.data">data</a></code></li>
+<li><code><a title="geoengine.raster.RasterTileStack2D.geo_transform" href="#geoengine.raster.RasterTileStack2D.geo_transform">geo_transform</a></code></li>
+<li><code><a title="geoengine.raster.RasterTileStack2D.single_band" href="#geoengine.raster.RasterTileStack2D.single_band">single_band</a></code></li>
+<li><code><a title="geoengine.raster.RasterTileStack2D.size_x" href="#geoengine.raster.RasterTileStack2D.size_x">size_x</a></code></li>
+<li><code><a title="geoengine.raster.RasterTileStack2D.size_y" href="#geoengine.raster.RasterTileStack2D.size_y">size_y</a></code></li>
+<li><code><a title="geoengine.raster.RasterTileStack2D.time" href="#geoengine.raster.RasterTileStack2D.time">time</a></code></li>
+<li><code><a title="geoengine.raster.RasterTileStack2D.to_numpy_masked_array_stack" href="#geoengine.raster.RasterTileStack2D.to_numpy_masked_array_stack">to_numpy_masked_array_stack</a></code></li>
+<li><code><a title="geoengine.raster.RasterTileStack2D.to_xarray" href="#geoengine.raster.RasterTileStack2D.to_xarray">to_xarray</a></code></li>
 </ul>
 </li>
 </ul>
