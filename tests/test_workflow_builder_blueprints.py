@@ -64,7 +64,7 @@ class BlueprintsTests(unittest.TestCase):
         self.assertEqual(source_operator.to_dict(), {
             "type": "Expression",
             "params": {
-                "expression": "if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { (A - B) / (A + B) }",
+                "expression": "if (C == 3 || (C >= 7 && C <= 11)) { NODATA } else { (A - B) / (A + B) }",
                 "outputType": "F32",
                 "mapNoData": False,
             },
@@ -151,7 +151,7 @@ class BlueprintsTests(unittest.TestCase):
         self.assertEqual(source_operator.to_dict(), {
             "type": "Expression",
             "params": {
-                "expression": "if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { (A - B) / (A + B) }",
+                "expression": "if (C == 3 || (C >= 7 && C <= 11)) { NODATA } else { (A - B) / (A + B) }",
                 "outputType": "F32",
                 "mapNoData": False,
             },
@@ -325,7 +325,7 @@ class BlueprintsTests(unittest.TestCase):
                 "raster": {
                     "type": "Expression",
                     "params": {
-                        "expression": "if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { (A - B) / (A + B) }",
+                        "expression": "if (C == 3 || (C >= 7 && C <= 11)) { NODATA } else { (A - B) / (A + B) }",
                         "outputType": "F32",
                         "mapNoData": False,
                     },
