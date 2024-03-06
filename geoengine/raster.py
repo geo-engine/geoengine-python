@@ -277,19 +277,35 @@ async def tile_stream_to_stack_stream(raster_stream: AsyncIterator[RasterTile2D]
             first_band = tile.band
             store.append(tile)
 
-        elif tile.band == first_band:
-            stack = [tile.data for tile in store]
-            tile_shape = store[0].shape
-            bands = [tile.band for tile in store]
-            geo_transforms = store[0].geo_transform
-            crs = store[0].crs
-            time = store[0].time
-
-            store = [tile]
-            yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)
-
         else:
-            store.append(tile)
+            # check things that should be the same for all tiles
+            if tile.shape != store[0].shape:
+                raise ValueError('Tile shapes do not match')
+            # TODO: geo transform should be the same for all tiles, tiles should have a tile position or global pixel position
+            #if tile.geo_transform != store[0].geo_transform:
+            #    raise ValueError('Tile geo_transforms do not match')
+            if tile.crs != store[0].crs:
+                raise ValueError('Tile crs do not match')
+
+            if tile.band == first_band:
+                if tile.time.start < store[0].time.start or tile.time.end < store[0].time.end:
+                    # TODO: separate check for new tiles and new time intervals
+                    raise ValueError('Tile time intervals must be equal or increasing')
+
+                stack = [tile.data for tile in store]
+                tile_shape = store[0].shape
+                bands = [tile.band for tile in store]
+                geo_transforms = store[0].geo_transform
+                crs = store[0].crs
+                time = store[0].time
+
+                store = [tile]
+                yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)
+
+            else:
+                if tile.time != store[0].time:
+                    raise ValueError('Tile time intervals do not match')
+                store.append(tile)
 
     if len(store) > 0:
         tile_shape = store[0].shape
