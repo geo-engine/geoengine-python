@@ -105,7 +105,7 @@ def sentinel2_cloud_free_ndvi_custom_input(nir_dataset: str, red_dataset: str, s
 
     # [sen2_mask == 3 |sen2_mask == 7 |sen2_mask == 8 | sen2_mask == 9 |sen2_mask == 10 |sen2_mask == 11 ]
     cloud_free = operators.Expression(
-        expression=&#34;if (B == 3 || (B &gt;= 7 &amp;&amp; B &lt;= 11)) { NODATA } else { (A - B) / (A + B) }&#34;,
+        expression=&#34;if (C == 3 || (C &gt;= 7 &amp;&amp; C &lt;= 11)) { NODATA } else { (A - B) / (A + B) }&#34;,
         output_type=&#34;F32&#34;,
         source=operators.RasterStacker([nir_source, red_source, scl_source_u16]),
     )
@@ -457,7 +457,7 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
 
     # [sen2_mask == 3 |sen2_mask == 7 |sen2_mask == 8 | sen2_mask == 9 |sen2_mask == 10 |sen2_mask == 11 ]
     cloud_free = operators.Expression(
-        expression=&#34;if (B == 3 || (B &gt;= 7 &amp;&amp; B &lt;= 11)) { NODATA } else { (A - B) / (A + B) }&#34;,
+        expression=&#34;if (C == 3 || (C &gt;= 7 &amp;&amp; C &lt;= 11)) { NODATA } else { (A - B) / (A + B) }&#34;,
         output_type=&#34;F32&#34;,
         source=operators.RasterStacker([nir_source, red_source, scl_source_u16]),
     )
