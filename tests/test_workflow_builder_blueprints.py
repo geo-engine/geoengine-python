@@ -39,9 +39,17 @@ class BlueprintsTests(unittest.TestCase):
                                     "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B02`"
                                 }
                             }, {
-                                "type": "GdalSource",
+                                "type": "RasterTypeConversion",
                                 "params": {
-                                    "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                                    "outputDataType": "U16"
+                                },
+                                "sources": {
+                                    "raster": {
+                                        "type": "GdalSource",
+                                        "params": {
+                                            "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                                        }
+                                    }
                                 }
                             }
                         ]
@@ -77,9 +85,17 @@ class BlueprintsTests(unittest.TestCase):
                                     "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B04`"
                                 }
                             }, {
-                                "type": "GdalSource",
+                                "type": "RasterTypeConversion",
                                 "params": {
-                                    "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                                    "outputDataType": "U16"
+                                },
+                                "sources": {
+                                    "raster": {
+                                        "type": "GdalSource",
+                                        "params": {
+                                            "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                                        }
+                                    }
                                 }
                             }
                         ]
@@ -110,9 +126,17 @@ class BlueprintsTests(unittest.TestCase):
                                     "data": "data_band"
                                 }
                             }, {
-                                "type": "GdalSource",
+                                "type": "RasterTypeConversion",
                                 "params": {
-                                    "data": "scl_band"
+                                    "outputDataType": "U16"
+                                },
+                                "sources": {
+                                    "raster": {
+                                        "type": "GdalSource",
+                                        "params": {
+                                            "data": "scl_band"
+                                        }
+                                    }
                                 }
                             }
                         ]
@@ -148,9 +172,17 @@ class BlueprintsTests(unittest.TestCase):
                                     "data": "band4"
                                 }
                             }, {
-                                "type": "GdalSource",
+                                "type": "RasterTypeConversion",
                                 "params": {
-                                    "data": "scl_band"
+                                    "outputDataType": "U16"
+                                },
+                                "sources": {
+                                    "raster": {
+                                        "type": "GdalSource",
+                                        "params": {
+                                            "data": "scl_band"
+                                        }
+                                    }
                                 }
                             }
                         ]
@@ -195,9 +227,17 @@ class BlueprintsTests(unittest.TestCase):
                                             "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:B04`"
                                         }
                                     }, {
-                                        "type": "GdalSource",
+                                        "type": "RasterTypeConversion",
                                         "params": {
-                                            "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                                            "outputDataType": "U16"
+                                        },
+                                        "sources": {
+                                            "raster": {
+                                                "type": "GdalSource",
+                                                "params": {
+                                                    "data": "_:5779494c-f3a2-48b3-8a2d-5fbba8c5b6c5:`UTM32N:SCL`"
+                                                }
+                                            }
                                         }
                                     }
                                 ]
@@ -244,9 +284,17 @@ class BlueprintsTests(unittest.TestCase):
                                             "data": "band8"
                                         }
                                     }, {
-                                        "type": "GdalSource",
+                                        "type": "RasterTypeConversion",
                                         "params": {
-                                            "data": "scl_band"
+                                            "outputDataType": "U16"
+                                        },
+                                        "sources": {
+                                            "raster": {
+                                                "type": "GdalSource",
+                                                "params": {
+                                                    "data": "scl_band"
+                                                }
+                                            }
                                         }
                                     }
                                 ]
@@ -298,9 +346,17 @@ class BlueprintsTests(unittest.TestCase):
                                             "data": "band4"
                                         }
                                     }, {
-                                        "type": "GdalSource",
+                                        "type": "RasterTypeConversion",
                                         "params": {
-                                            "data": "scl_band"
+                                            "outputDataType": "U16"
+                                        },
+                                        "sources": {
+                                            "raster": {
+                                                "type": "GdalSource",
+                                                "params": {
+                                                    "data": "scl_band"
+                                                }
+                                            }
                                         }
                                     }
                                 ]

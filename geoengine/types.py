@@ -220,6 +220,12 @@ class TimeInterval:
     def __datetime_to_iso_str(timestamp: np.datetime64) -> str:
         return str(np.datetime_as_string(timestamp, unit='ms', timezone='UTC')).replace('Z', '+00:00')
 
+    def __eq__(self, other: Any) -> bool:
+        '''Check if two `TimeInterval` objects are equal.'''
+        if not isinstance(other, TimeInterval):
+            return False
+        return self.start == other.start and self.end == other.end
+
 
 class SpatialResolution:
     ''''A spatial resolution.'''
@@ -1354,3 +1360,11 @@ class GeoTransform:
             x_resolution=abs(self.x_pixel_size),
             y_resolution=abs(self.y_pixel_size)
         )
+
+    def __eq__(self, other) -> bool:
+        '''Check if two geotransforms are equal'''
+        if not isinstance(other, GeoTransform):
+            return False
+
+        return self.x_min == other.x_min and self.y_max == other.y_max and \
+            self.x_pixel_size == other.x_pixel_size and self.y_pixel_size == other.y_pixel_size

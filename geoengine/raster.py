@@ -1,7 +1,7 @@
 '''Raster data types'''
 from __future__ import annotations
 import json
-from typing import Optional, Tuple, Union, cast
+from typing import AsyncIterator, List, Optional, Tuple, Union, cast
 import numpy as np
 import pyarrow as pa
 import xarray as xr
@@ -212,3 +212,105 @@ class RasterTile2D:
             time,
             band,
         )
+
+
+class RasterTileStack2D:
+    '''A stack of all the bands of a raster tile as produced by the Geo Engine'''
+    size_y: int
+    size_x: int
+    geo_transform: gety.GeoTransform
+    crs: str
+    time: gety.TimeInterval
+    data: List[pa.Array]
+    bands: List[int]
+
+    # pylint: disable=too-many-arguments
+    def __init__(
+            self,
+            tile_shape: Tuple[int, int],
+            data: List[pa.Array],
+            geo_transform: gety.GeoTransform,
+            crs: str,
+            time: gety.TimeInterval,
+            bands: List[int],
+    ):
+        '''Create a RasterTileStack2D object'''
+        (self.size_y, self.size_x) = tile_shape
+        self.data = data
+        self.geo_transform = geo_transform
+        self.crs = crs
+        self.time = time
+        self.bands = bands
+
+    def single_band(self, index: int) -> RasterTile2D:
+        '''Return a single band from the stack'''
+        return RasterTile2D(
+            (self.size_y, self.size_x),
+            self.data[index],
+            self.geo_transform,
+            self.crs,
+            self.time,
+            self.bands[index],
+        )
+
+    def to_numpy_masked_array_stack(self) -> np.ma.MaskedArray:
+        '''Return the raster stack as a 3D masked numpy array'''
+        arrays = [self.single_band(i).to_numpy_masked_array() for i in range(0, len(self.data))]
+        stack = np.stack(arrays, axis=0)
+        return stack
+
+    def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -> xr.DataArray:
+        '''Return the raster stack as an xarray.DataArray'''
+        arrays = [self.single_band(i).to_xarray(clip_with_bounds) for i in range(0, len(self.data))]
+        stack = xr.concat(arrays, dim='band')
+        return stack
+
+
+async def tile_stream_to_stack_stream(raster_stream: AsyncIterator[RasterTile2D]) -> AsyncIterator[RasterTileStack2D]:
+
+    ''' Convert a stream of raster tiles to stream of stacked tiles '''
+    store: List[RasterTile2D] = []
+    first_band: int = -1
+
+    async for tile in raster_stream:
+        if len(store) == 0:
+            first_band = tile.band
+            store.append(tile)
+
+        else:
+            # check things that should be the same for all tiles
+            assert tile.shape == store[0].shape, 'Tile shapes do not match'
+            # TODO: geo transform should be the same for all tiles
+            #       tiles should have a tile position or global pixel position
+
+            # assert tile.geo_transform == store[0].geo_transform, 'Tile geo_transforms do not match'
+            assert tile.crs == store[0].crs, 'Tile crs do not match'
+
+            if tile.band == first_band:
+                assert tile.time.start >= store[0].time.start, 'Tile time intervals must be equal or increasing'
+
+                stack = [tile.data for tile in store]
+                tile_shape = store[0].shape
+                bands = [tile.band for tile in store]
+                geo_transforms = store[0].geo_transform
+                crs = store[0].crs
+                time = store[0].time
+
+                store = [tile]
+                yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)
+
+            else:
+                assert tile.time == store[0].time, 'Time missmatch. ' + str(store[0].time) + ' != ' + str(tile.time)
+                store.append(tile)
+
+    if len(store) > 0:
+        tile_shape = store[0].shape
+        stack = [tile.data for tile in store]
+        bands = [tile.band for tile in store]
+        geo_transforms = store[0].geo_transform
+        crs = store[0].crs
+        time = store[0].time
+
+        store = []
+
+        yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)
