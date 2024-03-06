@@ -76,7 +76,7 @@ def sentinel2_cloud_free_ndvi_custom_input(nir_dataset: str, red_dataset: str, s
 
     # [sen2_mask == 3 |sen2_mask == 7 |sen2_mask == 8 | sen2_mask == 9 |sen2_mask == 10 |sen2_mask == 11 ]
     cloud_free = operators.Expression(
-        expression="if (B == 3 || (B >= 7 && B <= 11)) { NODATA } else { (A - B) / (A + B) }",
+        expression="if (C == 3 || (C >= 7 && C <= 11)) { NODATA } else { (A - B) / (A + B) }",
         output_type="F32",
         source=operators.RasterStacker([nir_source, red_source, scl_source_u16]),
     )
