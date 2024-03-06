@@ -266,7 +266,7 @@ class RasterTileStack2D:
         return stack
 
 
-async def tile_stream_to_np_stack(raster_stream: AsyncIterator[RasterTile2D]) -> AsyncIterator[RasterTileStack2D]:
+async def tile_stream_to_stack_stream(raster_stream: AsyncIterator[RasterTile2D]) -> AsyncIterator[RasterTileStack2D]:
 
     ''' Convert a stream of raster tiles to stream of stacked tiles '''
     store: List[RasterTile2D] = []
