@@ -854,6 +854,7 @@ class TimeShift(Operator):
             value=operator_dict["params"]["value"]
         )
 
+
 class RenameBands:
     '''Base class for renaming bands of a raster.'''
 
@@ -863,6 +864,7 @@ class RenameBands:
 
     @classmethod
     def from_dict(cls, rename_dict: Dict[str, Any]) -> 'RenameBands':
+        '''Returns a RenameBands object from a dictionary.'''
         if rename_dict["type"] == "defaultSuffix":
             return RenameBandsDefaultSuffix()
         if rename_dict["type"] == "suffix":
@@ -872,39 +874,35 @@ class RenameBands:
         raise ValueError("Invalid rename type")
 
     @classmethod
-    def default() -> 'RenameBands':
+    def default(cls) -> 'RenameBands':
         return RenameBandsDefaultSuffix()
-    
-    @classmethod
-    def suffix(values: List[str]) -> 'RenameBands':
-        return RenameBandsSuffix(values)
-    
-    @classmethod
-    def rename(values: List[str]) -> 'RenameBands':
-        return RenameBandsSuffix()
 
+    @classmethod
+    def suffix(cls, values: List[str]) -> 'RenameBands':
+        return RenameBandsSuffix(values)
+
+    @classmethod
+    def rename(cls, values: List[str]) -> 'RenameBands':
+        return RenameBandsRename(values)
 
 
 class RenameBandsDefaultSuffix(RenameBands):
     '''Rename bands with default suffix.'''
 
-    def __init__(self) -> None:
-        super().__init__()
-
     def to_dict(self) -> Dict[str, Any]:
         return {
             "type": "defaultSuffix"
         }
-        
+
+
 class RenameBandsSuffix(RenameBands):
     '''Rename bands with custom suffixes.'''
 
-    suffixes = List[str]
+    suffixes: List[str]
 
     def __init__(self, suffixes: List[str]) -> None:
         self.suffixes = suffixes
         super().__init__()
-
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -916,12 +914,11 @@ class RenameBandsSuffix(RenameBands):
 class RenameBandsRename(RenameBands):
     '''Rename bands with new names.'''
 
-    new_names = List[str]
+    new_names: List[str]
 
     def __init__(self, new_names: List[str]) -> None:
         self.new_names = new_names
         super().__init__()
-
 
     def to_dict(self) -> Dict[str, Any]:
         return {
