@@ -865,8 +865,8 @@ class RenameBands:
     @classmethod
     def from_dict(cls, rename_dict: Dict[str, Any]) -> 'RenameBands':
         '''Returns a RenameBands object from a dictionary.'''
-        if rename_dict["type"] == "defaultSuffix":
-            return RenameBandsDefaultSuffix()
+        if rename_dict["type"] == "default":
+            return RenameBandsDefault()
         if rename_dict["type"] == "suffix":
             return RenameBandsSuffix(cast(List[str], rename_dict["values"]))
         if rename_dict["type"] == "rename":
@@ -875,7 +875,7 @@ class RenameBands:
 
     @classmethod
     def default(cls) -> 'RenameBands':
-        return RenameBandsDefaultSuffix()
+        return RenameBandsDefault()
 
     @classmethod
     def suffix(cls, values: List[str]) -> 'RenameBands':
@@ -886,12 +886,12 @@ class RenameBands:
         return RenameBandsRename(values)
 
 
-class RenameBandsDefaultSuffix(RenameBands):
+class RenameBandsDefault(RenameBands):
     '''Rename bands with default suffix.'''
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "type": "defaultSuffix"
+            "type": "default"
         }
 
 
@@ -936,7 +936,7 @@ class RasterStacker(RasterOperator):
     # pylint: disable=too-many-arguments
     def __init__(self,
                  sources: List[RasterOperator],
-                 rename: RenameBands = RenameBandsDefaultSuffix()
+                 rename: RenameBands = RenameBandsDefault()
                  ):
         '''Creates a new RasterStacker operator.'''
         self.sources = sources

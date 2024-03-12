@@ -32,7 +32,7 @@ class BlueprintsTests(unittest.TestCase):
                     "type": "RasterStacker",
                     "params": {
                         "renameBands": {
-                            "type": "defaultSuffix"
+                            "type": "default"
                         }
                     },
                     "sources": {
@@ -77,7 +77,7 @@ class BlueprintsTests(unittest.TestCase):
                     "type": "RasterStacker",
                     "params": {
                         "renameBands": {
-                            "type": "defaultSuffix"
+                            "type": "default"
                         }
                     },
                     "sources": {
@@ -127,7 +127,7 @@ class BlueprintsTests(unittest.TestCase):
                     "type": "RasterStacker",
                     "params": {
                         "renameBands": {
-                            "type": "defaultSuffix"
+                            "type": "default"
                         }
                     },
                     "sources": {
@@ -172,7 +172,7 @@ class BlueprintsTests(unittest.TestCase):
                     "type": "RasterStacker",
                     "params": {
                         "renameBands": {
-                            "type": "defaultSuffix"
+                            "type": "default"
                         }
                     },
                     "sources": {
@@ -236,7 +236,7 @@ class BlueprintsTests(unittest.TestCase):
                             "type": "RasterStacker",
                             "params": {
                                 "renameBands": {
-                                    "type": "defaultSuffix"
+                                    "type": "default"
                                 }
                             },
                             "sources": {
@@ -297,7 +297,7 @@ class BlueprintsTests(unittest.TestCase):
                             "type": "RasterStacker",
                             "params": {
                                 "renameBands": {
-                                    "type": "defaultSuffix"
+                                    "type": "default"
                                 }
                             },
                             "sources": {
@@ -358,7 +358,7 @@ class BlueprintsTests(unittest.TestCase):
                             "type": "RasterStacker",
                             "params": {
                                 "renameBands": {
-                                    "type": "defaultSuffix"
+                                    "type": "default"
                                 }
                             },
                             "sources": {
