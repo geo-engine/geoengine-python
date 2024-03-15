@@ -2,14 +2,12 @@
 
 import unittest
 from uuid import UUID
-
 import datetime
-from test_util import UrllibMocker
-
 import geoengine as ge
 from geoengine import BadRequestException, ValidationError, DEFAULT_ISO_TIME_FORMAT
 from geoengine.tasks import CompletedTaskStatusInfo, TaskStatus, RunningTaskStatusInfo, \
     AbortedTaskStatusInfo, FailedTaskStatusInfo, TaskId, Task
+from . import UrllibMocker
 
 
 class TaskTests(unittest.TestCase):

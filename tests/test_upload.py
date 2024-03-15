@@ -3,11 +3,10 @@
 import unittest
 import pandas as pd
 import geopandas
-
-from test_util import UrllibMocker
 import geoengine as ge
 from geoengine.datasets import DatasetName, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat
 from geoengine.types import TimeStepGranularity
+from . import UrllibMocker
 
 
 class UploadTests(unittest.TestCase):

@@ -2,10 +2,9 @@
 
 import unittest
 from uuid import UUID
-from test_util import UrllibMocker
-
 from geoengine.types import InternalDataId, Provenance, ProvenanceEntry
 import geoengine as ge
+from . import UrllibMocker
 
 
 class ProvenanceTests(unittest.TestCase):

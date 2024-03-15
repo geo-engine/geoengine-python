@@ -8,7 +8,7 @@ from geoengine import api
 from geoengine.datasets import DatasetName, UploadId
 from geoengine.layers import Layer, LayerId, LayerProviderId
 from geoengine.types import RasterSymbology
-from test_util import UrllibMocker
+from . import UrllibMocker
 
 
 class LayerTests(unittest.TestCase):

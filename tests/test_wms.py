@@ -3,13 +3,10 @@
 from datetime import datetime
 import textwrap
 import unittest
-# import textwrap
 from PIL import Image
-
-from test_util import UrllibMocker
-
 import geoengine as ge
 from geoengine.colorizer import Colorizer
+from . import UrllibMocker
 
 
 class WmsTests(unittest.TestCase):

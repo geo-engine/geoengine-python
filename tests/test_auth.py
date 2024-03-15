@@ -1,15 +1,13 @@
 '''Tests regarding Geo Engine authentication'''
 
 from datetime import datetime
-
 import unittest
 import os
 from pkg_resources import get_distribution
-
-from test_util import UrllibMocker
 import geoengine as ge
 from geoengine.error import GeoEngineException
 from geoengine.types import QueryRectangle
+from . import UrllibMocker
 
 
 class AuthTests(unittest.TestCase):

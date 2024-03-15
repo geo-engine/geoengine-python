@@ -10,8 +10,8 @@ import pyarrow as pa
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from test_util import UrllibMocker
 import geoengine as ge
+from . import UrllibMocker
 
 
 class MockRequestsGet:

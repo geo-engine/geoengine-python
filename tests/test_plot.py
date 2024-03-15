@@ -5,9 +5,8 @@ import textwrap
 from datetime import datetime
 import unittest
 from vega import VegaLite
-
-from test_util import UrllibMocker
 import geoengine as ge
+from . import UrllibMocker
 
 
 class PlotTests(unittest.TestCase):
