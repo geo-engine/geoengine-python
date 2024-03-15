@@ -1,10 +1,10 @@
 """Tests for the colorizer module."""
 
 import json
-import sys
 import unittest
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+import matplotlib
 import pytest
 import geoengine as ge
 from geoengine import colorizer
@@ -124,7 +124,8 @@ class ColorizerTests(unittest.TestCase):
             colorizer.Colorizer.linear_with_mpl_cmap(color_map="some_map", min_max=(0.0, 255.0))
 
         result = str(ctx.exception)
-        expected = f"'some_map' is not a valid value for {'cmap' if sys.version_info >= (3,8) else 'name'}; "\
+        mpl_version = tuple(int(x) for x in matplotlib.__version__.split("."))
+        expected = f"'some_map' is not a valid value for {'cmap' if mpl_version >= (3,8,0) else 'name'}; "\
             "supported values are 'Accent', 'Accent_r', "\
             "'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', "\
             "'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Greens', 'Greens_r', 'Greys', 'Greys_r', "\
