@@ -87,9 +87,14 @@ jobs:
           uv pip install --resolution=${{ env.resolution}} -e .
           uv pip install --resolution=${{ env.resolution}} -e .[dev]
       - name: Build
-        run: python -m build .
+        run: |
+          source .venv/bin/activate
+          python -m build .
       - name: Install test dependencies
         run: |
+          source .venv/bin/activate
           uv pip install --resolution=${{ env.resolution}} -e .[test]
       - name: Test
-        run: pytest
+        run: |
+          source .venv/bin/activate
+          pytest
