@@ -125,6 +125,10 @@ Keep in mind, that you need to add the missing stubs by extending the dependenci
 
 Our tip is to activate type checking with `mypy` in your IDE.
 
+## All checks from above
+
+You can call `./check.sh` to run all the checks that are shown above.
+
 ## Documentation
 
 Generate documentation HTML with:
