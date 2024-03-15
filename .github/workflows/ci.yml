@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-publish:
+  check:
     runs-on: ubuntu-22.04
 
     strategy:
@@ -53,8 +53,38 @@ jobs:
           python -m mypy tests
       - name: Test
         run: pytest
-      # - name: Publish
-      #   uses: pypa/gh-action-pypi-publish@master
-      #   with:
-      #     password: ${{ secrets.pypi_password }}
-      #     skip_existing: true
+
+  # Checks the library using minimum version resolution
+  # `uv` has this feature built-in, c.f. https://github.com/astral-sh/uv
+  check-min-version:
+    runs-on: ubuntu-22.04
+
+    env:
+      # use minimum supported versions from https://devguide.python.org/versions/
+      python-version: "3.8"
+      # lowest compatible versions for all direct dependencies
+      # cf., https://github.com/astral-sh/uv#resolution-strategy
+      resolution: "lowest-direct"
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: APT update
+        run: sudo apt-get update
+      - name: Install system dependencies
+        run: sudo apt-get install libgeos-dev libproj-dev
+      - name: Set up Python ${{ env.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.python-version }}
+      - name: Install build dependencies
+        run: |
+          pip install uv
+          uv pip install --resolution=${{ env.resolution}} -e .
+          uv pip install --resolution=${{ env.resolution}} -e .[dev]
+      - name: Build
+        run: python -m build .
+      - name: Install test dependencies
+        run: |
+          uv pip install --resolution=${{ env.resolution}} -e .[test]
+      - name: Test
+        run: pytest
