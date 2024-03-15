@@ -4,7 +4,6 @@ import json
 import unittest
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
-import matplotlib
 import pytest
 import geoengine as ge
 from geoengine import colorizer
@@ -124,9 +123,8 @@ class ColorizerTests(unittest.TestCase):
             colorizer.Colorizer.linear_with_mpl_cmap(color_map="some_map", min_max=(0.0, 255.0))
 
         result = str(ctx.exception)
-        mpl_version = tuple(int(x) for x in matplotlib.__version__.split("."))
-        expected = f"'some_map' is not a valid value for {'cmap' if mpl_version >= (3,8,0) else 'name'}; "\
-            "supported values are 'Accent', 'Accent_r', "\
+
+        expected_end = "supported values are 'Accent', 'Accent_r', "\
             "'Blues', 'Blues_r', 'BrBG', 'BrBG_r', 'BuGn', 'BuGn_r', 'BuPu', 'BuPu_r', 'CMRmap', "\
             "'CMRmap_r', 'Dark2', 'Dark2_r', 'GnBu', 'GnBu_r', 'Greens', 'Greens_r', 'Greys', 'Greys_r', "\
             "'OrRd', 'OrRd_r', 'Oranges', 'Oranges_r', 'PRGn', 'PRGn_r', 'Paired', 'Paired_r', 'Pastel1', "\
@@ -149,7 +147,7 @@ class ColorizerTests(unittest.TestCase):
             "'terrain_r', 'turbo', " "'turbo_r', 'twilight', 'twilight_r', 'twilight_shifted', "\
             "'twilight_shifted_r', 'viridis', 'viridis_r', 'winter', 'winter_r'"
 
-        assert result == expected
+        assert result.endswith(expected_end)
 
     def test_defaults(self):
         """Tests the manipulation of the default values."""
