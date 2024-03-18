@@ -11,8 +11,8 @@ import rioxarray
 import pyarrow as pa
 import xarray as xr
 from geoengine.types import RasterBandDescriptor
-from test_util import UrllibMocker
 import geoengine as ge
+from . import UrllibMocker
 
 
 class MockWebsocket:

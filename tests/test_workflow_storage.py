@@ -3,9 +3,9 @@
 import unittest
 from uuid import UUID
 import geoengine_openapi_client
-from test_util import UrllibMocker
 from geoengine.datasets import DatasetName, UploadId, StoredDataset
 import geoengine as ge
+from . import UrllibMocker
 
 
 class WorkflowStorageTests(unittest.TestCase):

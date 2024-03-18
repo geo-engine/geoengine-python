@@ -63,17 +63,22 @@ class UrllibMocker:
             sent_body = None
 
         for matcher in self._matchers:
-            if matcher["method"] == method and matcher["url"] == url and (
-                matcher["requestHeaders"] is None or (
-                    "headers" in kwargs and matcher["requestHeaders"].items() <= kwargs["headers"].items()
-                )
-            ) and (
-                    matcher["expectedRequestBody"] is None or matcher["expectedRequestBody"] == sent_body):
-                return urllib3.response.HTTPResponse(
-                    status=matcher["statusCode"],
-                    reason=UrllibMocker.STATUS_CODE_REASON_MAP[matcher["statusCode"]],
-                    body=matcher["body"]
-                )
+            if matcher["method"] != method or matcher["url"] != url:
+                continue
+
+            if matcher["requestHeaders"] is not None and (
+                "headers" in kwargs and matcher["requestHeaders"].items() > kwargs["headers"].items()
+            ):
+                continue
+
+            if matcher["expectedRequestBody"] is not None and matcher["expectedRequestBody"] != sent_body:
+                continue
+
+            return urllib3.response.HTTPResponse(
+                status=matcher["statusCode"],
+                reason=UrllibMocker.STATUS_CODE_REASON_MAP[matcher["statusCode"]],
+                body=matcher["body"]
+            )
 
         # TODO: remove
         print([matcher["url"] for matcher in self._matchers])
@@ -82,6 +87,7 @@ class UrllibMocker:
 
         raise KeyError(f'No handler found for {method} {url}')
 
+    # pylint: disable-next=too-many-arguments # follows `requests-mock` API
     def register_uri(self, method, url,
                      request_headers=None, expected_request_body=None, status_code=200,
                      json=None, text=None, body=None):

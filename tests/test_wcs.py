@@ -1,14 +1,13 @@
 '''Tests for WCS calls'''
 
 from datetime import datetime
-
 import unittest
 import owslib.util
 import requests_mock
 import numpy as np
 import xarray as xr
-from test_util import UrllibMocker
 import geoengine as ge
+from . import UrllibMocker
 
 
 class WcsTests(unittest.TestCase):

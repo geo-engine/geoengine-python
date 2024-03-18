@@ -1,9 +1,8 @@
 """Tests for the datasets module."""
 
 import unittest
-
 import geoengine as ge
-from test_util import UrllibMocker
+from . import UrllibMocker
 
 
 class DatasetsTests(unittest.TestCase):

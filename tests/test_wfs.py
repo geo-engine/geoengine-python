@@ -9,8 +9,8 @@ import geopandas as gpd
 import geopandas.testing  # pylint: disable=unused-import
 from shapely.geometry import Point
 from pkg_resources import get_distribution
-from test_util import UrllibMocker
 import geoengine as ge
+from . import UrllibMocker
 
 
 class WfsTests(unittest.TestCase):
