@@ -922,7 +922,7 @@ class RenameBandsRename(RenameBands):
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "type": "suffix",
+            "type": "rename",
             "values": self.new_names
         }
 
