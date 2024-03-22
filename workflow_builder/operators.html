@@ -35,7 +35,9 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
 
 from geoengine.datasets import DatasetName
-from geoengine.types import Measurement
+from geoengine.types import Measurement, RasterBandDescriptor
+
+# pylint: disable=too-many-lines
 
 
 class Operator():
@@ -283,11 +285,83 @@ class Interpolation(RasterOperator):
         )
 
 
+class ColumnNames:
+    &#39;&#39;&#39;Base class for deriving column names from bands of a raster.&#39;&#39;&#39;
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass
+
+    @classmethod
+    def from_dict(cls, rename_dict: Dict[str, Any]) -&gt; &#39;ColumnNames&#39;:
+        &#39;&#39;&#39;Returns a ColumnNames object from a dictionary.&#39;&#39;&#39;
+        if rename_dict[&#34;type&#34;] == &#34;default&#34;:
+            return ColumnNamesDefault()
+        if rename_dict[&#34;type&#34;] == &#34;suffix&#34;:
+            return ColumnNamesSuffix(cast(List[str], rename_dict[&#34;values&#34;]))
+        if rename_dict[&#34;type&#34;] == &#34;names&#34;:
+            return ColumnNamesNames(cast(List[str], rename_dict[&#34;values&#34;]))
+        raise ValueError(&#34;Invalid rename type&#34;)
+
+    @classmethod
+    def default(cls) -&gt; &#39;ColumnNames&#39;:
+        return ColumnNamesDefault()
+
+    @classmethod
+    def suffix(cls, values: List[str]) -&gt; &#39;ColumnNames&#39;:
+        return ColumnNamesSuffix(values)
+
+    @classmethod
+    def rename(cls, values: List[str]) -&gt; &#39;ColumnNames&#39;:
+        return ColumnNamesNames(values)
+
+
+class ColumnNamesDefault(ColumnNames):
+    &#39;&#39;&#39;column names with default suffix.&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;default&#34;
+        }
+
+
+class ColumnNamesSuffix(ColumnNames):
+    &#39;&#39;&#39;Rename bands with custom suffixes.&#39;&#39;&#39;
+
+    suffixes: List[str]
+
+    def __init__(self, suffixes: List[str]) -&gt; None:
+        self.suffixes = suffixes
+        super().__init__()
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;suffix&#34;,
+            &#34;values&#34;: self.suffixes
+        }
+
+
+class ColumnNamesNames(ColumnNames):
+    &#39;&#39;&#39;Rename bands with new names.&#39;&#39;&#39;
+
+    new_names: List[str]
+
+    def __init__(self, new_names: List[str]) -&gt; None:
+        self.new_names = new_names
+        super().__init__()
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;names&#34;,
+            &#34;values&#34;: self.new_names
+        }
+
+
 class RasterVectorJoin(VectorOperator):
     &#39;&#39;&#39;A RasterVectorJoin operator.&#39;&#39;&#39;
     raster_sources: List[RasterOperator]
     vector_source: VectorOperator
-    new_column_names: List[str]
+    names: ColumnNames
     temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;
     temporal_aggregation_ignore_nodata: bool = False
     feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
@@ -297,7 +371,7 @@ class RasterVectorJoin(VectorOperator):
     def __init__(self,
                  raster_sources: List[RasterOperator],
                  vector_source: VectorOperator,
-                 new_column_names: List[str],
+                 names: ColumnNames,
                  temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;,
                  temporal_aggregation_ignore_nodata: bool = False,
                  feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;,
@@ -306,12 +380,11 @@ class RasterVectorJoin(VectorOperator):
         &#39;&#39;&#39;Creates a new RasterVectorJoin operator.&#39;&#39;&#39;
         self.raster_source = raster_sources
         self.vector_source = vector_source
-        self.new_column_names = new_column_names
+        self.names = names
         self.temporal_aggregation = temporal_aggregation
         self.temporal_aggregation_ignore_nodata = temporal_aggregation_ignore_nodata
         self.feature_aggregation = feature_aggregation
         self.feature_aggregation_ignore_nodata = feature_aggregation_ignore_nodata
-        assert (len(self.raster_source) == len(self.new_column_names))
 
     def name(self) -&gt; str:
         return &#39;RasterVectorJoin&#39;
@@ -320,7 +393,7 @@ class RasterVectorJoin(VectorOperator):
         return {
             &#34;type&#34;: self.name(),
             &#34;params&#34;: {
-                &#34;names&#34;: self.new_column_names,
+                &#34;names&#34;: self.names.to_dict(),
                 &#34;temporalAggregation&#34;: self.temporal_aggregation,
                 &#34;temporalAggregationIgnoreNoData&#34;: self.temporal_aggregation_ignore_nodata,
                 &#34;featureAggregation&#34;: self.feature_aggregation,
@@ -349,7 +422,7 @@ class RasterVectorJoin(VectorOperator):
         return RasterVectorJoin(
             raster_sources=raster_sources,
             vector_source=vector_source,
-            new_column_names=cast(List[str], params[&#39;names&#39;]),
+            names=ColumnNames.from_dict(params[&#39;names&#39;]),
             temporal_aggregation=cast(Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;], params[&#39;temporalAggregation&#39;]),
             temporal_aggregation_ignore_nodata=cast(bool, params[&#39;temporalAggregationIgnoreNoData&#39;]),
             feature_aggregation=cast(Literal[&#34;first&#34;, &#34;mean&#34;], params[&#39;featureAggregation&#39;]),
@@ -595,7 +668,7 @@ class Expression(RasterOperator):
     source: RasterOperator
     output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;
     map_no_data: bool = False
-    output_measurement: Optional[Measurement] = None
+    output_band: Optional[RasterBandDescriptor] = None
 
     # pylint: disable=too-many-arguments
     def __init__(self,
@@ -603,14 +676,14 @@ class Expression(RasterOperator):
                  source: RasterOperator,
                  output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;,
                  map_no_data: bool = False,
-                 output_measurement: Optional[Measurement] = None,
+                 output_band: Optional[RasterBandDescriptor] = None,
                  ):
         &#39;&#39;&#39;Creates a new Expression operator.&#39;&#39;&#39;
         self.expression = expression
         self.source = source
         self.output_type = output_type
         self.map_no_data = map_no_data
-        self.output_measurement = output_measurement
+        self.output_band = output_band
 
     def name(self) -&gt; str:
         return &#39;Expression&#39;
@@ -621,8 +694,8 @@ class Expression(RasterOperator):
             &#34;outputType&#34;: self.output_type,
             &#34;mapNoData&#34;: self.map_no_data,
         }
-        if self.output_measurement:
-            params[&#34;outputMeasurement&#34;] = self.output_measurement.to_api_dict()
+        if self.output_band:
+            params[&#34;outputBand&#34;] = self.output_band.to_api_dict()
 
         return {
             &#34;type&#34;: self.name(),
@@ -637,16 +710,16 @@ class Expression(RasterOperator):
         if operator_dict[&#34;type&#34;] != &#34;Expression&#34;:
             raise ValueError(&#34;Invalid operator type&#34;)
 
-        output_measurement = None
-        if &#34;outputMeasurement&#34; in operator_dict[&#34;params&#34;]:
-            output_measurement = Measurement.from_response(operator_dict[&#34;params&#34;][&#34;outputMeasurement&#34;])
+        output_band = None
+        if &#34;output_band&#34; in operator_dict[&#34;params&#34;]:
+            output_band = RasterBandDescriptor.from_response(operator_dict[&#34;params&#34;][&#34;outputBand&#34;])
 
         return Expression(
             expression=operator_dict[&#34;params&#34;][&#34;expression&#34;],
             source=RasterOperator.from_operator_dict(operator_dict[&#34;sources&#34;][&#34;raster&#34;]),
             output_type=operator_dict[&#34;params&#34;][&#34;outputType&#34;],
             map_no_data=operator_dict[&#34;params&#34;][&#34;mapNoData&#34;],
-            output_measurement=output_measurement
+            output_band=output_band
         )
 
 
@@ -884,17 +957,92 @@ class TimeShift(Operator):
         )
 
 
+class RenameBands:
+    &#39;&#39;&#39;Base class for renaming bands of a raster.&#39;&#39;&#39;
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass
+
+    @classmethod
+    def from_dict(cls, rename_dict: Dict[str, Any]) -&gt; &#39;RenameBands&#39;:
+        &#39;&#39;&#39;Returns a RenameBands object from a dictionary.&#39;&#39;&#39;
+        if rename_dict[&#34;type&#34;] == &#34;default&#34;:
+            return RenameBandsDefault()
+        if rename_dict[&#34;type&#34;] == &#34;suffix&#34;:
+            return RenameBandsSuffix(cast(List[str], rename_dict[&#34;values&#34;]))
+        if rename_dict[&#34;type&#34;] == &#34;rename&#34;:
+            return RenameBandsRename(cast(List[str], rename_dict[&#34;values&#34;]))
+        raise ValueError(&#34;Invalid rename type&#34;)
+
+    @classmethod
+    def default(cls) -&gt; &#39;RenameBands&#39;:
+        return RenameBandsDefault()
+
+    @classmethod
+    def suffix(cls, values: List[str]) -&gt; &#39;RenameBands&#39;:
+        return RenameBandsSuffix(values)
+
+    @classmethod
+    def rename(cls, values: List[str]) -&gt; &#39;RenameBands&#39;:
+        return RenameBandsRename(values)
+
+
+class RenameBandsDefault(RenameBands):
+    &#39;&#39;&#39;Rename bands with default suffix.&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;default&#34;
+        }
+
+
+class RenameBandsSuffix(RenameBands):
+    &#39;&#39;&#39;Rename bands with custom suffixes.&#39;&#39;&#39;
+
+    suffixes: List[str]
+
+    def __init__(self, suffixes: List[str]) -&gt; None:
+        self.suffixes = suffixes
+        super().__init__()
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;suffix&#34;,
+            &#34;values&#34;: self.suffixes
+        }
+
+
+class RenameBandsRename(RenameBands):
+    &#39;&#39;&#39;Rename bands with new names.&#39;&#39;&#39;
+
+    new_names: List[str]
+
+    def __init__(self, new_names: List[str]) -&gt; None:
+        self.new_names = new_names
+        super().__init__()
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;rename&#34;,
+            &#34;values&#34;: self.new_names
+        }
+
+
 class RasterStacker(RasterOperator):
     &#39;&#39;&#39;The RasterStacker operator.&#39;&#39;&#39;
 
     sources: List[RasterOperator]
+    rename: RenameBands
 
     # pylint: disable=too-many-arguments
     def __init__(self,
                  sources: List[RasterOperator],
+                 rename: RenameBands = RenameBandsDefault()
                  ):
         &#39;&#39;&#39;Creates a new RasterStacker operator.&#39;&#39;&#39;
         self.sources = sources
+        self.rename = rename
 
     def name(self) -&gt; str:
         return &#39;RasterStacker&#39;
@@ -902,7 +1050,9 @@ class RasterStacker(RasterOperator):
     def to_dict(self) -&gt; Dict[str, Any]:
         return {
             &#34;type&#34;: self.name(),
-            &#34;params&#34;: {},
+            &#34;params&#34;: {
+                &#34;renameBands&#34;: self.rename.to_dict()
+            },
             &#34;sources&#34;: {
                 &#34;rasters&#34;: [raster_source.to_dict() for raster_source in self.sources]
             }
@@ -914,9 +1064,11 @@ class RasterStacker(RasterOperator):
             raise ValueError(&#34;Invalid operator type&#34;)
 
         sources = [RasterOperator.from_operator_dict(source) for source in operator_dict[&#34;sources&#34;][&#34;rasters&#34;]]
+        rename = RenameBands.from_dict(operator_dict[&#34;params&#34;][&#34;renameBands&#34;])
 
         return RasterStacker(
             sources=sources,
+            rename=rename
         )</code></pre>
 </details>
 </section>
@@ -929,9 +1081,314 @@ class RasterStacker(RasterOperator):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="geoengine.workflow_builder.operators.ColumnNames"><code class="flex name class">
+<span>class <span class="ident">ColumnNames</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for deriving column names from bands of a raster.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ColumnNames:
+    &#39;&#39;&#39;Base class for deriving column names from bands of a raster.&#39;&#39;&#39;
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass
+
+    @classmethod
+    def from_dict(cls, rename_dict: Dict[str, Any]) -&gt; &#39;ColumnNames&#39;:
+        &#39;&#39;&#39;Returns a ColumnNames object from a dictionary.&#39;&#39;&#39;
+        if rename_dict[&#34;type&#34;] == &#34;default&#34;:
+            return ColumnNamesDefault()
+        if rename_dict[&#34;type&#34;] == &#34;suffix&#34;:
+            return ColumnNamesSuffix(cast(List[str], rename_dict[&#34;values&#34;]))
+        if rename_dict[&#34;type&#34;] == &#34;names&#34;:
+            return ColumnNamesNames(cast(List[str], rename_dict[&#34;values&#34;]))
+        raise ValueError(&#34;Invalid rename type&#34;)
+
+    @classmethod
+    def default(cls) -&gt; &#39;ColumnNames&#39;:
+        return ColumnNamesDefault()
+
+    @classmethod
+    def suffix(cls, values: List[str]) -&gt; &#39;ColumnNames&#39;:
+        return ColumnNamesSuffix(values)
+
+    @classmethod
+    def rename(cls, values: List[str]) -&gt; &#39;ColumnNames&#39;:
+        return ColumnNamesNames(values)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.ColumnNamesDefault" href="#geoengine.workflow_builder.operators.ColumnNamesDefault">ColumnNamesDefault</a></li>
+<li><a title="geoengine.workflow_builder.operators.ColumnNamesNames" href="#geoengine.workflow_builder.operators.ColumnNamesNames">ColumnNamesNames</a></li>
+<li><a title="geoengine.workflow_builder.operators.ColumnNamesSuffix" href="#geoengine.workflow_builder.operators.ColumnNamesSuffix">ColumnNamesSuffix</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.ColumnNames.default"><code class="name flex">
+<span>def <span class="ident">default</span></span>(<span>) ‑> <a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def default(cls) -&gt; &#39;ColumnNames&#39;:
+    return ColumnNamesDefault()</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow_builder.operators.ColumnNames.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>rename_dict: Dict[str, Any]) ‑> <a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a ColumnNames object from a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls, rename_dict: Dict[str, Any]) -&gt; &#39;ColumnNames&#39;:
+    &#39;&#39;&#39;Returns a ColumnNames object from a dictionary.&#39;&#39;&#39;
+    if rename_dict[&#34;type&#34;] == &#34;default&#34;:
+        return ColumnNamesDefault()
+    if rename_dict[&#34;type&#34;] == &#34;suffix&#34;:
+        return ColumnNamesSuffix(cast(List[str], rename_dict[&#34;values&#34;]))
+    if rename_dict[&#34;type&#34;] == &#34;names&#34;:
+        return ColumnNamesNames(cast(List[str], rename_dict[&#34;values&#34;]))
+    raise ValueError(&#34;Invalid rename type&#34;)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow_builder.operators.ColumnNames.rename"><code class="name flex">
+<span>def <span class="ident">rename</span></span>(<span>values: List[str]) ‑> <a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def rename(cls, values: List[str]) -&gt; &#39;ColumnNames&#39;:
+    return ColumnNamesNames(values)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow_builder.operators.ColumnNames.suffix"><code class="name flex">
+<span>def <span class="ident">suffix</span></span>(<span>values: List[str]) ‑> <a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def suffix(cls, values: List[str]) -&gt; &#39;ColumnNames&#39;:
+    return ColumnNamesSuffix(values)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.ColumnNames.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def to_dict(self) -&gt; Dict[str, Any]:
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow_builder.operators.ColumnNamesDefault"><code class="flex name class">
+<span>class <span class="ident">ColumnNamesDefault</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>column names with default suffix.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ColumnNamesDefault(ColumnNames):
+    &#39;&#39;&#39;column names with default suffix.&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;default&#34;
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.ColumnNamesDefault.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    return {
+        &#34;type&#34;: &#34;default&#34;
+    }</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNames.from_dict" href="#geoengine.workflow_builder.operators.ColumnNames.from_dict">from_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.ColumnNamesNames"><code class="flex name class">
+<span>class <span class="ident">ColumnNamesNames</span></span>
+<span>(</span><span>new_names: List[str])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Rename bands with new names.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ColumnNamesNames(ColumnNames):
+    &#39;&#39;&#39;Rename bands with new names.&#39;&#39;&#39;
+
+    new_names: List[str]
+
+    def __init__(self, new_names: List[str]) -&gt; None:
+        self.new_names = new_names
+        super().__init__()
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;names&#34;,
+            &#34;values&#34;: self.new_names
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.ColumnNamesNames.new_names"><code class="name">var <span class="ident">new_names</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.ColumnNamesNames.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    return {
+        &#34;type&#34;: &#34;names&#34;,
+        &#34;values&#34;: self.new_names
+    }</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNames.from_dict" href="#geoengine.workflow_builder.operators.ColumnNames.from_dict">from_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.ColumnNamesSuffix"><code class="flex name class">
+<span>class <span class="ident">ColumnNamesSuffix</span></span>
+<span>(</span><span>suffixes: List[str])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Rename bands with custom suffixes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ColumnNamesSuffix(ColumnNames):
+    &#39;&#39;&#39;Rename bands with custom suffixes.&#39;&#39;&#39;
+
+    suffixes: List[str]
+
+    def __init__(self, suffixes: List[str]) -&gt; None:
+        self.suffixes = suffixes
+        super().__init__()
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;suffix&#34;,
+            &#34;values&#34;: self.suffixes
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.ColumnNamesSuffix.suffixes"><code class="name">var <span class="ident">suffixes</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.ColumnNamesSuffix.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    return {
+        &#34;type&#34;: &#34;suffix&#34;,
+        &#34;values&#34;: self.suffixes
+    }</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNames.from_dict" href="#geoengine.workflow_builder.operators.ColumnNames.from_dict">from_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="geoengine.workflow_builder.operators.Expression"><code class="flex name class">
 <span>class <span class="ident">Expression</span></span>
-<span>(</span><span>expression: str, source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, output_type: "Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']" = 'F32', map_no_data: bool = False, output_measurement: Optional[Measurement] = None)</span>
+<span>(</span><span>expression: str, source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, output_type: "Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']" = 'F32', map_no_data: bool = False, output_band: Optional[RasterBandDescriptor] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An Expression operator.</p>
@@ -947,7 +1404,7 @@ class RasterStacker(RasterOperator):
     source: RasterOperator
     output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;
     map_no_data: bool = False
-    output_measurement: Optional[Measurement] = None
+    output_band: Optional[RasterBandDescriptor] = None
 
     # pylint: disable=too-many-arguments
     def __init__(self,
@@ -955,14 +1412,14 @@ class RasterStacker(RasterOperator):
                  source: RasterOperator,
                  output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;,
                  map_no_data: bool = False,
-                 output_measurement: Optional[Measurement] = None,
+                 output_band: Optional[RasterBandDescriptor] = None,
                  ):
         &#39;&#39;&#39;Creates a new Expression operator.&#39;&#39;&#39;
         self.expression = expression
         self.source = source
         self.output_type = output_type
         self.map_no_data = map_no_data
-        self.output_measurement = output_measurement
+        self.output_band = output_band
 
     def name(self) -&gt; str:
         return &#39;Expression&#39;
@@ -973,8 +1430,8 @@ class RasterStacker(RasterOperator):
             &#34;outputType&#34;: self.output_type,
             &#34;mapNoData&#34;: self.map_no_data,
         }
-        if self.output_measurement:
-            params[&#34;outputMeasurement&#34;] = self.output_measurement.to_api_dict()
+        if self.output_band:
+            params[&#34;outputBand&#34;] = self.output_band.to_api_dict()
 
         return {
             &#34;type&#34;: self.name(),
@@ -989,16 +1446,16 @@ class RasterStacker(RasterOperator):
         if operator_dict[&#34;type&#34;] != &#34;Expression&#34;:
             raise ValueError(&#34;Invalid operator type&#34;)
 
-        output_measurement = None
-        if &#34;outputMeasurement&#34; in operator_dict[&#34;params&#34;]:
-            output_measurement = Measurement.from_response(operator_dict[&#34;params&#34;][&#34;outputMeasurement&#34;])
+        output_band = None
+        if &#34;output_band&#34; in operator_dict[&#34;params&#34;]:
+            output_band = RasterBandDescriptor.from_response(operator_dict[&#34;params&#34;][&#34;outputBand&#34;])
 
         return Expression(
             expression=operator_dict[&#34;params&#34;][&#34;expression&#34;],
             source=RasterOperator.from_operator_dict(operator_dict[&#34;sources&#34;][&#34;raster&#34;]),
             output_type=operator_dict[&#34;params&#34;][&#34;outputType&#34;],
             map_no_data=operator_dict[&#34;params&#34;][&#34;mapNoData&#34;],
-            output_measurement=output_measurement
+            output_band=output_band
         )</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1016,7 +1473,7 @@ class RasterStacker(RasterOperator):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.workflow_builder.operators.Expression.output_measurement"><code class="name">var <span class="ident">output_measurement</span> : Optional[<a title="geoengine.types.Measurement" href="../types.html#geoengine.types.Measurement">Measurement</a>]</code></dt>
+<dt id="geoengine.workflow_builder.operators.Expression.output_band"><code class="name">var <span class="ident">output_band</span> : Optional[<a title="geoengine.types.RasterBandDescriptor" href="../types.html#geoengine.types.RasterBandDescriptor">RasterBandDescriptor</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1825,7 +2282,7 @@ x = y * slope + offset</p>
 </dd>
 <dt id="geoengine.workflow_builder.operators.RasterStacker"><code class="flex name class">
 <span>class <span class="ident">RasterStacker</span></span>
-<span>(</span><span>sources: List[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>])</span>
+<span>(</span><span>sources: List[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>], rename: <a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a> = &lt;geoengine.workflow_builder.operators.RenameBandsDefault object&gt;)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The RasterStacker operator.</p>
@@ -1838,13 +2295,16 @@ x = y * slope + offset</p>
     &#39;&#39;&#39;The RasterStacker operator.&#39;&#39;&#39;
 
     sources: List[RasterOperator]
+    rename: RenameBands
 
     # pylint: disable=too-many-arguments
     def __init__(self,
                  sources: List[RasterOperator],
+                 rename: RenameBands = RenameBandsDefault()
                  ):
         &#39;&#39;&#39;Creates a new RasterStacker operator.&#39;&#39;&#39;
         self.sources = sources
+        self.rename = rename
 
     def name(self) -&gt; str:
         return &#39;RasterStacker&#39;
@@ -1852,7 +2312,9 @@ x = y * slope + offset</p>
     def to_dict(self) -&gt; Dict[str, Any]:
         return {
             &#34;type&#34;: self.name(),
-            &#34;params&#34;: {},
+            &#34;params&#34;: {
+                &#34;renameBands&#34;: self.rename.to_dict()
+            },
             &#34;sources&#34;: {
                 &#34;rasters&#34;: [raster_source.to_dict() for raster_source in self.sources]
             }
@@ -1864,9 +2326,11 @@ x = y * slope + offset</p>
             raise ValueError(&#34;Invalid operator type&#34;)
 
         sources = [RasterOperator.from_operator_dict(source) for source in operator_dict[&#34;sources&#34;][&#34;rasters&#34;]]
+        rename = RenameBands.from_dict(operator_dict[&#34;params&#34;][&#34;renameBands&#34;])
 
         return RasterStacker(
             sources=sources,
+            rename=rename
         )</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1876,6 +2340,10 @@ x = y * slope + offset</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
+<dt id="geoengine.workflow_builder.operators.RasterStacker.rename"><code class="name">var <span class="ident">rename</span> : <a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="geoengine.workflow_builder.operators.RasterStacker.sources"><code class="name">var <span class="ident">sources</span> : List[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>]</code></dt>
 <dd>
 <div class="desc"></div>
@@ -1978,7 +2446,7 @@ x = y * slope + offset</p>
 </dd>
 <dt id="geoengine.workflow_builder.operators.RasterVectorJoin"><code class="flex name class">
 <span>class <span class="ident">RasterVectorJoin</span></span>
-<span>(</span><span>raster_sources: List[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>], vector_source: <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>, new_column_names: List[str], temporal_aggregation: "Literal['none', 'first', 'mean']" = 'none', temporal_aggregation_ignore_nodata: bool = False, feature_aggregation: "Literal['first', 'mean']" = 'mean', feature_aggregation_ignore_nodata: bool = False)</span>
+<span>(</span><span>raster_sources: List[<a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>], vector_source: <a title="geoengine.workflow_builder.operators.VectorOperator" href="#geoengine.workflow_builder.operators.VectorOperator">VectorOperator</a>, names: <a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a>, temporal_aggregation: "Literal['none', 'first', 'mean']" = 'none', temporal_aggregation_ignore_nodata: bool = False, feature_aggregation: "Literal['first', 'mean']" = 'mean', feature_aggregation_ignore_nodata: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A RasterVectorJoin operator.</p>
@@ -1991,7 +2459,7 @@ x = y * slope + offset</p>
     &#39;&#39;&#39;A RasterVectorJoin operator.&#39;&#39;&#39;
     raster_sources: List[RasterOperator]
     vector_source: VectorOperator
-    new_column_names: List[str]
+    names: ColumnNames
     temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;
     temporal_aggregation_ignore_nodata: bool = False
     feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
@@ -2001,7 +2469,7 @@ x = y * slope + offset</p>
     def __init__(self,
                  raster_sources: List[RasterOperator],
                  vector_source: VectorOperator,
-                 new_column_names: List[str],
+                 names: ColumnNames,
                  temporal_aggregation: Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;] = &#34;none&#34;,
                  temporal_aggregation_ignore_nodata: bool = False,
                  feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;,
@@ -2010,12 +2478,11 @@ x = y * slope + offset</p>
         &#39;&#39;&#39;Creates a new RasterVectorJoin operator.&#39;&#39;&#39;
         self.raster_source = raster_sources
         self.vector_source = vector_source
-        self.new_column_names = new_column_names
+        self.names = names
         self.temporal_aggregation = temporal_aggregation
         self.temporal_aggregation_ignore_nodata = temporal_aggregation_ignore_nodata
         self.feature_aggregation = feature_aggregation
         self.feature_aggregation_ignore_nodata = feature_aggregation_ignore_nodata
-        assert (len(self.raster_source) == len(self.new_column_names))
 
     def name(self) -&gt; str:
         return &#39;RasterVectorJoin&#39;
@@ -2024,7 +2491,7 @@ x = y * slope + offset</p>
         return {
             &#34;type&#34;: self.name(),
             &#34;params&#34;: {
-                &#34;names&#34;: self.new_column_names,
+                &#34;names&#34;: self.names.to_dict(),
                 &#34;temporalAggregation&#34;: self.temporal_aggregation,
                 &#34;temporalAggregationIgnoreNoData&#34;: self.temporal_aggregation_ignore_nodata,
                 &#34;featureAggregation&#34;: self.feature_aggregation,
@@ -2053,7 +2520,7 @@ x = y * slope + offset</p>
         return RasterVectorJoin(
             raster_sources=raster_sources,
             vector_source=vector_source,
-            new_column_names=cast(List[str], params[&#39;names&#39;]),
+            names=ColumnNames.from_dict(params[&#39;names&#39;]),
             temporal_aggregation=cast(Literal[&#34;none&#34;, &#34;first&#34;, &#34;mean&#34;], params[&#39;temporalAggregation&#39;]),
             temporal_aggregation_ignore_nodata=cast(bool, params[&#39;temporalAggregationIgnoreNoData&#39;]),
             feature_aggregation=cast(Literal[&#34;first&#34;, &#34;mean&#34;], params[&#39;featureAggregation&#39;]),
@@ -2075,7 +2542,7 @@ x = y * slope + offset</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.new_column_names"><code class="name">var <span class="ident">new_column_names</span> : List[str]</code></dt>
+<dt id="geoengine.workflow_builder.operators.RasterVectorJoin.names"><code class="name">var <span class="ident">names</span> : <a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2106,6 +2573,311 @@ x = y * slope + offset</p>
 <li><code><a title="geoengine.workflow_builder.operators.VectorOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.VectorOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.VectorOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RenameBands"><code class="flex name class">
+<span>class <span class="ident">RenameBands</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Base class for renaming bands of a raster.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RenameBands:
+    &#39;&#39;&#39;Base class for renaming bands of a raster.&#39;&#39;&#39;
+
+    @abstractmethod
+    def to_dict(self) -&gt; Dict[str, Any]:
+        pass
+
+    @classmethod
+    def from_dict(cls, rename_dict: Dict[str, Any]) -&gt; &#39;RenameBands&#39;:
+        &#39;&#39;&#39;Returns a RenameBands object from a dictionary.&#39;&#39;&#39;
+        if rename_dict[&#34;type&#34;] == &#34;default&#34;:
+            return RenameBandsDefault()
+        if rename_dict[&#34;type&#34;] == &#34;suffix&#34;:
+            return RenameBandsSuffix(cast(List[str], rename_dict[&#34;values&#34;]))
+        if rename_dict[&#34;type&#34;] == &#34;rename&#34;:
+            return RenameBandsRename(cast(List[str], rename_dict[&#34;values&#34;]))
+        raise ValueError(&#34;Invalid rename type&#34;)
+
+    @classmethod
+    def default(cls) -&gt; &#39;RenameBands&#39;:
+        return RenameBandsDefault()
+
+    @classmethod
+    def suffix(cls, values: List[str]) -&gt; &#39;RenameBands&#39;:
+        return RenameBandsSuffix(values)
+
+    @classmethod
+    def rename(cls, values: List[str]) -&gt; &#39;RenameBands&#39;:
+        return RenameBandsRename(values)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RenameBandsDefault" href="#geoengine.workflow_builder.operators.RenameBandsDefault">RenameBandsDefault</a></li>
+<li><a title="geoengine.workflow_builder.operators.RenameBandsRename" href="#geoengine.workflow_builder.operators.RenameBandsRename">RenameBandsRename</a></li>
+<li><a title="geoengine.workflow_builder.operators.RenameBandsSuffix" href="#geoengine.workflow_builder.operators.RenameBandsSuffix">RenameBandsSuffix</a></li>
+</ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.RenameBands.default"><code class="name flex">
+<span>def <span class="ident">default</span></span>(<span>) ‑> <a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def default(cls) -&gt; &#39;RenameBands&#39;:
+    return RenameBandsDefault()</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RenameBands.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>rename_dict: Dict[str, Any]) ‑> <a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns a RenameBands object from a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls, rename_dict: Dict[str, Any]) -&gt; &#39;RenameBands&#39;:
+    &#39;&#39;&#39;Returns a RenameBands object from a dictionary.&#39;&#39;&#39;
+    if rename_dict[&#34;type&#34;] == &#34;default&#34;:
+        return RenameBandsDefault()
+    if rename_dict[&#34;type&#34;] == &#34;suffix&#34;:
+        return RenameBandsSuffix(cast(List[str], rename_dict[&#34;values&#34;]))
+    if rename_dict[&#34;type&#34;] == &#34;rename&#34;:
+        return RenameBandsRename(cast(List[str], rename_dict[&#34;values&#34;]))
+    raise ValueError(&#34;Invalid rename type&#34;)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RenameBands.rename"><code class="name flex">
+<span>def <span class="ident">rename</span></span>(<span>values: List[str]) ‑> <a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def rename(cls, values: List[str]) -&gt; &#39;RenameBands&#39;:
+    return RenameBandsRename(values)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RenameBands.suffix"><code class="name flex">
+<span>def <span class="ident">suffix</span></span>(<span>values: List[str]) ‑> <a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def suffix(cls, values: List[str]) -&gt; &#39;RenameBands&#39;:
+    return RenameBandsSuffix(values)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.RenameBands.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def to_dict(self) -&gt; Dict[str, Any]:
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RenameBandsDefault"><code class="flex name class">
+<span>class <span class="ident">RenameBandsDefault</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Rename bands with default suffix.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RenameBandsDefault(RenameBands):
+    &#39;&#39;&#39;Rename bands with default suffix.&#39;&#39;&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;default&#34;
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.RenameBandsDefault.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    return {
+        &#34;type&#34;: &#34;default&#34;
+    }</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.RenameBands.from_dict" href="#geoengine.workflow_builder.operators.RenameBands.from_dict">from_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RenameBandsRename"><code class="flex name class">
+<span>class <span class="ident">RenameBandsRename</span></span>
+<span>(</span><span>new_names: List[str])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Rename bands with new names.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RenameBandsRename(RenameBands):
+    &#39;&#39;&#39;Rename bands with new names.&#39;&#39;&#39;
+
+    new_names: List[str]
+
+    def __init__(self, new_names: List[str]) -&gt; None:
+        self.new_names = new_names
+        super().__init__()
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;rename&#34;,
+            &#34;values&#34;: self.new_names
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.RenameBandsRename.new_names"><code class="name">var <span class="ident">new_names</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.RenameBandsRename.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    return {
+        &#34;type&#34;: &#34;rename&#34;,
+        &#34;values&#34;: self.new_names
+    }</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.RenameBands.from_dict" href="#geoengine.workflow_builder.operators.RenameBands.from_dict">from_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="geoengine.workflow_builder.operators.RenameBandsSuffix"><code class="flex name class">
+<span>class <span class="ident">RenameBandsSuffix</span></span>
+<span>(</span><span>suffixes: List[str])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Rename bands with custom suffixes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RenameBandsSuffix(RenameBands):
+    &#39;&#39;&#39;Rename bands with custom suffixes.&#39;&#39;&#39;
+
+    suffixes: List[str]
+
+    def __init__(self, suffixes: List[str]) -&gt; None:
+        self.suffixes = suffixes
+        super().__init__()
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: &#34;suffix&#34;,
+            &#34;values&#34;: self.suffixes
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.RenameBandsSuffix.suffixes"><code class="name">var <span class="ident">suffixes</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.RenameBandsSuffix.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Any]:
+    return {
+        &#34;type&#34;: &#34;suffix&#34;,
+        &#34;values&#34;: self.suffixes
+    }</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.RenameBands.from_dict" href="#geoengine.workflow_builder.operators.RenameBands.from_dict">from_dict</a></code></li>
 </ul>
 </li>
 </ul>
@@ -2831,11 +3603,41 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; VectorOperator:
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNames.default" href="#geoengine.workflow_builder.operators.ColumnNames.default">default</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNames.from_dict" href="#geoengine.workflow_builder.operators.ColumnNames.from_dict">from_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNames.rename" href="#geoengine.workflow_builder.operators.ColumnNames.rename">rename</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNames.suffix" href="#geoengine.workflow_builder.operators.ColumnNames.suffix">suffix</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNames.to_dict" href="#geoengine.workflow_builder.operators.ColumnNames.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.ColumnNamesDefault" href="#geoengine.workflow_builder.operators.ColumnNamesDefault">ColumnNamesDefault</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNamesDefault.to_dict" href="#geoengine.workflow_builder.operators.ColumnNamesDefault.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.ColumnNamesNames" href="#geoengine.workflow_builder.operators.ColumnNamesNames">ColumnNamesNames</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNamesNames.new_names" href="#geoengine.workflow_builder.operators.ColumnNamesNames.new_names">new_names</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNamesNames.to_dict" href="#geoengine.workflow_builder.operators.ColumnNamesNames.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.ColumnNamesSuffix" href="#geoengine.workflow_builder.operators.ColumnNamesSuffix">ColumnNamesSuffix</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNamesSuffix.suffixes" href="#geoengine.workflow_builder.operators.ColumnNamesSuffix.suffixes">suffixes</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.ColumnNamesSuffix.to_dict" href="#geoengine.workflow_builder.operators.ColumnNamesSuffix.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="geoengine.workflow_builder.operators.Expression" href="#geoengine.workflow_builder.operators.Expression">Expression</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.workflow_builder.operators.Expression.expression" href="#geoengine.workflow_builder.operators.Expression.expression">expression</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.Expression.map_no_data" href="#geoengine.workflow_builder.operators.Expression.map_no_data">map_no_data</a></code></li>
-<li><code><a title="geoengine.workflow_builder.operators.Expression.output_measurement" href="#geoengine.workflow_builder.operators.Expression.output_measurement">output_measurement</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Expression.output_band" href="#geoengine.workflow_builder.operators.Expression.output_band">output_band</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.Expression.output_type" href="#geoengine.workflow_builder.operators.Expression.output_type">output_type</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.Expression.source" href="#geoengine.workflow_builder.operators.Expression.source">source</a></code></li>
 </ul>
@@ -2906,6 +3708,7 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; VectorOperator:
 <li>
 <h4><code><a title="geoengine.workflow_builder.operators.RasterStacker" href="#geoengine.workflow_builder.operators.RasterStacker">RasterStacker</a></code></h4>
 <ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.RasterStacker.rename" href="#geoengine.workflow_builder.operators.RasterStacker.rename">rename</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.RasterStacker.sources" href="#geoengine.workflow_builder.operators.RasterStacker.sources">sources</a></code></li>
 </ul>
 </li>
@@ -2921,11 +3724,41 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; VectorOperator:
 <ul class="">
 <li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation" href="#geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation">feature_aggregation</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation_ignore_nodata" href="#geoengine.workflow_builder.operators.RasterVectorJoin.feature_aggregation_ignore_nodata">feature_aggregation_ignore_nodata</a></code></li>
-<li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.new_column_names" href="#geoengine.workflow_builder.operators.RasterVectorJoin.new_column_names">new_column_names</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.names" href="#geoengine.workflow_builder.operators.RasterVectorJoin.names">names</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.raster_sources" href="#geoengine.workflow_builder.operators.RasterVectorJoin.raster_sources">raster_sources</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation" href="#geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation">temporal_aggregation</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation_ignore_nodata" href="#geoengine.workflow_builder.operators.RasterVectorJoin.temporal_aggregation_ignore_nodata">temporal_aggregation_ignore_nodata</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.RasterVectorJoin.vector_source" href="#geoengine.workflow_builder.operators.RasterVectorJoin.vector_source">vector_source</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.RenameBands" href="#geoengine.workflow_builder.operators.RenameBands">RenameBands</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.RenameBands.default" href="#geoengine.workflow_builder.operators.RenameBands.default">default</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RenameBands.from_dict" href="#geoengine.workflow_builder.operators.RenameBands.from_dict">from_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RenameBands.rename" href="#geoengine.workflow_builder.operators.RenameBands.rename">rename</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RenameBands.suffix" href="#geoengine.workflow_builder.operators.RenameBands.suffix">suffix</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RenameBands.to_dict" href="#geoengine.workflow_builder.operators.RenameBands.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.RenameBandsDefault" href="#geoengine.workflow_builder.operators.RenameBandsDefault">RenameBandsDefault</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.RenameBandsDefault.to_dict" href="#geoengine.workflow_builder.operators.RenameBandsDefault.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.RenameBandsRename" href="#geoengine.workflow_builder.operators.RenameBandsRename">RenameBandsRename</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.RenameBandsRename.new_names" href="#geoengine.workflow_builder.operators.RenameBandsRename.new_names">new_names</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RenameBandsRename.to_dict" href="#geoengine.workflow_builder.operators.RenameBandsRename.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.RenameBandsSuffix" href="#geoengine.workflow_builder.operators.RenameBandsSuffix">RenameBandsSuffix</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.RenameBandsSuffix.suffixes" href="#geoengine.workflow_builder.operators.RenameBandsSuffix.suffixes">suffixes</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RenameBandsSuffix.to_dict" href="#geoengine.workflow_builder.operators.RenameBandsSuffix.to_dict">to_dict</a></code></li>
 </ul>
 </li>
 <li>
