@@ -66,7 +66,8 @@ from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
     MethodNotCalledOnRasterException, MethodNotCalledOnVectorException
 from geoengine import backports
-from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
+from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, VectorResultDescriptor, \
+    ClassificationMeasurement
 from geoengine.tasks import Task, TaskId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 from geoengine.raster import RasterTile2D
@@ -217,7 +218,12 @@ class Workflow:
 
         return response
 
-    def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; gpd.GeoDataFrame:
+    def get_dataframe(
+            self,
+            bbox: QueryRectangle,
+            timeout: int = 3600,
+            resolve_classifications: bool = False
+    ) -&gt; gpd.GeoDataFrame:
         &#39;&#39;&#39;
         Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
         &#39;&#39;&#39;
@@ -264,7 +270,22 @@ class Workflow:
 
             return data
 
-        return geo_json_with_time_to_geopandas(response.to_dict())
+        def transform_classifications(data: gpd.GeoDataFrame):
+            result_descriptor: VectorResultDescriptor = self.__result_descriptor  # type: ignore
+            for (column, info) in result_descriptor.columns.items():
+                if isinstance(info.measurement, ClassificationMeasurement):
+                    measurement: ClassificationMeasurement = info.measurement
+                    classes = measurement.classes
+                    data[column] = data[column].apply(lambda x: classes[x])  # pylint: disable=cell-var-from-loop
+
+            return data
+
+        result = geo_json_with_time_to_geopandas(response.to_dict())
+
+        if resolve_classifications:
+            result = transform_classifications(result)
+
+        return result
 
     def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -&gt; Image:
         &#39;&#39;&#39;Return the result of a WMS request as a PIL Image&#39;&#39;&#39;
@@ -1518,7 +1539,12 @@ dict(one=1, two=2)</p></div>
 
         return response
 
-    def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; gpd.GeoDataFrame:
+    def get_dataframe(
+            self,
+            bbox: QueryRectangle,
+            timeout: int = 3600,
+            resolve_classifications: bool = False
+    ) -&gt; gpd.GeoDataFrame:
         &#39;&#39;&#39;
         Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
         &#39;&#39;&#39;
@@ -1565,7 +1591,22 @@ dict(one=1, two=2)</p></div>
 
             return data
 
-        return geo_json_with_time_to_geopandas(response.to_dict())
+        def transform_classifications(data: gpd.GeoDataFrame):
+            result_descriptor: VectorResultDescriptor = self.__result_descriptor  # type: ignore
+            for (column, info) in result_descriptor.columns.items():
+                if isinstance(info.measurement, ClassificationMeasurement):
+                    measurement: ClassificationMeasurement = info.measurement
+                    classes = measurement.classes
+                    data[column] = data[column].apply(lambda x: classes[x])  # pylint: disable=cell-var-from-loop
+
+            return data
+
+        result = geo_json_with_time_to_geopandas(response.to_dict())
+
+        if resolve_classifications:
+            result = transform_classifications(result)
+
+        return result
 
     def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -&gt; Image:
         &#39;&#39;&#39;Return the result of a WMS request as a PIL Image&#39;&#39;&#39;
@@ -2302,7 +2343,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.get_dataframe"><code class="name flex">
-<span>def <span class="ident">get_dataframe</span></span>(<span>self, bbox: QueryRectangle, timeout: int = 3600) ‑> geopandas.geodataframe.GeoDataFrame</span>
+<span>def <span class="ident">get_dataframe</span></span>(<span>self, bbox: QueryRectangle, timeout: int = 3600, resolve_classifications: bool = False) ‑> geopandas.geodataframe.GeoDataFrame</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Query a workflow and return the WFS result as a GeoPandas <code>GeoDataFrame</code></p></div>
@@ -2310,7 +2351,12 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; gpd.GeoDataFrame:
+<pre><code class="python">def get_dataframe(
+        self,
+        bbox: QueryRectangle,
+        timeout: int = 3600,
+        resolve_classifications: bool = False
+) -&gt; gpd.GeoDataFrame:
     &#39;&#39;&#39;
     Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
     &#39;&#39;&#39;
@@ -2357,7 +2403,22 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 
         return data
 
-    return geo_json_with_time_to_geopandas(response.to_dict())</code></pre>
+    def transform_classifications(data: gpd.GeoDataFrame):
+        result_descriptor: VectorResultDescriptor = self.__result_descriptor  # type: ignore
+        for (column, info) in result_descriptor.columns.items():
+            if isinstance(info.measurement, ClassificationMeasurement):
+                measurement: ClassificationMeasurement = info.measurement
+                classes = measurement.classes
+                data[column] = data[column].apply(lambda x: classes[x])  # pylint: disable=cell-var-from-loop
+
+        return data
+
+    result = geo_json_with_time_to_geopandas(response.to_dict())
+
+    if resolve_classifications:
+        result = transform_classifications(result)
+
+    return result</code></pre>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.get_provenance"><code class="name flex">
