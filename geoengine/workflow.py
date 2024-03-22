@@ -37,7 +37,8 @@ from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
     MethodNotCalledOnRasterException, MethodNotCalledOnVectorException
 from geoengine import backports
-from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor
+from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, VectorResultDescriptor, \
+    ClassificationMeasurement
 from geoengine.tasks import Task, TaskId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 from geoengine.raster import RasterTile2D
@@ -188,7 +189,12 @@ class Workflow:
 
         return response
 
-    def get_dataframe(self, bbox: QueryRectangle, timeout: int = 3600) -> gpd.GeoDataFrame:
+    def get_dataframe(
+            self,
+            bbox: QueryRectangle,
+            timeout: int = 3600,
+            resolve_classifications: bool = False
+    ) -> gpd.GeoDataFrame:
         '''
         Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
         '''
@@ -235,7 +241,22 @@ class Workflow:
 
             return data
 
-        return geo_json_with_time_to_geopandas(response.to_dict())
+        def transform_classifications(data: gpd.GeoDataFrame):
+            result_descriptor: VectorResultDescriptor = self.__result_descriptor  # type: ignore
+            for (column, info) in result_descriptor.columns.items():
+                if isinstance(info.measurement, ClassificationMeasurement):
+                    measurement: ClassificationMeasurement = info.measurement
+                    classes = measurement.classes
+                    data[column] = data[column].apply(lambda x: classes[x])  # pylint: disable=cell-var-from-loop
+
+            return data
+
+        result = geo_json_with_time_to_geopandas(response.to_dict())
+
+        if resolve_classifications:
+            result = transform_classifications(result)
+
+        return result
 
     def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -> Image:
         '''Return the result of a WMS request as a PIL Image'''
