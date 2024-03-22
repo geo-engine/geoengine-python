@@ -34,6 +34,54 @@ class TypesTests(unittest.TestCase):
             '-10000-01-01T00:00:00.000+00:00'
         )
 
+    def test_result_descriptor(self):
+        """Test the construction of result descriptors."""
+        result_descriptor = ge.RasterResultDescriptor(
+            data_type="I16",
+            spatial_reference="EPSG:4326",
+            spatial_resolution=ge.SpatialResolution(0.1, 0.1),
+            spatial_bounds=ge.SpatialPartition2D(-180.0, -90.0, 180.0, 90.0),
+            time_bounds=ge.TimeInterval(datetime(2014, 4, 1)),
+            bands=[ge.RasterBandDescriptor("band", ge.ContinuousMeasurement(measurement="Foo", unit="bar"))],
+        )
+
+        self.assertEqual(
+            result_descriptor.to_api_dict().to_dict(),
+            {
+                "bands": [
+                    {
+                        "measurement": {
+                            "measurement": "Foo",
+                            "type": "continuous",
+                            "unit": "bar"
+                        },
+                        "name": "band"
+                    }
+                ],
+                "bbox": {
+                    "lowerRightCoordinate": {
+                        "x": 180,
+                        "y": -90
+                    },
+                    "upperLeftCoordinate": {
+                        "x": -180,
+                        "y": 90
+                    }
+                },
+                "dataType": "I16",
+                "resolution": {
+                    "x": 0.1,
+                    "y": 0.1
+                },
+                "spatialReference": "EPSG:4326",
+                "time": {
+                    "end": 1396310400000,
+                    "start": 1396310400000
+                },
+                "type": "raster"
+            }
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
