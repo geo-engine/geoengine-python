@@ -6,7 +6,9 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
 
 from geoengine.datasets import DatasetName
-from geoengine.types import Measurement
+from geoengine.types import Measurement, RasterBandDescriptor
+
+# pylint: disable=too-many-lines
 
 
 class Operator():
@@ -254,11 +256,83 @@ class Interpolation(RasterOperator):
         )
 
 
+class ColumnNames:
+    '''Base class for deriving column names from bands of a raster.'''
+
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
+        pass
+
+    @classmethod
+    def from_dict(cls, rename_dict: Dict[str, Any]) -> 'ColumnNames':
+        '''Returns a ColumnNames object from a dictionary.'''
+        if rename_dict["type"] == "default":
+            return ColumnNamesDefault()
+        if rename_dict["type"] == "suffix":
+            return ColumnNamesSuffix(cast(List[str], rename_dict["values"]))
+        if rename_dict["type"] == "names":
+            return ColumnNamesNames(cast(List[str], rename_dict["values"]))
+        raise ValueError("Invalid rename type")
+
+    @classmethod
+    def default(cls) -> 'ColumnNames':
+        return ColumnNamesDefault()
+
+    @classmethod
+    def suffix(cls, values: List[str]) -> 'ColumnNames':
+        return ColumnNamesSuffix(values)
+
+    @classmethod
+    def rename(cls, values: List[str]) -> 'ColumnNames':
+        return ColumnNamesNames(values)
+
+
+class ColumnNamesDefault(ColumnNames):
+    '''column names with default suffix.'''
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "default"
+        }
+
+
+class ColumnNamesSuffix(ColumnNames):
+    '''Rename bands with custom suffixes.'''
+
+    suffixes: List[str]
+
+    def __init__(self, suffixes: List[str]) -> None:
+        self.suffixes = suffixes
+        super().__init__()
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "suffix",
+            "values": self.suffixes
+        }
+
+
+class ColumnNamesNames(ColumnNames):
+    '''Rename bands with new names.'''
+
+    new_names: List[str]
+
+    def __init__(self, new_names: List[str]) -> None:
+        self.new_names = new_names
+        super().__init__()
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "names",
+            "values": self.new_names
+        }
+
+
 class RasterVectorJoin(VectorOperator):
     '''A RasterVectorJoin operator.'''
     raster_sources: List[RasterOperator]
     vector_source: VectorOperator
-    new_column_names: List[str]
+    names: ColumnNames
     temporal_aggregation: Literal["none", "first", "mean"] = "none"
     temporal_aggregation_ignore_nodata: bool = False
     feature_aggregation: Literal["first", "mean"] = "mean"
@@ -268,7 +342,7 @@ class RasterVectorJoin(VectorOperator):
     def __init__(self,
                  raster_sources: List[RasterOperator],
                  vector_source: VectorOperator,
-                 new_column_names: List[str],
+                 names: ColumnNames,
                  temporal_aggregation: Literal["none", "first", "mean"] = "none",
                  temporal_aggregation_ignore_nodata: bool = False,
                  feature_aggregation: Literal["first", "mean"] = "mean",
@@ -277,12 +351,11 @@ class RasterVectorJoin(VectorOperator):
         '''Creates a new RasterVectorJoin operator.'''
         self.raster_source = raster_sources
         self.vector_source = vector_source
-        self.new_column_names = new_column_names
+        self.names = names
         self.temporal_aggregation = temporal_aggregation
         self.temporal_aggregation_ignore_nodata = temporal_aggregation_ignore_nodata
         self.feature_aggregation = feature_aggregation
         self.feature_aggregation_ignore_nodata = feature_aggregation_ignore_nodata
-        assert (len(self.raster_source) == len(self.new_column_names))
 
     def name(self) -> str:
         return 'RasterVectorJoin'
@@ -291,7 +364,7 @@ class RasterVectorJoin(VectorOperator):
         return {
             "type": self.name(),
             "params": {
-                "names": self.new_column_names,
+                "names": self.names.to_dict(),
                 "temporalAggregation": self.temporal_aggregation,
                 "temporalAggregationIgnoreNoData": self.temporal_aggregation_ignore_nodata,
                 "featureAggregation": self.feature_aggregation,
@@ -320,7 +393,7 @@ class RasterVectorJoin(VectorOperator):
         return RasterVectorJoin(
             raster_sources=raster_sources,
             vector_source=vector_source,
-            new_column_names=cast(List[str], params['names']),
+            names=ColumnNames.from_dict(params['names']),
             temporal_aggregation=cast(Literal["none", "first", "mean"], params['temporalAggregation']),
             temporal_aggregation_ignore_nodata=cast(bool, params['temporalAggregationIgnoreNoData']),
             feature_aggregation=cast(Literal["first", "mean"], params['featureAggregation']),
@@ -566,7 +639,7 @@ class Expression(RasterOperator):
     source: RasterOperator
     output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32"
     map_no_data: bool = False
-    output_measurement: Optional[Measurement] = None
+    output_band: Optional[RasterBandDescriptor] = None
 
     # pylint: disable=too-many-arguments
     def __init__(self,
@@ -574,14 +647,14 @@ class Expression(RasterOperator):
                  source: RasterOperator,
                  output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
                  map_no_data: bool = False,
-                 output_measurement: Optional[Measurement] = None,
+                 output_band: Optional[RasterBandDescriptor] = None,
                  ):
         '''Creates a new Expression operator.'''
         self.expression = expression
         self.source = source
         self.output_type = output_type
         self.map_no_data = map_no_data
-        self.output_measurement = output_measurement
+        self.output_band = output_band
 
     def name(self) -> str:
         return 'Expression'
@@ -592,8 +665,8 @@ class Expression(RasterOperator):
             "outputType": self.output_type,
             "mapNoData": self.map_no_data,
         }
-        if self.output_measurement:
-            params["outputMeasurement"] = self.output_measurement.to_api_dict()
+        if self.output_band:
+            params["outputBand"] = self.output_band.to_api_dict()
 
         return {
             "type": self.name(),
@@ -608,16 +681,16 @@ class Expression(RasterOperator):
         if operator_dict["type"] != "Expression":
             raise ValueError("Invalid operator type")
 
-        output_measurement = None
-        if "outputMeasurement" in operator_dict["params"]:
-            output_measurement = Measurement.from_response(operator_dict["params"]["outputMeasurement"])
+        output_band = None
+        if "output_band" in operator_dict["params"]:
+            output_band = RasterBandDescriptor.from_response(operator_dict["params"]["outputBand"])
 
         return Expression(
             expression=operator_dict["params"]["expression"],
             source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
             output_type=operator_dict["params"]["outputType"],
             map_no_data=operator_dict["params"]["mapNoData"],
-            output_measurement=output_measurement
+            output_band=output_band
         )
 
 
@@ -855,17 +928,92 @@ class TimeShift(Operator):
         )
 
 
+class RenameBands:
+    '''Base class for renaming bands of a raster.'''
+
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
+        pass
+
+    @classmethod
+    def from_dict(cls, rename_dict: Dict[str, Any]) -> 'RenameBands':
+        '''Returns a RenameBands object from a dictionary.'''
+        if rename_dict["type"] == "default":
+            return RenameBandsDefault()
+        if rename_dict["type"] == "suffix":
+            return RenameBandsSuffix(cast(List[str], rename_dict["values"]))
+        if rename_dict["type"] == "rename":
+            return RenameBandsRename(cast(List[str], rename_dict["values"]))
+        raise ValueError("Invalid rename type")
+
+    @classmethod
+    def default(cls) -> 'RenameBands':
+        return RenameBandsDefault()
+
+    @classmethod
+    def suffix(cls, values: List[str]) -> 'RenameBands':
+        return RenameBandsSuffix(values)
+
+    @classmethod
+    def rename(cls, values: List[str]) -> 'RenameBands':
+        return RenameBandsRename(values)
+
+
+class RenameBandsDefault(RenameBands):
+    '''Rename bands with default suffix.'''
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "default"
+        }
+
+
+class RenameBandsSuffix(RenameBands):
+    '''Rename bands with custom suffixes.'''
+
+    suffixes: List[str]
+
+    def __init__(self, suffixes: List[str]) -> None:
+        self.suffixes = suffixes
+        super().__init__()
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "suffix",
+            "values": self.suffixes
+        }
+
+
+class RenameBandsRename(RenameBands):
+    '''Rename bands with new names.'''
+
+    new_names: List[str]
+
+    def __init__(self, new_names: List[str]) -> None:
+        self.new_names = new_names
+        super().__init__()
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "rename",
+            "values": self.new_names
+        }
+
+
 class RasterStacker(RasterOperator):
     '''The RasterStacker operator.'''
 
     sources: List[RasterOperator]
+    rename: RenameBands
 
     # pylint: disable=too-many-arguments
     def __init__(self,
                  sources: List[RasterOperator],
+                 rename: RenameBands = RenameBandsDefault()
                  ):
         '''Creates a new RasterStacker operator.'''
         self.sources = sources
+        self.rename = rename
 
     def name(self) -> str:
         return 'RasterStacker'
@@ -873,7 +1021,9 @@ class RasterStacker(RasterOperator):
     def to_dict(self) -> Dict[str, Any]:
         return {
             "type": self.name(),
-            "params": {},
+            "params": {
+                "renameBands": self.rename.to_dict()
+            },
             "sources": {
                 "rasters": [raster_source.to_dict() for raster_source in self.sources]
             }
@@ -885,7 +1035,9 @@ class RasterStacker(RasterOperator):
             raise ValueError("Invalid operator type")
 
         sources = [RasterOperator.from_operator_dict(source) for source in operator_dict["sources"]["rasters"]]
+        rename = RenameBands.from_dict(operator_dict["params"]["renameBands"])
 
         return RasterStacker(
             sources=sources,
+            rename=rename
         )
