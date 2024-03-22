@@ -2,6 +2,7 @@
 
 import unittest
 from geoengine import workflow_builder as wb
+from geoengine.workflow_builder.operators import ColumnNamesNames
 
 
 class OperatorsTests(unittest.TestCase):
@@ -78,7 +79,7 @@ class OperatorsTests(unittest.TestCase):
         workflow = wb.operators.RasterVectorJoin(
             raster_sources=[raster_source_operator],
             vector_source=vector_source_operator,
-            new_column_names=["test"],
+            names=ColumnNamesNames(["test"]),
             temporal_aggregation="none",
             feature_aggregation="mean",
         )
@@ -86,7 +87,10 @@ class OperatorsTests(unittest.TestCase):
         self.assertEqual(workflow.to_dict(), {
             'type': 'RasterVectorJoin',
             'params': {
-                "names": ["test"],
+                "names": {
+                    "type": "names",
+                    "values": ["test"]
+                },
                 "temporalAggregation": "none",
                 "temporalAggregationIgnoreNoData": False,
                 "featureAggregation": "mean",

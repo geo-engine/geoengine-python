@@ -8,6 +8,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
 from geoengine.datasets import DatasetName
 from geoengine.types import Measurement, RasterBandDescriptor
 
+# pylint: disable=too-many-lines
+
 
 class Operator():
     '''Base class for all operators.'''
@@ -254,11 +256,83 @@ class Interpolation(RasterOperator):
         )
 
 
+class ColumnNames:
+    '''Base class for deriving column names from bands of a raster.'''
+
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
+        pass
+
+    @classmethod
+    def from_dict(cls, rename_dict: Dict[str, Any]) -> 'ColumnNames':
+        '''Returns a ColumnNames object from a dictionary.'''
+        if rename_dict["type"] == "default":
+            return ColumnNamesDefault()
+        if rename_dict["type"] == "suffix":
+            return ColumnNamesSuffix(cast(List[str], rename_dict["values"]))
+        if rename_dict["type"] == "names":
+            return ColumnNamesNames(cast(List[str], rename_dict["values"]))
+        raise ValueError("Invalid rename type")
+
+    @classmethod
+    def default(cls) -> 'ColumnNames':
+        return ColumnNamesDefault()
+
+    @classmethod
+    def suffix(cls, values: List[str]) -> 'ColumnNames':
+        return ColumnNamesSuffix(values)
+
+    @classmethod
+    def rename(cls, values: List[str]) -> 'ColumnNames':
+        return ColumnNamesNames(values)
+
+
+class ColumnNamesDefault(ColumnNames):
+    '''column names with default suffix.'''
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "default"
+        }
+
+
+class ColumnNamesSuffix(ColumnNames):
+    '''Rename bands with custom suffixes.'''
+
+    suffixes: List[str]
+
+    def __init__(self, suffixes: List[str]) -> None:
+        self.suffixes = suffixes
+        super().__init__()
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "suffix",
+            "values": self.suffixes
+        }
+
+
+class ColumnNamesNames(ColumnNames):
+    '''Rename bands with new names.'''
+
+    new_names: List[str]
+
+    def __init__(self, new_names: List[str]) -> None:
+        self.new_names = new_names
+        super().__init__()
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "names",
+            "values": self.new_names
+        }
+
+
 class RasterVectorJoin(VectorOperator):
     '''A RasterVectorJoin operator.'''
     raster_sources: List[RasterOperator]
     vector_source: VectorOperator
-    new_column_names: List[str]
+    names: ColumnNames
     temporal_aggregation: Literal["none", "first", "mean"] = "none"
     temporal_aggregation_ignore_nodata: bool = False
     feature_aggregation: Literal["first", "mean"] = "mean"
@@ -268,7 +342,7 @@ class RasterVectorJoin(VectorOperator):
     def __init__(self,
                  raster_sources: List[RasterOperator],
                  vector_source: VectorOperator,
-                 new_column_names: List[str],
+                 names: ColumnNames,
                  temporal_aggregation: Literal["none", "first", "mean"] = "none",
                  temporal_aggregation_ignore_nodata: bool = False,
                  feature_aggregation: Literal["first", "mean"] = "mean",
@@ -277,12 +351,11 @@ class RasterVectorJoin(VectorOperator):
         '''Creates a new RasterVectorJoin operator.'''
         self.raster_source = raster_sources
         self.vector_source = vector_source
-        self.new_column_names = new_column_names
+        self.names = names
         self.temporal_aggregation = temporal_aggregation
         self.temporal_aggregation_ignore_nodata = temporal_aggregation_ignore_nodata
         self.feature_aggregation = feature_aggregation
         self.feature_aggregation_ignore_nodata = feature_aggregation_ignore_nodata
-        assert (len(self.raster_source) == len(self.new_column_names))
 
     def name(self) -> str:
         return 'RasterVectorJoin'
@@ -291,7 +364,7 @@ class RasterVectorJoin(VectorOperator):
         return {
             "type": self.name(),
             "params": {
-                "names": self.new_column_names,
+                "names": self.names.to_dict(),
                 "temporalAggregation": self.temporal_aggregation,
                 "temporalAggregationIgnoreNoData": self.temporal_aggregation_ignore_nodata,
                 "featureAggregation": self.feature_aggregation,
@@ -320,7 +393,7 @@ class RasterVectorJoin(VectorOperator):
         return RasterVectorJoin(
             raster_sources=raster_sources,
             vector_source=vector_source,
-            new_column_names=cast(List[str], params['names']),
+            names=ColumnNames.from_dict(params['names']),
             temporal_aggregation=cast(Literal["none", "first", "mean"], params['temporalAggregation']),
             temporal_aggregation_ignore_nodata=cast(bool, params['temporalAggregationIgnoreNoData']),
             feature_aggregation=cast(Literal["first", "mean"], params['featureAggregation']),
