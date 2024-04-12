@@ -683,11 +683,12 @@ class RasterResultDescriptor(ResultDescriptor):
         '''Convert the raster result descriptor to a dictionary'''
 
         return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.RasterResultDescriptorWithType(
+
             type='raster',
             data_type=self.data_type,
             bands=[band.to_api_dict() for band in self.__bands],
             spatial_reference=self.spatial_reference,
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
         ))
@@ -1017,6 +1018,16 @@ class RasterSymbology(Symbology):
 
         self.__raster_colorizer = raster_colorizer
         self.__opacity = opacity
+
+    @property
+    def raster_colorizer(self) -> RasterColorizer:
+        '''Return the raster colorizer'''
+        return self.__raster_colorizer
+    
+    @property
+    def opacity(self) -> float:
+        '''Return the opacity'''
+        return self.__opacity
 
     def to_api_dict(self) -> geoengine_openapi_client.Symbology:
         '''Convert the raster symbology to a dictionary'''
