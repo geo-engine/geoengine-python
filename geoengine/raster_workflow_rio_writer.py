@@ -2,23 +2,26 @@
 
 from typing import Optional, cast
 from datetime import datetime
-from osgeo import gdal
+import rasterio as rio
+import numpy as np
 from geoengine.workflow import Workflow, QueryRectangle
 from geoengine.types import RasterResultDescriptor, TimeInterval
+from geoengine.raster import ge_type_to_np
+
 
 # pylint: disable=too-many-instance-attributes
-class RasterWorkflowGdalWriter:
+class RasterWorkflowRioWriter:
     '''
     A class to write raster data from a Geo Engine raster workflow to a GDAL dataset.
     It creates a new dataset for each time interval and writes the tiles to the dataset.
     Multiple bands are supported and the bands are written to the dataset in the order of the result descriptor.
     '''
-    current_dataset: gdal.Dataset = None
+    current_dataset: Optional[rio.io.DatasetWriter] = None
     current_time: Optional[TimeInterval] = None
     dataset_geo_transform = None
     dataset_width = None
     dataset_height = None
-    dataset_data_type = gdal.GDT_Float32
+    dataset_data_type = np.dtype
     print_info = False
 
     dataset_prefix = None
@@ -37,20 +40,22 @@ class RasterWorkflowGdalWriter:
         dataset_prefix,
         workflow: Workflow,
         no_data_value=0,
-        data_type=gdal.GDT_Float32,
+        data_type=None,
         print_info=False
     ):
         ''' Create a new RasterWorkflowGdalWriter instance.'''
         self.dataset_prefix = dataset_prefix
         self.workflow = workflow
         self.no_data_value = no_data_value
-        self.dataset_data_type = data_type
         self.print_info = print_info
 
         ras_res = cast(RasterResultDescriptor, self.workflow.get_result_descriptor())
+        dt = ge_type_to_np(ras_res.data_type)
+        self.dataset_data_type = dt if data_type is None else data_type
         self.bands = ras_res.bands
 
     def close_current_dataset(self):
+        ''' Close the current dataset '''
         if self.current_dataset:
             self.current_dataset = None
 
@@ -131,29 +136,32 @@ class RasterWorkflowGdalWriter:
         width = self.dataset_width
         height = self.dataset_height
         geo_transform = self.dataset_geo_transform
+        assert geo_transform is not None
+        affine_transform = rio.Affine.from_gdal(
+            geo_transform[0], geo_transform[1], geo_transform[2], geo_transform[3], geo_transform[4], geo_transform[5]
+        )
         if self.print_info:
             print(f"Creating dataset {self.dataset_prefix}{time_formated_start}.tif"
                   f" with width {width}, height {height}, geo_transform {geo_transform}"
                   )
         assert self.bands is not None, "The bands must be set"
         number_of_bands = len(self.bands)
-        gdal_driver = gdal.GetDriverByName(self.gdal_driver)
-        gdal_dataset = gdal_driver.Create(
-            f"{self.dataset_prefix}{time_formated_start}.tif",
-            width, height, number_of_bands,
-            gdal.GDT_Float32,
-            options=self.options
+        dataset_data_type = self.dataset_data_type
+        file_path = f"{self.dataset_prefix}{time_formated_start}.tif"
+        rio_dataset = rio.open(
+            file_path,
+            'w',
+            driver=self.gdal_driver,
+            width=width,
+            height=height,
+            count=number_of_bands,
+            crs=query.srs,
+            transform=affine_transform,
+            dtype=dataset_data_type,
+            nodata=self.no_data_value
         )
 
-        gdal_dataset.SetGeoTransform(geo_transform)
-        gdal_dataset.SetProjection(query.srs)
-
-        for i, band in enumerate(self.bands):
-            gdal_band = gdal_dataset.GetRasterBand(i + 1)
-            gdal_band.SetNoDataValue(self.no_data_value)
-            gdal_band.SetDescription(f"{band.name} [{band.measurement}]")
-
-        self.current_dataset = gdal_dataset
+        self.current_dataset = rio_dataset
 
     async def query_and_write(self, query: QueryRectangle):
         ''' Query the raster workflow and write the tiles to the dataset.'''
@@ -183,8 +191,9 @@ class RasterWorkflowGdalWriter:
                 data = tile.to_numpy_data_array(self.no_data_value)
 
                 assert self.tile_size == tile.size_x == tile.size_y, "Tile size does not match the expected size"
-
-                self.current_dataset.GetRasterBand(band_index).WriteArray(data, tile_ul_x, tile_ul_y)
+                window = rio.windows.Window(tile_ul_x, tile_ul_y, tile.size_x, tile.size_y)
+                assert self.current_dataset is not None
+                self.current_dataset.write(data, window=window, indexes=band_index)
         except Exception as inner_e:
             raise RuntimeError(f"Tile at {tile.spatial_partition().as_bbox_str()} with {tile.time}") from inner_e
 
