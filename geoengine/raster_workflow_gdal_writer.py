@@ -6,7 +6,6 @@ from osgeo import gdal
 from geoengine.workflow import Workflow, QueryRectangle
 from geoengine.types import RasterResultDescriptor, TimeInterval
 
-
 # pylint: disable=too-many-instance-attributes
 class RasterWorkflowGdalWriter:
     '''
