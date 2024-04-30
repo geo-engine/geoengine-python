@@ -42,6 +42,7 @@ from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, V
 from geoengine.tasks import Task, TaskId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 from geoengine.raster import RasterTile2D
+from workflow_editor import WorkflowEditor
 
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
@@ -958,3 +959,9 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> 
             ),
             _request_timeout=timeout
         )
+
+
+def create_workflow_editor() -> WorkflowEditor:
+    session = get_session()
+
+    return WorkflowEditor(session.server_url, session.configuration.access_token)
