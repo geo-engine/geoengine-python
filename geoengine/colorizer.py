@@ -146,7 +146,7 @@ class Colorizer():
         color_mapping: Dict[float, Rgba],
         default_color: Rgba = (0, 0, 0, 0),
         no_data_color: Rgba = (0, 0, 0, 0),
-    ) -> PaletteColorizer:
+    ) -> ColorizerPalette:
         """Initialize the colorizer."""
 
         if len(no_data_color) != 4:
@@ -158,7 +158,7 @@ class Colorizer():
         if not all(0 <= elem < 256 for elem in default_color):
             raise ValueError(f"defaultColor must be a RGBA color specification, got {default_color} instead.")
 
-        return PaletteColorizer(
+        return ColorizerPalette(
             colors=color_mapping,
             no_data_color=no_data_color,
             default_color=default_color,
@@ -170,7 +170,7 @@ class Colorizer():
         color_map: Union[str, Colormap],
         default_color: Rgba = (0, 0, 0, 0),
         no_data_color: Rgba = (0, 0, 0, 0),
-    ) -> PaletteColorizer:
+    ) -> ColorizerPalette:
         """This method generates a palette colorizer from a given list of values.
         A colormap can be given as an object or by name only."""
 
@@ -201,7 +201,7 @@ class Colorizer():
             [(int(color[0]), int(color[1]), int(color[2]), int(color[3])) for color in list_of_rgba_colors])
         )
 
-        return PaletteColorizer(
+        return ColorizerPalette(
             colors=color_mapping,
             no_data_color=no_data_color,
             default_color=default_color,
@@ -220,11 +220,11 @@ class Colorizer():
         """Create a colorizer from a response."""
         inner = response.actual_instance
 
-        if isinstance(inner, geoengine_openapi_client.LinearGradientWithType):
+        if isinstance(inner, geoengine_openapi_client.ColorizerLinearGradient):
             return LinearGradientColorizer.from_response_linear(inner)
-        if isinstance(inner, geoengine_openapi_client.PaletteColorizer):
-            return PaletteColorizer.from_response_palette(inner)
-        if isinstance(inner, geoengine_openapi_client.LogarithmicGradientWithType):
+        if isinstance(inner, geoengine_openapi_client.ColorizerPalette):
+            return ColorizerPalette.from_response_palette(inner)
+        if isinstance(inner, geoengine_openapi_client.ColorizerLogarithmicGradient):
             return LogarithmicGradientColorizer.from_response_logarithmic(inner)
 
         raise TypeError(f"Unknown colorizer type: {inner.type}")
@@ -238,7 +238,7 @@ class LinearGradientColorizer(Colorizer):
     under_color: Rgba
 
     @staticmethod
-    def from_response_linear(response: geoengine_openapi_client.LinearGradientWithType) -> LinearGradientColorizer:
+    def from_response_linear(response: geoengine_openapi_client.ColorizerLinearGradient) -> LinearGradientColorizer:
         """Create a colorizer from a response."""
         breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response.breakpoints]
         return LinearGradientColorizer(
@@ -250,7 +250,7 @@ class LinearGradientColorizer(Colorizer):
 
     def to_api_dict(self) -> geoengine_openapi_client.Colorizer:
         """Return the colorizer as a dictionary."""
-        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.LinearGradientWithType(
+        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.ColorizerLinearGradient(
             type='linearGradient',
             breakpoints=[breakpoint.to_api_dict() for breakpoint in self.breakpoints],
             no_data_color=self.no_data_color,
@@ -268,7 +268,7 @@ class LogarithmicGradientColorizer(Colorizer):
 
     @staticmethod
     def from_response_logarithmic(
-            response: geoengine_openapi_client.LogarithmicGradientWithType) -> LogarithmicGradientColorizer:
+            response: geoengine_openapi_client.ColorizerLogarithmicGradient) -> LogarithmicGradientColorizer:
         """Create a colorizer from a response."""
         breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response.breakpoints]
         return LogarithmicGradientColorizer(
@@ -280,7 +280,7 @@ class LogarithmicGradientColorizer(Colorizer):
 
     def to_api_dict(self) -> geoengine_openapi_client.Colorizer:
         """Return the colorizer as a dictionary."""
-        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.LogarithmicGradientWithType(
+        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.ColorizerLogarithmicGradient(
             type='logarithmicGradient',
             breakpoints=[breakpoint.to_api_dict() for breakpoint in self.breakpoints],
             no_data_color=self.no_data_color,
@@ -290,16 +290,16 @@ class LogarithmicGradientColorizer(Colorizer):
 
 
 @dataclass
-class PaletteColorizer(Colorizer):
+class ColorizerPalette(Colorizer):
     '''A palette colorizer.'''
     colors: Dict[float, Rgba]
     default_color: Rgba
 
     @staticmethod
-    def from_response_palette(response: geoengine_openapi_client.PaletteColorizer) -> PaletteColorizer:
+    def from_response_palette(response: geoengine_openapi_client.ColorizerPalette) -> ColorizerPalette:
         """Create a colorizer from a response."""
 
-        return PaletteColorizer(
+        return ColorizerPalette(
             colors={float(k): v for k, v in response.colors.items()},
             no_data_color=response.no_data_color,
             default_color=response.default_color,
@@ -307,7 +307,7 @@ class PaletteColorizer(Colorizer):
 
     def to_api_dict(self) -> geoengine_openapi_client.Colorizer:
         """Return the colorizer as a dictionary."""
-        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.PaletteColorizer(
+        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.ColorizerPalette(
             type='palette',
             colors=self.colors,
             default_color=self.default_color,

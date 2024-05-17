@@ -76,19 +76,19 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         status = TaskStatus(inner.status)
         time_started = None
         if isinstance(inner,
-                      (geoengine_openapi_client.RunningTaskStatus, geoengine_openapi_client.CompletedTaskStatus)) \
+                      (geoengine_openapi_client.TaskStatusRunning, geoengine_openapi_client.TaskStatusCompleted)) \
                 and inner.time_started is not None:
             time_started = datetime.datetime.strptime(inner.time_started, DEFAULT_ISO_TIME_FORMAT)
 
-        if isinstance(inner, geoengine_openapi_client.RunningTaskStatus):
+        if isinstance(inner, geoengine_openapi_client.TaskStatusRunning):
             return RunningTaskStatusInfo(status, time_started, inner.pct_complete, inner.estimated_time_remaining,
                                          inner.info, inner.task_type, inner.description)
-        if isinstance(inner, geoengine_openapi_client.CompletedTaskStatus):
+        if isinstance(inner, geoengine_openapi_client.TaskStatusCompleted):
             return CompletedTaskStatusInfo(status, time_started, inner.info, inner.time_total,
                                            inner.task_type, inner.description)
-        if isinstance(inner, geoengine_openapi_client.AbortedTaskStatus):
+        if isinstance(inner, geoengine_openapi_client.TaskStatusAborted):
             return AbortedTaskStatusInfo(status, time_started, inner.clean_up)
-        if isinstance(inner, geoengine_openapi_client.FailedTaskStatus):
+        if isinstance(inner, geoengine_openapi_client.TaskStatusFailed):
             return FailedTaskStatusInfo(status, time_started, inner.error, inner.clean_up)
         raise GeoEngineException(response)
 

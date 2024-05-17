@@ -428,14 +428,14 @@ class LayerCollection:
         listings: List[Listing] = []
         for item in layer_collection_response.items:
             item = item.actual_instance
-            if isinstance(item, geoengine_openapi_client.LayerCollectionListingWithType):
+            if isinstance(item, geoengine_openapi_client.CollectionItemCollection):
                 listings.append(LayerCollectionListing(
                     listing_id=LayerCollectionId(item.id.collection_id),
                     provider_id=LayerProviderId(UUID(item.id.provider_id)),
                     name=item.name,
                     description=item.description,
                 ))
-            elif isinstance(item, geoengine_openapi_client.LayerListingWithType):
+            elif isinstance(item, geoengine_openapi_client.CollectionItemLayer):
                 listings.append(LayerListing(
                     listing_id=LayerId(item.id.layer_id),
                     provider_id=LayerProviderId(UUID(item.id.provider_id)),
