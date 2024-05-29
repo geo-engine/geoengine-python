@@ -632,8 +632,8 @@ class LayerTests(unittest.TestCase):
                     type='palette',
                     no_data_color=[0, 0, 0, 0],
                     colors={
-                        0.: [0, 0, 0, 0],
-                        1.: [0, 0, 0, 0],
+                        "0": [0, 0, 0, 0],
+                        "1": [0, 0, 0, 0],
                     },
                     default_color=[0, 0, 0, 0],
                 )),

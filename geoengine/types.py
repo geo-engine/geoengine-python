@@ -442,7 +442,7 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         if isinstance(inner, geoengine_openapi_client.TypedResultDescriptorPlot):
             return PlotResultDescriptor.from_response_plot(inner)
 
-        raise TypeException(f'Unknown `ResultDescriptor` type: {inner.type}')
+        raise TypeException('Unknown `ResultDescriptor` type')
 
     @classmethod
     def is_raster_result(cls) -> bool:
@@ -712,7 +712,7 @@ class RasterResultDescriptor(ResultDescriptor):
             spatial_resolution = SpatialResolution.from_response(response.resolution)
 
         return RasterResultDescriptor(
-            data_type=data_type,
+            data_type=data_type,  # type: ignore
             bands=bands,
             spatial_reference=spatial_ref,
             time_bounds=time_bounds,
@@ -978,7 +978,7 @@ class RasterColorizer:
         if isinstance(inner, geoengine_openapi_client.RasterColorizerSingleBand):
             return SingleBandRasterColorizer.from_single_band_response(inner)
 
-        raise GeoEngineException({"message": f"Unknown RasterColorizer type: {inner.type}"})
+        raise GeoEngineException({"message": "Unknown RasterColorizer type"})
 
     @abstractmethod
     def to_api_dict(self) -> geoengine_openapi_client.RasterColorizer:
@@ -1051,7 +1051,7 @@ class DataId:  # pylint: disable=too-few-public-methods
         if isinstance(inner, geoengine_openapi_client.DataIdExternal):
             return ExternalDataId.from_response_external(inner)
 
-        raise GeoEngineException({"message": f"Unknown DataId type: {inner.type}"})
+        raise GeoEngineException({"message": "Unknown DataId type"})
 
     @abstractmethod
     def to_api_dict(self) -> geoengine_openapi_client.DataId:
@@ -1149,8 +1149,7 @@ class Measurement:  # pylint: disable=too-few-public-methods
         if isinstance(inner, geoengine_openapi_client.MeasurementClassification):
             return ClassificationMeasurement.from_response_classification(inner)
 
-        raise TypeException(
-            f'Unknown `Measurement` type: {inner.type}')
+        raise TypeException('Unknown `Measurement` type')
 
     @abstractmethod
     def to_api_dict(self) -> geoengine_openapi_client.Measurement:

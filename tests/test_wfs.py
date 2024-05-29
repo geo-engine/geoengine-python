@@ -767,7 +767,7 @@ class WfsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             self.assertEqual(
-                workflow.workflow_definition(),
+                workflow.workflow_definition().to_dict(),
                 workflow_definition
             )
 

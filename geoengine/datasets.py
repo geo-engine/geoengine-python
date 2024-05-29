@@ -466,6 +466,13 @@ def upload_dataframe(
     ints = [key for (key, value) in columns.items() if value.data_type == 'int']
     texts = [key for (key, value) in columns.items() if value.data_type == 'text']
 
+    result_descriptor = VectorResultDescriptor(
+        data_type=vector_type,
+        spatial_reference=df.crs.to_string(),
+        columns=columns,
+    ).to_api_dict().actual_instance
+    assert result_descriptor is not None
+
     create = geoengine_openapi_client.CreateDataset(
         data_path=geoengine_openapi_client.DataPath(geoengine_openapi_client.DataPathOneOf1(
             upload=str(upload_id)
@@ -494,11 +501,7 @@ def upload_dataframe(
                         ),
                         on_error=on_error.to_api_enum(),
                     ),
-                    result_descriptor=VectorResultDescriptor(
-                        data_type=vector_type,
-                        spatial_reference=df.crs.to_string(),
-                        columns=columns,
-                    ).to_api_dict().actual_instance
+                    result_descriptor=result_descriptor.to_dict()
                 )
             ),
         )

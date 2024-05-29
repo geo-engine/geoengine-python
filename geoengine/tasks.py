@@ -14,7 +14,7 @@ import datetime
 import geoengine_openapi_client
 from geoengine.types import DEFAULT_ISO_TIME_FORMAT
 from geoengine.auth import get_session
-from geoengine.error import GeoEngineException
+from geoengine.error import GeoEngineException, TypeException
 from geoengine import backports
 
 
@@ -73,6 +73,9 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         '''
 
         inner = response.actual_instance
+        if inner is None:
+            raise TypeException('Unknown `TaskStatus` type')
+
         status = TaskStatus(inner.status)
         time_started = None
         if isinstance(inner,

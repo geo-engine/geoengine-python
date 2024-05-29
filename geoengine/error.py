@@ -19,10 +19,12 @@ class GeoEngineException(Exception):
     def __init__(self, response: Union[geoengine_openapi_client.ApiException, Dict[str, str]]) -> None:
         super().__init__()
 
-        if isinstance(response, geoengine_openapi_client.ApiException):
+        if isinstance(response, dict):
+            obj = response
+        elif response.body is not None:
             obj = json.loads(response.body)
         else:
-            obj = response
+            obj = {}
 
         self.error = obj['error'] if 'error' in obj else '?'
         self.message = obj['message'] if 'message' in obj else '?'
