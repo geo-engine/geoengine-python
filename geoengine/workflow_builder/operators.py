@@ -71,6 +71,8 @@ class RasterOperator(Operator):
             return Interpolation.from_operator_dict(operator_dict)
         if operator_dict['type'] == 'Expression':
             return Expression.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'BandwiseExpression':
+            return BandwiseExpression.from_operator_dict(operator_dict)
         if operator_dict['type'] == 'TimeShift':
             return TimeShift.from_operator_dict(operator_dict).as_raster()
         if operator_dict['type'] == 'TemporalRasterAggregation':
@@ -691,6 +693,58 @@ class Expression(RasterOperator):
             output_type=operator_dict["params"]["outputType"],
             map_no_data=operator_dict["params"]["mapNoData"],
             output_band=output_band
+        )
+
+
+class BandwiseExpression(RasterOperator):
+    '''A bandwise Expression operator.'''
+
+    expression: str
+    source: RasterOperator
+    output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32"
+    map_no_data: bool = False
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 expression: str,
+                 source: RasterOperator,
+                 output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
+                 map_no_data: bool = False,
+                 ):
+        '''Creates a new Expression operator.'''
+        self.expression = expression
+        self.source = source
+        self.output_type = output_type
+        self.map_no_data = map_no_data
+
+    def name(self) -> str:
+        return 'Expression'
+
+    def to_dict(self) -> Dict[str, Any]:
+        params = {
+            "expression": self.expression,
+            "outputType": self.output_type,
+            "mapNoData": self.map_no_data,
+        }
+
+        return {
+            "type": self.name(),
+            "params": params,
+            "sources": {
+                "raster": self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'BandwiseExpression':
+        if operator_dict["type"] != "BandwiseExpression":
+            raise ValueError("Invalid operator type")
+
+        return BandwiseExpression(
+            expression=operator_dict["params"]["expression"],
+            source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
+            output_type=operator_dict["params"]["outputType"],
+            map_no_data=operator_dict["params"]["mapNoData"],
         )
 
 
