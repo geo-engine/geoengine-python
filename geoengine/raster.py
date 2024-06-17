@@ -1,13 +1,40 @@
 '''Raster data types'''
 from __future__ import annotations
 import json
-from typing import AsyncIterator, List, Optional, Tuple, Union, cast
+from typing import AsyncIterator, List, Literal, Optional, Tuple, Union, cast
 import numpy as np
 import pyarrow as pa
 import xarray as xr
 import geoengine_openapi_client
 import geoengine.types as gety
 from geoengine.util import clamp_datetime_ms_ns
+
+
+# pylint: disable=too-many-return-statements
+def ge_type_to_np(res_dt: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']):
+    ''' Convert a Geo Engine data type to a numpy data type '''
+
+    if res_dt == "U8":
+        return np.uint8
+    if res_dt == "U16":
+        return np.uint16
+    if res_dt == "U32":
+        return np.uint32
+    if res_dt == "U64":
+        return np.uint64
+    if res_dt == "I8":
+        return np.int8
+    if res_dt == "I16":
+        return np.int16
+    if res_dt == "I32":
+        return np.int32
+    if res_dt == "I64":
+        return np.int64
+    if res_dt == "F32":
+        return np.float32
+    if res_dt == "F64":
+        return np.float64
+    raise TypeError("Unknown type literal")
 
 
 class RasterTile2D:

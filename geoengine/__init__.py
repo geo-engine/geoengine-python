@@ -30,6 +30,7 @@ from .types import QueryRectangle, GeoTransform, \
 from .util import clamp_datetime_ms_ns
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow, get_quota, update_quota
 from .raster import RasterTile2D
+from .raster_workflow_rio_writer import RasterWorkflowRioWriter
 
 from . import workflow_builder
 
