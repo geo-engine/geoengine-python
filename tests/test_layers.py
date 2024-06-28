@@ -98,12 +98,12 @@ class LayerTests(unittest.TestCase):
                     ),
                     metadata={},
                     properties=[],
-                    symbology=api.Symbology(api.RasterSymbologyWithType(
+                    symbology=api.Symbology(api.RasterSymbology(
                         opacity=1,
-                        raster_colorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
+                        raster_colorizer=api.RasterColorizer(api.RasterColorizerSingleBand(
                             type='singleBand',
                             band=0,
-                            band_colorizer=api.Colorizer(api.PaletteColorizer(
+                            band_colorizer=api.Colorizer(api.ColorizerPalette(
                                 colors={
                                     "0.0": [134, 201, 227, 255],
                                     "1.0": [30, 129, 62, 255],
@@ -599,13 +599,13 @@ class LayerTests(unittest.TestCase):
                 },
                 "type": "Raster"
             },
-            symbology=RasterSymbology.from_response(api.Symbology(api.RasterSymbologyWithType(
+            symbology=RasterSymbology.from_response(api.Symbology(api.RasterSymbology(
                 type='raster',
                 opacity=1,
-                rasterColorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
+                rasterColorizer=api.RasterColorizer(api.RasterColorizerSingleBand(
                     type='singleBand',
                     band=0,
-                    bandColorizer=api.Colorizer(api.LinearGradientWithType(
+                    bandColorizer=api.Colorizer(api.LinearGradient(
                         type='linearGradient',
                         no_data_color=[0, 0, 0, 0],
                         over_color=[0, 0, 0, 0],
@@ -622,18 +622,18 @@ class LayerTests(unittest.TestCase):
 
         _html = layer._repr_html_()  # pylint: disable=protected-access
 
-        layer.symbology = RasterSymbology.from_response(api.Symbology(api.RasterSymbologyWithType(
+        layer.symbology = RasterSymbology.from_response(api.Symbology(api.RasterSymbology(
             type='raster',
             opacity=1,
-            raster_colorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
+            raster_colorizer=api.RasterColorizer(api.RasterColorizerSingleBand(
                 type='singleBand',
                 band=0,
-                band_colorizer=api.Colorizer(api.PaletteColorizer(
+                band_colorizer=api.Colorizer(api.ColorizerPalette(
                     type='palette',
                     no_data_color=[0, 0, 0, 0],
                     colors={
-                        0.: [0, 0, 0, 0],
-                        1.: [0, 0, 0, 0],
+                        "0": [0, 0, 0, 0],
+                        "1": [0, 0, 0, 0],
                     },
                     default_color=[0, 0, 0, 0],
                 )),

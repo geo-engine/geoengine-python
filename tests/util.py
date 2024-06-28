@@ -5,6 +5,18 @@ from json import dumps, loads
 import urllib3
 
 
+def is_url_match(url1: str, url2: str) -> bool:
+    '''Checks if two urls point to the same resource'''
+    parsed1 = urllib3.util.parse_url(url1)
+    parsed2 = urllib3.util.parse_url(url2)
+    return (parsed1.host == parsed2.host
+            and parsed1.port == parsed2.port
+            and parsed1.path == parsed2.path
+            and (parsed1.query == parsed2.query
+                 or (parsed1.query is not None and parsed2.query is not None
+                     and set(parsed1.query.split("&")) == set(parsed2.query.split("&")))))
+
+
 class UrllibMocker:
     '''Mock urllib3 requests'''
 
@@ -63,7 +75,7 @@ class UrllibMocker:
             sent_body = None
 
         for matcher in self._matchers:
-            if matcher["method"] != method or matcher["url"] != url:
+            if matcher["method"] != method or not is_url_match(matcher["url"], url):
                 continue
 
             if matcher["requestHeaders"] is not None and (
