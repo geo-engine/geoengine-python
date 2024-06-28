@@ -433,14 +433,14 @@ class LayerCollection:
             inner = item.actual_instance
             if inner is None:
                 continue
-            if isinstance(inner, geoengine_openapi_client.CollectionItemCollection):
+            if isinstance(inner, geoengine_openapi_client.LayerCollectionListing):
                 listings.append(LayerCollectionListing(
                     listing_id=LayerCollectionId(inner.id.collection_id),
                     provider_id=LayerProviderId(UUID(inner.id.provider_id)),
                     name=inner.name,
                     description=inner.description,
                 ))
-            elif isinstance(inner, geoengine_openapi_client.CollectionItemLayer):
+            elif isinstance(inner, geoengine_openapi_client.LayerListing):
                 listings.append(LayerListing(
                     listing_id=LayerId(inner.id.layer_id),
                     provider_id=LayerProviderId(UUID(inner.id.provider_id)),

@@ -485,7 +485,7 @@ def upload_dataframe(
                 source_operator='OgrSource',
             ).to_api_dict(),
             meta_data=geoengine_openapi_client.MetaDataDefinition(
-                geoengine_openapi_client.MetaDataDefinitionOgrMetaData(
+                geoengine_openapi_client.OgrMetaData(
                     type='OgrMetaData',
                     loading_info=geoengine_openapi_client.OgrSourceDataset(
                         file_name='geo.json',

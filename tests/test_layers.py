@@ -98,7 +98,7 @@ class LayerTests(unittest.TestCase):
                     ),
                     metadata={},
                     properties=[],
-                    symbology=api.Symbology(api.SymbologyRaster(
+                    symbology=api.Symbology(api.RasterSymbology(
                         opacity=1,
                         raster_colorizer=api.RasterColorizer(api.RasterColorizerSingleBand(
                             type='singleBand',
@@ -599,13 +599,13 @@ class LayerTests(unittest.TestCase):
                 },
                 "type": "Raster"
             },
-            symbology=RasterSymbology.from_response(api.Symbology(api.SymbologyRaster(
+            symbology=RasterSymbology.from_response(api.Symbology(api.RasterSymbology(
                 type='raster',
                 opacity=1,
                 rasterColorizer=api.RasterColorizer(api.RasterColorizerSingleBand(
                     type='singleBand',
                     band=0,
-                    bandColorizer=api.Colorizer(api.ColorizerLinearGradient(
+                    bandColorizer=api.Colorizer(api.LinearGradient(
                         type='linearGradient',
                         no_data_color=[0, 0, 0, 0],
                         over_color=[0, 0, 0, 0],
@@ -622,7 +622,7 @@ class LayerTests(unittest.TestCase):
 
         _html = layer._repr_html_()  # pylint: disable=protected-access
 
-        layer.symbology = RasterSymbology.from_response(api.Symbology(api.SymbologyRaster(
+        layer.symbology = RasterSymbology.from_response(api.Symbology(api.RasterSymbology(
             type='raster',
             opacity=1,
             raster_colorizer=api.RasterColorizer(api.RasterColorizerSingleBand(
