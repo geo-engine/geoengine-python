@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from geoengine_openapi_client.exceptions import BadRequestException, OpenApiException, ApiTypeError, ApiValueError, \
     ApiKeyError, ApiAttributeError, ApiException, NotFoundException
 from .auth import Session, get_session, initialize, reset
-from .colorizer import Colorizer, ColorBreakpoint, LinearGradientColorizer, ColorizerPalette, \
+from .colorizer import Colorizer, ColorBreakpoint, LinearGradientColorizer, PaletteColorizer, \
     LogarithmicGradientColorizer
 from .datasets import upload_dataframe, StoredDataset, add_dataset, volumes, AddDatasetProperties, \
     delete_dataset, list_datasets, DatasetListOrder, OgrSourceDatasetTimeType, OgrOnError

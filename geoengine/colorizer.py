@@ -152,7 +152,7 @@ class Colorizer():
         color_mapping: Dict[float, Rgba],
         default_color: Rgba = (0, 0, 0, 0),
         no_data_color: Rgba = (0, 0, 0, 0),
-    ) -> ColorizerPalette:
+    ) -> PaletteColorizer:
         """Initialize the colorizer."""
 
         if len(no_data_color) != 4:
@@ -164,7 +164,7 @@ class Colorizer():
         if not all(0 <= elem < 256 for elem in default_color):
             raise ValueError(f"defaultColor must be a RGBA color specification, got {default_color} instead.")
 
-        return ColorizerPalette(
+        return PaletteColorizer(
             colors=color_mapping,
             no_data_color=no_data_color,
             default_color=default_color,
@@ -176,7 +176,7 @@ class Colorizer():
         color_map: Union[str, Colormap],
         default_color: Rgba = (0, 0, 0, 0),
         no_data_color: Rgba = (0, 0, 0, 0),
-    ) -> ColorizerPalette:
+    ) -> PaletteColorizer:
         """This method generates a palette colorizer from a given list of values.
         A colormap can be given as an object or by name only."""
 
@@ -207,7 +207,7 @@ class Colorizer():
             [(int(color[0]), int(color[1]), int(color[2]), int(color[3])) for color in list_of_rgba_colors])
         )
 
-        return ColorizerPalette(
+        return PaletteColorizer(
             colors=color_mapping,
             no_data_color=no_data_color,
             default_color=default_color,
@@ -229,7 +229,7 @@ class Colorizer():
         if isinstance(inner, geoengine_openapi_client.LinearGradient):
             return LinearGradientColorizer.from_response_linear(inner)
         if isinstance(inner, geoengine_openapi_client.ColorizerPalette):
-            return ColorizerPalette.from_response_palette(inner)
+            return PaletteColorizer.from_response_palette(inner)
         if isinstance(inner, geoengine_openapi_client.LogarithmicGradient):
             return LogarithmicGradientColorizer.from_response_logarithmic(inner)
 
@@ -296,16 +296,16 @@ class LogarithmicGradientColorizer(Colorizer):
 
 
 @dataclass
-class ColorizerPalette(Colorizer):
+class PaletteColorizer(Colorizer):
     '''A palette colorizer.'''
     colors: Dict[float, Rgba]
     default_color: Rgba
 
     @staticmethod
-    def from_response_palette(response: geoengine_openapi_client.ColorizerPalette) -> ColorizerPalette:
+    def from_response_palette(response: geoengine_openapi_client.ColorizerPalette) -> PaletteColorizer:
         """Create a colorizer from a response."""
 
-        return ColorizerPalette(
+        return PaletteColorizer(
             colors={float(k): to_rgba(v) for k, v in response.colors.items()},
             no_data_color=to_rgba(response.no_data_color),
             default_color=to_rgba(response.default_color),
