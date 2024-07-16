@@ -57,6 +57,7 @@ class RasterWorkflowRioWriter:
     def close_current_dataset(self):
         ''' Close the current dataset '''
         if self.current_dataset:
+            del self.current_dataset
             self.current_dataset = None
 
     # pylint: disable=too-many-locals, too-many-statements
@@ -192,7 +193,7 @@ class RasterWorkflowRioWriter:
 
                 assert self.tile_size == tile.size_x == tile.size_y, "Tile size does not match the expected size"
                 window = rio.windows.Window(tile_ul_x, tile_ul_y, tile.size_x, tile.size_y)
-                assert self.current_dataset is not None
+                assert self.current_dataset is not None, "Dataset must be open."
                 self.current_dataset.write(data, window=window, indexes=band_index)
         except Exception as inner_e:
             raise RuntimeError(f"Tile at {tile.spatial_partition().as_bbox_str()} with {tile.time}") from inner_e
