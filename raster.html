@@ -30,13 +30,40 @@
 <pre><code class="python">&#39;&#39;&#39;Raster data types&#39;&#39;&#39;
 from __future__ import annotations
 import json
-from typing import AsyncIterator, List, Optional, Tuple, Union, cast
+from typing import AsyncIterator, List, Literal, Optional, Tuple, Union, cast
 import numpy as np
 import pyarrow as pa
 import xarray as xr
 import geoengine_openapi_client
 import geoengine.types as gety
 from geoengine.util import clamp_datetime_ms_ns
+
+
+# pylint: disable=too-many-return-statements
+def ge_type_to_np(res_dt: Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;]):
+    &#39;&#39;&#39; Convert a Geo Engine data type to a numpy data type &#39;&#39;&#39;
+
+    if res_dt == &#34;U8&#34;:
+        return np.uint8
+    if res_dt == &#34;U16&#34;:
+        return np.uint16
+    if res_dt == &#34;U32&#34;:
+        return np.uint32
+    if res_dt == &#34;U64&#34;:
+        return np.uint64
+    if res_dt == &#34;I8&#34;:
+        return np.int8
+    if res_dt == &#34;I16&#34;:
+        return np.int16
+    if res_dt == &#34;I32&#34;:
+        return np.int32
+    if res_dt == &#34;I64&#34;:
+        return np.int64
+    if res_dt == &#34;F32&#34;:
+        return np.float32
+    if res_dt == &#34;F64&#34;:
+        return np.float64
+    raise TypeError(&#34;Unknown type literal&#34;)
 
 
 class RasterTile2D:
@@ -352,6 +379,41 @@ async def tile_stream_to_stack_stream(raster_stream: AsyncIterator[RasterTile2D]
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="geoengine.raster.ge_type_to_np"><code class="name flex">
+<span>def <span class="ident">ge_type_to_np</span></span>(<span>res_dt: "Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']")</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a Geo Engine data type to a numpy data type</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ge_type_to_np(res_dt: Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;]):
+    &#39;&#39;&#39; Convert a Geo Engine data type to a numpy data type &#39;&#39;&#39;
+
+    if res_dt == &#34;U8&#34;:
+        return np.uint8
+    if res_dt == &#34;U16&#34;:
+        return np.uint16
+    if res_dt == &#34;U32&#34;:
+        return np.uint32
+    if res_dt == &#34;U64&#34;:
+        return np.uint64
+    if res_dt == &#34;I8&#34;:
+        return np.int8
+    if res_dt == &#34;I16&#34;:
+        return np.int16
+    if res_dt == &#34;I32&#34;:
+        return np.int32
+    if res_dt == &#34;I64&#34;:
+        return np.int64
+    if res_dt == &#34;F32&#34;:
+        return np.float32
+    if res_dt == &#34;F64&#34;:
+        return np.float64
+    raise TypeError(&#34;Unknown type literal&#34;)</code></pre>
+</details>
+</dd>
 <dt id="geoengine.raster.tile_stream_to_stack_stream"><code class="name flex">
 <span>async def <span class="ident">tile_stream_to_stack_stream</span></span>(<span>raster_stream: AsyncIterator[<a title="geoengine.raster.RasterTile2D" href="#geoengine.raster.RasterTile2D">RasterTile2D</a>]) ‑> AsyncIterator[<a title="geoengine.raster.RasterTileStack2D" href="#geoengine.raster.RasterTileStack2D">RasterTileStack2D</a>]</span>
 </code></dt>
@@ -1177,6 +1239,7 @@ It is possible to specify whether NaN values should be considered as no data whe
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="geoengine.raster.ge_type_to_np" href="#geoengine.raster.ge_type_to_np">ge_type_to_np</a></code></li>
 <li><code><a title="geoengine.raster.tile_stream_to_stack_stream" href="#geoengine.raster.tile_stream_to_stack_stream">tile_stream_to_stack_stream</a></code></li>
 </ul>
 </li>

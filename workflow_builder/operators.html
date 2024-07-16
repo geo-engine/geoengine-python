@@ -100,6 +100,8 @@ class RasterOperator(Operator):
             return Interpolation.from_operator_dict(operator_dict)
         if operator_dict[&#39;type&#39;] == &#39;Expression&#39;:
             return Expression.from_operator_dict(operator_dict)
+        if operator_dict[&#39;type&#39;] == &#39;BandwiseExpression&#39;:
+            return BandwiseExpression.from_operator_dict(operator_dict)
         if operator_dict[&#39;type&#39;] == &#39;TimeShift&#39;:
             return TimeShift.from_operator_dict(operator_dict).as_raster()
         if operator_dict[&#39;type&#39;] == &#39;TemporalRasterAggregation&#39;:
@@ -723,6 +725,58 @@ class Expression(RasterOperator):
         )
 
 
+class BandwiseExpression(RasterOperator):
+    &#39;&#39;&#39;A bandwise Expression operator.&#39;&#39;&#39;
+
+    expression: str
+    source: RasterOperator
+    output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;
+    map_no_data: bool = False
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 expression: str,
+                 source: RasterOperator,
+                 output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;,
+                 map_no_data: bool = False,
+                 ):
+        &#39;&#39;&#39;Creates a new Expression operator.&#39;&#39;&#39;
+        self.expression = expression
+        self.source = source
+        self.output_type = output_type
+        self.map_no_data = map_no_data
+
+    def name(self) -&gt; str:
+        return &#39;Expression&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        params = {
+            &#34;expression&#34;: self.expression,
+            &#34;outputType&#34;: self.output_type,
+            &#34;mapNoData&#34;: self.map_no_data,
+        }
+
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: params,
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;BandwiseExpression&#39;:
+        if operator_dict[&#34;type&#34;] != &#34;BandwiseExpression&#34;:
+            raise ValueError(&#34;Invalid operator type&#34;)
+
+        return BandwiseExpression(
+            expression=operator_dict[&#34;params&#34;][&#34;expression&#34;],
+            source=RasterOperator.from_operator_dict(operator_dict[&#34;sources&#34;][&#34;raster&#34;]),
+            output_type=operator_dict[&#34;params&#34;][&#34;outputType&#34;],
+            map_no_data=operator_dict[&#34;params&#34;][&#34;mapNoData&#34;],
+        )
+
+
 class GeoVectorDataType(Enum):
     &#39;&#39;&#39;The output type of geometry vector data.&#39;&#39;&#39;
     MULTI_POINT = &#34;MultiPoint&#34;
@@ -1081,6 +1135,106 @@ class RasterStacker(RasterOperator):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="geoengine.workflow_builder.operators.BandwiseExpression"><code class="flex name class">
+<span>class <span class="ident">BandwiseExpression</span></span>
+<span>(</span><span>expression: str, source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, output_type: "Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']" = 'F32', map_no_data: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A bandwise Expression operator.</p>
+<p>Creates a new Expression operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BandwiseExpression(RasterOperator):
+    &#39;&#39;&#39;A bandwise Expression operator.&#39;&#39;&#39;
+
+    expression: str
+    source: RasterOperator
+    output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;
+    map_no_data: bool = False
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 expression: str,
+                 source: RasterOperator,
+                 output_type: Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;] = &#34;F32&#34;,
+                 map_no_data: bool = False,
+                 ):
+        &#39;&#39;&#39;Creates a new Expression operator.&#39;&#39;&#39;
+        self.expression = expression
+        self.source = source
+        self.output_type = output_type
+        self.map_no_data = map_no_data
+
+    def name(self) -&gt; str:
+        return &#39;Expression&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        params = {
+            &#34;expression&#34;: self.expression,
+            &#34;outputType&#34;: self.output_type,
+            &#34;mapNoData&#34;: self.map_no_data,
+        }
+
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: params,
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;BandwiseExpression&#39;:
+        if operator_dict[&#34;type&#34;] != &#34;BandwiseExpression&#34;:
+            raise ValueError(&#34;Invalid operator type&#34;)
+
+        return BandwiseExpression(
+            expression=operator_dict[&#34;params&#34;][&#34;expression&#34;],
+            source=RasterOperator.from_operator_dict(operator_dict[&#34;sources&#34;][&#34;raster&#34;]),
+            output_type=operator_dict[&#34;params&#34;][&#34;outputType&#34;],
+            map_no_data=operator_dict[&#34;params&#34;][&#34;mapNoData&#34;],
+        )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.BandwiseExpression.expression"><code class="name">var <span class="ident">expression</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.BandwiseExpression.map_no_data"><code class="name">var <span class="ident">map_no_data</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.BandwiseExpression.output_type"><code class="name">var <span class="ident">output_type</span> : Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.BandwiseExpression.source"><code class="name">var <span class="ident">source</span> : <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.from_operator_dict" href="#geoengine.workflow_builder.operators.RasterOperator.from_operator_dict">from_operator_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.from_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.from_workflow_dict">from_workflow_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="geoengine.workflow_builder.operators.ColumnNames"><code class="flex name class">
 <span>class <span class="ident">ColumnNames</span></span>
 </code></dt>
@@ -2062,6 +2216,8 @@ def to_dict(self) -&gt; Dict[str, Any]:
             return Interpolation.from_operator_dict(operator_dict)
         if operator_dict[&#39;type&#39;] == &#39;Expression&#39;:
             return Expression.from_operator_dict(operator_dict)
+        if operator_dict[&#39;type&#39;] == &#39;BandwiseExpression&#39;:
+            return BandwiseExpression.from_operator_dict(operator_dict)
         if operator_dict[&#39;type&#39;] == &#39;TimeShift&#39;:
             return TimeShift.from_operator_dict(operator_dict).as_raster()
         if operator_dict[&#39;type&#39;] == &#39;TemporalRasterAggregation&#39;:
@@ -2077,6 +2233,7 @@ def to_dict(self) -&gt; Dict[str, Any]:
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.BandwiseExpression" href="#geoengine.workflow_builder.operators.BandwiseExpression">BandwiseExpression</a></li>
 <li><a title="geoengine.workflow_builder.operators.Expression" href="#geoengine.workflow_builder.operators.Expression">Expression</a></li>
 <li><a title="geoengine.workflow_builder.operators.GdalSource" href="#geoengine.workflow_builder.operators.GdalSource">GdalSource</a></li>
 <li><a title="geoengine.workflow_builder.operators.Interpolation" href="#geoengine.workflow_builder.operators.Interpolation">Interpolation</a></li>
@@ -2111,6 +2268,8 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; RasterOperator:
         return Interpolation.from_operator_dict(operator_dict)
     if operator_dict[&#39;type&#39;] == &#39;Expression&#39;:
         return Expression.from_operator_dict(operator_dict)
+    if operator_dict[&#39;type&#39;] == &#39;BandwiseExpression&#39;:
+        return BandwiseExpression.from_operator_dict(operator_dict)
     if operator_dict[&#39;type&#39;] == &#39;TimeShift&#39;:
         return TimeShift.from_operator_dict(operator_dict).as_raster()
     if operator_dict[&#39;type&#39;] == &#39;TemporalRasterAggregation&#39;:
@@ -3602,6 +3761,15 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; VectorOperator:
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.BandwiseExpression" href="#geoengine.workflow_builder.operators.BandwiseExpression">BandwiseExpression</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.BandwiseExpression.expression" href="#geoengine.workflow_builder.operators.BandwiseExpression.expression">expression</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.BandwiseExpression.map_no_data" href="#geoengine.workflow_builder.operators.BandwiseExpression.map_no_data">map_no_data</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.BandwiseExpression.output_type" href="#geoengine.workflow_builder.operators.BandwiseExpression.output_type">output_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.BandwiseExpression.source" href="#geoengine.workflow_builder.operators.BandwiseExpression.source">source</a></code></li>
+</ul>
+</li>
 <li>
 <h4><code><a title="geoengine.workflow_builder.operators.ColumnNames" href="#geoengine.workflow_builder.operators.ColumnNames">ColumnNames</a></code></h4>
 <ul class="">
