@@ -31,7 +31,7 @@ class RasterWorkflowRioWriter:
     time_format = "%Y-%m-%d_%H-%M-%S"
 
     gdal_driver = "GTiff"
-    options = ["TILED=YES", "COMPRESS=DEFLATE", "ZLEVEL=9"]
+    rio_kwargs = {"tiled": True, "compress": "DEFLATE", "zlevel": 9}
     tile_size = 512
 
     # pylint: disable=too-many-arguments
@@ -41,7 +41,8 @@ class RasterWorkflowRioWriter:
         workflow: Workflow,
         no_data_value=0,
         data_type=None,
-        print_info=False
+        print_info=False,
+        rio_kwargs=None
     ):
         ''' Create a new RasterWorkflowGdalWriter instance.'''
         self.dataset_prefix = dataset_prefix
@@ -53,6 +54,9 @@ class RasterWorkflowRioWriter:
         dt = ge_type_to_np(ras_res.data_type)
         self.dataset_data_type = dt if data_type is None else data_type
         self.bands = ras_res.bands
+        if rio_kwargs:
+            for (k, v) in rio_kwargs:
+                self.rio_kwargs[k] = v
 
     def close_current_dataset(self):
         ''' Close the current dataset '''
@@ -144,6 +148,7 @@ class RasterWorkflowRioWriter:
         if self.print_info:
             print(f"Creating dataset {self.dataset_prefix}{time_formated_start}.tif"
                   f" with width {width}, height {height}, geo_transform {geo_transform}"
+                  f" rio kwargs: {self.rio_kwargs}"
                   )
         assert self.bands is not None, "The bands must be set"
         number_of_bands = len(self.bands)
@@ -159,7 +164,8 @@ class RasterWorkflowRioWriter:
             crs=query.srs,
             transform=affine_transform,
             dtype=dataset_data_type,
-            nodata=self.no_data_value
+            nodata=self.no_data_value,
+            kwargs=self.rio_kwargs
         )
 
         self.current_dataset = rio_dataset
