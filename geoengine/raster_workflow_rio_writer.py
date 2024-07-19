@@ -165,7 +165,7 @@ class RasterWorkflowRioWriter:
             transform=affine_transform,
             dtype=dataset_data_type,
             nodata=self.no_data_value,
-            kwargs=self.rio_kwargs
+            **self.rio_kwargs
         )
 
         self.current_dataset = rio_dataset
