@@ -55,8 +55,8 @@ class RasterWorkflowRioWriter:
         self.dataset_data_type = dt if data_type is None else data_type
         self.bands = ras_res.bands
         if rio_kwargs:
-            for (k, v) in rio_kwargs:
-                self.rio_kwargs[k] = v
+            for (key, value) in rio_kwargs:
+                self.rio_kwargs[key] = value
 
     def close_current_dataset(self):
         ''' Close the current dataset '''
