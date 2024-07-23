@@ -908,7 +908,7 @@ class TemporalRasterAggregation(RasterOperator):
                     "type": self.aggregation_type,
                     "ignoreNoData": self.ignore_no_data,
                     "percentile": self.percentile,
-                    "window_reference": wr
+                    "windowReference": wr
                 },
                 "window": {
                     "granularity": self.window_granularity,
