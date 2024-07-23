@@ -31,7 +31,7 @@ class RasterWorkflowRioWriter:
     time_format = "%Y-%m-%d_%H-%M-%S"
 
     gdal_driver = "GTiff"
-    rio_kwargs = {"tiled": True, "compress": "DEFLATE", "zlevel": 9}
+    rio_kwargs = {"tiled": True, "compress": "DEFLATE", "zlevel": 6}
     tile_size = 512
 
     # pylint: disable=too-many-arguments
@@ -55,7 +55,7 @@ class RasterWorkflowRioWriter:
         self.dataset_data_type = dt if data_type is None else data_type
         self.bands = ras_res.bands
         if rio_kwargs:
-            for (key, value) in rio_kwargs:
+            for (key, value) in rio_kwargs.items():
                 self.rio_kwargs[key] = value
 
     def close_current_dataset(self):
