@@ -856,7 +856,7 @@ class TemporalRasterAggregation(RasterOperator):
     window_size: int = 1
     output_type: Optional[Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]] = None
     percentile: Optional[float] = None
-    window_reference: Optional[np.datetime64]
+    window_ref: Optional[np.datetime64] = None
 
     # pylint: disable=too-many-arguments
     def __init__(self,
@@ -886,12 +886,12 @@ class TemporalRasterAggregation(RasterOperator):
             self.percentile = percentile
         if window_reference is not None:
             if isinstance(window_reference, np.datetime64):
-                self.window_reference = window_reference
+                self.window_ref = window_reference
             elif isinstance(window_reference, datetime.datetime):
                 # We assume that a datetime without a timezone means UTC
                 if window_reference.tzinfo is not None:
                     window_reference = window_reference.astimezone(tz=datetime.timezone.utc).replace(tzinfo=None)
-                self.window_reference = np.datetime64(window_reference)
+                self.window_ref = np.datetime64(window_reference)
             else:
                 raise ValueError("`window_reference` must be of type `datetime.datetime` or `numpy.datetime64`")
 
@@ -899,7 +899,7 @@ class TemporalRasterAggregation(RasterOperator):
         return 'TemporalRasterAggregation'
 
     def to_dict(self) -> Dict[str, Any]:
-        wr = self.window_reference.astype('datetime64[ms]').astype(int) if self.window_reference is not None else None
+        w_ref = self.window_ref.astype('datetime64[ms]').astype(int) if self.window_ref is not None else None
 
         return {
             "type": self.name(),
@@ -908,7 +908,7 @@ class TemporalRasterAggregation(RasterOperator):
                     "type": self.aggregation_type,
                     "ignoreNoData": self.ignore_no_data,
                     "percentile": self.percentile,
-                    "windowReference": wr
+                    "windowReference": w_ref
                 },
                 "window": {
                     "granularity": self.window_granularity,
