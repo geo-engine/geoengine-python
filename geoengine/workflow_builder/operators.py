@@ -81,6 +81,8 @@ class RasterOperator(Operator):
             return TemporalRasterAggregation.from_operator_dict(operator_dict)
         if operator_dict['type'] == 'RasterStacker':
             return RasterStacker.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'Onnx':
+            return RasterOnnxClassifier.from_operator_dict(operator_dict)
 
         raise NotImplementedError(f"Unknown operator type {operator_dict['type']}")
 
@@ -1135,4 +1137,45 @@ class RasterStacker(RasterOperator):
         return RasterStacker(
             sources=sources,
             rename=rename
+        )
+
+
+class RasterOnnxClassifier(RasterOperator):
+    '''A raster operator that applies an onnx model.'''
+
+    source: RasterOperator
+    model_name: str
+
+    def __init__(self,
+                 source: RasterOperator,
+                 model_name: str,
+                 ):
+        '''Creates a new RasterOnnxClassifier operator.'''
+        self.source = source
+        self.model_name = model_name
+
+    def name(self) -> str:
+        return 'Onnx'
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": self.name(),
+            "params": {
+                "model": self.model_name,
+            },
+            "sources": {
+                "raster": self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterOnnxClassifier':
+        if operator_dict["type"] != "Onnx":
+            raise ValueError("Invalid operator type")
+
+        source_operator = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
+
+        return RasterOnnxClassifier(
+            source_operator,
+            model_name=operator_dict["params"]["model"]
         )
