@@ -927,7 +927,7 @@ class TemporalRasterAggregation(RasterOperator):
         if operator_dict["type"] != "TemporalRasterAggregation":
             raise ValueError("Invalid operator type")
 
-        w_ref = None
+        w_ref: Optional[Union[datetime.datetime, np.datetime64]] = None
         if "windowReference" in operator_dict["params"]:
             t_ref = operator_dict["params"]["windowReference"]
             if isinstance(t_ref, str):
