@@ -1004,7 +1004,7 @@ class TimeShift(Operator):
             }
         }
 
-    @ classmethod
+    @classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'TimeShift':
         '''Constructs the operator from the given dictionary.'''
         if operator_dict["type"] != "TimeShift":
@@ -1026,11 +1026,11 @@ class TimeShift(Operator):
 class RenameBands:
     '''Base class for renaming bands of a raster.'''
 
-    @ abstractmethod
+    @abstractmethod
     def to_dict(self) -> Dict[str, Any]:
         pass
 
-    @ classmethod
+    @classmethod
     def from_dict(cls, rename_dict: Dict[str, Any]) -> 'RenameBands':
         '''Returns a RenameBands object from a dictionary.'''
         if rename_dict["type"] == "default":
@@ -1041,15 +1041,15 @@ class RenameBands:
             return RenameBandsRename(cast(List[str], rename_dict["values"]))
         raise ValueError("Invalid rename type")
 
-    @ classmethod
+    @classmethod
     def default(cls) -> 'RenameBands':
         return RenameBandsDefault()
 
-    @ classmethod
+    @classmethod
     def suffix(cls, values: List[str]) -> 'RenameBands':
         return RenameBandsSuffix(values)
 
-    @ classmethod
+    @classmethod
     def rename(cls, values: List[str]) -> 'RenameBands':
         return RenameBandsRename(values)
 
@@ -1124,7 +1124,7 @@ class RasterStacker(RasterOperator):
             }
         }
 
-    @ classmethod
+    @classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterStacker':
         if operator_dict["type"] != "RasterStacker":
             raise ValueError("Invalid operator type")
