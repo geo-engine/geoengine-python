@@ -848,6 +848,7 @@ class VectorExpression(VectorOperator):
 
 class TemporalRasterAggregation(RasterOperator):
     '''A TemporalRasterAggregation operator.'''
+    # pylint: disable=too-many-instance-attributes
 
     source: RasterOperator
     aggregation_type: Literal["mean", "min", "max", "median", "count", "sum", "first", "last", "percentileEstimate"]
