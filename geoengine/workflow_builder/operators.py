@@ -908,13 +908,13 @@ class TemporalRasterAggregation(RasterOperator):
                 "aggregation": {
                     "type": self.aggregation_type,
                     "ignoreNoData": self.ignore_no_data,
-                    "percentile": self.percentile,
-                    "windowReference": w_ref
+                    "percentile": self.percentile
                 },
                 "window": {
                     "granularity": self.window_granularity,
                     "step": self.window_size
                 },
+                "windowReference": w_ref,
                 "outputType": self.output_type
             },
             "sources": {
@@ -927,13 +927,27 @@ class TemporalRasterAggregation(RasterOperator):
         if operator_dict["type"] != "TemporalRasterAggregation":
             raise ValueError("Invalid operator type")
 
+        w_ref = None
+        if "windowReference" in operator_dict["params"]:
+            t_ref = operator_dict["params"]["windowReference"]
+            if isinstance(t_ref, str):
+                w_ref = datetime.datetime.fromisoformat(t_ref)
+            if isinstance(t_ref, int):
+                w_ref = np.datetime64(t_ref, 'ms')
+
+        percentile = None
+        if "percentile" in operator_dict["params"]["aggregation"]:
+            percentile = operator_dict["params"]["aggregation"]["percentile"]
+
         return TemporalRasterAggregation(
             source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
             aggregation_type=operator_dict["params"]["aggregation"]["type"],
             ignore_no_data=operator_dict["params"]["aggregation"]["ignoreNoData"],
             granularity=operator_dict["params"]["window"]["granularity"],
             window_size=operator_dict["params"]["window"]["step"],
-            output_type=operator_dict["params"]["outputType"]
+            output_type=operator_dict["params"]["outputType"],
+            window_reference=w_ref,
+            percentile=percentile
         )
 
 
@@ -990,7 +1004,7 @@ class TimeShift(Operator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'TimeShift':
         '''Constructs the operator from the given dictionary.'''
         if operator_dict["type"] != "TimeShift":
@@ -1012,11 +1026,11 @@ class TimeShift(Operator):
 class RenameBands:
     '''Base class for renaming bands of a raster.'''
 
-    @abstractmethod
+    @ abstractmethod
     def to_dict(self) -> Dict[str, Any]:
         pass
 
-    @classmethod
+    @ classmethod
     def from_dict(cls, rename_dict: Dict[str, Any]) -> 'RenameBands':
         '''Returns a RenameBands object from a dictionary.'''
         if rename_dict["type"] == "default":
@@ -1027,15 +1041,15 @@ class RenameBands:
             return RenameBandsRename(cast(List[str], rename_dict["values"]))
         raise ValueError("Invalid rename type")
 
-    @classmethod
+    @ classmethod
     def default(cls) -> 'RenameBands':
         return RenameBandsDefault()
 
-    @classmethod
+    @ classmethod
     def suffix(cls, values: List[str]) -> 'RenameBands':
         return RenameBandsSuffix(values)
 
-    @classmethod
+    @ classmethod
     def rename(cls, values: List[str]) -> 'RenameBands':
         return RenameBandsRename(values)
 
@@ -1110,7 +1124,7 @@ class RasterStacker(RasterOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterStacker':
         if operator_dict["type"] != "RasterStacker":
             raise ValueError("Invalid operator type")
