@@ -33,12 +33,11 @@ import pyarrow as pa
 import geoengine_openapi_client
 from geoengine import api
 from geoengine.auth import get_session
-from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
     MethodNotCalledOnRasterException, MethodNotCalledOnVectorException
 from geoengine import backports
-from geoengine.types import ProvenanceEntry, QueryRectangle, RasterColorizer, ResultDescriptor, VectorResultDescriptor, \
-    ClassificationMeasurement
+from geoengine.types import ProvenanceEntry, QueryRectangle, RasterColorizer, ResultDescriptor, \
+    VectorResultDescriptor, ClassificationMeasurement
 from geoengine.tasks import Task, TaskId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 from geoengine.raster import RasterTile2D
@@ -306,7 +305,6 @@ class Workflow:
                 _request_timeout=timeout
             )
 
-    
     def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
         '''
         Query a workflow and return the plot chart result as a vega plot

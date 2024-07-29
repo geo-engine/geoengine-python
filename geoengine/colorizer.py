@@ -206,7 +206,8 @@ class Colorizer():
             no_data_color=no_data_color,
             default_color=default_color,
         )
-    
+
+    @staticmethod
     def rgba() -> RgbaColorizer:
         return RgbaColorizer()
 
@@ -318,15 +319,16 @@ class PaletteColorizer(Colorizer):
             default_color=self.default_color,
             no_data_color=self.no_data_color,
         ))
-    
+
+
 class RgbaColorizer(Colorizer):
     '''A Rgba colorizer.'''
 
     def __init__(self, no_data_color: Rgba = (0, 0, 0, 0)):
-        self.no_data_color = no_data_color
+        super().__init__(no_data_color)
 
     @staticmethod
-    def from_response_rgba(response: geoengine_openapi_client.RgbaColorizer) -> RgbaColorizer:
+    def from_response_rgba(_response: geoengine_openapi_client.RgbaColorizer) -> RgbaColorizer:
         """Create a colorizer from a response."""
 
         return RgbaColorizer()
