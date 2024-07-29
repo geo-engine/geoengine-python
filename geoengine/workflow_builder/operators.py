@@ -4,6 +4,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
+import datetime
+import numpy as np
 
 from geoengine.datasets import DatasetName
 from geoengine.types import Measurement, RasterBandDescriptor
@@ -846,23 +848,29 @@ class VectorExpression(VectorOperator):
 
 class TemporalRasterAggregation(RasterOperator):
     '''A TemporalRasterAggregation operator.'''
+    # pylint: disable=too-many-instance-attributes
 
     source: RasterOperator
-    aggregation_type: Literal["mean", "min", "max", "median", "count", "sum", "first", "last"]
+    aggregation_type: Literal["mean", "min", "max", "median", "count", "sum", "first", "last", "percentileEstimate"]
     ignore_no_data: bool = False
     window_granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days"
     window_size: int = 1
     output_type: Optional[Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]] = None
+    percentile: Optional[float] = None
+    window_ref: Optional[np.datetime64] = None
 
     # pylint: disable=too-many-arguments
     def __init__(self,
                  source: RasterOperator,
-                 aggregation_type: Literal["mean", "min", "max", "median", "count", "sum", "first", "last"],
+                 aggregation_type:
+                 Literal["mean", "min", "max", "median", "count", "sum", "first", "last", "percentileEstimate"],
                  ignore_no_data: bool = False,
                  granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days",
                  window_size: int = 1,
                  output_type:
                  Optional[Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]] = None,
+                 percentile: Optional[float] = None,
+                 window_reference: Optional[Union[datetime.datetime, np.datetime64]] = None
                  ):
         '''Creates a new TemporalRasterAggregation operator.'''
         self.source = source
@@ -871,23 +879,42 @@ class TemporalRasterAggregation(RasterOperator):
         self.window_granularity = granularity
         self.window_size = window_size
         self.output_type = output_type
-        # todo: add window reference
+        if self.aggregation_type == "percentileEstimate":
+            if percentile is None:
+                raise ValueError("Percentile must be set for percentileEstimate")
+            if percentile <= 0.0 or percentile > 1.0:
+                raise ValueError("Percentile must be > 0.0 and <= 1.0")
+            self.percentile = percentile
+        if window_reference is not None:
+            if isinstance(window_reference, np.datetime64):
+                self.window_ref = window_reference
+            elif isinstance(window_reference, datetime.datetime):
+                # We assume that a datetime without a timezone means UTC
+                if window_reference.tzinfo is not None:
+                    window_reference = window_reference.astimezone(tz=datetime.timezone.utc).replace(tzinfo=None)
+                self.window_ref = np.datetime64(window_reference)
+            else:
+                raise ValueError("`window_reference` must be of type `datetime.datetime` or `numpy.datetime64`")
 
     def name(self) -> str:
         return 'TemporalRasterAggregation'
 
     def to_dict(self) -> Dict[str, Any]:
+        w_ref = self.window_ref.astype('datetime64[ms]').astype(int) if self.window_ref is not None else None
+
         return {
             "type": self.name(),
             "params": {
                 "aggregation": {
                     "type": self.aggregation_type,
                     "ignoreNoData": self.ignore_no_data,
+                    "percentile": self.percentile
                 },
                 "window": {
                     "granularity": self.window_granularity,
                     "step": self.window_size
                 },
+                "windowReference": w_ref,
                 "outputType": self.output_type
             },
             "sources": {
@@ -900,13 +927,27 @@ class TemporalRasterAggregation(RasterOperator):
         if operator_dict["type"] != "TemporalRasterAggregation":
             raise ValueError("Invalid operator type")
 
+        w_ref: Optional[Union[datetime.datetime, np.datetime64]] = None
+        if "windowReference" in operator_dict["params"]:
+            t_ref = operator_dict["params"]["windowReference"]
+            if isinstance(t_ref, str):
+                w_ref = datetime.datetime.fromisoformat(t_ref)
+            if isinstance(t_ref, int):
+                w_ref = np.datetime64(t_ref, 'ms')
+
+        percentile = None
+        if "percentile" in operator_dict["params"]["aggregation"]:
+            percentile = operator_dict["params"]["aggregation"]["percentile"]
+
         return TemporalRasterAggregation(
             source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
             aggregation_type=operator_dict["params"]["aggregation"]["type"],
             ignore_no_data=operator_dict["params"]["aggregation"]["ignoreNoData"],
             granularity=operator_dict["params"]["window"]["granularity"],
             window_size=operator_dict["params"]["window"]["step"],
-            output_type=operator_dict["params"]["outputType"]
+            output_type=operator_dict["params"]["outputType"],
+            window_reference=w_ref,
+            percentile=percentile
         )
 
 
