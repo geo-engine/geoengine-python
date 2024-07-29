@@ -33,6 +33,8 @@ from __future__ import annotations
 from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
+import datetime
+import numpy as np
 
 from geoengine.datasets import DatasetName
 from geoengine.types import Measurement, RasterBandDescriptor
@@ -875,23 +877,29 @@ class VectorExpression(VectorOperator):
 
 class TemporalRasterAggregation(RasterOperator):
     &#39;&#39;&#39;A TemporalRasterAggregation operator.&#39;&#39;&#39;
+    # pylint: disable=too-many-instance-attributes
 
     source: RasterOperator
-    aggregation_type: Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;]
+    aggregation_type: Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;, &#34;percentileEstimate&#34;]
     ignore_no_data: bool = False
     window_granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;] = &#34;days&#34;
     window_size: int = 1
     output_type: Optional[Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]] = None
+    percentile: Optional[float] = None
+    window_ref: Optional[np.datetime64] = None
 
     # pylint: disable=too-many-arguments
     def __init__(self,
                  source: RasterOperator,
-                 aggregation_type: Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;],
+                 aggregation_type:
+                 Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;, &#34;percentileEstimate&#34;],
                  ignore_no_data: bool = False,
                  granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;] = &#34;days&#34;,
                  window_size: int = 1,
                  output_type:
                  Optional[Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]] = None,
+                 percentile: Optional[float] = None,
+                 window_reference: Optional[Union[datetime.datetime, np.datetime64]] = None
                  ):
         &#39;&#39;&#39;Creates a new TemporalRasterAggregation operator.&#39;&#39;&#39;
         self.source = source
@@ -900,23 +908,42 @@ class TemporalRasterAggregation(RasterOperator):
         self.window_granularity = granularity
         self.window_size = window_size
         self.output_type = output_type
-        # todo: add window reference
+        if self.aggregation_type == &#34;percentileEstimate&#34;:
+            if percentile is None:
+                raise ValueError(&#34;Percentile must be set for percentileEstimate&#34;)
+            if percentile &lt;= 0.0 or percentile &gt; 1.0:
+                raise ValueError(&#34;Percentile must be &gt; 0.0 and &lt;= 1.0&#34;)
+            self.percentile = percentile
+        if window_reference is not None:
+            if isinstance(window_reference, np.datetime64):
+                self.window_ref = window_reference
+            elif isinstance(window_reference, datetime.datetime):
+                # We assume that a datetime without a timezone means UTC
+                if window_reference.tzinfo is not None:
+                    window_reference = window_reference.astimezone(tz=datetime.timezone.utc).replace(tzinfo=None)
+                self.window_ref = np.datetime64(window_reference)
+            else:
+                raise ValueError(&#34;`window_reference` must be of type `datetime.datetime` or `numpy.datetime64`&#34;)
 
     def name(self) -&gt; str:
         return &#39;TemporalRasterAggregation&#39;
 
     def to_dict(self) -&gt; Dict[str, Any]:
+        w_ref = self.window_ref.astype(&#39;datetime64[ms]&#39;).astype(int) if self.window_ref is not None else None
+
         return {
             &#34;type&#34;: self.name(),
             &#34;params&#34;: {
                 &#34;aggregation&#34;: {
                     &#34;type&#34;: self.aggregation_type,
                     &#34;ignoreNoData&#34;: self.ignore_no_data,
+                    &#34;percentile&#34;: self.percentile
                 },
                 &#34;window&#34;: {
                     &#34;granularity&#34;: self.window_granularity,
                     &#34;step&#34;: self.window_size
                 },
+                &#34;windowReference&#34;: w_ref,
                 &#34;outputType&#34;: self.output_type
             },
             &#34;sources&#34;: {
@@ -929,13 +956,27 @@ class TemporalRasterAggregation(RasterOperator):
         if operator_dict[&#34;type&#34;] != &#34;TemporalRasterAggregation&#34;:
             raise ValueError(&#34;Invalid operator type&#34;)
 
+        w_ref: Optional[Union[datetime.datetime, np.datetime64]] = None
+        if &#34;windowReference&#34; in operator_dict[&#34;params&#34;]:
+            t_ref = operator_dict[&#34;params&#34;][&#34;windowReference&#34;]
+            if isinstance(t_ref, str):
+                w_ref = datetime.datetime.fromisoformat(t_ref)
+            if isinstance(t_ref, int):
+                w_ref = np.datetime64(t_ref, &#39;ms&#39;)
+
+        percentile = None
+        if &#34;percentile&#34; in operator_dict[&#34;params&#34;][&#34;aggregation&#34;]:
+            percentile = operator_dict[&#34;params&#34;][&#34;aggregation&#34;][&#34;percentile&#34;]
+
         return TemporalRasterAggregation(
             source=RasterOperator.from_operator_dict(operator_dict[&#34;sources&#34;][&#34;raster&#34;]),
             aggregation_type=operator_dict[&#34;params&#34;][&#34;aggregation&#34;][&#34;type&#34;],
             ignore_no_data=operator_dict[&#34;params&#34;][&#34;aggregation&#34;][&#34;ignoreNoData&#34;],
             granularity=operator_dict[&#34;params&#34;][&#34;window&#34;][&#34;granularity&#34;],
             window_size=operator_dict[&#34;params&#34;][&#34;window&#34;][&#34;step&#34;],
-            output_type=operator_dict[&#34;params&#34;][&#34;outputType&#34;]
+            output_type=operator_dict[&#34;params&#34;][&#34;outputType&#34;],
+            window_reference=w_ref,
+            percentile=percentile
         )
 
 
@@ -3206,7 +3247,7 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;Reprojecti
 </dd>
 <dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation"><code class="flex name class">
 <span>class <span class="ident">TemporalRasterAggregation</span></span>
-<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, aggregation_type: "Literal['mean', 'min', 'max', 'median', 'count', 'sum', 'first', 'last']", ignore_no_data: bool = False, granularity: "Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis']" = 'days', window_size: int = 1, output_type: "Optional[Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']]" = None)</span>
+<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, aggregation_type: "Literal['mean', 'min', 'max', 'median', 'count', 'sum', 'first', 'last', 'percentileEstimate']", ignore_no_data: bool = False, granularity: "Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis']" = 'days', window_size: int = 1, output_type: "Optional[Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']]" = None, percentile: Optional[float] = None, window_reference: Optional[Union[datetime.datetime, np.datetime64]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A TemporalRasterAggregation operator.</p>
@@ -3217,23 +3258,29 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;Reprojecti
 </summary>
 <pre><code class="python">class TemporalRasterAggregation(RasterOperator):
     &#39;&#39;&#39;A TemporalRasterAggregation operator.&#39;&#39;&#39;
+    # pylint: disable=too-many-instance-attributes
 
     source: RasterOperator
-    aggregation_type: Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;]
+    aggregation_type: Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;, &#34;percentileEstimate&#34;]
     ignore_no_data: bool = False
     window_granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;] = &#34;days&#34;
     window_size: int = 1
     output_type: Optional[Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]] = None
+    percentile: Optional[float] = None
+    window_ref: Optional[np.datetime64] = None
 
     # pylint: disable=too-many-arguments
     def __init__(self,
                  source: RasterOperator,
-                 aggregation_type: Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;],
+                 aggregation_type:
+                 Literal[&#34;mean&#34;, &#34;min&#34;, &#34;max&#34;, &#34;median&#34;, &#34;count&#34;, &#34;sum&#34;, &#34;first&#34;, &#34;last&#34;, &#34;percentileEstimate&#34;],
                  ignore_no_data: bool = False,
                  granularity: Literal[&#34;days&#34;, &#34;months&#34;, &#34;years&#34;, &#34;hours&#34;, &#34;minutes&#34;, &#34;seconds&#34;, &#34;millis&#34;] = &#34;days&#34;,
                  window_size: int = 1,
                  output_type:
                  Optional[Literal[&#34;U8&#34;, &#34;U16&#34;, &#34;U32&#34;, &#34;U64&#34;, &#34;I8&#34;, &#34;I16&#34;, &#34;I32&#34;, &#34;I64&#34;, &#34;F32&#34;, &#34;F64&#34;]] = None,
+                 percentile: Optional[float] = None,
+                 window_reference: Optional[Union[datetime.datetime, np.datetime64]] = None
                  ):
         &#39;&#39;&#39;Creates a new TemporalRasterAggregation operator.&#39;&#39;&#39;
         self.source = source
@@ -3242,23 +3289,42 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;Reprojecti
         self.window_granularity = granularity
         self.window_size = window_size
         self.output_type = output_type
-        # todo: add window reference
+        if self.aggregation_type == &#34;percentileEstimate&#34;:
+            if percentile is None:
+                raise ValueError(&#34;Percentile must be set for percentileEstimate&#34;)
+            if percentile &lt;= 0.0 or percentile &gt; 1.0:
+                raise ValueError(&#34;Percentile must be &gt; 0.0 and &lt;= 1.0&#34;)
+            self.percentile = percentile
+        if window_reference is not None:
+            if isinstance(window_reference, np.datetime64):
+                self.window_ref = window_reference
+            elif isinstance(window_reference, datetime.datetime):
+                # We assume that a datetime without a timezone means UTC
+                if window_reference.tzinfo is not None:
+                    window_reference = window_reference.astimezone(tz=datetime.timezone.utc).replace(tzinfo=None)
+                self.window_ref = np.datetime64(window_reference)
+            else:
+                raise ValueError(&#34;`window_reference` must be of type `datetime.datetime` or `numpy.datetime64`&#34;)
 
     def name(self) -&gt; str:
         return &#39;TemporalRasterAggregation&#39;
 
     def to_dict(self) -&gt; Dict[str, Any]:
+        w_ref = self.window_ref.astype(&#39;datetime64[ms]&#39;).astype(int) if self.window_ref is not None else None
+
         return {
             &#34;type&#34;: self.name(),
             &#34;params&#34;: {
                 &#34;aggregation&#34;: {
                     &#34;type&#34;: self.aggregation_type,
                     &#34;ignoreNoData&#34;: self.ignore_no_data,
+                    &#34;percentile&#34;: self.percentile
                 },
                 &#34;window&#34;: {
                     &#34;granularity&#34;: self.window_granularity,
                     &#34;step&#34;: self.window_size
                 },
+                &#34;windowReference&#34;: w_ref,
                 &#34;outputType&#34;: self.output_type
             },
             &#34;sources&#34;: {
@@ -3271,13 +3337,27 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;Reprojecti
         if operator_dict[&#34;type&#34;] != &#34;TemporalRasterAggregation&#34;:
             raise ValueError(&#34;Invalid operator type&#34;)
 
+        w_ref: Optional[Union[datetime.datetime, np.datetime64]] = None
+        if &#34;windowReference&#34; in operator_dict[&#34;params&#34;]:
+            t_ref = operator_dict[&#34;params&#34;][&#34;windowReference&#34;]
+            if isinstance(t_ref, str):
+                w_ref = datetime.datetime.fromisoformat(t_ref)
+            if isinstance(t_ref, int):
+                w_ref = np.datetime64(t_ref, &#39;ms&#39;)
+
+        percentile = None
+        if &#34;percentile&#34; in operator_dict[&#34;params&#34;][&#34;aggregation&#34;]:
+            percentile = operator_dict[&#34;params&#34;][&#34;aggregation&#34;][&#34;percentile&#34;]
+
         return TemporalRasterAggregation(
             source=RasterOperator.from_operator_dict(operator_dict[&#34;sources&#34;][&#34;raster&#34;]),
             aggregation_type=operator_dict[&#34;params&#34;][&#34;aggregation&#34;][&#34;type&#34;],
             ignore_no_data=operator_dict[&#34;params&#34;][&#34;aggregation&#34;][&#34;ignoreNoData&#34;],
             granularity=operator_dict[&#34;params&#34;][&#34;window&#34;][&#34;granularity&#34;],
             window_size=operator_dict[&#34;params&#34;][&#34;window&#34;][&#34;step&#34;],
-            output_type=operator_dict[&#34;params&#34;][&#34;outputType&#34;]
+            output_type=operator_dict[&#34;params&#34;][&#34;outputType&#34;],
+            window_reference=w_ref,
+            percentile=percentile
         )</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -3287,7 +3367,7 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;Reprojecti
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.aggregation_type"><code class="name">var <span class="ident">aggregation_type</span> : Literal['mean', 'min', 'max', 'median', 'count', 'sum', 'first', 'last']</code></dt>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.aggregation_type"><code class="name">var <span class="ident">aggregation_type</span> : Literal['mean', 'min', 'max', 'median', 'count', 'sum', 'first', 'last', 'percentileEstimate']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3299,11 +3379,19 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;Reprojecti
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.percentile"><code class="name">var <span class="ident">percentile</span> : Optional[float]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.source"><code class="name">var <span class="ident">source</span> : <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 <dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.window_granularity"><code class="name">var <span class="ident">window_granularity</span> : Literal['days', 'months', 'years', 'hours', 'minutes', 'seconds', 'millis']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.TemporalRasterAggregation.window_ref"><code class="name">var <span class="ident">window_ref</span> : Optional[numpy.datetime64]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3945,8 +4033,10 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; VectorOperator:
 <li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.aggregation_type" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.aggregation_type">aggregation_type</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.ignore_no_data" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.ignore_no_data">ignore_no_data</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.output_type" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.output_type">output_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.percentile" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.percentile">percentile</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.source" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.source">source</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.window_granularity" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.window_granularity">window_granularity</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.window_ref" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.window_ref">window_ref</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.TemporalRasterAggregation.window_size" href="#geoengine.workflow_builder.operators.TemporalRasterAggregation.window_size">window_size</a></code></li>
 </ul>
 </li>

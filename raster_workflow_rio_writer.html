@@ -60,7 +60,7 @@ class RasterWorkflowRioWriter:
     time_format = &#34;%Y-%m-%d_%H-%M-%S&#34;
 
     gdal_driver = &#34;GTiff&#34;
-    options = [&#34;TILED=YES&#34;, &#34;COMPRESS=DEFLATE&#34;, &#34;ZLEVEL=9&#34;]
+    rio_kwargs = {&#34;tiled&#34;: True, &#34;compress&#34;: &#34;DEFLATE&#34;, &#34;zlevel&#34;: 6}
     tile_size = 512
 
     # pylint: disable=too-many-arguments
@@ -70,7 +70,8 @@ class RasterWorkflowRioWriter:
         workflow: Workflow,
         no_data_value=0,
         data_type=None,
-        print_info=False
+        print_info=False,
+        rio_kwargs=None
     ):
         &#39;&#39;&#39; Create a new RasterWorkflowGdalWriter instance.&#39;&#39;&#39;
         self.dataset_prefix = dataset_prefix
@@ -82,6 +83,9 @@ class RasterWorkflowRioWriter:
         dt = ge_type_to_np(ras_res.data_type)
         self.dataset_data_type = dt if data_type is None else data_type
         self.bands = ras_res.bands
+        if rio_kwargs:
+            for (key, value) in rio_kwargs.items():
+                self.rio_kwargs[key] = value
 
     def close_current_dataset(self):
         &#39;&#39;&#39; Close the current dataset &#39;&#39;&#39;
@@ -173,6 +177,7 @@ class RasterWorkflowRioWriter:
         if self.print_info:
             print(f&#34;Creating dataset {self.dataset_prefix}{time_formated_start}.tif&#34;
                   f&#34; with width {width}, height {height}, geo_transform {geo_transform}&#34;
+                  f&#34; rio kwargs: {self.rio_kwargs}&#34;
                   )
         assert self.bands is not None, &#34;The bands must be set&#34;
         number_of_bands = len(self.bands)
@@ -188,7 +193,8 @@ class RasterWorkflowRioWriter:
             crs=query.srs,
             transform=affine_transform,
             dtype=dataset_data_type,
-            nodata=self.no_data_value
+            nodata=self.no_data_value,
+            **self.rio_kwargs
         )
 
         self.current_dataset = rio_dataset
@@ -242,7 +248,7 @@ class RasterWorkflowRioWriter:
 <dl>
 <dt id="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter"><code class="flex name class">
 <span>class <span class="ident">RasterWorkflowRioWriter</span></span>
-<span>(</span><span>dataset_prefix, workflow: <a title="geoengine.workflow.Workflow" href="workflow.html#geoengine.workflow.Workflow">Workflow</a>, no_data_value=0, data_type=None, print_info=False)</span>
+<span>(</span><span>dataset_prefix, workflow: <a title="geoengine.workflow.Workflow" href="workflow.html#geoengine.workflow.Workflow">Workflow</a>, no_data_value=0, data_type=None, print_info=False, rio_kwargs=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A class to write raster data from a Geo Engine raster workflow to a GDAL dataset.
@@ -274,7 +280,7 @@ Multiple bands are supported and the bands are written to the dataset in the ord
     time_format = &#34;%Y-%m-%d_%H-%M-%S&#34;
 
     gdal_driver = &#34;GTiff&#34;
-    options = [&#34;TILED=YES&#34;, &#34;COMPRESS=DEFLATE&#34;, &#34;ZLEVEL=9&#34;]
+    rio_kwargs = {&#34;tiled&#34;: True, &#34;compress&#34;: &#34;DEFLATE&#34;, &#34;zlevel&#34;: 6}
     tile_size = 512
 
     # pylint: disable=too-many-arguments
@@ -284,7 +290,8 @@ Multiple bands are supported and the bands are written to the dataset in the ord
         workflow: Workflow,
         no_data_value=0,
         data_type=None,
-        print_info=False
+        print_info=False,
+        rio_kwargs=None
     ):
         &#39;&#39;&#39; Create a new RasterWorkflowGdalWriter instance.&#39;&#39;&#39;
         self.dataset_prefix = dataset_prefix
@@ -296,6 +303,9 @@ Multiple bands are supported and the bands are written to the dataset in the ord
         dt = ge_type_to_np(ras_res.data_type)
         self.dataset_data_type = dt if data_type is None else data_type
         self.bands = ras_res.bands
+        if rio_kwargs:
+            for (key, value) in rio_kwargs.items():
+                self.rio_kwargs[key] = value
 
     def close_current_dataset(self):
         &#39;&#39;&#39; Close the current dataset &#39;&#39;&#39;
@@ -387,6 +397,7 @@ Multiple bands are supported and the bands are written to the dataset in the ord
         if self.print_info:
             print(f&#34;Creating dataset {self.dataset_prefix}{time_formated_start}.tif&#34;
                   f&#34; with width {width}, height {height}, geo_transform {geo_transform}&#34;
+                  f&#34; rio kwargs: {self.rio_kwargs}&#34;
                   )
         assert self.bands is not None, &#34;The bands must be set&#34;
         number_of_bands = len(self.bands)
@@ -402,7 +413,8 @@ Multiple bands are supported and the bands are written to the dataset in the ord
             crs=query.srs,
             transform=affine_transform,
             dtype=dataset_data_type,
-            nodata=self.no_data_value
+            nodata=self.no_data_value,
+            **self.rio_kwargs
         )
 
         self.current_dataset = rio_dataset
@@ -557,11 +569,11 @@ dtype([('surname', 'S25'), ('age', 'u1')])
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.options"><code class="name">var <span class="ident">options</span></code></dt>
+<dt id="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.print_info"><code class="name">var <span class="ident">print_info</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.print_info"><code class="name">var <span class="ident">print_info</span></code></dt>
+<dt id="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.rio_kwargs"><code class="name">var <span class="ident">rio_kwargs</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -755,9 +767,9 @@ dtype([('surname', 'S25'), ('age', 'u1')])
 <li><code><a title="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.dataset_width" href="#geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.dataset_width">dataset_width</a></code></li>
 <li><code><a title="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.gdal_driver" href="#geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.gdal_driver">gdal_driver</a></code></li>
 <li><code><a title="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.no_data_value" href="#geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.no_data_value">no_data_value</a></code></li>
-<li><code><a title="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.options" href="#geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.options">options</a></code></li>
 <li><code><a title="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.print_info" href="#geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.print_info">print_info</a></code></li>
 <li><code><a title="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.query_and_write" href="#geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.query_and_write">query_and_write</a></code></li>
+<li><code><a title="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.rio_kwargs" href="#geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.rio_kwargs">rio_kwargs</a></code></li>
 <li><code><a title="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.tile_size" href="#geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.tile_size">tile_size</a></code></li>
 <li><code><a title="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.time_format" href="#geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.time_format">time_format</a></code></li>
 <li><code><a title="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.workflow" href="#geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.workflow">workflow</a></code></li>
