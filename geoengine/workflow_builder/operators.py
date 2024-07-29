@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
 import datetime
@@ -81,6 +82,8 @@ class RasterOperator(Operator):
             return TemporalRasterAggregation.from_operator_dict(operator_dict)
         if operator_dict['type'] == 'RasterStacker':
             return RasterStacker.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'BandNeighborhoodAggregate':
+            return BandNeighborhoodAggregate.from_operator_dict(operator_dict)
 
         raise NotImplementedError(f"Unknown operator type {operator_dict['type']}")
 
@@ -1136,3 +1139,109 @@ class RasterStacker(RasterOperator):
             sources=sources,
             rename=rename
         )
+
+
+class BandNeighborhoodAggregate(RasterOperator):
+    '''The BandNeighborhoodAggregate operator.'''
+
+    source: RasterOperator
+    aggregate: BandNeighborhoodAggregateParams
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 source: RasterOperator,
+                 aggregate: BandNeighborhoodAggregateParams
+                 ):
+        '''Creates a new RasterStacker operator.'''
+        self.source = source
+        self.aggregate = aggregate
+
+    def name(self) -> str:
+        return 'BandNeighborhoodAggregate'
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": self.name(),
+            "params": {
+                "aggregate": self.aggregate.to_dict()
+            },
+            "sources": {
+                "raster": self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregate':
+        if operator_dict["type"] != "BandNeighborhoodAggregate":
+            raise ValueError("Invalid operator type")
+
+        source = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
+        aggregate = BandNeighborhoodAggregateParams.from_dict(operator_dict["params"]["aggregate"])
+
+        return BandNeighborhoodAggregate(
+            source=source,
+            aggregate=aggregate
+        )
+
+
+class BandNeighborhoodAggregateParams:
+    '''Abstract base class for band neighborhood aggregate params.'''
+
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
+        pass
+
+    @classmethod
+    def from_dict(cls, band_neighborhood_aggregate_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregateParams':
+        '''Returns a BandNeighborhoodAggregate object from a dictionary.'''
+        if band_neighborhood_aggregate_dict["type"] == "firstDerivative":
+            return BandNeighborhoodAggregateFirstDerivative.from_dict(band_neighborhood_aggregate_dict)
+        if band_neighborhood_aggregate_dict["type"] == "average":
+            return BandNeighborhoodAggregateAverage(band_neighborhood_aggregate_dict["windowSize"])
+        raise ValueError("Invalid neighborhood aggregate type")
+
+    @classmethod
+    def first_derivative(cls, equally_spaced_band_distance: float) -> 'BandNeighborhoodAggregateParams':
+        return BandNeighborhoodAggregateFirstDerivative(equally_spaced_band_distance)
+
+    @classmethod
+    def average(cls, window_size: int) -> 'BandNeighborhoodAggregateParams':
+        return BandNeighborhoodAggregateAverage(window_size)
+
+
+@dataclass
+class BandNeighborhoodAggregateFirstDerivative(BandNeighborhoodAggregateParams):
+    '''The first derivative band neighborhood aggregate.'''
+
+    equally_spaced_band_distance: float
+
+    @classmethod
+    def from_dict(cls, band_neighborhood_aggregate_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregateParams':
+        if band_neighborhood_aggregate_dict["type"] != "firstDerivative":
+            raise ValueError("Invalid neighborhood aggregate type")
+
+        return BandNeighborhoodAggregateFirstDerivative(
+            band_neighborhood_aggregate_dict["bandDistance"]["distance"]
+        )
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "firstDerivative",
+            "bandDistance": {
+                "type": "equallySpaced",
+                "distance": self.equally_spaced_band_distance
+            }
+        }
+
+
+@dataclass
+class BandNeighborhoodAggregateAverage(BandNeighborhoodAggregateParams):
+    '''The average band neighborhood aggregate.'''
+
+    window_size: int
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "average",
+            "windowSize": self.window_size
+        }
