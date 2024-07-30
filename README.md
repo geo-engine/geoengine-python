@@ -146,11 +146,6 @@ It is necessary to install the dependencies with:
 python3 -m pip install -e .[examples]
 ```
 
-### XGBoost
-
-If you wish to run the XGBoost notebook, you need the XGBoost library [dmlc/xgboost](https://github.com/dmlc/xgboost) available on your system.
-Using the geo engine backend with `xgboost` feature will provide the library. See [XGBoost: Installation](https://xgboost.readthedocs.io/en/stable/install.html) for installation instructions otherwise.
-
 ## Distribute to PyPI
 
 ### Test-PyPI
