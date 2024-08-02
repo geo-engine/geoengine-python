@@ -192,7 +192,7 @@ class RasterTile2D:
         '''Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine'''
         metadata = record_batch.schema.metadata
         inner = geoengine_openapi_client.GdalDatasetGeoTransform.from_json(metadata[b'geoTransform'])
-        assert inner is not None
+        assert inner is not None, "Failed to parse geoTransform"
         geo_transform = gety.GeoTransform.from_response(inner)
         x_size = int(metadata[b'xSize'])
         y_size = int(metadata[b'ySize'])

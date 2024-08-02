@@ -712,7 +712,7 @@ class RasterResultDescriptor(ResultDescriptor):
             spatial_resolution = SpatialResolution.from_response(response.resolution)
 
         return RasterResultDescriptor(
-            data_type=data_type,  # type: ignore
+            data_type=data_type,
             bands=bands,
             spatial_reference=spatial_ref,
             time_bounds=time_bounds,
@@ -975,7 +975,7 @@ class RasterColorizer:
         '''Parse an http response to a `RasterColorizer` object'''
         inner = response.actual_instance
 
-        if isinstance(inner, geoengine_openapi_client.RasterColorizerSingleBand):
+        if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
             return SingleBandRasterColorizer.from_single_band_response(inner)
 
         raise GeoEngineException({"message": "Unknown RasterColorizer type"})
@@ -993,14 +993,14 @@ class SingleBandRasterColorizer(RasterColorizer):
     band_colorizer: Colorizer
 
     @staticmethod
-    def from_single_band_response(response: geoengine_openapi_client.RasterColorizerSingleBand) -> RasterColorizer:
+    def from_single_band_response(response: geoengine_openapi_client.SingleBandRasterColorizer) -> RasterColorizer:
         return SingleBandRasterColorizer(
             response.band,
             Colorizer.from_response(response.band_colorizer)
         )
 
     def to_api_dict(self) -> geoengine_openapi_client.RasterColorizer:
-        return geoengine_openapi_client.RasterColorizer(geoengine_openapi_client.RasterColorizerSingleBand(
+        return geoengine_openapi_client.RasterColorizer(geoengine_openapi_client.SingleBandRasterColorizer(
             type='singleBand',
             band=self.band,
             band_colorizer=self.band_colorizer.to_api_dict(),

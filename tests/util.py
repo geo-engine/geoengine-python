@@ -2,6 +2,7 @@
 
 from unittest.mock import _patch, patch
 from json import dumps, loads
+import unittest
 import urllib3
 
 
@@ -145,3 +146,29 @@ class UrllibMocker:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._mock_context.__exit__(exc_type, exc_val, exc_tb)
+
+
+class UtilTests(unittest.TestCase):
+    """Utilities test runner."""
+
+    def test_is_url_match(self):
+        self.assertTrue(is_url_match(
+            "http://example.com?a=1234&b=hello",
+            "http://example.com?b=hello&a=1234"
+        ))
+        self.assertFalse(is_url_match(
+            "http://example.com?a=1234&b=hello",
+            "http://example.de?b=hello&a=1234"
+        ))
+        self.assertFalse(is_url_match(
+            "http://example.com:80?a=1234&b=hello",
+            "http://example.com:443b=hello&a=1234"
+        ))
+        self.assertFalse(is_url_match(
+            "http://example.com/x",
+            "http://example.com/y"
+        ))
+
+
+if __name__ == '__main__':
+    unittest.main()

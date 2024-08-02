@@ -100,10 +100,10 @@ class LayerTests(unittest.TestCase):
                     properties=[],
                     symbology=api.Symbology(api.RasterSymbology(
                         opacity=1,
-                        raster_colorizer=api.RasterColorizer(api.RasterColorizerSingleBand(
+                        raster_colorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
                             type='singleBand',
                             band=0,
-                            band_colorizer=api.Colorizer(api.ColorizerPalette(
+                            band_colorizer=api.Colorizer(api.PaletteColorizer(
                                 colors={
                                     "0.0": [134, 201, 227, 255],
                                     "1.0": [30, 129, 62, 255],
@@ -602,7 +602,7 @@ class LayerTests(unittest.TestCase):
             symbology=RasterSymbology.from_response(api.Symbology(api.RasterSymbology(
                 type='raster',
                 opacity=1,
-                rasterColorizer=api.RasterColorizer(api.RasterColorizerSingleBand(
+                rasterColorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
                     type='singleBand',
                     band=0,
                     bandColorizer=api.Colorizer(api.LinearGradient(
@@ -625,10 +625,10 @@ class LayerTests(unittest.TestCase):
         layer.symbology = RasterSymbology.from_response(api.Symbology(api.RasterSymbology(
             type='raster',
             opacity=1,
-            raster_colorizer=api.RasterColorizer(api.RasterColorizerSingleBand(
+            raster_colorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
                 type='singleBand',
                 band=0,
-                band_colorizer=api.Colorizer(api.ColorizerPalette(
+                band_colorizer=api.Colorizer(api.PaletteColorizer(
                     type='palette',
                     no_data_color=[0, 0, 0, 0],
                     colors={

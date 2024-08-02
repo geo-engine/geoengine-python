@@ -108,13 +108,13 @@ class Resource:
         inner: Any = None
 
         if self.__type == "layer":
-            inner = geoengine_openapi_client.ResourceLayer(type="layer", id=self.__id)
+            inner = geoengine_openapi_client.LayerResource(type="layer", id=self.__id)
         elif self.__type == "layerCollection":
-            inner = geoengine_openapi_client.ResourceLayerCollection(type="layerCollection", id=self.__id)
+            inner = geoengine_openapi_client.LayerCollectionResource(type="layerCollection", id=self.__id)
         elif self.__type == "project":
-            inner = geoengine_openapi_client.ResourceProject(type="project", id=self.__id)
+            inner = geoengine_openapi_client.ProjectResource(type="project", id=self.__id)
         elif self.__type == "dataset":
-            inner = geoengine_openapi_client.ResourceDataset(type="dataset", id=self.__id)
+            inner = geoengine_openapi_client.DatasetResource(type="dataset", id=self.__id)
 
         return geoengine_openapi_client.Resource(inner)
 
