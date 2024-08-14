@@ -540,7 +540,7 @@ class Volume:
     '''A volume'''
 
     name: str
-    path: str
+    path: Optional[str]
 
     @classmethod
     def from_response(cls, response: geoengine_openapi_client.Volume) -> Volume:
