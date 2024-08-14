@@ -216,11 +216,13 @@ class BlueprintsTests(unittest.TestCase):
                 "aggregation": {
                     "type": "mean",
                     "ignoreNoData": True,
+                    "percentile": None
                 },
                 "window": {
                     "granularity": "days",
                     "step": 1
                 },
+                "windowReference": None,
                 "outputType": "F32",
             },
             'sources': {
@@ -277,11 +279,13 @@ class BlueprintsTests(unittest.TestCase):
                 "aggregation": {
                     "type": "mean",
                     "ignoreNoData": True,
+                    "percentile": None
                 },
                 "window": {
                     "granularity": "days",
                     "step": 1
                 },
+                "windowReference": None,
                 "outputType": "F32",
             },
             'sources': {
@@ -338,11 +342,13 @@ class BlueprintsTests(unittest.TestCase):
                 "aggregation": {
                     "type": "mean",
                     "ignoreNoData": True,
+                    "percentile": None
                 },
                 "window": {
                     "granularity": "days",
                     "step": 1
                 },
+                "windowReference": None,
                 "outputType": "F32",
             },
             'sources': {

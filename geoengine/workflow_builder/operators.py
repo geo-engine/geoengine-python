@@ -2,8 +2,11 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
+import datetime
+import numpy as np
 
 from geoengine.datasets import DatasetName
 from geoengine.types import Measurement, RasterBandDescriptor
@@ -71,12 +74,16 @@ class RasterOperator(Operator):
             return Interpolation.from_operator_dict(operator_dict)
         if operator_dict['type'] == 'Expression':
             return Expression.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'BandwiseExpression':
+            return BandwiseExpression.from_operator_dict(operator_dict)
         if operator_dict['type'] == 'TimeShift':
             return TimeShift.from_operator_dict(operator_dict).as_raster()
         if operator_dict['type'] == 'TemporalRasterAggregation':
             return TemporalRasterAggregation.from_operator_dict(operator_dict)
         if operator_dict['type'] == 'RasterStacker':
             return RasterStacker.from_operator_dict(operator_dict)
+        if operator_dict['type'] == 'BandNeighborhoodAggregate':
+            return BandNeighborhoodAggregate.from_operator_dict(operator_dict)
 
         raise NotImplementedError(f"Unknown operator type {operator_dict['type']}")
 
@@ -694,6 +701,58 @@ class Expression(RasterOperator):
         )
 
 
+class BandwiseExpression(RasterOperator):
+    '''A bandwise Expression operator.'''
+
+    expression: str
+    source: RasterOperator
+    output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32"
+    map_no_data: bool = False
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 expression: str,
+                 source: RasterOperator,
+                 output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
+                 map_no_data: bool = False,
+                 ):
+        '''Creates a new Expression operator.'''
+        self.expression = expression
+        self.source = source
+        self.output_type = output_type
+        self.map_no_data = map_no_data
+
+    def name(self) -> str:
+        return 'Expression'
+
+    def to_dict(self) -> Dict[str, Any]:
+        params = {
+            "expression": self.expression,
+            "outputType": self.output_type,
+            "mapNoData": self.map_no_data,
+        }
+
+        return {
+            "type": self.name(),
+            "params": params,
+            "sources": {
+                "raster": self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'BandwiseExpression':
+        if operator_dict["type"] != "BandwiseExpression":
+            raise ValueError("Invalid operator type")
+
+        return BandwiseExpression(
+            expression=operator_dict["params"]["expression"],
+            source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
+            output_type=operator_dict["params"]["outputType"],
+            map_no_data=operator_dict["params"]["mapNoData"],
+        )
+
+
 class GeoVectorDataType(Enum):
     '''The output type of geometry vector data.'''
     MULTI_POINT = "MultiPoint"
@@ -792,23 +851,29 @@ class VectorExpression(VectorOperator):
 
 class TemporalRasterAggregation(RasterOperator):
     '''A TemporalRasterAggregation operator.'''
+    # pylint: disable=too-many-instance-attributes
 
     source: RasterOperator
-    aggregation_type: Literal["mean", "min", "max", "median", "count", "sum", "first", "last"]
+    aggregation_type: Literal["mean", "min", "max", "median", "count", "sum", "first", "last", "percentileEstimate"]
     ignore_no_data: bool = False
     window_granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days"
     window_size: int = 1
     output_type: Optional[Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]] = None
+    percentile: Optional[float] = None
+    window_ref: Optional[np.datetime64] = None
 
     # pylint: disable=too-many-arguments
     def __init__(self,
                  source: RasterOperator,
-                 aggregation_type: Literal["mean", "min", "max", "median", "count", "sum", "first", "last"],
+                 aggregation_type:
+                 Literal["mean", "min", "max", "median", "count", "sum", "first", "last", "percentileEstimate"],
                  ignore_no_data: bool = False,
                  granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days",
                  window_size: int = 1,
                  output_type:
                  Optional[Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]] = None,
+                 percentile: Optional[float] = None,
+                 window_reference: Optional[Union[datetime.datetime, np.datetime64]] = None
                  ):
         '''Creates a new TemporalRasterAggregation operator.'''
         self.source = source
@@ -817,23 +882,42 @@ class TemporalRasterAggregation(RasterOperator):
         self.window_granularity = granularity
         self.window_size = window_size
         self.output_type = output_type
-        # todo: add window reference
+        if self.aggregation_type == "percentileEstimate":
+            if percentile is None:
+                raise ValueError("Percentile must be set for percentileEstimate")
+            if percentile <= 0.0 or percentile > 1.0:
+                raise ValueError("Percentile must be > 0.0 and <= 1.0")
+            self.percentile = percentile
+        if window_reference is not None:
+            if isinstance(window_reference, np.datetime64):
+                self.window_ref = window_reference
+            elif isinstance(window_reference, datetime.datetime):
+                # We assume that a datetime without a timezone means UTC
+                if window_reference.tzinfo is not None:
+                    window_reference = window_reference.astimezone(tz=datetime.timezone.utc).replace(tzinfo=None)
+                self.window_ref = np.datetime64(window_reference)
+            else:
+                raise ValueError("`window_reference` must be of type `datetime.datetime` or `numpy.datetime64`")
 
     def name(self) -> str:
         return 'TemporalRasterAggregation'
 
     def to_dict(self) -> Dict[str, Any]:
+        w_ref = self.window_ref.astype('datetime64[ms]').astype(int) if self.window_ref is not None else None
+
         return {
             "type": self.name(),
             "params": {
                 "aggregation": {
                     "type": self.aggregation_type,
                     "ignoreNoData": self.ignore_no_data,
+                    "percentile": self.percentile
                 },
                 "window": {
                     "granularity": self.window_granularity,
                     "step": self.window_size
                 },
+                "windowReference": w_ref,
                 "outputType": self.output_type
             },
             "sources": {
@@ -846,13 +930,27 @@ class TemporalRasterAggregation(RasterOperator):
         if operator_dict["type"] != "TemporalRasterAggregation":
             raise ValueError("Invalid operator type")
 
+        w_ref: Optional[Union[datetime.datetime, np.datetime64]] = None
+        if "windowReference" in operator_dict["params"]:
+            t_ref = operator_dict["params"]["windowReference"]
+            if isinstance(t_ref, str):
+                w_ref = datetime.datetime.fromisoformat(t_ref)
+            if isinstance(t_ref, int):
+                w_ref = np.datetime64(t_ref, 'ms')
+
+        percentile = None
+        if "percentile" in operator_dict["params"]["aggregation"]:
+            percentile = operator_dict["params"]["aggregation"]["percentile"]
+
         return TemporalRasterAggregation(
             source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
             aggregation_type=operator_dict["params"]["aggregation"]["type"],
             ignore_no_data=operator_dict["params"]["aggregation"]["ignoreNoData"],
             granularity=operator_dict["params"]["window"]["granularity"],
             window_size=operator_dict["params"]["window"]["step"],
-            output_type=operator_dict["params"]["outputType"]
+            output_type=operator_dict["params"]["outputType"],
+            window_reference=w_ref,
+            percentile=percentile
         )
 
 
@@ -1041,3 +1139,109 @@ class RasterStacker(RasterOperator):
             sources=sources,
             rename=rename
         )
+
+
+class BandNeighborhoodAggregate(RasterOperator):
+    '''The BandNeighborhoodAggregate operator.'''
+
+    source: RasterOperator
+    aggregate: BandNeighborhoodAggregateParams
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 source: RasterOperator,
+                 aggregate: BandNeighborhoodAggregateParams
+                 ):
+        '''Creates a new RasterStacker operator.'''
+        self.source = source
+        self.aggregate = aggregate
+
+    def name(self) -> str:
+        return 'BandNeighborhoodAggregate'
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": self.name(),
+            "params": {
+                "aggregate": self.aggregate.to_dict()
+            },
+            "sources": {
+                "raster": self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregate':
+        if operator_dict["type"] != "BandNeighborhoodAggregate":
+            raise ValueError("Invalid operator type")
+
+        source = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
+        aggregate = BandNeighborhoodAggregateParams.from_dict(operator_dict["params"]["aggregate"])
+
+        return BandNeighborhoodAggregate(
+            source=source,
+            aggregate=aggregate
+        )
+
+
+class BandNeighborhoodAggregateParams:
+    '''Abstract base class for band neighborhood aggregate params.'''
+
+    @abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
+        pass
+
+    @classmethod
+    def from_dict(cls, band_neighborhood_aggregate_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregateParams':
+        '''Returns a BandNeighborhoodAggregate object from a dictionary.'''
+        if band_neighborhood_aggregate_dict["type"] == "firstDerivative":
+            return BandNeighborhoodAggregateFirstDerivative.from_dict(band_neighborhood_aggregate_dict)
+        if band_neighborhood_aggregate_dict["type"] == "average":
+            return BandNeighborhoodAggregateAverage(band_neighborhood_aggregate_dict["windowSize"])
+        raise ValueError("Invalid neighborhood aggregate type")
+
+    @classmethod
+    def first_derivative(cls, equally_spaced_band_distance: float) -> 'BandNeighborhoodAggregateParams':
+        return BandNeighborhoodAggregateFirstDerivative(equally_spaced_band_distance)
+
+    @classmethod
+    def average(cls, window_size: int) -> 'BandNeighborhoodAggregateParams':
+        return BandNeighborhoodAggregateAverage(window_size)
+
+
+@dataclass
+class BandNeighborhoodAggregateFirstDerivative(BandNeighborhoodAggregateParams):
+    '''The first derivative band neighborhood aggregate.'''
+
+    equally_spaced_band_distance: float
+
+    @classmethod
+    def from_dict(cls, band_neighborhood_aggregate_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregateParams':
+        if band_neighborhood_aggregate_dict["type"] != "firstDerivative":
+            raise ValueError("Invalid neighborhood aggregate type")
+
+        return BandNeighborhoodAggregateFirstDerivative(
+            band_neighborhood_aggregate_dict["bandDistance"]["distance"]
+        )
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "firstDerivative",
+            "bandDistance": {
+                "type": "equallySpaced",
+                "distance": self.equally_spaced_band_distance
+            }
+        }
+
+
+@dataclass
+class BandNeighborhoodAggregateAverage(BandNeighborhoodAggregateParams):
+    '''The average band neighborhood aggregate.'''
+
+    window_size: int
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": "average",
+            "windowSize": self.window_size
+        }
