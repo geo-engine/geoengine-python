@@ -3,6 +3,7 @@
 from unittest.mock import _patch, patch
 from json import dumps, loads
 import unittest
+from urllib.parse import parse_qs
 import urllib3
 
 
@@ -13,9 +14,7 @@ def is_url_match(url1: str, url2: str) -> bool:
     return (parsed1.host == parsed2.host
             and parsed1.port == parsed2.port
             and parsed1.path == parsed2.path
-            and (parsed1.query == parsed2.query
-                 or (parsed1.query is not None and parsed2.query is not None
-                     and set(parsed1.query.split("&")) == set(parsed2.query.split("&")))))
+            and parse_qs(parsed1.query) == parse_qs(parsed2.query))
 
 
 class UrllibMocker:
