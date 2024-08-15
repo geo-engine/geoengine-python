@@ -810,7 +810,7 @@ class VectorExpression(VectorOperator):
             "expression": self.expression,
             "inputColumns": self.input_columns,
             "outputColumn": output_column_dict,
-        }
+        }  # type: Dict[str, Any]
 
         if self.geometry_column_name:
             params["geometryColumnName"] = self.geometry_column_name

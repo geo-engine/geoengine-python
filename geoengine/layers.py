@@ -183,6 +183,9 @@ class LayerCollection:
 
         def parse_listing(response: geoengine_openapi_client.CollectionItem) -> Listing:
             inner = response.actual_instance
+            if inner is None:
+                assert False, 'Invalid listing type'
+
             item_type = LayerCollectionListingType(inner.type)
 
             if item_type is LayerCollectionListingType.LAYER:
@@ -427,20 +430,22 @@ class LayerCollection:
 
         listings: List[Listing] = []
         for item in layer_collection_response.items:
-            item = item.actual_instance
-            if isinstance(item, geoengine_openapi_client.LayerCollectionListingWithType):
+            inner = item.actual_instance
+            if inner is None:
+                continue
+            if isinstance(inner, geoengine_openapi_client.LayerCollectionListing):
                 listings.append(LayerCollectionListing(
-                    listing_id=LayerCollectionId(item.id.collection_id),
-                    provider_id=LayerProviderId(UUID(item.id.provider_id)),
-                    name=item.name,
-                    description=item.description,
+                    listing_id=LayerCollectionId(inner.id.collection_id),
+                    provider_id=LayerProviderId(UUID(inner.id.provider_id)),
+                    name=inner.name,
+                    description=inner.description,
                 ))
-            elif isinstance(item, geoengine_openapi_client.LayerListingWithType):
+            elif isinstance(inner, geoengine_openapi_client.LayerListing):
                 listings.append(LayerListing(
-                    listing_id=LayerId(item.id.layer_id),
-                    provider_id=LayerProviderId(UUID(item.id.provider_id)),
-                    name=item.name,
-                    description=item.description,
+                    listing_id=LayerId(inner.id.layer_id),
+                    provider_id=LayerProviderId(UUID(inner.id.provider_id)),
+                    name=inner.name,
+                    description=inner.description,
                 ))
             else:
                 pass  # ignore, should not happen
