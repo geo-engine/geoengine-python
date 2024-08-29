@@ -723,7 +723,7 @@ class BandwiseExpression(RasterOperator):
         self.map_no_data = map_no_data
 
     def name(self) -> str:
-        return 'Expression'
+        return 'BandwiseExpression'
 
     def to_dict(self) -> Dict[str, Any]:
         params = {
