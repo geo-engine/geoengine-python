@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
 import datetime
+import geoengine_openapi_client
 import numpy as np
 
 from geoengine.datasets import DatasetName
@@ -673,7 +674,7 @@ class Expression(RasterOperator):
             "mapNoData": self.map_no_data,
         }
         if self.output_band:
-            params["outputBand"] = self.output_band.to_api_dict()
+            params["outputBand"] = self.output_band.to_api_dict().to_dict()
 
         return {
             "type": self.name(),
@@ -689,8 +690,12 @@ class Expression(RasterOperator):
             raise ValueError("Invalid operator type")
 
         output_band = None
-        if "output_band" in operator_dict["params"]:
-            output_band = RasterBandDescriptor.from_response(operator_dict["params"]["outputBand"])
+        if "outputBand" in operator_dict["params"]:
+            output_band = RasterBandDescriptor.from_response(
+                geoengine_openapi_client.RasterBandDescriptor.from_dict(
+                    operator_dict["params"]["outputBand"]
+                )
+            )
 
         return Expression(
             expression=operator_dict["params"]["expression"],
