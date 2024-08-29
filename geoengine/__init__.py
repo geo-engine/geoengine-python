@@ -18,7 +18,7 @@ from .error import GeoEngineException, InputException, UninitializedException, T
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
     LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer
-from .ml import register_ml_model
+from .ml import register_ml_model, MlModelConfig, SerializableModel
 from .permissions import add_permission, remove_permission, add_role, remove_role, assign_role, revoke_role, \
     ADMIN_ROLE_ID, REGISTERED_USER_ROLE_ID, ANONYMOUS_USER_ROLE_ID, Permission, Resource, UserId, RoleId
 from .tasks import Task, TaskId
