@@ -56,7 +56,7 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
     timestampType: UnixTimeStampType
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceTimeFormat:
-        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.UnixTimeStampOgrSourceTimeFormat(
+        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.OgrSourceTimeFormatUnixTimeStamp(
             format="unixTimeStamp",
             timestamp_type=self.timestampType.to_api_enum(),
         ))
@@ -67,7 +67,7 @@ class AutoOgrSourceTimeFormat(OgrSourceTimeFormat):
     '''An auto detection OGR time format'''
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceTimeFormat:
-        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.AutoOgrSourceTimeFormat(
+        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.OgrSourceTimeFormatAuto(
             format="auto"
         ))
 
@@ -79,7 +79,7 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
     custom_format: str
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceTimeFormat:
-        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.CustomOgrSourceTimeFormat(
+        return geoengine_openapi_client.OgrSourceTimeFormat(geoengine_openapi_client.OgrSourceTimeFormatCustom(
             format="custom",
             custom_format=self.custom_format
         ))
@@ -118,7 +118,7 @@ class ValueOgrSourceDurationSpec(OgrSourceDuration):
         self.step = step
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceDurationSpec:
-        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.TimeStepWithType(
+        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.OgrSourceDurationSpecValue(
             type="value",
             step=self.step.step,
             granularity=self.step.granularity.to_api_enum(),
@@ -129,7 +129,7 @@ class ZeroOgrSourceDurationSpec(OgrSourceDuration):
     '''An instant, i.e. no duration'''
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceDurationSpec:
-        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.ZeroOgrSourceDurationSpec(
+        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.OgrSourceDurationSpecZero(
             type="zero",
         ))
 
@@ -138,7 +138,7 @@ class InfiniteOgrSourceDurationSpec(OgrSourceDuration):
     '''An open-ended time duration'''
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceDurationSpec:
-        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.InfiniteOgrSourceDurationSpec(
+        return geoengine_openapi_client.OgrSourceDurationSpec(geoengine_openapi_client.OgrSourceDurationSpecInfinite(
             type="infinite",
         ))
 
@@ -185,7 +185,7 @@ class NoneOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     '''Specify no time information'''
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceDatasetTimeType:
-        return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.NoneOgrSourceDatasetTimeType(
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.OgrSourceDatasetTimeTypeNone(
             type="none",
         ))
 
@@ -199,7 +199,7 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     duration: OgrSourceDuration
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceDatasetTimeType:
-        return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.StartOgrSourceDatasetTimeType(
+        return geoengine_openapi_client.OgrSourceDatasetTimeType(geoengine_openapi_client.OgrSourceDatasetTimeTypeStart(
             type="start",
             start_field=self.start_field,
             start_format=self.start_format.to_api_dict(),
@@ -218,7 +218,7 @@ class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceDatasetTimeType:
         return geoengine_openapi_client.OgrSourceDatasetTimeType(
-            geoengine_openapi_client.StartEndOgrSourceDatasetTimeType(
+            geoengine_openapi_client.OgrSourceDatasetTimeTypeStartEnd(
                 type="startEnd",
                 start_field=self.start_field,
                 start_format=self.start_format.to_api_dict(),
@@ -238,7 +238,7 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceDatasetTimeType:
         return geoengine_openapi_client.OgrSourceDatasetTimeType(
-            geoengine_openapi_client.StartDurationOgrSourceDatasetTimeType(
+            geoengine_openapi_client.OgrSourceDatasetTimeTypeStartDuration(
                 type="startDuration",
                 start_field=self.start_field,
                 start_format=self.start_format.to_api_dict(),
@@ -477,28 +477,30 @@ def upload_dataframe(
                 description='Upload from Python',
                 source_operator='OgrSource',
             ).to_api_dict(),
-            meta_data=geoengine_openapi_client.MetaDataDefinition(geoengine_openapi_client.OgrMetaDataWithType(
-                type='OgrMetaData',
-                loading_info=geoengine_openapi_client.OgrSourceDataset(
-                    file_name='geo.json',
-                    layer_name='geo',
-                    data_type=vector_type.to_api_enum(),
-                    time=time.to_api_dict(),
-                    columns=geoengine_openapi_client.OgrSourceColumnSpec(
-                        y='',
-                        x='',
-                        float=floats,
-                        int=ints,
-                        text=texts,
+            meta_data=geoengine_openapi_client.MetaDataDefinition(
+                geoengine_openapi_client.OgrMetaData(
+                    type='OgrMetaData',
+                    loading_info=geoengine_openapi_client.OgrSourceDataset(
+                        file_name='geo.json',
+                        layer_name='geo',
+                        data_type=vector_type.to_api_enum(),
+                        time=time.to_api_dict(),
+                        columns=geoengine_openapi_client.OgrSourceColumnSpec(
+                            y='',
+                            x='',
+                            float=floats,
+                            int=ints,
+                            text=texts,
+                        ),
+                        on_error=on_error.to_api_enum(),
                     ),
-                    on_error=on_error.to_api_enum(),
-                ),
-                result_descriptor=VectorResultDescriptor(
-                    data_type=vector_type,
-                    spatial_reference=df.crs.to_string(),
-                    columns=columns,
-                ).to_api_dict().actual_instance
-            )),
+                    result_descriptor=VectorResultDescriptor(
+                        data_type=vector_type,
+                        spatial_reference=df.crs.to_string(),
+                        columns=columns,
+                    ).to_api_dict().actual_instance
+                )
+            )
         )
     )
 
