@@ -839,7 +839,7 @@ class VectorExpression(VectorOperator):
             &#34;expression&#34;: self.expression,
             &#34;inputColumns&#34;: self.input_columns,
             &#34;outputColumn&#34;: output_column_dict,
-        }
+        }  # type: Dict[str, Any]
 
         if self.geometry_column_name:
             params[&#34;geometryColumnName&#34;] = self.geometry_column_name
@@ -4099,7 +4099,7 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;TimeShift&
             &#34;expression&#34;: self.expression,
             &#34;inputColumns&#34;: self.input_columns,
             &#34;outputColumn&#34;: output_column_dict,
-        }
+        }  # type: Dict[str, Any]
 
         if self.geometry_column_name:
             params[&#34;geometryColumnName&#34;] = self.geometry_column_name

@@ -936,6 +936,9 @@ def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], 
 
     workflow_model = geoengine_openapi_client.Workflow.from_dict(workflow)
 
+    if workflow_model is None:
+        raise InputException(&#34;Invalid workflow definition&#34;)
+
     session = get_session()
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
@@ -1039,6 +1042,9 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -&g
         workflow = workflow.to_workflow_dict()
 
     workflow_model = geoengine_openapi_client.Workflow.from_dict(workflow)
+
+    if workflow_model is None:
+        raise InputException(&#34;Invalid workflow definition&#34;)
 
     session = get_session()
 

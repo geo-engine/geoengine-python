@@ -464,14 +464,14 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
 
         inner = response.actual_instance
 
-        if isinstance(inner, geoengine_openapi_client.RasterResultDescriptorWithType):
+        if isinstance(inner, geoengine_openapi_client.TypedRasterResultDescriptor):
             return RasterResultDescriptor.from_response_raster(inner)
-        if isinstance(inner, geoengine_openapi_client.VectorResultDescriptorWithType):
+        if isinstance(inner, geoengine_openapi_client.TypedVectorResultDescriptor):
             return VectorResultDescriptor.from_response_vector(inner)
-        if isinstance(inner, geoengine_openapi_client.PlotResultDescriptorWithType):
+        if isinstance(inner, geoengine_openapi_client.TypedPlotResultDescriptor):
             return PlotResultDescriptor.from_response_plot(inner)
 
-        raise TypeException(f&#39;Unknown `ResultDescriptor` type: {inner.type}&#39;)
+        raise TypeException(&#39;Unknown `ResultDescriptor` type&#39;)
 
     @classmethod
     def is_raster_result(cls) -&gt; bool:
@@ -545,7 +545,7 @@ class VectorResultDescriptor(ResultDescriptor):
 
     @staticmethod
     def from_response_vector(
-            response: geoengine_openapi_client.VectorResultDescriptorWithType) -&gt; VectorResultDescriptor:
+            response: geoengine_openapi_client.TypedVectorResultDescriptor) -&gt; VectorResultDescriptor:
         &#39;&#39;&#39;Parse a vector result descriptor from an http response&#39;&#39;&#39;
         sref = response.spatial_reference
         data_type = VectorDataType.from_string(response.data_type)
@@ -604,7 +604,7 @@ class VectorResultDescriptor(ResultDescriptor):
     def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
         &#39;&#39;&#39;Convert the vector result descriptor to a dictionary&#39;&#39;&#39;
 
-        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.VectorResultDescriptorWithType(
+        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.TypedVectorResultDescriptor(
             type=&#39;vector&#39;,
             data_type=self.data_type.to_api_enum(),
             spatial_reference=self.spatial_reference,
@@ -711,7 +711,7 @@ class RasterResultDescriptor(ResultDescriptor):
     def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
         &#39;&#39;&#39;Convert the raster result descriptor to a dictionary&#39;&#39;&#39;
 
-        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.RasterResultDescriptorWithType(
+        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.TypedRasterResultDescriptor(
             type=&#39;raster&#39;,
             data_type=self.data_type,
             bands=[band.to_api_dict() for band in self.__bands],
@@ -723,7 +723,7 @@ class RasterResultDescriptor(ResultDescriptor):
 
     @staticmethod
     def from_response_raster(
-            response: geoengine_openapi_client.RasterResultDescriptorWithType) -&gt; RasterResultDescriptor:
+            response: geoengine_openapi_client.TypedRasterResultDescriptor) -&gt; RasterResultDescriptor:
         &#39;&#39;&#39;Parse a raster result descriptor from an http response&#39;&#39;&#39;
         spatial_ref = response.spatial_reference
         data_type = response.data_type.value
@@ -808,7 +808,7 @@ class PlotResultDescriptor(ResultDescriptor):
         return r
 
     @staticmethod
-    def from_response_plot(response: geoengine_openapi_client.PlotResultDescriptorWithType) -&gt; PlotResultDescriptor:
+    def from_response_plot(response: geoengine_openapi_client.TypedPlotResultDescriptor) -&gt; PlotResultDescriptor:
         &#39;&#39;&#39;Create a new `PlotResultDescriptor` from a JSON response&#39;&#39;&#39;
         spatial_ref = response.spatial_reference
 
@@ -842,7 +842,7 @@ class PlotResultDescriptor(ResultDescriptor):
     def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
         &#39;&#39;&#39;Convert the plot result descriptor to a dictionary&#39;&#39;&#39;
 
-        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.PlotResultDescriptorWithType(
+        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.TypedPlotResultDescriptor(
             type=&#39;plot&#39;,
             spatial_reference=self.spatial_reference,
             data_type=&#39;Plot&#39;,
@@ -976,12 +976,12 @@ class Symbology:
         inner = response.actual_instance
 
         if isinstance(inner, (
-                geoengine_openapi_client.PointSymbologyWithType,
-                geoengine_openapi_client.LineSymbologyWithType,
-                geoengine_openapi_client.PolygonSymbologyWithType)):
+                geoengine_openapi_client.PointSymbology,
+                geoengine_openapi_client.LineSymbology,
+                geoengine_openapi_client.PolygonSymbology)):
             # return VectorSymbology.from_response_vector(response)
             return VectorSymbology()  # TODO: implement
-        if isinstance(inner, geoengine_openapi_client.RasterSymbologyWithType):
+        if isinstance(inner, geoengine_openapi_client.RasterSymbology):
             return RasterSymbology.from_response_raster(inner)
 
         raise InputException(&#34;Invalid symbology type&#34;)
@@ -1007,7 +1007,7 @@ class RasterColorizer:
         if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
             return SingleBandRasterColorizer.from_single_band_response(inner)
 
-        raise GeoEngineException({&#34;message&#34;: f&#34;Unknown RasterColorizer type: {inner.type}&#34;})
+        raise GeoEngineException({&#34;message&#34;: &#34;Unknown RasterColorizer type&#34;})
 
     @abstractmethod
     def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
@@ -1050,14 +1050,14 @@ class RasterSymbology(Symbology):
     def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
         &#39;&#39;&#39;Convert the raster symbology to a dictionary&#39;&#39;&#39;
 
-        return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbologyWithType(
+        return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbology(
             type=&#39;raster&#39;,
             raster_colorizer=self.__raster_colorizer.to_api_dict(),
             opacity=self.__opacity,
         ))
 
     @staticmethod
-    def from_response_raster(response: geoengine_openapi_client.RasterSymbologyWithType) -&gt; RasterSymbology:
+    def from_response_raster(response: geoengine_openapi_client.RasterSymbology) -&gt; RasterSymbology:
         &#39;&#39;&#39;Parse an http response to a `RasterSymbology` object&#39;&#39;&#39;
 
         raster_colorizer = RasterColorizer.from_response(response.raster_colorizer)
@@ -1077,10 +1077,10 @@ class DataId:  # pylint: disable=too-few-public-methods
 
         if isinstance(inner, geoengine_openapi_client.InternalDataId):
             return InternalDataId.from_response_internal(inner)
-        if isinstance(inner, geoengine_openapi_client.ExternalDataIdWithType):
+        if isinstance(inner, geoengine_openapi_client.ExternalDataId):
             return ExternalDataId.from_response_external(inner)
 
-        raise GeoEngineException({&#34;message&#34;: f&#34;Unknown DataId type: {inner.type}&#34;})
+        raise GeoEngineException({&#34;message&#34;: &#34;Unknown DataId type&#34;})
 
     @abstractmethod
     def to_api_dict(self) -&gt; geoengine_openapi_client.DataId:
@@ -1132,13 +1132,13 @@ class ExternalDataId(DataId):
         self.__layer_id = layer_id
 
     @classmethod
-    def from_response_external(cls, response: geoengine_openapi_client.ExternalDataIdWithType) -&gt; ExternalDataId:
+    def from_response_external(cls, response: geoengine_openapi_client.ExternalDataId) -&gt; ExternalDataId:
         &#39;&#39;&#39;Parse an http response to a `ExternalDataId` object&#39;&#39;&#39;
 
         return ExternalDataId(UUID(response.provider_id), response.layer_id)
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.DataId:
-        return geoengine_openapi_client.DataId(geoengine_openapi_client.ExternalDataIdWithType(
+        return geoengine_openapi_client.DataId(geoengine_openapi_client.ExternalDataId(
             type=&#34;external&#34;,
             provider_id=str(self.__provider_id),
             layer_id=self.__layer_id,
@@ -1173,13 +1173,12 @@ class Measurement:  # pylint: disable=too-few-public-methods
 
         if isinstance(inner, geoengine_openapi_client.UnitlessMeasurement):
             return UnitlessMeasurement()
-        if isinstance(inner, geoengine_openapi_client.ContinuousMeasurementWithType):
+        if isinstance(inner, geoengine_openapi_client.ContinuousMeasurement):
             return ContinuousMeasurement.from_response_continuous(inner)
-        if isinstance(inner, geoengine_openapi_client.ClassificationMeasurementWithType):
+        if isinstance(inner, geoengine_openapi_client.ClassificationMeasurement):
             return ClassificationMeasurement.from_response_classification(inner)
 
-        raise TypeException(
-            f&#39;Unknown `Measurement` type: {inner.type}&#39;)
+        raise TypeException(&#39;Unknown `Measurement` type&#39;)
 
     @abstractmethod
     def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
@@ -1219,7 +1218,7 @@ class ContinuousMeasurement(Measurement):
 
     @staticmethod
     def from_response_continuous(
-            response: geoengine_openapi_client.ContinuousMeasurementWithType) -&gt; ContinuousMeasurement:
+            response: geoengine_openapi_client.ContinuousMeasurement) -&gt; ContinuousMeasurement:
         &#39;&#39;&#39;Initialize a new `ContiuousMeasurement from a JSON response&#39;&#39;&#39;
 
         return ContinuousMeasurement(response.measurement, response.unit)
@@ -1237,7 +1236,7 @@ class ContinuousMeasurement(Measurement):
         return str(self)
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
-        return geoengine_openapi_client.Measurement(geoengine_openapi_client.ContinuousMeasurementWithType(
+        return geoengine_openapi_client.Measurement(geoengine_openapi_client.ContinuousMeasurement(
             type=&#39;continuous&#39;,
             measurement=self.__measurement,
             unit=self.__unit
@@ -1268,7 +1267,7 @@ class ClassificationMeasurement(Measurement):
 
     @staticmethod
     def from_response_classification(
-        response: geoengine_openapi_client.ClassificationMeasurementWithType
+        response: geoengine_openapi_client.ClassificationMeasurement
     ) -&gt; ClassificationMeasurement:
         &#39;&#39;&#39;Initialize a new `ClassificationMeasurement from a JSON response&#39;&#39;&#39;
 
@@ -1282,7 +1281,7 @@ class ClassificationMeasurement(Measurement):
     def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
         str_classes: Dict[str, str] = {str(k): v for k, v in self.__classes.items()}
 
-        return geoengine_openapi_client.Measurement(geoengine_openapi_client.ClassificationMeasurementWithType(
+        return geoengine_openapi_client.Measurement(geoengine_openapi_client.ClassificationMeasurement(
             type=&#39;classification&#39;,
             measurement=self.__measurement,
             classes=str_classes
@@ -1563,7 +1562,7 @@ def from_response(response: geoengine_openapi_client.BoundingBox2D) -&gt; Boundi
 
     @staticmethod
     def from_response_classification(
-        response: geoengine_openapi_client.ClassificationMeasurementWithType
+        response: geoengine_openapi_client.ClassificationMeasurement
     ) -&gt; ClassificationMeasurement:
         &#39;&#39;&#39;Initialize a new `ClassificationMeasurement from a JSON response&#39;&#39;&#39;
 
@@ -1577,7 +1576,7 @@ def from_response(response: geoengine_openapi_client.BoundingBox2D) -&gt; Boundi
     def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
         str_classes: Dict[str, str] = {str(k): v for k, v in self.__classes.items()}
 
-        return geoengine_openapi_client.Measurement(geoengine_openapi_client.ClassificationMeasurementWithType(
+        return geoengine_openapi_client.Measurement(geoengine_openapi_client.ClassificationMeasurement(
             type=&#39;classification&#39;,
             measurement=self.__measurement,
             classes=str_classes
@@ -1607,7 +1606,7 @@ def from_response(response: geoengine_openapi_client.BoundingBox2D) -&gt; Boundi
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.types.ClassificationMeasurement.from_response_classification"><code class="name flex">
-<span>def <span class="ident">from_response_classification</span></span>(<span>response: geoengine_openapi_client.ClassificationMeasurementWithType) ‑> <a title="geoengine.types.ClassificationMeasurement" href="#geoengine.types.ClassificationMeasurement">ClassificationMeasurement</a></span>
+<span>def <span class="ident">from_response_classification</span></span>(<span>response: geoengine_openapi_client.ClassificationMeasurement) ‑> <a title="geoengine.types.ClassificationMeasurement" href="#geoengine.types.ClassificationMeasurement">ClassificationMeasurement</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initialize a new `ClassificationMeasurement from a JSON response</p></div>
@@ -1617,7 +1616,7 @@ def from_response(response: geoengine_openapi_client.BoundingBox2D) -&gt; Boundi
 </summary>
 <pre><code class="python">@staticmethod
 def from_response_classification(
-    response: geoengine_openapi_client.ClassificationMeasurementWithType
+    response: geoengine_openapi_client.ClassificationMeasurement
 ) -&gt; ClassificationMeasurement:
     &#39;&#39;&#39;Initialize a new `ClassificationMeasurement from a JSON response&#39;&#39;&#39;
 
@@ -1671,7 +1670,7 @@ def measurement(self) -&gt; str:
 <pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
     str_classes: Dict[str, str] = {str(k): v for k, v in self.__classes.items()}
 
-    return geoengine_openapi_client.Measurement(geoengine_openapi_client.ClassificationMeasurementWithType(
+    return geoengine_openapi_client.Measurement(geoengine_openapi_client.ClassificationMeasurement(
         type=&#39;classification&#39;,
         measurement=self.__measurement,
         classes=str_classes
@@ -1715,7 +1714,7 @@ def measurement(self) -&gt; str:
 
     @staticmethod
     def from_response_continuous(
-            response: geoengine_openapi_client.ContinuousMeasurementWithType) -&gt; ContinuousMeasurement:
+            response: geoengine_openapi_client.ContinuousMeasurement) -&gt; ContinuousMeasurement:
         &#39;&#39;&#39;Initialize a new `ContiuousMeasurement from a JSON response&#39;&#39;&#39;
 
         return ContinuousMeasurement(response.measurement, response.unit)
@@ -1733,7 +1732,7 @@ def measurement(self) -&gt; str:
         return str(self)
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
-        return geoengine_openapi_client.Measurement(geoengine_openapi_client.ContinuousMeasurementWithType(
+        return geoengine_openapi_client.Measurement(geoengine_openapi_client.ContinuousMeasurement(
             type=&#39;continuous&#39;,
             measurement=self.__measurement,
             unit=self.__unit
@@ -1754,7 +1753,7 @@ def measurement(self) -&gt; str:
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.types.ContinuousMeasurement.from_response_continuous"><code class="name flex">
-<span>def <span class="ident">from_response_continuous</span></span>(<span>response: geoengine_openapi_client.ContinuousMeasurementWithType) ‑> <a title="geoengine.types.ContinuousMeasurement" href="#geoengine.types.ContinuousMeasurement">ContinuousMeasurement</a></span>
+<span>def <span class="ident">from_response_continuous</span></span>(<span>response: geoengine_openapi_client.ContinuousMeasurement) ‑> <a title="geoengine.types.ContinuousMeasurement" href="#geoengine.types.ContinuousMeasurement">ContinuousMeasurement</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initialize a new `ContiuousMeasurement from a JSON response</p></div>
@@ -1764,7 +1763,7 @@ def measurement(self) -&gt; str:
 </summary>
 <pre><code class="python">@staticmethod
 def from_response_continuous(
-        response: geoengine_openapi_client.ContinuousMeasurementWithType) -&gt; ContinuousMeasurement:
+        response: geoengine_openapi_client.ContinuousMeasurement) -&gt; ContinuousMeasurement:
     &#39;&#39;&#39;Initialize a new `ContiuousMeasurement from a JSON response&#39;&#39;&#39;
 
     return ContinuousMeasurement(response.measurement, response.unit)</code></pre>
@@ -1810,7 +1809,7 @@ def unit(self) -&gt; Optional[str]:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
-    return geoengine_openapi_client.Measurement(geoengine_openapi_client.ContinuousMeasurementWithType(
+    return geoengine_openapi_client.Measurement(geoengine_openapi_client.ContinuousMeasurement(
         type=&#39;continuous&#39;,
         measurement=self.__measurement,
         unit=self.__unit
@@ -1845,10 +1844,10 @@ def unit(self) -&gt; Optional[str]:
 
         if isinstance(inner, geoengine_openapi_client.InternalDataId):
             return InternalDataId.from_response_internal(inner)
-        if isinstance(inner, geoengine_openapi_client.ExternalDataIdWithType):
+        if isinstance(inner, geoengine_openapi_client.ExternalDataId):
             return ExternalDataId.from_response_external(inner)
 
-        raise GeoEngineException({&#34;message&#34;: f&#34;Unknown DataId type: {inner.type}&#34;})
+        raise GeoEngineException({&#34;message&#34;: &#34;Unknown DataId type&#34;})
 
     @abstractmethod
     def to_api_dict(self) -&gt; geoengine_openapi_client.DataId:
@@ -1877,10 +1876,10 @@ def from_response(cls, response: geoengine_openapi_client.DataId) -&gt; DataId:
 
     if isinstance(inner, geoengine_openapi_client.InternalDataId):
         return InternalDataId.from_response_internal(inner)
-    if isinstance(inner, geoengine_openapi_client.ExternalDataIdWithType):
+    if isinstance(inner, geoengine_openapi_client.ExternalDataId):
         return ExternalDataId.from_response_external(inner)
 
-    raise GeoEngineException({&#34;message&#34;: f&#34;Unknown DataId type: {inner.type}&#34;})</code></pre>
+    raise GeoEngineException({&#34;message&#34;: &#34;Unknown DataId type&#34;})</code></pre>
 </details>
 </dd>
 </dl>
@@ -1923,13 +1922,13 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.DataId:
         self.__layer_id = layer_id
 
     @classmethod
-    def from_response_external(cls, response: geoengine_openapi_client.ExternalDataIdWithType) -&gt; ExternalDataId:
+    def from_response_external(cls, response: geoengine_openapi_client.ExternalDataId) -&gt; ExternalDataId:
         &#39;&#39;&#39;Parse an http response to a `ExternalDataId` object&#39;&#39;&#39;
 
         return ExternalDataId(UUID(response.provider_id), response.layer_id)
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.DataId:
-        return geoengine_openapi_client.DataId(geoengine_openapi_client.ExternalDataIdWithType(
+        return geoengine_openapi_client.DataId(geoengine_openapi_client.ExternalDataId(
             type=&#34;external&#34;,
             provider_id=str(self.__provider_id),
             layer_id=self.__layer_id,
@@ -1956,7 +1955,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.DataId:
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.types.ExternalDataId.from_response_external"><code class="name flex">
-<span>def <span class="ident">from_response_external</span></span>(<span>response: geoengine_openapi_client.ExternalDataIdWithType) ‑> <a title="geoengine.types.ExternalDataId" href="#geoengine.types.ExternalDataId">ExternalDataId</a></span>
+<span>def <span class="ident">from_response_external</span></span>(<span>response: geoengine_openapi_client.ExternalDataId) ‑> <a title="geoengine.types.ExternalDataId" href="#geoengine.types.ExternalDataId">ExternalDataId</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.ExternalDataId" href="#geoengine.types.ExternalDataId">ExternalDataId</a></code> object</p></div>
@@ -1965,7 +1964,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.DataId:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response_external(cls, response: geoengine_openapi_client.ExternalDataIdWithType) -&gt; ExternalDataId:
+def from_response_external(cls, response: geoengine_openapi_client.ExternalDataId) -&gt; ExternalDataId:
     &#39;&#39;&#39;Parse an http response to a `ExternalDataId` object&#39;&#39;&#39;
 
     return ExternalDataId(UUID(response.provider_id), response.layer_id)</code></pre>
@@ -1984,7 +1983,7 @@ def from_response_external(cls, response: geoengine_openapi_client.ExternalDataI
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.DataId:
-    return geoengine_openapi_client.DataId(geoengine_openapi_client.ExternalDataIdWithType(
+    return geoengine_openapi_client.DataId(geoengine_openapi_client.ExternalDataId(
         type=&#34;external&#34;,
         provider_id=str(self.__provider_id),
         layer_id=self.__layer_id,
@@ -2501,13 +2500,12 @@ def from_response_internal(cls, response: geoengine_openapi_client.InternalDataI
 
         if isinstance(inner, geoengine_openapi_client.UnitlessMeasurement):
             return UnitlessMeasurement()
-        if isinstance(inner, geoengine_openapi_client.ContinuousMeasurementWithType):
+        if isinstance(inner, geoengine_openapi_client.ContinuousMeasurement):
             return ContinuousMeasurement.from_response_continuous(inner)
-        if isinstance(inner, geoengine_openapi_client.ClassificationMeasurementWithType):
+        if isinstance(inner, geoengine_openapi_client.ClassificationMeasurement):
             return ClassificationMeasurement.from_response_classification(inner)
 
-        raise TypeException(
-            f&#39;Unknown `Measurement` type: {inner.type}&#39;)
+        raise TypeException(&#39;Unknown `Measurement` type&#39;)
 
     @abstractmethod
     def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
@@ -2539,13 +2537,12 @@ def from_response(response: geoengine_openapi_client.Measurement) -&gt; Measurem
 
     if isinstance(inner, geoengine_openapi_client.UnitlessMeasurement):
         return UnitlessMeasurement()
-    if isinstance(inner, geoengine_openapi_client.ContinuousMeasurementWithType):
+    if isinstance(inner, geoengine_openapi_client.ContinuousMeasurement):
         return ContinuousMeasurement.from_response_continuous(inner)
-    if isinstance(inner, geoengine_openapi_client.ClassificationMeasurementWithType):
+    if isinstance(inner, geoengine_openapi_client.ClassificationMeasurement):
         return ClassificationMeasurement.from_response_classification(inner)
 
-    raise TypeException(
-        f&#39;Unknown `Measurement` type: {inner.type}&#39;)</code></pre>
+    raise TypeException(&#39;Unknown `Measurement` type&#39;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -2602,7 +2599,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
         return r
 
     @staticmethod
-    def from_response_plot(response: geoengine_openapi_client.PlotResultDescriptorWithType) -&gt; PlotResultDescriptor:
+    def from_response_plot(response: geoengine_openapi_client.TypedPlotResultDescriptor) -&gt; PlotResultDescriptor:
         &#39;&#39;&#39;Create a new `PlotResultDescriptor` from a JSON response&#39;&#39;&#39;
         spatial_ref = response.spatial_reference
 
@@ -2636,7 +2633,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
     def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
         &#39;&#39;&#39;Convert the plot result descriptor to a dictionary&#39;&#39;&#39;
 
-        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.PlotResultDescriptorWithType(
+        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.TypedPlotResultDescriptor(
             type=&#39;plot&#39;,
             spatial_reference=self.spatial_reference,
             data_type=&#39;Plot&#39;,
@@ -2651,7 +2648,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.types.PlotResultDescriptor.from_response_plot"><code class="name flex">
-<span>def <span class="ident">from_response_plot</span></span>(<span>response: geoengine_openapi_client.PlotResultDescriptorWithType) ‑> <a title="geoengine.types.PlotResultDescriptor" href="#geoengine.types.PlotResultDescriptor">PlotResultDescriptor</a></span>
+<span>def <span class="ident">from_response_plot</span></span>(<span>response: geoengine_openapi_client.TypedPlotResultDescriptor) ‑> <a title="geoengine.types.PlotResultDescriptor" href="#geoengine.types.PlotResultDescriptor">PlotResultDescriptor</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Create a new <code><a title="geoengine.types.PlotResultDescriptor" href="#geoengine.types.PlotResultDescriptor">PlotResultDescriptor</a></code> from a JSON response</p></div>
@@ -2660,7 +2657,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def from_response_plot(response: geoengine_openapi_client.PlotResultDescriptorWithType) -&gt; PlotResultDescriptor:
+def from_response_plot(response: geoengine_openapi_client.TypedPlotResultDescriptor) -&gt; PlotResultDescriptor:
     &#39;&#39;&#39;Create a new `PlotResultDescriptor` from a JSON response&#39;&#39;&#39;
     spatial_ref = response.spatial_reference
 
@@ -2709,7 +2706,7 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
 <pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
     &#39;&#39;&#39;Convert the plot result descriptor to a dictionary&#39;&#39;&#39;
 
-    return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.PlotResultDescriptorWithType(
+    return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.TypedPlotResultDescriptor(
         type=&#39;plot&#39;,
         spatial_reference=self.spatial_reference,
         data_type=&#39;Plot&#39;,
@@ -3321,7 +3318,7 @@ def from_response(cls, response: geoengine_openapi_client.RasterBandDescriptor) 
         if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
             return SingleBandRasterColorizer.from_single_band_response(inner)
 
-        raise GeoEngineException({&#34;message&#34;: f&#34;Unknown RasterColorizer type: {inner.type}&#34;})
+        raise GeoEngineException({&#34;message&#34;: &#34;Unknown RasterColorizer type&#34;})
 
     @abstractmethod
     def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
@@ -3350,7 +3347,7 @@ def from_response(cls, response: geoengine_openapi_client.RasterColorizer) -&gt;
     if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
         return SingleBandRasterColorizer.from_single_band_response(inner)
 
-    raise GeoEngineException({&#34;message&#34;: f&#34;Unknown RasterColorizer type: {inner.type}&#34;})</code></pre>
+    raise GeoEngineException({&#34;message&#34;: &#34;Unknown RasterColorizer type&#34;})</code></pre>
 </details>
 </dd>
 </dl>
@@ -3409,7 +3406,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
     def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
         &#39;&#39;&#39;Convert the raster result descriptor to a dictionary&#39;&#39;&#39;
 
-        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.RasterResultDescriptorWithType(
+        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.TypedRasterResultDescriptor(
             type=&#39;raster&#39;,
             data_type=self.data_type,
             bands=[band.to_api_dict() for band in self.__bands],
@@ -3421,7 +3418,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
 
     @staticmethod
     def from_response_raster(
-            response: geoengine_openapi_client.RasterResultDescriptorWithType) -&gt; RasterResultDescriptor:
+            response: geoengine_openapi_client.TypedRasterResultDescriptor) -&gt; RasterResultDescriptor:
         &#39;&#39;&#39;Parse a raster result descriptor from an http response&#39;&#39;&#39;
         spatial_ref = response.spatial_reference
         data_type = response.data_type.value
@@ -3488,7 +3485,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.types.RasterResultDescriptor.from_response_raster"><code class="name flex">
-<span>def <span class="ident">from_response_raster</span></span>(<span>response: geoengine_openapi_client.RasterResultDescriptorWithType) ‑> <a title="geoengine.types.RasterResultDescriptor" href="#geoengine.types.RasterResultDescriptor">RasterResultDescriptor</a></span>
+<span>def <span class="ident">from_response_raster</span></span>(<span>response: geoengine_openapi_client.TypedRasterResultDescriptor) ‑> <a title="geoengine.types.RasterResultDescriptor" href="#geoengine.types.RasterResultDescriptor">RasterResultDescriptor</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse a raster result descriptor from an http response</p></div>
@@ -3498,7 +3495,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
 </summary>
 <pre><code class="python">@staticmethod
 def from_response_raster(
-        response: geoengine_openapi_client.RasterResultDescriptorWithType) -&gt; RasterResultDescriptor:
+        response: geoengine_openapi_client.TypedRasterResultDescriptor) -&gt; RasterResultDescriptor:
     &#39;&#39;&#39;Parse a raster result descriptor from an http response&#39;&#39;&#39;
     spatial_ref = response.spatial_reference
     data_type = response.data_type.value
@@ -3579,7 +3576,7 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
 <pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
     &#39;&#39;&#39;Convert the raster result descriptor to a dictionary&#39;&#39;&#39;
 
-    return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.RasterResultDescriptorWithType(
+    return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.TypedRasterResultDescriptor(
         type=&#39;raster&#39;,
         data_type=self.data_type,
         bands=[band.to_api_dict() for band in self.__bands],
@@ -3631,14 +3628,14 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
     def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
         &#39;&#39;&#39;Convert the raster symbology to a dictionary&#39;&#39;&#39;
 
-        return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbologyWithType(
+        return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbology(
             type=&#39;raster&#39;,
             raster_colorizer=self.__raster_colorizer.to_api_dict(),
             opacity=self.__opacity,
         ))
 
     @staticmethod
-    def from_response_raster(response: geoengine_openapi_client.RasterSymbologyWithType) -&gt; RasterSymbology:
+    def from_response_raster(response: geoengine_openapi_client.RasterSymbology) -&gt; RasterSymbology:
         &#39;&#39;&#39;Parse an http response to a `RasterSymbology` object&#39;&#39;&#39;
 
         raster_colorizer = RasterColorizer.from_response(response.raster_colorizer)
@@ -3655,7 +3652,7 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.types.RasterSymbology.from_response_raster"><code class="name flex">
-<span>def <span class="ident">from_response_raster</span></span>(<span>response: geoengine_openapi_client.RasterSymbologyWithType) ‑> <a title="geoengine.types.RasterSymbology" href="#geoengine.types.RasterSymbology">RasterSymbology</a></span>
+<span>def <span class="ident">from_response_raster</span></span>(<span>response: geoengine_openapi_client.RasterSymbology) ‑> <a title="geoengine.types.RasterSymbology" href="#geoengine.types.RasterSymbology">RasterSymbology</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse an http response to a <code><a title="geoengine.types.RasterSymbology" href="#geoengine.types.RasterSymbology">RasterSymbology</a></code> object</p></div>
@@ -3664,7 +3661,7 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def from_response_raster(response: geoengine_openapi_client.RasterSymbologyWithType) -&gt; RasterSymbology:
+def from_response_raster(response: geoengine_openapi_client.RasterSymbology) -&gt; RasterSymbology:
     &#39;&#39;&#39;Parse an http response to a `RasterSymbology` object&#39;&#39;&#39;
 
     raster_colorizer = RasterColorizer.from_response(response.raster_colorizer)
@@ -3687,7 +3684,7 @@ def from_response_raster(response: geoengine_openapi_client.RasterSymbologyWithT
 <pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
     &#39;&#39;&#39;Convert the raster symbology to a dictionary&#39;&#39;&#39;
 
-    return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbologyWithType(
+    return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbology(
         type=&#39;raster&#39;,
         raster_colorizer=self.__raster_colorizer.to_api_dict(),
         opacity=self.__opacity,
@@ -3748,14 +3745,14 @@ def from_response_raster(response: geoengine_openapi_client.RasterSymbologyWithT
 
         inner = response.actual_instance
 
-        if isinstance(inner, geoengine_openapi_client.RasterResultDescriptorWithType):
+        if isinstance(inner, geoengine_openapi_client.TypedRasterResultDescriptor):
             return RasterResultDescriptor.from_response_raster(inner)
-        if isinstance(inner, geoengine_openapi_client.VectorResultDescriptorWithType):
+        if isinstance(inner, geoengine_openapi_client.TypedVectorResultDescriptor):
             return VectorResultDescriptor.from_response_vector(inner)
-        if isinstance(inner, geoengine_openapi_client.PlotResultDescriptorWithType):
+        if isinstance(inner, geoengine_openapi_client.TypedPlotResultDescriptor):
             return PlotResultDescriptor.from_response_plot(inner)
 
-        raise TypeException(f&#39;Unknown `ResultDescriptor` type: {inner.type}&#39;)
+        raise TypeException(&#39;Unknown `ResultDescriptor` type&#39;)
 
     @classmethod
     def is_raster_result(cls) -&gt; bool:
@@ -3829,14 +3826,14 @@ def from_response(response: geoengine_openapi_client.TypedResultDescriptor) -&gt
 
     inner = response.actual_instance
 
-    if isinstance(inner, geoengine_openapi_client.RasterResultDescriptorWithType):
+    if isinstance(inner, geoengine_openapi_client.TypedRasterResultDescriptor):
         return RasterResultDescriptor.from_response_raster(inner)
-    if isinstance(inner, geoengine_openapi_client.VectorResultDescriptorWithType):
+    if isinstance(inner, geoengine_openapi_client.TypedVectorResultDescriptor):
         return VectorResultDescriptor.from_response_vector(inner)
-    if isinstance(inner, geoengine_openapi_client.PlotResultDescriptorWithType):
+    if isinstance(inner, geoengine_openapi_client.TypedPlotResultDescriptor):
         return PlotResultDescriptor.from_response_plot(inner)
 
-    raise TypeException(f&#39;Unknown `ResultDescriptor` type: {inner.type}&#39;)</code></pre>
+    raise TypeException(&#39;Unknown `ResultDescriptor` type&#39;)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.types.ResultDescriptor.is_plot_result"><code class="name flex">
@@ -4470,12 +4467,12 @@ def from_response(response: geoengine_openapi_client.SpatialResolution) -&gt; Sp
         inner = response.actual_instance
 
         if isinstance(inner, (
-                geoengine_openapi_client.PointSymbologyWithType,
-                geoengine_openapi_client.LineSymbologyWithType,
-                geoengine_openapi_client.PolygonSymbologyWithType)):
+                geoengine_openapi_client.PointSymbology,
+                geoengine_openapi_client.LineSymbology,
+                geoengine_openapi_client.PolygonSymbology)):
             # return VectorSymbology.from_response_vector(response)
             return VectorSymbology()  # TODO: implement
-        if isinstance(inner, geoengine_openapi_client.RasterSymbologyWithType):
+        if isinstance(inner, geoengine_openapi_client.RasterSymbology):
             return RasterSymbology.from_response_raster(inner)
 
         raise InputException(&#34;Invalid symbology type&#34;)</code></pre>
@@ -4502,12 +4499,12 @@ def from_response(response: geoengine_openapi_client.Symbology) -&gt; Symbology:
     inner = response.actual_instance
 
     if isinstance(inner, (
-            geoengine_openapi_client.PointSymbologyWithType,
-            geoengine_openapi_client.LineSymbologyWithType,
-            geoengine_openapi_client.PolygonSymbologyWithType)):
+            geoengine_openapi_client.PointSymbology,
+            geoengine_openapi_client.LineSymbology,
+            geoengine_openapi_client.PolygonSymbology)):
         # return VectorSymbology.from_response_vector(response)
         return VectorSymbology()  # TODO: implement
-    if isinstance(inner, geoengine_openapi_client.RasterSymbologyWithType):
+    if isinstance(inner, geoengine_openapi_client.RasterSymbology):
         return RasterSymbology.from_response_raster(inner)
 
     raise InputException(&#34;Invalid symbology type&#34;)</code></pre>
@@ -5232,7 +5229,7 @@ def from_string(string: str) -&gt; VectorDataType:
 
     @staticmethod
     def from_response_vector(
-            response: geoengine_openapi_client.VectorResultDescriptorWithType) -&gt; VectorResultDescriptor:
+            response: geoengine_openapi_client.TypedVectorResultDescriptor) -&gt; VectorResultDescriptor:
         &#39;&#39;&#39;Parse a vector result descriptor from an http response&#39;&#39;&#39;
         sref = response.spatial_reference
         data_type = VectorDataType.from_string(response.data_type)
@@ -5291,7 +5288,7 @@ def from_string(string: str) -&gt; VectorDataType:
     def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
         &#39;&#39;&#39;Convert the vector result descriptor to a dictionary&#39;&#39;&#39;
 
-        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.VectorResultDescriptorWithType(
+        return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.TypedVectorResultDescriptor(
             type=&#39;vector&#39;,
             data_type=self.data_type.to_api_enum(),
             spatial_reference=self.spatial_reference,
@@ -5308,7 +5305,7 @@ def from_string(string: str) -&gt; VectorDataType:
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.types.VectorResultDescriptor.from_response_vector"><code class="name flex">
-<span>def <span class="ident">from_response_vector</span></span>(<span>response: geoengine_openapi_client.VectorResultDescriptorWithType) ‑> <a title="geoengine.types.VectorResultDescriptor" href="#geoengine.types.VectorResultDescriptor">VectorResultDescriptor</a></span>
+<span>def <span class="ident">from_response_vector</span></span>(<span>response: geoengine_openapi_client.TypedVectorResultDescriptor) ‑> <a title="geoengine.types.VectorResultDescriptor" href="#geoengine.types.VectorResultDescriptor">VectorResultDescriptor</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse a vector result descriptor from an http response</p></div>
@@ -5318,7 +5315,7 @@ def from_string(string: str) -&gt; VectorDataType:
 </summary>
 <pre><code class="python">@staticmethod
 def from_response_vector(
-        response: geoengine_openapi_client.VectorResultDescriptorWithType) -&gt; VectorResultDescriptor:
+        response: geoengine_openapi_client.TypedVectorResultDescriptor) -&gt; VectorResultDescriptor:
     &#39;&#39;&#39;Parse a vector result descriptor from an http response&#39;&#39;&#39;
     sref = response.spatial_reference
     data_type = VectorDataType.from_string(response.data_type)
@@ -5393,7 +5390,7 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
 <pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.TypedResultDescriptor:
     &#39;&#39;&#39;Convert the vector result descriptor to a dictionary&#39;&#39;&#39;
 
-    return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.VectorResultDescriptorWithType(
+    return geoengine_openapi_client.TypedResultDescriptor(geoengine_openapi_client.TypedVectorResultDescriptor(
         type=&#39;vector&#39;,
         data_type=self.data_type.to_api_enum(),
         spatial_reference=self.spatial_reference,
