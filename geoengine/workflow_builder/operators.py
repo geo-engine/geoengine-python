@@ -728,7 +728,7 @@ class BandwiseExpression(RasterOperator):
         self.map_no_data = map_no_data
 
     def name(self) -> str:
-        return 'Expression'
+        return 'BandwiseExpression'
 
     def to_dict(self) -> Dict[str, Any]:
         params = {
@@ -1157,7 +1157,7 @@ class BandNeighborhoodAggregate(RasterOperator):
                  source: RasterOperator,
                  aggregate: BandNeighborhoodAggregateParams
                  ):
-        '''Creates a new RasterStacker operator.'''
+        '''Creates a new BandNeighborhoodAggregate operator.'''
         self.source = source
         self.aggregate = aggregate
 
@@ -1250,3 +1250,46 @@ class BandNeighborhoodAggregateAverage(BandNeighborhoodAggregateParams):
             "type": "average",
             "windowSize": self.window_size
         }
+
+
+class Onnx(RasterOperator):
+    '''Onnx ML operator.'''
+
+    source: RasterOperator
+    model: str
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 source: RasterOperator,
+                 model: str
+                 ):
+        '''Creates a new Onnx operator.'''
+        self.source = source
+        self.model = model
+
+    def name(self) -> str:
+        return 'Onnx'
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "type": self.name(),
+            "params": {
+                "model": self.model
+            },
+            "sources": {
+                "raster": self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'Onnx':
+        if operator_dict["type"] != "Onnx":
+            raise ValueError("Invalid operator type")
+
+        source = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
+        model = operator_dict["params"]["model"]
+
+        return Onnx(
+            source=source,
+            model=model
+        )
