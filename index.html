@@ -47,6 +47,7 @@ from .error import GeoEngineException, InputException, UninitializedException, T
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
     LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer
+from .ml import register_ml_model, MlModelConfig, SerializableModel
 from .permissions import add_permission, remove_permission, add_role, remove_role, assign_role, revoke_role, \
     ADMIN_ROLE_ID, REGISTERED_USER_ROLE_ID, ANONYMOUS_USER_ROLE_ID, Permission, Resource, UserId, RoleId
 from .tasks import Task, TaskId
@@ -104,6 +105,10 @@ utils.default_user_agent = default_user_agent</code></pre>
 <dt><code class="name"><a title="geoengine.layers" href="layers.html">geoengine.layers</a></code></dt>
 <dd>
 <div class="desc"><p>A wrapper around the layer and layerDb API</p></div>
+</dd>
+<dt><code class="name"><a title="geoengine.ml" href="ml.html">geoengine.ml</a></code></dt>
+<dd>
+<div class="desc"><p>Util functions for machine learning</p></div>
 </dd>
 <dt><code class="name"><a title="geoengine.permissions" href="permissions.html">geoengine.permissions</a></code></dt>
 <dd>
@@ -177,6 +182,7 @@ utils.default_user_agent = default_user_agent</code></pre>
 <li><code><a title="geoengine.datasets" href="datasets.html">geoengine.datasets</a></code></li>
 <li><code><a title="geoengine.error" href="error.html">geoengine.error</a></code></li>
 <li><code><a title="geoengine.layers" href="layers.html">geoengine.layers</a></code></li>
+<li><code><a title="geoengine.ml" href="ml.html">geoengine.ml</a></code></li>
 <li><code><a title="geoengine.permissions" href="permissions.html">geoengine.permissions</a></code></li>
 <li><code><a title="geoengine.raster" href="raster.html">geoengine.raster</a></code></li>
 <li><code><a title="geoengine.raster_workflow_rio_writer" href="raster_workflow_rio_writer.html">geoengine.raster_workflow_rio_writer</a></code></li>

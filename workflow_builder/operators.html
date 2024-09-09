@@ -757,7 +757,7 @@ class BandwiseExpression(RasterOperator):
         self.map_no_data = map_no_data
 
     def name(self) -&gt; str:
-        return &#39;Expression&#39;
+        return &#39;BandwiseExpression&#39;
 
     def to_dict(self) -&gt; Dict[str, Any]:
         params = {
@@ -1186,7 +1186,7 @@ class BandNeighborhoodAggregate(RasterOperator):
                  source: RasterOperator,
                  aggregate: BandNeighborhoodAggregateParams
                  ):
-        &#39;&#39;&#39;Creates a new RasterStacker operator.&#39;&#39;&#39;
+        &#39;&#39;&#39;Creates a new BandNeighborhoodAggregate operator.&#39;&#39;&#39;
         self.source = source
         self.aggregate = aggregate
 
@@ -1278,7 +1278,50 @@ class BandNeighborhoodAggregateAverage(BandNeighborhoodAggregateParams):
         return {
             &#34;type&#34;: &#34;average&#34;,
             &#34;windowSize&#34;: self.window_size
-        }</code></pre>
+        }
+
+
+class Onnx(RasterOperator):
+    &#39;&#39;&#39;Onnx ML operator.&#39;&#39;&#39;
+
+    source: RasterOperator
+    model: str
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 source: RasterOperator,
+                 model: str
+                 ):
+        &#39;&#39;&#39;Creates a new Onnx operator.&#39;&#39;&#39;
+        self.source = source
+        self.model = model
+
+    def name(self) -&gt; str:
+        return &#39;Onnx&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;model&#34;: self.model
+            },
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;Onnx&#39;:
+        if operator_dict[&#34;type&#34;] != &#34;Onnx&#34;:
+            raise ValueError(&#34;Invalid operator type&#34;)
+
+        source = RasterOperator.from_operator_dict(operator_dict[&#34;sources&#34;][&#34;raster&#34;])
+        model = operator_dict[&#34;params&#34;][&#34;model&#34;]
+
+        return Onnx(
+            source=source,
+            model=model
+        )</code></pre>
 </details>
 </section>
 <section>
@@ -1296,7 +1339,7 @@ class BandNeighborhoodAggregateAverage(BandNeighborhoodAggregateParams):
 </code></dt>
 <dd>
 <div class="desc"><p>The BandNeighborhoodAggregate operator.</p>
-<p>Creates a new RasterStacker operator.</p></div>
+<p>Creates a new BandNeighborhoodAggregate operator.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1312,7 +1355,7 @@ class BandNeighborhoodAggregateAverage(BandNeighborhoodAggregateParams):
                  source: RasterOperator,
                  aggregate: BandNeighborhoodAggregateParams
                  ):
-        &#39;&#39;&#39;Creates a new RasterStacker operator.&#39;&#39;&#39;
+        &#39;&#39;&#39;Creates a new BandNeighborhoodAggregate operator.&#39;&#39;&#39;
         self.source = source
         self.aggregate = aggregate
 
@@ -1649,7 +1692,7 @@ def to_dict(self) -&gt; Dict[str, Any]:
         self.map_no_data = map_no_data
 
     def name(self) -&gt; str:
-        return &#39;Expression&#39;
+        return &#39;BandwiseExpression&#39;
 
     def to_dict(self) -&gt; Dict[str, Any]:
         params = {
@@ -2446,6 +2489,89 @@ def to_dict(self) -&gt; Dict[str, Any]:
 </li>
 </ul>
 </dd>
+<dt id="geoengine.workflow_builder.operators.Onnx"><code class="flex name class">
+<span>class <span class="ident">Onnx</span></span>
+<span>(</span><span>source: <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a>, model: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Onnx ML operator.</p>
+<p>Creates a new Onnx operator.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Onnx(RasterOperator):
+    &#39;&#39;&#39;Onnx ML operator.&#39;&#39;&#39;
+
+    source: RasterOperator
+    model: str
+
+    # pylint: disable=too-many-arguments
+    def __init__(self,
+                 source: RasterOperator,
+                 model: str
+                 ):
+        &#39;&#39;&#39;Creates a new Onnx operator.&#39;&#39;&#39;
+        self.source = source
+        self.model = model
+
+    def name(self) -&gt; str:
+        return &#39;Onnx&#39;
+
+    def to_dict(self) -&gt; Dict[str, Any]:
+        return {
+            &#34;type&#34;: self.name(),
+            &#34;params&#34;: {
+                &#34;model&#34;: self.model
+            },
+            &#34;sources&#34;: {
+                &#34;raster&#34;: self.source.to_dict()
+            }
+        }
+
+    @classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;Onnx&#39;:
+        if operator_dict[&#34;type&#34;] != &#34;Onnx&#34;:
+            raise ValueError(&#34;Invalid operator type&#34;)
+
+        source = RasterOperator.from_operator_dict(operator_dict[&#34;sources&#34;][&#34;raster&#34;])
+        model = operator_dict[&#34;params&#34;][&#34;model&#34;]
+
+        return Onnx(
+            source=source,
+            model=model
+        )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></li>
+<li><a title="geoengine.workflow_builder.operators.Operator" href="#geoengine.workflow_builder.operators.Operator">Operator</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.workflow_builder.operators.Onnx.model"><code class="name">var <span class="ident">model</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.workflow_builder.operators.Onnx.source"><code class="name">var <span class="ident">source</span> : <a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="geoengine.workflow_builder.operators.RasterOperator" href="#geoengine.workflow_builder.operators.RasterOperator">RasterOperator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.data_type" href="#geoengine.workflow_builder.operators.Operator.data_type">data_type</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.from_operator_dict" href="#geoengine.workflow_builder.operators.RasterOperator.from_operator_dict">from_operator_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.from_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.from_workflow_dict">from_workflow_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.name" href="#geoengine.workflow_builder.operators.Operator.name">name</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_dict" href="#geoengine.workflow_builder.operators.Operator.to_dict">to_dict</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.RasterOperator.to_workflow_dict" href="#geoengine.workflow_builder.operators.Operator.to_workflow_dict">to_workflow_dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="geoengine.workflow_builder.operators.Operator"><code class="flex name class">
 <span>class <span class="ident">Operator</span></span>
 </code></dt>
@@ -2725,6 +2851,7 @@ def to_dict(self) -&gt; Dict[str, Any]:
 <li><a title="geoengine.workflow_builder.operators.Expression" href="#geoengine.workflow_builder.operators.Expression">Expression</a></li>
 <li><a title="geoengine.workflow_builder.operators.GdalSource" href="#geoengine.workflow_builder.operators.GdalSource">GdalSource</a></li>
 <li><a title="geoengine.workflow_builder.operators.Interpolation" href="#geoengine.workflow_builder.operators.Interpolation">Interpolation</a></li>
+<li><a title="geoengine.workflow_builder.operators.Onnx" href="#geoengine.workflow_builder.operators.Onnx">Onnx</a></li>
 <li><a title="geoengine.workflow_builder.operators.RasterScaling" href="#geoengine.workflow_builder.operators.RasterScaling">RasterScaling</a></li>
 <li><a title="geoengine.workflow_builder.operators.RasterStacker" href="#geoengine.workflow_builder.operators.RasterStacker">RasterStacker</a></li>
 <li><a title="geoengine.workflow_builder.operators.RasterTypeConversion" href="#geoengine.workflow_builder.operators.RasterTypeConversion">RasterTypeConversion</a></li>
@@ -4405,6 +4532,13 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; VectorOperator:
 <li><code><a title="geoengine.workflow_builder.operators.OgrSource.attribute_filters" href="#geoengine.workflow_builder.operators.OgrSource.attribute_filters">attribute_filters</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.OgrSource.attribute_projection" href="#geoengine.workflow_builder.operators.OgrSource.attribute_projection">attribute_projection</a></code></li>
 <li><code><a title="geoengine.workflow_builder.operators.OgrSource.dataset" href="#geoengine.workflow_builder.operators.OgrSource.dataset">dataset</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.workflow_builder.operators.Onnx" href="#geoengine.workflow_builder.operators.Onnx">Onnx</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.workflow_builder.operators.Onnx.model" href="#geoengine.workflow_builder.operators.Onnx.model">model</a></code></li>
+<li><code><a title="geoengine.workflow_builder.operators.Onnx.source" href="#geoengine.workflow_builder.operators.Onnx.source">source</a></code></li>
 </ul>
 </li>
 <li>
