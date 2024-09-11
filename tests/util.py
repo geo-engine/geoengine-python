@@ -2,7 +2,19 @@
 
 from unittest.mock import _patch, patch
 from json import dumps, loads
+import unittest
+from urllib.parse import parse_qs
 import urllib3
+
+
+def is_url_match(url1: str, url2: str) -> bool:
+    '''Checks if two urls point to the same resource'''
+    parsed1 = urllib3.util.parse_url(url1)
+    parsed2 = urllib3.util.parse_url(url2)
+    return (parsed1.host == parsed2.host
+            and parsed1.port == parsed2.port
+            and parsed1.path == parsed2.path
+            and parse_qs(parsed1.query) == parse_qs(parsed2.query))
 
 
 class UrllibMocker:
@@ -63,7 +75,7 @@ class UrllibMocker:
             sent_body = None
 
         for matcher in self._matchers:
-            if matcher["method"] != method or matcher["url"] != url:
+            if matcher["method"] != method or not is_url_match(matcher["url"], url):
                 continue
 
             if matcher["requestHeaders"] is not None and (
@@ -133,3 +145,29 @@ class UrllibMocker:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._mock_context.__exit__(exc_type, exc_val, exc_tb)
+
+
+class UtilTests(unittest.TestCase):
+    """Utilities test runner."""
+
+    def test_is_url_match(self):
+        self.assertTrue(is_url_match(
+            "http://example.com?a=1234&b=hello",
+            "http://example.com?b=hello&a=1234"
+        ))
+        self.assertFalse(is_url_match(
+            "http://example.com?a=1234&b=hello",
+            "http://example.de?b=hello&a=1234"
+        ))
+        self.assertFalse(is_url_match(
+            "http://example.com:80?a=1234&b=hello",
+            "http://example.com:443b=hello&a=1234"
+        ))
+        self.assertFalse(is_url_match(
+            "http://example.com/x",
+            "http://example.com/y"
+        ))
+
+
+if __name__ == '__main__':
+    unittest.main()

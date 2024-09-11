@@ -22,3 +22,5 @@ env-*
 
 # Downloaded files
 examples/raster_download.tif
+examples/download
+examples/test

@@ -2,6 +2,7 @@
 
 import unittest
 from geoengine import workflow_builder as wb
+from geoengine.types import ContinuousMeasurement, RasterBandDescriptor
 from geoengine.workflow_builder.operators import ColumnNamesNames
 
 
@@ -256,6 +257,13 @@ class OperatorsTests(unittest.TestCase):
             source=source_operator,
             expression="x + 1",
             output_type="U8",
+            output_band=RasterBandDescriptor(
+                "ndvi",
+                measurement=ContinuousMeasurement(
+                    "vegetation",
+                    unit=None,
+                ),
+            )
         )
 
         self.assertEqual(workflow.to_dict(), {
@@ -263,8 +271,15 @@ class OperatorsTests(unittest.TestCase):
             'params': {
                 "expression": "x + 1",
                 "outputType": "U8",
-                "mapNoData": False
-
+                "mapNoData": False,
+                "outputBand": {
+                    "name": "ndvi",
+                    "measurement": {
+                        "type": "continuous",
+                        "measurement": "vegetation",
+                        "unit": None,
+                    },
+                },
             },
             'sources': {
                 'raster': {
@@ -300,11 +315,13 @@ class OperatorsTests(unittest.TestCase):
                 "aggregation": {
                     "type": "mean",
                     "ignoreNoData": True,
+                    "percentile": None
                 },
                 "window": {
                     "granularity": "days",
                     "step": 1
                 },
+                "windowReference": None,
                 "outputType": "u8",
             },
             'sources': {

@@ -912,6 +912,9 @@ def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], 
 
     workflow_model = geoengine_openapi_client.Workflow.from_dict(workflow)
 
+    if workflow_model is None:
+        raise InputException("Invalid workflow definition")
+
     session = get_session()
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
