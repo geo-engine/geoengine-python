@@ -100,7 +100,7 @@ class PointLabelingTool(widgets.VBox):
                       background: Callable[[plt.Axes], None],
                       figsize: Optional[Tuple[int, int]]) -> widgets.Output:
         """
-        Creates a plot with a specified background and figure size, 
+        Creates a plot with a specified background and figure size,
         and sets up an interactive widget for labeling points.
         """
 
