@@ -79,7 +79,7 @@ def validate_model_config(onnx_model: ModelProto, *,
         if not data_type.tensor_type:
             raise InputException('Only tensor input types are supported')
         elem_type = data_type.tensor_type.elem_type
-        if elem_type != raster_type_to_onnx_type(expected_type):
+        if elem_type != RASTER_TYPE_TO_ONNX_TYPE[expected_type]:
             elem_type_str = tensor_dtype_to_string(elem_type)
             raise InputException(f'Model {prefix} type `{elem_type_str}` does not match the '
                                  f'expected type `{expected_type}`')
@@ -97,8 +97,7 @@ def validate_model_config(onnx_model: ModelProto, *,
             raise InputException(
                 'ZipMap is not supported in the model. Consider setting `options={"zipmap": False}`'
             ) from e
-        else:
-            raise e  # just re-raise
+        raise e  # just re-raise
 
     if len(model_ref.input_types) != 1:
         raise InputException('Models with multiple inputs are not supported')
@@ -117,27 +116,15 @@ def validate_model_config(onnx_model: ModelProto, *,
     check_data_type(model_ref.output_types[0], output_type, 'output')
 
 
-def raster_type_to_onnx_type(raster_type: RasterDataType) -> TensorProto.DataType:
-    '''Converts a raster data type to an onnx type'''
-    if raster_type == RasterDataType.F32:
-        return TensorProto.FLOAT
-    elif raster_type == RasterDataType.F64:
-        return TensorProto.DOUBLE
-    elif raster_type == RasterDataType.U8:
-        return TensorProto.UINT8
-    elif raster_type == RasterDataType.U16:
-        return TensorProto.UINT16
-    elif raster_type == RasterDataType.U32:
-        return TensorProto.UINT32
-    elif raster_type == RasterDataType.U64:
-        return TensorProto.UINT64
-    elif raster_type == RasterDataType.I8:
-        return TensorProto.INT8
-    elif raster_type == RasterDataType.I16:
-        return TensorProto.INT16
-    elif raster_type == RasterDataType.I32:
-        return TensorProto.INT32
-    elif raster_type == RasterDataType.I64:
-        return TensorProto.INT64
-
-    raise ValueError(f"Unknown raster data type: {raster_type}")
+RASTER_TYPE_TO_ONNX_TYPE = {
+    RasterDataType.F32: TensorProto.FLOAT,
+    RasterDataType.F64: TensorProto.DOUBLE,
+    RasterDataType.U8: TensorProto.UINT8,
+    RasterDataType.U16: TensorProto.UINT16,
+    RasterDataType.U32: TensorProto.UINT32,
+    RasterDataType.U64: TensorProto.UINT64,
+    RasterDataType.I8: TensorProto.INT8,
+    RasterDataType.I16: TensorProto.INT16,
+    RasterDataType.I32: TensorProto.INT32,
+    RasterDataType.I64: TensorProto.INT64,
+}
