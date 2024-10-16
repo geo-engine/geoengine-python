@@ -18,12 +18,12 @@ class WorkflowStorageTests(unittest.TestCase):
     def test_uploading_onnx_model(self):
 
         clf = RandomForestClassifier(random_state=42)
-        x = np.array([[1, 2], [3, 4]], dtype=np.float32)
-        y = np.array([0, 1], dtype=np.int64)
-        clf.fit(x, y)
+        training_x = np.array([[1, 2], [3, 4]], dtype=np.float32)
+        training_y = np.array([0, 1], dtype=np.int64)
+        clf.fit(training_x, training_y)
 
-        onnx_clf = to_onnx(clf, x[:1], options={'zipmap': False}, target_opset=9)
-        onnx_clf2 = to_onnx(clf, x[:1], options={'zipmap': False}, target_opset=12)
+        onnx_clf = to_onnx(clf, training_x[:1], options={'zipmap': False}, target_opset=9)
+        onnx_clf2 = to_onnx(clf, training_x[:1], options={'zipmap': False}, target_opset=12)
 
         with UrllibMocker() as m:
             session_id = "c4983c3e-9b53-47ae-bda9-382223bd5081"
