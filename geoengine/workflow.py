@@ -258,7 +258,7 @@ class Workflow:
 
         return result
 
-    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -> Image:
+    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -> Image.Image:
         '''Return the result of a WMS request as a PIL Image'''
 
         if not self.__result_descriptor.is_raster_result():
