@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         # use all supported versions from https://devguide.python.org/versions/
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v3
@@ -61,7 +61,7 @@ jobs:
 
     env:
       # use minimum supported versions from https://devguide.python.org/versions/
-      python-version: "3.8"
+      python-version: "3.9"
       # lowest compatible versions for all direct dependencies
       # cf., https://github.com/astral-sh/uv#resolution-strategy
       resolution: "lowest-direct"
