@@ -523,9 +523,8 @@ class VectorResultDescriptor(ResultDescriptor):
         columns = {name: VectorColumnInfo.from_response(info) for name, info in response.columns.items()}
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if 'time' in response and response['time'] is not None:
-        #    time_bounds = TimeInterval.from_response(response['time'])
+        if 'time' in response and response['time'] is not None:
+            time_bounds = TimeInterval.from_response(response['time'])
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -580,7 +579,7 @@ class VectorResultDescriptor(ResultDescriptor):
             data_type=self.data_type.to_api_enum(),
             spatial_reference=self.spatial_reference,
             columns={name: column_info.to_api_dict() for name, column_info in self.columns.items()},
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
         ))
@@ -687,7 +686,7 @@ class RasterResultDescriptor(ResultDescriptor):
             data_type=self.data_type,
             bands=[band.to_api_dict() for band in self.__bands],
             spatial_reference=self.spatial_reference,
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
         ))
@@ -701,9 +700,8 @@ class RasterResultDescriptor(ResultDescriptor):
         bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if 'time' in response and response['time'] is not None:
-        #    time_bounds = TimeInterval.from_response(response['time'])
+        if 'time' in response and response['time'] is not None:
+            time_bounds = TimeInterval.from_response(response['time'])
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = SpatialPartition2D.from_response(response.bbox)
@@ -784,9 +782,8 @@ class PlotResultDescriptor(ResultDescriptor):
         spatial_ref = response.spatial_reference
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if 'time' in response and response['time'] is not None:
-        #    time_bounds = TimeInterval.from_response(response['time'])
+        if 'time' in response and response['time'] is not None:
+            time_bounds = TimeInterval.from_response(response['time'])
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -817,7 +814,7 @@ class PlotResultDescriptor(ResultDescriptor):
             type='plot',
             spatial_reference=self.spatial_reference,
             data_type='Plot',
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None
         ))
 
