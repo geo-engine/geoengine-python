@@ -47,7 +47,7 @@ class Colorizer():
         no_data_color: Rgba = (0, 0, 0, 0)
     ) -> LinearGradientColorizer:
         """Initialize the colorizer."""
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-positional-arguments
 
         if n_steps < 2:
             raise ValueError(f"n_steps must be greater than or equal to 2, got {n_steps} instead.")
@@ -98,7 +98,7 @@ class Colorizer():
         no_data_color: Rgba = (0, 0, 0, 0)
     ) -> LogarithmicGradientColorizer:
         """Initialize the colorizer."""
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments, too-many-positional-arguments
 
         if n_steps < 2:
             raise ValueError(f"n_steps must be greater than or equal to 2, got {n_steps} instead.")

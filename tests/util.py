@@ -99,7 +99,8 @@ class UrllibMocker:
 
         raise KeyError(f'No handler found for {method} {url}')
 
-    # pylint: disable-next=too-many-arguments # follows `requests-mock` API
+    # follows `requests-mock` API
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def register_uri(self, method, url,
                      request_headers=None, expected_request_body=None, status_code=200,
                      json=None, text=None, body=None):

@@ -34,7 +34,7 @@ class RasterWorkflowRioWriter:
     rio_kwargs = {"tiled": True, "compress": "DEFLATE", "zlevel": 6}
     tile_size = 512
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
         self,
         dataset_prefix,

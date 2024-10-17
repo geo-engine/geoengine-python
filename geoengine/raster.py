@@ -47,7 +47,7 @@ class RasterTile2D:
     time: gety.TimeInterval
     band: int
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
             self,
             shape: Tuple[int, int],
@@ -251,7 +251,7 @@ class RasterTileStack2D:
     data: List[pa.Array]
     bands: List[int]
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
             self,
             tile_shape: Tuple[int, int],
@@ -294,7 +294,6 @@ class RasterTileStack2D:
 
 
 async def tile_stream_to_stack_stream(raster_stream: AsyncIterator[RasterTile2D]) -> AsyncIterator[RasterTileStack2D]:
-
     ''' Convert a stream of raster tiles to stream of stacked tiles '''
     store: List[RasterTile2D] = []
     first_band: int = -1

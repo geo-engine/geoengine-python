@@ -451,7 +451,7 @@ class Workflow:
             # TODO: add time information to dataset
             return data_array.load()
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def download_raster(
         self,
         bbox: QueryRectangle,
@@ -511,6 +511,7 @@ class Workflow:
             with open(path, 'wb') as file:
                 file.write(response)
 
+    # pylint: disable=too-many-positional-arguments,too-many-positional-arguments
     def save_as_dataset(
             self,
             query_rectangle: geoengine_openapi_client.RasterQueryRectangle,
