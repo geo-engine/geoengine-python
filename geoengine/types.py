@@ -168,6 +168,30 @@ class TimeInterval:
     def is_instant(self) -> bool:
         return self.end is None
 
+    @staticmethod
+    def from_time_str_dict(time_dict: Dict[str, Optional[datetime]]) -> TimeInterval:
+        '''create a `TimeInterval` from a time dict'''
+
+        if 'start' not in time_dict:
+            raise KeyError("missing 'start' in dict.")
+
+        if time_dict['start'] is None:
+            raise ValueError("Time 'start' must not be Nones.")
+
+        start_str = time_dict['start']
+        end_str = time_dict['end'] if 'end' in time_dict else None
+
+        return TimeInterval(
+            datetime.fromisoformat(start_str),
+            datetime.fromisoformat(end_str) if end_str is not None else None,
+        )
+
+    @staticmethod
+    def from_time_str(time_string: str, separator='/'):
+        '''create a `TimeInterval` from a time string'''
+        [start_str, end_str] = time_string.split(separator)
+        TimeInterval.from_time_str_dict({'start': start_str, 'end': end_str})
+
     @property
     def time_str(self) -> str:
         '''
@@ -184,36 +208,38 @@ class TimeInterval:
         return start_iso + '/' + end_iso
 
     @staticmethod
-    def from_response(response: Any) -> TimeInterval:
+    def from_response(response: geoengine_openapi_client.models.TimeInterval) -> TimeInterval:
         '''create a `TimeInterval` from an API response'''
 
-        if 'start' not in response:
+        if response.start is None:
             raise TypeException('TimeInterval must have a start')
 
-        if isinstance(response['start'], int):
-            start = cast(int, response['start'])
-            end = cast(int, response['end']) if 'end' in response and response['end'] is not None else None
-
-            return TimeInterval(
-                np.datetime64(start, 'ms'),
-                np.datetime64(end, 'ms') if end is not None else None,
-            )
-
-        start_str = cast(str, response['start'])
-        end_str = cast(str, response['end']) if 'end' in response and response['end'] is not None else None
+        start = cast(int, response.start)
+        end = None
+        if response.end is not None:
+            end = cast(int, response.end)
 
         return TimeInterval(
-            datetime.fromisoformat(start_str),
-            datetime.fromisoformat(end_str) if end_str is not None else None,
+            np.datetime64(start, 'ms'),
+            np.datetime64(end, 'ms') if end is not None else None,
         )
 
     def __repr__(self) -> str:
         return f"TimeInterval(start={self.start}, end={self.end})"
 
     def to_api_dict(self) -> geoengine_openapi_client.TimeInterval:
+        '''create a openapi `TimeInterval` from self'''
+        start = self.start.astype('datetime64[ms]').astype(int)
+        end = self.end.astype('datetime64[ms]').astype(int) if self.end is not None else None
+
+        # FIXME: the openapi Timeinterval does not accept end: None
+        end = end if end is not None else start
+
+        print(self, start, end)
+
         return geoengine_openapi_client.TimeInterval(
-            start=int(self.start.astype('datetime64[ms]').astype(int)),
-            end=int(self.end.astype('datetime64[ms]').astype(int)) if self.end is not None else None,
+            start=int(start),
+            end=int(end)
         )
 
     @staticmethod
@@ -523,8 +549,8 @@ class VectorResultDescriptor(ResultDescriptor):
         columns = {name: VectorColumnInfo.from_response(info) for name, info in response.columns.items()}
 
         time_bounds = None
-        if 'time' in response and response['time'] is not None:
-            time_bounds = TimeInterval.from_response(response['time'])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -700,8 +726,8 @@ class RasterResultDescriptor(ResultDescriptor):
         bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
-        if 'time' in response and response['time'] is not None:
-            time_bounds = TimeInterval.from_response(response['time'])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = SpatialPartition2D.from_response(response.bbox)
@@ -782,8 +808,8 @@ class PlotResultDescriptor(ResultDescriptor):
         spatial_ref = response.spatial_reference
 
         time_bounds = None
-        if 'time' in response and response['time'] is not None:
-            time_bounds = TimeInterval.from_response(response['time'])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
