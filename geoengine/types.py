@@ -166,7 +166,7 @@ class TimeInterval:
             raise InputException("Time inverval: Start must be <= End")
 
     def is_instant(self) -> bool:
-        return self.end is None
+        return self.end is None or self.start == self.end
 
     @property
     def time_str(self) -> str:
@@ -195,6 +195,9 @@ class TimeInterval:
         if response.end is not None:
             end = cast(int, response.end)
 
+        if start == end:
+            end = None
+
         return TimeInterval(
             np.datetime64(start, 'ms'),
             np.datetime64(end, 'ms') if end is not None else None,
@@ -208,7 +211,7 @@ class TimeInterval:
         start = self.start.astype('datetime64[ms]').astype(int)
         end = self.end.astype('datetime64[ms]').astype(int) if self.end is not None else None
 
-        # FIXME: the openapi Timeinterval does not accept end: None
+        # The openapi Timeinterval does not accept end: None. So we set it to start IF self is an instant.
         end = end if end is not None else start
 
         print(self, start, end)
