@@ -498,6 +498,9 @@ class RasterScaling(RasterOperator):
             if isinstance(key_or_value, float):
                 return {"type": "constant", "value": key_or_value}
 
+            if isinstance(key_or_value, int):
+                return {"type": "constant", "value": float(key_or_value)}
+
             # TODO: incorporate `domain` field
             return {"type": "metadataKey", "key": key_or_value}
 
@@ -800,6 +803,7 @@ class VectorExpression(VectorOperator):
         return 'VectorExpression'
 
     def to_dict(self) -> Dict[str, Any]:
+        output_column_dict = None
         if isinstance(self.output_column, GeoVectorDataType):
             output_column_dict = {
                 "type": "geometry",
