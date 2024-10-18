@@ -168,30 +168,6 @@ class TimeInterval:
     def is_instant(self) -> bool:
         return self.end is None
 
-    @staticmethod
-    def from_time_str_dict(time_dict: Dict[str, Optional[datetime]]) -> TimeInterval:
-        '''create a `TimeInterval` from a time dict'''
-
-        if 'start' not in time_dict:
-            raise KeyError("missing 'start' in dict.")
-
-        if time_dict['start'] is None:
-            raise ValueError("Time 'start' must not be Nones.")
-
-        start_str = time_dict['start']
-        end_str = time_dict['end'] if 'end' in time_dict else None
-
-        return TimeInterval(
-            datetime.fromisoformat(start_str),
-            datetime.fromisoformat(end_str) if end_str is not None else None,
-        )
-
-    @staticmethod
-    def from_time_str(time_string: str, separator='/'):
-        '''create a `TimeInterval` from a time string'''
-        [start_str, end_str] = time_string.split(separator)
-        TimeInterval.from_time_str_dict({'start': start_str, 'end': end_str})
-
     @property
     def time_str(self) -> str:
         '''
