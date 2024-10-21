@@ -4,7 +4,6 @@ Util functions for machine learning
 
 from pathlib import Path
 import tempfile
-from typing import Protocol
 from dataclasses import dataclass
 from onnx.reference import ReferenceEvaluator
 from onnx import TypeProto, TensorProto, ModelProto
