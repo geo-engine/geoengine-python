@@ -16,14 +16,6 @@ from geoengine.datasets import UploadId
 from geoengine.error import InputException
 
 
-# pylint: disable=invalid-name
-class SerializableModel(Protocol):
-    '''A protocol for serializable models'''
-
-    def SerializeToString(self) -> bytes:
-        ...
-
-
 @dataclass
 class MlModelConfig:
     '''Configuration for an ml model'''
