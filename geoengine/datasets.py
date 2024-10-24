@@ -331,7 +331,7 @@ class AddDatasetProperties():
     provenance: Optional[List[Provenance]]
 
     def __init__(
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         display_name: str,
         description: str,
@@ -433,7 +433,7 @@ def upload_dataframe(
     GeoEngineException
         If the dataset could not be uploaded or the name is already taken.
     """
-    # pylint: disable=too-many-arguments,too-many-locals
+    # pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
 
     if len(df) == 0:
         raise InputException("Cannot upload empty dataframe")

@@ -13,7 +13,7 @@ import json
 from strenum import LowercaseStrEnum
 import geoengine_openapi_client
 from geoengine.auth import get_session
-from geoengine.error import ModificationNotOnLayerDbException
+from geoengine.error import ModificationNotOnLayerDbException, InputException
 from geoengine.tasks import Task, TaskId
 from geoengine.types import Symbology
 from geoengine.workflow import Workflow, WorkflowId
@@ -160,6 +160,7 @@ class LayerCollection:
     provider_id: LayerProviderId
     items: List[Listing]
 
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self,
                  name: str,
                  description: str,
@@ -167,7 +168,6 @@ class LayerCollection:
                  provider_id: LayerProviderId,
                  items: List[Listing]) -> None:
         '''Create a new `LayerCollection`'''
-        # pylint: disable=too-many-arguments
 
         self.name = name
         self.description = description
@@ -303,7 +303,7 @@ class LayerCollection:
                   symbology: Optional[Symbology],
                   timeout: int = 60) -> LayerId:
         '''Add a layer to this collection'''
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-positional-arguments
 
         if self.provider_id != LAYER_DB_PROVIDER_ID:
             raise ModificationNotOnLayerDbException('Layer collection is not stored in the layer database')
@@ -333,6 +333,8 @@ class LayerCollection:
             layer_id = existing_layer.layer_id
         elif isinstance(existing_layer, str):  # TODO: check for LayerId in Python 3.11+
             layer_id = existing_layer
+        else:
+            raise InputException("Invalid layer type")
 
         _add_existing_layer_to_collection(layer_id, self.collection_id, timeout)
 
@@ -381,6 +383,8 @@ class LayerCollection:
             collection_id = existing_collection.collection_id
         elif isinstance(existing_collection, str):  # TODO: check for LayerId in Python 3.11+
             collection_id = existing_collection
+        else:
+            raise InputException("Invalid collection type")
 
         _add_existing_layer_collection_to_collection(collection_id=collection_id,
                                                      parent_collection_id=self.collection_id,
@@ -477,7 +481,7 @@ class Layer:
                  properties: List[Any],
                  metadata: Dict[Any, Any]) -> None:
         '''Create a new `Layer`'''
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-positional-arguments
 
         self.name = name
         self.description = description
@@ -740,7 +744,7 @@ def _add_layer_to_collection(name: str,
                              collection_id: LayerCollectionId,
                              timeout: int = 60) -> LayerId:
     '''Add a new layer'''
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
 
     # convert workflow to dict if necessary
     if isinstance(workflow, WorkflowBuilderOperator):

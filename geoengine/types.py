@@ -500,7 +500,7 @@ class VectorResultDescriptor(ResultDescriptor):
     __data_type: VectorDataType
     __columns: Dict[str, VectorColumnInfo]
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         spatial_reference: str,
         data_type: VectorDataType,
@@ -664,7 +664,7 @@ class RasterResultDescriptor(ResultDescriptor):
     __bands: List[RasterBandDescriptor]
     __spatial_bounds: Optional[SpatialPartition2D]
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         data_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64'],
         bands: List[RasterBandDescriptor],
