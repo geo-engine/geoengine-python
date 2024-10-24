@@ -5,7 +5,6 @@ Util functions for machine learning
 from pathlib import Path
 import tempfile
 from dataclasses import dataclass
-from onnx.reference import ReferenceEvaluator
 from onnx import TypeProto, TensorProto, ModelProto
 from onnx.helper import tensor_dtype_to_string
 from geoengine_openapi_client.models import MlModelMetadata, MlModel, RasterDataType
@@ -81,20 +80,14 @@ def validate_model_config(onnx_model: ModelProto, *,
         if domain.version != 9:
             raise InputException('Only ONNX models with opset version 9 are supported')
 
-    try:
-        model_ref = ReferenceEvaluator(onnx_model)
-    except NotImplementedError as e:
-        if 'ZipMap' in str(e):
-            raise InputException(
-                'ZipMap is not supported in the model. Consider setting `options={"zipmap": False}`'
-            ) from e
-        raise e  # just re-raise
+    model_inputs = onnx_model.graph.input
+    model_outputs = onnx_model.graph.output
 
-    if len(model_ref.input_types) != 1:
+    if len(model_inputs) != 1:
         raise InputException('Models with multiple inputs are not supported')
-    check_data_type(model_ref.input_types[0], input_type, 'input')
+    check_data_type(model_inputs[0].type, input_type, 'input')
 
-    dims = model_ref.input_types[0].tensor_type.shape.dim
+    dims = model_inputs[0].type.tensor_type.shape.dim
     if len(dims) != 2:
         raise InputException('Only 2D input tensors are supported')
     if not dims[1].dim_value:
@@ -102,9 +95,9 @@ def validate_model_config(onnx_model: ModelProto, *,
     if dims[1].dim_value != num_input_bands:
         raise InputException(f'Model input has {dims[1].dim_value} bands, but {num_input_bands} bands are expected')
 
-    if len(model_ref.output_types) < 1:
+    if len(model_outputs) < 1:
         raise InputException('Models with no outputs are not supported')
-    check_data_type(model_ref.output_types[0], output_type, 'output')
+    check_data_type(model_outputs[0].type, output_type, 'output')
 
 
 RASTER_TYPE_TO_ONNX_TYPE = {
