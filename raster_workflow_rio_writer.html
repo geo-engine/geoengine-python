@@ -63,7 +63,7 @@ class RasterWorkflowRioWriter:
     rio_kwargs = {&#34;tiled&#34;: True, &#34;compress&#34;: &#34;DEFLATE&#34;, &#34;zlevel&#34;: 6}
     tile_size = 512
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
         self,
         dataset_prefix,
@@ -283,7 +283,7 @@ Multiple bands are supported and the bands are written to the dataset in the ord
     rio_kwargs = {&#34;tiled&#34;: True, &#34;compress&#34;: &#34;DEFLATE&#34;, &#34;zlevel&#34;: 6}
     tile_size = 512
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
         self,
         dataset_prefix,

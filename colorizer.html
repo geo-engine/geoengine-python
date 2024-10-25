@@ -76,7 +76,7 @@ class Colorizer():
         no_data_color: Rgba = (0, 0, 0, 0)
     ) -&gt; LinearGradientColorizer:
         &#34;&#34;&#34;Initialize the colorizer.&#34;&#34;&#34;
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-positional-arguments
 
         if n_steps &lt; 2:
             raise ValueError(f&#34;n_steps must be greater than or equal to 2, got {n_steps} instead.&#34;)
@@ -127,7 +127,7 @@ class Colorizer():
         no_data_color: Rgba = (0, 0, 0, 0)
     ) -&gt; LogarithmicGradientColorizer:
         &#34;&#34;&#34;Initialize the colorizer.&#34;&#34;&#34;
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments, too-many-positional-arguments
 
         if n_steps &lt; 2:
             raise ValueError(f&#34;n_steps must be greater than or equal to 2, got {n_steps} instead.&#34;)
@@ -451,7 +451,7 @@ class Colorizer():
         no_data_color: Rgba = (0, 0, 0, 0)
     ) -&gt; LinearGradientColorizer:
         &#34;&#34;&#34;Initialize the colorizer.&#34;&#34;&#34;
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-positional-arguments
 
         if n_steps &lt; 2:
             raise ValueError(f&#34;n_steps must be greater than or equal to 2, got {n_steps} instead.&#34;)
@@ -502,7 +502,7 @@ class Colorizer():
         no_data_color: Rgba = (0, 0, 0, 0)
     ) -&gt; LogarithmicGradientColorizer:
         &#34;&#34;&#34;Initialize the colorizer.&#34;&#34;&#34;
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments, too-many-positional-arguments
 
         if n_steps &lt; 2:
             raise ValueError(f&#34;n_steps must be greater than or equal to 2, got {n_steps} instead.&#34;)
@@ -691,7 +691,7 @@ def linear_with_mpl_cmap(
     no_data_color: Rgba = (0, 0, 0, 0)
 ) -&gt; LinearGradientColorizer:
     &#34;&#34;&#34;Initialize the colorizer.&#34;&#34;&#34;
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
 
     if n_steps &lt; 2:
         raise ValueError(f&#34;n_steps must be greater than or equal to 2, got {n_steps} instead.&#34;)
@@ -752,7 +752,7 @@ def logarithmic_with_mpl_cmap(
     no_data_color: Rgba = (0, 0, 0, 0)
 ) -&gt; LogarithmicGradientColorizer:
     &#34;&#34;&#34;Initialize the colorizer.&#34;&#34;&#34;
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments, too-many-positional-arguments
 
     if n_steps &lt; 2:
         raise ValueError(f&#34;n_steps must be greater than or equal to 2, got {n_steps} instead.&#34;)

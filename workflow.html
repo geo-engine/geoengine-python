@@ -287,7 +287,7 @@ class Workflow:
 
         return result
 
-    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -&gt; Image:
+    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -&gt; Image.Image:
         &#39;&#39;&#39;Return the result of a WMS request as a PIL Image&#39;&#39;&#39;
 
         if not self.__result_descriptor.is_raster_result():
@@ -480,7 +480,7 @@ class Workflow:
             # TODO: add time information to dataset
             return data_array.load()
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def download_raster(
         self,
         bbox: QueryRectangle,
@@ -540,6 +540,7 @@ class Workflow:
             with open(path, &#39;wb&#39;) as file:
                 file.write(response)
 
+    # pylint: disable=too-many-positional-arguments,too-many-positional-arguments
     def save_as_dataset(
             self,
             query_rectangle: geoengine_openapi_client.RasterQueryRectangle,
@@ -1614,7 +1615,7 @@ dict(one=1, two=2)</p></div>
 
         return result
 
-    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -&gt; Image:
+    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -&gt; Image.Image:
         &#39;&#39;&#39;Return the result of a WMS request as a PIL Image&#39;&#39;&#39;
 
         if not self.__result_descriptor.is_raster_result():
@@ -1807,7 +1808,7 @@ dict(one=1, two=2)</p></div>
             # TODO: add time information to dataset
             return data_array.load()
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def download_raster(
         self,
         bbox: QueryRectangle,
@@ -1867,6 +1868,7 @@ dict(one=1, two=2)</p></div>
             with open(path, &#39;wb&#39;) as file:
                 file.write(response)
 
+    # pylint: disable=too-many-positional-arguments,too-many-positional-arguments
     def save_as_dataset(
             self,
             query_rectangle: geoengine_openapi_client.RasterQueryRectangle,
@@ -3012,7 +3014,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.wms_get_map_as_image"><code class="name flex">
-<span>def <span class="ident">wms_get_map_as_image</span></span>(<span>self, bbox: QueryRectangle, colorizer: Colorizer) ‑> Image</span>
+<span>def <span class="ident">wms_get_map_as_image</span></span>(<span>self, bbox: QueryRectangle, colorizer: Colorizer) ‑> PIL.Image.Image</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Return the result of a WMS request as a PIL Image</p></div>
@@ -3020,7 +3022,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -&gt; Image:
+<pre><code class="python">def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -&gt; Image.Image:
     &#39;&#39;&#39;Return the result of a WMS request as a PIL Image&#39;&#39;&#39;
 
     if not self.__result_descriptor.is_raster_result():

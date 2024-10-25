@@ -529,7 +529,7 @@ class VectorResultDescriptor(ResultDescriptor):
     __data_type: VectorDataType
     __columns: Dict[str, VectorColumnInfo]
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         spatial_reference: str,
         data_type: VectorDataType,
@@ -693,7 +693,7 @@ class RasterResultDescriptor(ResultDescriptor):
     __bands: List[RasterBandDescriptor]
     __spatial_bounds: Optional[SpatialPartition2D]
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         data_type: Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;],
         bands: List[RasterBandDescriptor],
@@ -3388,7 +3388,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
     __bands: List[RasterBandDescriptor]
     __spatial_bounds: Optional[SpatialPartition2D]
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         data_type: Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;],
         bands: List[RasterBandDescriptor],
@@ -5213,7 +5213,7 @@ def from_string(string: str) -&gt; VectorDataType:
     __data_type: VectorDataType
     __columns: Dict[str, VectorColumnInfo]
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         spatial_reference: str,
         data_type: VectorDataType,

@@ -121,7 +121,7 @@ def s2_cloud_free_aggregated_band(
         window_size=1,
         aggregation_type=&#34;mean&#34;
 ):
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     &#39;&#39;&#39;Creates a workflow for a cloud free monthly band (or NDVI) from Sentinel 2 data.&#39;&#39;&#39;
     valid_sentinel_bands = [&#34;B01&#34;, &#34;B02&#34;, &#34;B03&#34;, &#34;B04&#34;, &#34;B05&#34;, &#34;B06&#34;, &#34;B07&#34;, &#34;B08&#34;, &#34;B8A&#34;, &#34;B11&#34;, &#34;B12&#34;]
 
@@ -190,7 +190,7 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
         window_size=1,
         aggregation_type=&#34;mean&#34;
 ):
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     &#39;&#39;&#39;Creates a workflow for a cloud free monthly NDVI from Sentinel 2 data provided by the inputs.&#39;&#39;&#39;
 
     s2_cloud_free_operator = sentinel2_cloud_free_ndvi_custom_input(
@@ -233,7 +233,7 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
         window_size=1,
         aggregation_type=&#34;mean&#34;
 ):
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     &#39;&#39;&#39;Creates a workflow for a cloud free monthly band (or NDVI) from Sentinel 2 data.&#39;&#39;&#39;
     valid_sentinel_bands = [&#34;B01&#34;, &#34;B02&#34;, &#34;B03&#34;, &#34;B04&#34;, &#34;B05&#34;, &#34;B06&#34;, &#34;B07&#34;, &#34;B08&#34;, &#34;B8A&#34;, &#34;B11&#34;, &#34;B12&#34;]
 
@@ -320,7 +320,7 @@ def s2_cloud_free_aggregated_ndvi_custom_input(
         window_size=1,
         aggregation_type=&#34;mean&#34;
 ):
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     &#39;&#39;&#39;Creates a workflow for a cloud free monthly NDVI from Sentinel 2 data provided by the inputs.&#39;&#39;&#39;
 
     s2_cloud_free_operator = sentinel2_cloud_free_ndvi_custom_input(

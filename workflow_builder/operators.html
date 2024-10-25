@@ -375,7 +375,7 @@ class RasterVectorJoin(VectorOperator):
     feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
     feature_aggregation_ignore_nodata: bool = False
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self,
                  raster_sources: List[RasterOperator],
                  vector_source: VectorOperator,
@@ -500,7 +500,7 @@ class RasterScaling(RasterOperator):
     output_measurement: Optional[str] = None
 
     def __init__(self,
-                 # pylint: disable=too-many-arguments
+                 # pylint: disable=too-many-arguments,too-many-positional-arguments
                  source: RasterOperator,
                  slope: Optional[Union[float, str]] = None,
                  offset: Optional[Union[float, str]] = None,
@@ -678,7 +678,7 @@ class Expression(RasterOperator):
     map_no_data: bool = False
     output_band: Optional[RasterBandDescriptor] = None
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self,
                  expression: str,
                  source: RasterOperator,
@@ -839,6 +839,8 @@ class VectorExpression(VectorOperator):
                 &#34;type&#34;: &#34;column&#34;,
                 &#34;value&#34;: self.output_column,
             }
+        else:
+            raise NotImplementedError(&#34;Invalid output column type&#34;)
 
         params = {
             &#34;expression&#34;: self.expression,
@@ -896,7 +898,7 @@ class TemporalRasterAggregation(RasterOperator):
     percentile: Optional[float] = None
     window_ref: Optional[np.datetime64] = None
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self,
                  source: RasterOperator,
                  aggregation_type:
@@ -2084,7 +2086,7 @@ def to_dict(self) -&gt; Dict[str, Any]:
     map_no_data: bool = False
     output_band: Optional[RasterBandDescriptor] = None
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self,
                  expression: str,
                  source: RasterOperator,
@@ -2947,7 +2949,7 @@ x = y * slope + offset</p>
     output_measurement: Optional[str] = None
 
     def __init__(self,
-                 # pylint: disable=too-many-arguments
+                 # pylint: disable=too-many-arguments,too-many-positional-arguments
                  source: RasterOperator,
                  slope: Optional[Union[float, str]] = None,
                  offset: Optional[Union[float, str]] = None,
@@ -3241,7 +3243,7 @@ x = y * slope + offset</p>
     feature_aggregation: Literal[&#34;first&#34;, &#34;mean&#34;] = &#34;mean&#34;
     feature_aggregation_ignore_nodata: bool = False
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self,
                  raster_sources: List[RasterOperator],
                  vector_source: VectorOperator,
@@ -3845,7 +3847,7 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;Reprojecti
     percentile: Optional[float] = None
     window_ref: Optional[np.datetime64] = None
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self,
                  source: RasterOperator,
                  aggregation_type:
@@ -4230,6 +4232,8 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;TimeShift&
                 &#34;type&#34;: &#34;column&#34;,
                 &#34;value&#34;: self.output_column,
             }
+        else:
+            raise NotImplementedError(&#34;Invalid output column type&#34;)
 
         params = {
             &#34;expression&#34;: self.expression,

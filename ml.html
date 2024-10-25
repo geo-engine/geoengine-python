@@ -33,20 +33,14 @@ Util functions for machine learning
 
 from pathlib import Path
 import tempfile
-from typing import Protocol
 from dataclasses import dataclass
-from geoengine_openapi_client.models import MlModelMetadata, MlModel
+from onnx import TypeProto, TensorProto, ModelProto
+from onnx.helper import tensor_dtype_to_string
+from geoengine_openapi_client.models import MlModelMetadata, MlModel, RasterDataType
 import geoengine_openapi_client
 from geoengine.auth import get_session
 from geoengine.datasets import UploadId
-
-
-# pylint: disable=invalid-name
-class SerializableModel(Protocol):
-    &#39;&#39;&#39;A protocol for serializable models&#39;&#39;&#39;
-
-    def SerializeToString(self) -&gt; bytes:
-        ...
+from geoengine.error import InputException
 
 
 @dataclass
@@ -59,11 +53,124 @@ class MlModelConfig:
     description: str = &#34;My Ml Model Description&#34;
 
 
-def register_ml_model(onnx_model: SerializableModel,
+def register_ml_model(onnx_model: ModelProto,
                       model_config: MlModelConfig,
                       upload_timeout: int = 3600,
                       register_timeout: int = 60):
     &#39;&#39;&#39;Uploads an onnx file and registers it as an ml model&#39;&#39;&#39;
+
+    validate_model_config(
+        onnx_model,
+        input_type=model_config.metadata.input_type,
+        output_type=model_config.metadata.output_type,
+        num_input_bands=model_config.metadata.num_input_bands,
+    )
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file_name = Path(temp_dir) / model_config.file_name
+
+            with open(file_name, &#39;wb&#39;) as file:
+                file.write(onnx_model.SerializeToString())
+
+            uploads_api = geoengine_openapi_client.UploadsApi(api_client)
+            response = uploads_api.upload_handler([str(file_name)],
+                                                  _request_timeout=upload_timeout)
+
+        upload_id = UploadId.from_response(response)
+
+        ml_api = geoengine_openapi_client.MLApi(api_client)
+
+        model = MlModel(name=model_config.name, upload=str(upload_id), metadata=model_config.metadata,
+                        display_name=model_config.display_name, description=model_config.description)
+        ml_api.add_ml_model(model, _request_timeout=register_timeout)
+
+
+def validate_model_config(onnx_model: ModelProto, *,
+                          input_type: RasterDataType,
+                          output_type: RasterDataType,
+                          num_input_bands: int):
+    &#39;&#39;&#39;Validates the model config. Raises an exception if the model config is invalid&#39;&#39;&#39;
+
+    def check_data_type(data_type: TypeProto, expected_type: RasterDataType, prefix: &#39;str&#39;):
+        if not data_type.tensor_type:
+            raise InputException(&#39;Only tensor input types are supported&#39;)
+        elem_type = data_type.tensor_type.elem_type
+        if elem_type != RASTER_TYPE_TO_ONNX_TYPE[expected_type]:
+            elem_type_str = tensor_dtype_to_string(elem_type)
+            raise InputException(f&#39;Model {prefix} type `{elem_type_str}` does not match the &#39;
+                                 f&#39;expected type `{expected_type}`&#39;)
+
+    for domain in onnx_model.opset_import:
+        if domain.domain != &#39;&#39;:
+            continue
+        if domain.version != 9:
+            raise InputException(&#39;Only ONNX models with opset version 9 are supported&#39;)
+
+    model_inputs = onnx_model.graph.input
+    model_outputs = onnx_model.graph.output
+
+    if len(model_inputs) != 1:
+        raise InputException(&#39;Models with multiple inputs are not supported&#39;)
+    check_data_type(model_inputs[0].type, input_type, &#39;input&#39;)
+
+    dims = model_inputs[0].type.tensor_type.shape.dim
+    if len(dims) != 2:
+        raise InputException(&#39;Only 2D input tensors are supported&#39;)
+    if not dims[1].dim_value:
+        raise InputException(&#39;Dimension 1 of the input tensor must have a length&#39;)
+    if dims[1].dim_value != num_input_bands:
+        raise InputException(f&#39;Model input has {dims[1].dim_value} bands, but {num_input_bands} bands are expected&#39;)
+
+    if len(model_outputs) &lt; 1:
+        raise InputException(&#39;Models with no outputs are not supported&#39;)
+    check_data_type(model_outputs[0].type, output_type, &#39;output&#39;)
+
+
+RASTER_TYPE_TO_ONNX_TYPE = {
+    RasterDataType.F32: TensorProto.FLOAT,
+    RasterDataType.F64: TensorProto.DOUBLE,
+    RasterDataType.U8: TensorProto.UINT8,
+    RasterDataType.U16: TensorProto.UINT16,
+    RasterDataType.U32: TensorProto.UINT32,
+    RasterDataType.U64: TensorProto.UINT64,
+    RasterDataType.I8: TensorProto.INT8,
+    RasterDataType.I16: TensorProto.INT16,
+    RasterDataType.I32: TensorProto.INT32,
+    RasterDataType.I64: TensorProto.INT64,
+}</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="geoengine.ml.register_ml_model"><code class="name flex">
+<span>def <span class="ident">register_ml_model</span></span>(<span>onnx_model: onnx.onnx_ml_pb2.ModelProto, model_config: <a title="geoengine.ml.MlModelConfig" href="#geoengine.ml.MlModelConfig">MlModelConfig</a>, upload_timeout: int = 3600, register_timeout: int = 60)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Uploads an onnx file and registers it as an ml model</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def register_ml_model(onnx_model: ModelProto,
+                      model_config: MlModelConfig,
+                      upload_timeout: int = 3600,
+                      register_timeout: int = 60):
+    &#39;&#39;&#39;Uploads an onnx file and registers it as an ml model&#39;&#39;&#39;
+
+    validate_model_config(
+        onnx_model,
+        input_type=model_config.metadata.input_type,
+        output_type=model_config.metadata.output_type,
+        num_input_bands=model_config.metadata.num_input_bands,
+    )
 
     session = get_session()
 
@@ -86,49 +193,55 @@ def register_ml_model(onnx_model: SerializableModel,
                         display_name=model_config.display_name, description=model_config.description)
         ml_api.add_ml_model(model, _request_timeout=register_timeout)</code></pre>
 </details>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="geoengine.ml.register_ml_model"><code class="name flex">
-<span>def <span class="ident">register_ml_model</span></span>(<span>onnx_model: <a title="geoengine.ml.SerializableModel" href="#geoengine.ml.SerializableModel">SerializableModel</a>, model_config: <a title="geoengine.ml.MlModelConfig" href="#geoengine.ml.MlModelConfig">MlModelConfig</a>, upload_timeout: int = 3600, register_timeout: int = 60)</span>
+</dd>
+<dt id="geoengine.ml.validate_model_config"><code class="name flex">
+<span>def <span class="ident">validate_model_config</span></span>(<span>onnx_model: onnx.onnx_ml_pb2.ModelProto, *, input_type: geoengine_openapi_client.models.raster_data_type.RasterDataType, output_type: geoengine_openapi_client.models.raster_data_type.RasterDataType, num_input_bands: int)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Uploads an onnx file and registers it as an ml model</p></div>
+<div class="desc"><p>Validates the model config. Raises an exception if the model config is invalid</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def register_ml_model(onnx_model: SerializableModel,
-                      model_config: MlModelConfig,
-                      upload_timeout: int = 3600,
-                      register_timeout: int = 60):
-    &#39;&#39;&#39;Uploads an onnx file and registers it as an ml model&#39;&#39;&#39;
+<pre><code class="python">def validate_model_config(onnx_model: ModelProto, *,
+                          input_type: RasterDataType,
+                          output_type: RasterDataType,
+                          num_input_bands: int):
+    &#39;&#39;&#39;Validates the model config. Raises an exception if the model config is invalid&#39;&#39;&#39;
 
-    session = get_session()
+    def check_data_type(data_type: TypeProto, expected_type: RasterDataType, prefix: &#39;str&#39;):
+        if not data_type.tensor_type:
+            raise InputException(&#39;Only tensor input types are supported&#39;)
+        elem_type = data_type.tensor_type.elem_type
+        if elem_type != RASTER_TYPE_TO_ONNX_TYPE[expected_type]:
+            elem_type_str = tensor_dtype_to_string(elem_type)
+            raise InputException(f&#39;Model {prefix} type `{elem_type_str}` does not match the &#39;
+                                 f&#39;expected type `{expected_type}`&#39;)
 
-    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            file_name = Path(temp_dir) / model_config.file_name
+    for domain in onnx_model.opset_import:
+        if domain.domain != &#39;&#39;:
+            continue
+        if domain.version != 9:
+            raise InputException(&#39;Only ONNX models with opset version 9 are supported&#39;)
 
-            with open(file_name, &#39;wb&#39;) as file:
-                file.write(onnx_model.SerializeToString())
+    model_inputs = onnx_model.graph.input
+    model_outputs = onnx_model.graph.output
 
-            uploads_api = geoengine_openapi_client.UploadsApi(api_client)
-            response = uploads_api.upload_handler([str(file_name)],
-                                                  _request_timeout=upload_timeout)
+    if len(model_inputs) != 1:
+        raise InputException(&#39;Models with multiple inputs are not supported&#39;)
+    check_data_type(model_inputs[0].type, input_type, &#39;input&#39;)
 
-        upload_id = UploadId.from_response(response)
+    dims = model_inputs[0].type.tensor_type.shape.dim
+    if len(dims) != 2:
+        raise InputException(&#39;Only 2D input tensors are supported&#39;)
+    if not dims[1].dim_value:
+        raise InputException(&#39;Dimension 1 of the input tensor must have a length&#39;)
+    if dims[1].dim_value != num_input_bands:
+        raise InputException(f&#39;Model input has {dims[1].dim_value} bands, but {num_input_bands} bands are expected&#39;)
 
-        ml_api = geoengine_openapi_client.MLApi(api_client)
-
-        model = MlModel(name=model_config.name, upload=str(upload_id), metadata=model_config.metadata,
-                        display_name=model_config.display_name, description=model_config.description)
-        ml_api.add_ml_model(model, _request_timeout=register_timeout)</code></pre>
+    if len(model_outputs) &lt; 1:
+        raise InputException(&#39;Models with no outputs are not supported&#39;)
+    check_data_type(model_outputs[0].type, output_type, &#39;output&#39;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -179,44 +292,6 @@ class MlModelConfig:
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.ml.SerializableModel"><code class="flex name class">
-<span>class <span class="ident">SerializableModel</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A protocol for serializable models</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class SerializableModel(Protocol):
-    &#39;&#39;&#39;A protocol for serializable models&#39;&#39;&#39;
-
-    def SerializeToString(self) -&gt; bytes:
-        ...</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>typing.Protocol</li>
-<li>typing.Generic</li>
-</ul>
-<h3>Methods</h3>
-<dl>
-<dt id="geoengine.ml.SerializableModel.SerializeToString"><code class="name flex">
-<span>def <span class="ident">SerializeToString</span></span>(<span>self) ‑> bytes</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def SerializeToString(self) -&gt; bytes:
-    ...</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
 </dl>
 </section>
 </article>
@@ -234,6 +309,7 @@ class MlModelConfig:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="geoengine.ml.register_ml_model" href="#geoengine.ml.register_ml_model">register_ml_model</a></code></li>
+<li><code><a title="geoengine.ml.validate_model_config" href="#geoengine.ml.validate_model_config">validate_model_config</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -246,12 +322,6 @@ class MlModelConfig:
 <li><code><a title="geoengine.ml.MlModelConfig.file_name" href="#geoengine.ml.MlModelConfig.file_name">file_name</a></code></li>
 <li><code><a title="geoengine.ml.MlModelConfig.metadata" href="#geoengine.ml.MlModelConfig.metadata">metadata</a></code></li>
 <li><code><a title="geoengine.ml.MlModelConfig.name" href="#geoengine.ml.MlModelConfig.name">name</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="geoengine.ml.SerializableModel" href="#geoengine.ml.SerializableModel">SerializableModel</a></code></h4>
-<ul class="">
-<li><code><a title="geoengine.ml.SerializableModel.SerializeToString" href="#geoengine.ml.SerializableModel.SerializeToString">SerializeToString</a></code></li>
 </ul>
 </li>
 </ul>
