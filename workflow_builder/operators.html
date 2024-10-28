@@ -527,6 +527,9 @@ class RasterScaling(RasterOperator):
             if isinstance(key_or_value, float):
                 return {&#34;type&#34;: &#34;constant&#34;, &#34;value&#34;: key_or_value}
 
+            if isinstance(key_or_value, int):
+                return {&#34;type&#34;: &#34;constant&#34;, &#34;value&#34;: float(key_or_value)}
+
             # TODO: incorporate `domain` field
             return {&#34;type&#34;: &#34;metadataKey&#34;, &#34;key&#34;: key_or_value}
 
@@ -829,6 +832,7 @@ class VectorExpression(VectorOperator):
         return &#39;VectorExpression&#39;
 
     def to_dict(self) -&gt; Dict[str, Any]:
+        output_column_dict = None
         if isinstance(self.output_column, GeoVectorDataType):
             output_column_dict = {
                 &#34;type&#34;: &#34;geometry&#34;,
@@ -2976,6 +2980,9 @@ x = y * slope + offset</p>
             if isinstance(key_or_value, float):
                 return {&#34;type&#34;: &#34;constant&#34;, &#34;value&#34;: key_or_value}
 
+            if isinstance(key_or_value, int):
+                return {&#34;type&#34;: &#34;constant&#34;, &#34;value&#34;: float(key_or_value)}
+
             # TODO: incorporate `domain` field
             return {&#34;type&#34;: &#34;metadataKey&#34;, &#34;key&#34;: key_or_value}
 
@@ -4222,6 +4229,7 @@ def from_operator_dict(cls, operator_dict: Dict[str, Any]) -&gt; &#39;TimeShift&
         return &#39;VectorExpression&#39;
 
     def to_dict(self) -&gt; Dict[str, Any]:
+        output_column_dict = None
         if isinstance(self.output_column, GeoVectorDataType):
             output_column_dict = {
                 &#34;type&#34;: &#34;geometry&#34;,

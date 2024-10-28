@@ -195,7 +195,7 @@ class TimeInterval:
             raise InputException(&#34;Time inverval: Start must be &lt;= End&#34;)
 
     def is_instant(self) -&gt; bool:
-        return self.end is None
+        return self.end is None or self.start == self.end
 
     @property
     def time_str(self) -&gt; str:
@@ -213,36 +213,41 @@ class TimeInterval:
         return start_iso + &#39;/&#39; + end_iso
 
     @staticmethod
-    def from_response(response: Any) -&gt; TimeInterval:
+    def from_response(response: geoengine_openapi_client.models.TimeInterval) -&gt; TimeInterval:
         &#39;&#39;&#39;create a `TimeInterval` from an API response&#39;&#39;&#39;
 
-        if &#39;start&#39; not in response:
+        if response.start is None:
             raise TypeException(&#39;TimeInterval must have a start&#39;)
 
-        if isinstance(response[&#39;start&#39;], int):
-            start = cast(int, response[&#39;start&#39;])
-            end = cast(int, response[&#39;end&#39;]) if &#39;end&#39; in response and response[&#39;end&#39;] is not None else None
+        start = cast(int, response.start)
+        end = None
+        if response.end is not None:
+            end = cast(int, response.end)
 
-            return TimeInterval(
-                np.datetime64(start, &#39;ms&#39;),
-                np.datetime64(end, &#39;ms&#39;) if end is not None else None,
-            )
-
-        start_str = cast(str, response[&#39;start&#39;])
-        end_str = cast(str, response[&#39;end&#39;]) if &#39;end&#39; in response and response[&#39;end&#39;] is not None else None
+        if start == end:
+            end = None
 
         return TimeInterval(
-            datetime.fromisoformat(start_str),
-            datetime.fromisoformat(end_str) if end_str is not None else None,
+            np.datetime64(start, &#39;ms&#39;),
+            np.datetime64(end, &#39;ms&#39;) if end is not None else None,
         )
 
     def __repr__(self) -&gt; str:
         return f&#34;TimeInterval(start={self.start}, end={self.end})&#34;
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.TimeInterval:
+        &#39;&#39;&#39;create a openapi `TimeInterval` from self&#39;&#39;&#39;
+        start = self.start.astype(&#39;datetime64[ms]&#39;).astype(int)
+        end = self.end.astype(&#39;datetime64[ms]&#39;).astype(int) if self.end is not None else None
+
+        # The openapi Timeinterval does not accept end: None. So we set it to start IF self is an instant.
+        end = end if end is not None else start
+
+        print(self, start, end)
+
         return geoengine_openapi_client.TimeInterval(
-            start=int(self.start.astype(&#39;datetime64[ms]&#39;).astype(int)),
-            end=int(self.end.astype(&#39;datetime64[ms]&#39;).astype(int)) if self.end is not None else None,
+            start=int(start),
+            end=int(end)
         )
 
     @staticmethod
@@ -552,9 +557,8 @@ class VectorResultDescriptor(ResultDescriptor):
         columns = {name: VectorColumnInfo.from_response(info) for name, info in response.columns.items()}
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if &#39;time&#39; in response and response[&#39;time&#39;] is not None:
-        #    time_bounds = TimeInterval.from_response(response[&#39;time&#39;])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -609,7 +613,7 @@ class VectorResultDescriptor(ResultDescriptor):
             data_type=self.data_type.to_api_enum(),
             spatial_reference=self.spatial_reference,
             columns={name: column_info.to_api_dict() for name, column_info in self.columns.items()},
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
         ))
@@ -716,7 +720,7 @@ class RasterResultDescriptor(ResultDescriptor):
             data_type=self.data_type,
             bands=[band.to_api_dict() for band in self.__bands],
             spatial_reference=self.spatial_reference,
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
         ))
@@ -730,9 +734,8 @@ class RasterResultDescriptor(ResultDescriptor):
         bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if &#39;time&#39; in response and response[&#39;time&#39;] is not None:
-        #    time_bounds = TimeInterval.from_response(response[&#39;time&#39;])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = SpatialPartition2D.from_response(response.bbox)
@@ -813,9 +816,8 @@ class PlotResultDescriptor(ResultDescriptor):
         spatial_ref = response.spatial_reference
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if &#39;time&#39; in response and response[&#39;time&#39;] is not None:
-        #    time_bounds = TimeInterval.from_response(response[&#39;time&#39;])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -846,7 +848,7 @@ class PlotResultDescriptor(ResultDescriptor):
             type=&#39;plot&#39;,
             spatial_reference=self.spatial_reference,
             data_type=&#39;Plot&#39;,
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None
         ))
 
@@ -2604,9 +2606,8 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
         spatial_ref = response.spatial_reference
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if &#39;time&#39; in response and response[&#39;time&#39;] is not None:
-        #    time_bounds = TimeInterval.from_response(response[&#39;time&#39;])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -2637,7 +2638,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Measurement:
             type=&#39;plot&#39;,
             spatial_reference=self.spatial_reference,
             data_type=&#39;Plot&#39;,
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None
         ))</code></pre>
 </details>
@@ -2662,9 +2663,8 @@ def from_response_plot(response: geoengine_openapi_client.TypedPlotResultDescrip
     spatial_ref = response.spatial_reference
 
     time_bounds = None
-    # FIXME: datetime can not represent our min max range
-    # if &#39;time&#39; in response and response[&#39;time&#39;] is not None:
-    #    time_bounds = TimeInterval.from_response(response[&#39;time&#39;])
+    if response.time is not None:
+        time_bounds = TimeInterval.from_response(response.time)
     spatial_bounds = None
     if response.bbox is not None:
         spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -2710,7 +2710,7 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
         type=&#39;plot&#39;,
         spatial_reference=self.spatial_reference,
         data_type=&#39;Plot&#39;,
-        time=self.time_bounds.time_str if self.time_bounds is not None else None,
+        time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
         bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None
     ))</code></pre>
 </details>
@@ -3411,7 +3411,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
             data_type=self.data_type,
             bands=[band.to_api_dict() for band in self.__bands],
             spatial_reference=self.spatial_reference,
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
         ))
@@ -3425,9 +3425,8 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
         bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if &#39;time&#39; in response and response[&#39;time&#39;] is not None:
-        #    time_bounds = TimeInterval.from_response(response[&#39;time&#39;])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = SpatialPartition2D.from_response(response.bbox)
@@ -3502,9 +3501,8 @@ def from_response_raster(
     bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
     time_bounds = None
-    # FIXME: datetime can not represent our min max range
-    # if &#39;time&#39; in response and response[&#39;time&#39;] is not None:
-    #    time_bounds = TimeInterval.from_response(response[&#39;time&#39;])
+    if response.time is not None:
+        time_bounds = TimeInterval.from_response(response.time)
     spatial_bounds = None
     if response.bbox is not None:
         spatial_bounds = SpatialPartition2D.from_response(response.bbox)
@@ -3581,7 +3579,7 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
         data_type=self.data_type,
         bands=[band.to_api_dict() for band in self.__bands],
         spatial_reference=self.spatial_reference,
-        time=self.time_bounds.time_str if self.time_bounds is not None else None,
+        time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
         bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
         resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
     ))</code></pre>
@@ -4577,7 +4575,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
             raise InputException(&#34;Time inverval: Start must be &lt;= End&#34;)
 
     def is_instant(self) -&gt; bool:
-        return self.end is None
+        return self.end is None or self.start == self.end
 
     @property
     def time_str(self) -&gt; str:
@@ -4595,36 +4593,41 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
         return start_iso + &#39;/&#39; + end_iso
 
     @staticmethod
-    def from_response(response: Any) -&gt; TimeInterval:
+    def from_response(response: geoengine_openapi_client.models.TimeInterval) -&gt; TimeInterval:
         &#39;&#39;&#39;create a `TimeInterval` from an API response&#39;&#39;&#39;
 
-        if &#39;start&#39; not in response:
+        if response.start is None:
             raise TypeException(&#39;TimeInterval must have a start&#39;)
 
-        if isinstance(response[&#39;start&#39;], int):
-            start = cast(int, response[&#39;start&#39;])
-            end = cast(int, response[&#39;end&#39;]) if &#39;end&#39; in response and response[&#39;end&#39;] is not None else None
+        start = cast(int, response.start)
+        end = None
+        if response.end is not None:
+            end = cast(int, response.end)
 
-            return TimeInterval(
-                np.datetime64(start, &#39;ms&#39;),
-                np.datetime64(end, &#39;ms&#39;) if end is not None else None,
-            )
-
-        start_str = cast(str, response[&#39;start&#39;])
-        end_str = cast(str, response[&#39;end&#39;]) if &#39;end&#39; in response and response[&#39;end&#39;] is not None else None
+        if start == end:
+            end = None
 
         return TimeInterval(
-            datetime.fromisoformat(start_str),
-            datetime.fromisoformat(end_str) if end_str is not None else None,
+            np.datetime64(start, &#39;ms&#39;),
+            np.datetime64(end, &#39;ms&#39;) if end is not None else None,
         )
 
     def __repr__(self) -&gt; str:
         return f&#34;TimeInterval(start={self.start}, end={self.end})&#34;
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.TimeInterval:
+        &#39;&#39;&#39;create a openapi `TimeInterval` from self&#39;&#39;&#39;
+        start = self.start.astype(&#39;datetime64[ms]&#39;).astype(int)
+        end = self.end.astype(&#39;datetime64[ms]&#39;).astype(int) if self.end is not None else None
+
+        # The openapi Timeinterval does not accept end: None. So we set it to start IF self is an instant.
+        end = end if end is not None else start
+
+        print(self, start, end)
+
         return geoengine_openapi_client.TimeInterval(
-            start=int(self.start.astype(&#39;datetime64[ms]&#39;).astype(int)),
-            end=int(self.end.astype(&#39;datetime64[ms]&#39;).astype(int)) if self.end is not None else None,
+            start=int(start),
+            end=int(end)
         )
 
     @staticmethod
@@ -4651,7 +4654,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.types.TimeInterval.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: Any) ‑> <a title="geoengine.types.TimeInterval" href="#geoengine.types.TimeInterval">TimeInterval</a></span>
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.models.TimeInterval) ‑> <a title="geoengine.types.TimeInterval" href="#geoengine.types.TimeInterval">TimeInterval</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>create a <code><a title="geoengine.types.TimeInterval" href="#geoengine.types.TimeInterval">TimeInterval</a></code> from an API response</p></div>
@@ -4660,27 +4663,23 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def from_response(response: Any) -&gt; TimeInterval:
+def from_response(response: geoengine_openapi_client.models.TimeInterval) -&gt; TimeInterval:
     &#39;&#39;&#39;create a `TimeInterval` from an API response&#39;&#39;&#39;
 
-    if &#39;start&#39; not in response:
+    if response.start is None:
         raise TypeException(&#39;TimeInterval must have a start&#39;)
 
-    if isinstance(response[&#39;start&#39;], int):
-        start = cast(int, response[&#39;start&#39;])
-        end = cast(int, response[&#39;end&#39;]) if &#39;end&#39; in response and response[&#39;end&#39;] is not None else None
+    start = cast(int, response.start)
+    end = None
+    if response.end is not None:
+        end = cast(int, response.end)
 
-        return TimeInterval(
-            np.datetime64(start, &#39;ms&#39;),
-            np.datetime64(end, &#39;ms&#39;) if end is not None else None,
-        )
-
-    start_str = cast(str, response[&#39;start&#39;])
-    end_str = cast(str, response[&#39;end&#39;]) if &#39;end&#39; in response and response[&#39;end&#39;] is not None else None
+    if start == end:
+        end = None
 
     return TimeInterval(
-        datetime.fromisoformat(start_str),
-        datetime.fromisoformat(end_str) if end_str is not None else None,
+        np.datetime64(start, &#39;ms&#39;),
+        np.datetime64(end, &#39;ms&#39;) if end is not None else None,
     )</code></pre>
 </details>
 </dd>
@@ -4723,22 +4722,31 @@ def time_str(self) -&gt; str:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def is_instant(self) -&gt; bool:
-    return self.end is None</code></pre>
+    return self.end is None or self.start == self.end</code></pre>
 </details>
 </dd>
 <dt id="geoengine.types.TimeInterval.to_api_dict"><code class="name flex">
 <span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.time_interval.TimeInterval</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>create a openapi <code><a title="geoengine.types.TimeInterval" href="#geoengine.types.TimeInterval">TimeInterval</a></code> from self</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.TimeInterval:
+    &#39;&#39;&#39;create a openapi `TimeInterval` from self&#39;&#39;&#39;
+    start = self.start.astype(&#39;datetime64[ms]&#39;).astype(int)
+    end = self.end.astype(&#39;datetime64[ms]&#39;).astype(int) if self.end is not None else None
+
+    # The openapi Timeinterval does not accept end: None. So we set it to start IF self is an instant.
+    end = end if end is not None else start
+
+    print(self, start, end)
+
     return geoengine_openapi_client.TimeInterval(
-        start=int(self.start.astype(&#39;datetime64[ms]&#39;).astype(int)),
-        end=int(self.end.astype(&#39;datetime64[ms]&#39;).astype(int)) if self.end is not None else None,
+        start=int(start),
+        end=int(end)
     )</code></pre>
 </details>
 </dd>
@@ -5236,9 +5244,8 @@ def from_string(string: str) -&gt; VectorDataType:
         columns = {name: VectorColumnInfo.from_response(info) for name, info in response.columns.items()}
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if &#39;time&#39; in response and response[&#39;time&#39;] is not None:
-        #    time_bounds = TimeInterval.from_response(response[&#39;time&#39;])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -5293,7 +5300,7 @@ def from_string(string: str) -&gt; VectorDataType:
             data_type=self.data_type.to_api_enum(),
             spatial_reference=self.spatial_reference,
             columns={name: column_info.to_api_dict() for name, column_info in self.columns.items()},
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
         ))</code></pre>
@@ -5322,9 +5329,8 @@ def from_response_vector(
     columns = {name: VectorColumnInfo.from_response(info) for name, info in response.columns.items()}
 
     time_bounds = None
-    # FIXME: datetime can not represent our min max range
-    # if &#39;time&#39; in response and response[&#39;time&#39;] is not None:
-    #    time_bounds = TimeInterval.from_response(response[&#39;time&#39;])
+    if response.time is not None:
+        time_bounds = TimeInterval.from_response(response.time)
     spatial_bounds = None
     if response.bbox is not None:
         spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -5395,7 +5401,7 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
         data_type=self.data_type.to_api_enum(),
         spatial_reference=self.spatial_reference,
         columns={name: column_info.to_api_dict() for name, column_info in self.columns.items()},
-        time=self.time_bounds.time_str if self.time_bounds is not None else None,
+        time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
         bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
         resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
     ))</code></pre>
