@@ -1,0 +1,18 @@
+{
+"type": "FeatureCollection",
+"features": [
+{ "type": "Feature", "properties": { "water": 0 }, "geometry": { "type": "Point", "coordinates": [ 352906.715742098866031, 5648823.25819281488657 ] } },
+{ "type": "Feature", "properties": { "water": 0 }, "geometry": { "type": "Point", "coordinates": [ 354442.513566177163739, 5646758.777327512390912 ] } },
+{ "type": "Feature", "properties": { "water": 0 }, "geometry": { "type": "Point", "coordinates": [ 356791.380826532258652, 5648373.623569006100297 ] } },
+{ "type": "Feature", "properties": { "water": 0 }, "geometry": { "type": "Point", "coordinates": [ 355029.730381265981123, 5648283.28252053167671 ] } },
+{ "type": "Feature", "properties": { "water": 0 }, "geometry": { "type": "Point", "coordinates": [ 352918.008373158285394, 5646800.183641396462917 ] } },
+{ "type": "Feature", "properties": { "water": 0 }, "geometry": { "type": "Point", "coordinates": [ 355583.069303176482208, 5645192.042399594560266 ] } },
+{ "type": "Feature", "properties": { "water": 0 }, "geometry": { "type": "Point", "coordinates": [ 353414.884139771864284, 5644914.226030796766281 ] } },
+{ "type": "Feature", "properties": { "water": 1 }, "geometry": { "type": "Point", "coordinates": [ 357502.816583274397999, 5646530.19712421298027 ] } },
+{ "type": "Feature", "properties": { "water": 1 }, "geometry": { "type": "Point", "coordinates": [ 358609.494427095574792, 5647241.914093934930861 ] } },
+{ "type": "Feature", "properties": { "water": 1 }, "geometry": { "type": "Point", "coordinates": [ 359399.97860125353327, 5648088.931726635433733 ] } },
+{ "type": "Feature", "properties": { "water": 1 }, "geometry": { "type": "Point", "coordinates": [ 359456.441756550513674, 5649105.286097792908549 ] } },
+{ "type": "Feature", "properties": { "water": 1 }, "geometry": { "type": "Point", "coordinates": [ 358790.176524045935366, 5649726.385200012475252 ] } },
+{ "type": "Feature", "properties": { "water": 1 }, "geometry": { "type": "Point", "coordinates": [ 358699.835475570755079, 5648676.171609976328909 ] } }
+]
+}

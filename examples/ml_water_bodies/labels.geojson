@@ -1,0 +1,20 @@
+{
+"type": "FeatureCollection",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::32632" } },
+"features": [
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.204297941449203, 0.728914109118537 ] } },
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.208647059297623, 0.753365519351153 ] } },
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.224114434346006, 0.684547947606263 ] } },
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.213024995375233, 0.70767452491026 ] } },
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.219268441564912, 0.727079830634939 ] } },
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.220843364713508, 0.7437289930096 ] } },
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.209537664856521, 0.715380372472677 ] } },
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.210381373801072, 0.694118907069986 ] } },
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.219999655768957, 0.714874147105947 ] } },
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.20886269770088, 0.717742757517421 ] } },
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.206837796233957, 0.705087123349152 ] } },
+{ "type": "Feature", "properties": { "water": 1.0 }, "geometry": { "type": "Point", "coordinates": [ 0.210381373801072, 0.733941969252805 ] } },
+{ "type": "Feature", "properties": { "water": 0.0 }, "geometry": { "type": "Point", "coordinates": [ 0.211562566323444, 0.744741443743062 ] } },
+{ "type": "Feature", "properties": { "water": 0.0 }, "geometry": { "type": "Point", "coordinates": [ 0.218649721457675, 0.73073587526351 ] } }
+]
+}
