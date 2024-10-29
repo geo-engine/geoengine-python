@@ -14,7 +14,7 @@ class RasterTests(unittest.TestCase):
     test_data: ge.RasterTile2D
 
     def setUp(self) -> None:
-        time = np.datetime64(datetime(2020, 1, 1, 0, 0, 0, 0), 'ms')
+        time = ge.TimeInterval(start=datetime(2020, 1, 1, 0, 0, 0, 0))
         raster_data = rio.open("tests/responses/ndvi.tiff")
         bounds = raster_data.bounds
         no_data_value = 255  # raster_data.nodata is 0 which is propably wrong)
@@ -32,9 +32,7 @@ class RasterTests(unittest.TestCase):
                 y_pixel_size=-22.5,
             ),
             crs="EPSG:4326",
-            time=ge.TimeInterval(
-                start=time
-            ),
+            time=time,
             band=0,
         )
 
@@ -96,7 +94,7 @@ class RasterTests(unittest.TestCase):
         self.assertEqual(origin_y, self.test_data.geo_transform.y_max + self.test_data.geo_transform.y_pixel_size / 2)
 
     def test_from_ge_record_batch(self) -> None:
-        time = datetime(2020, 1, 1, 0, 0, 0, 0).isoformat()
+        time = np.datetime64(datetime(2020, 1, 1, 0, 0, 0, 0), 'ms').astype(np.int64)
         raster_data = rio.open("tests/responses/ndvi.tiff")
         bounds = raster_data.bounds
         no_data_value = 255  # raster_data.nodata is 0 which is propably wrong)
@@ -118,7 +116,8 @@ class RasterTests(unittest.TestCase):
             "ySize": str(raster_data.shape[0]),
             "spatialReference": "EPSG:4326",
             "time": json.dumps({
-                "start": time
+                "start": int(time),
+                "end": int(time)
             }),
             "band": "0",
         }
