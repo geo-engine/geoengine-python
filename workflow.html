@@ -62,12 +62,11 @@ import pyarrow as pa
 import geoengine_openapi_client
 from geoengine import api
 from geoengine.auth import get_session
-from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
     MethodNotCalledOnRasterException, MethodNotCalledOnVectorException
 from geoengine import backports
-from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, VectorResultDescriptor, \
-    ClassificationMeasurement
+from geoengine.types import ProvenanceEntry, QueryRectangle, RasterColorizer, ResultDescriptor, \
+    VectorResultDescriptor, ClassificationMeasurement
 from geoengine.tasks import Task, TaskId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 from geoengine.raster import RasterTile2D
@@ -287,7 +286,7 @@ class Workflow:
 
         return result
 
-    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -&gt; Image.Image:
+    def wms_get_map_as_image(self, bbox: QueryRectangle, raster_colorizer: RasterColorizer) -&gt; Image.Image:
         &#39;&#39;&#39;Return the result of a WMS request as a PIL Image&#39;&#39;&#39;
 
         if not self.__result_descriptor.is_raster_result():
@@ -307,16 +306,16 @@ class Workflow:
                 bbox=bbox.bbox_ogc_str,
                 format=geoengine_openapi_client.GetMapFormat(geoengine_openapi_client.GetMapFormat.IMAGE_SLASH_PNG),
                 layers=str(self),
-                styles=&#39;custom:&#39; + colorizer.to_api_dict().to_json(),
+                styles=&#39;custom:&#39; + raster_colorizer.to_api_dict().to_json(),
                 crs=bbox.srs,
                 time=bbox.time_str
             )
 
         return Image.open(BytesIO(response))
 
-    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; VegaLite:
+    def plot_json(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; geoengine_openapi_client.WrappedPlotOutput:
         &#39;&#39;&#39;
-        Query a workflow and return the plot chart result as a vega plot
+        Query a workflow and return the plot chart result as WrappedPlotOutput
         &#39;&#39;&#39;
 
         if not self.__result_descriptor.is_plot_result():
@@ -326,7 +325,7 @@ class Workflow:
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             plots_api = geoengine_openapi_client.PlotsApi(api_client)
-            response = plots_api.get_plot_handler(
+            return plots_api.get_plot_handler(
                 bbox.bbox_str,
                 bbox.time_str,
                 str(bbox.spatial_resolution),
@@ -335,6 +334,12 @@ class Workflow:
                 _request_timeout=timeout
             )
 
+    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; VegaLite:
+        &#39;&#39;&#39;
+        Query a workflow and return the plot chart result as a vega plot
+        &#39;&#39;&#39;
+
+        response = self.plot_json(bbox, timeout)
         vega_spec: VegaSpec = json.loads(response.data[&#39;vegaString&#39;])
 
         return VegaLite(vega_spec)
@@ -1615,7 +1620,7 @@ dict(one=1, two=2)</p></div>
 
         return result
 
-    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -&gt; Image.Image:
+    def wms_get_map_as_image(self, bbox: QueryRectangle, raster_colorizer: RasterColorizer) -&gt; Image.Image:
         &#39;&#39;&#39;Return the result of a WMS request as a PIL Image&#39;&#39;&#39;
 
         if not self.__result_descriptor.is_raster_result():
@@ -1635,16 +1640,16 @@ dict(one=1, two=2)</p></div>
                 bbox=bbox.bbox_ogc_str,
                 format=geoengine_openapi_client.GetMapFormat(geoengine_openapi_client.GetMapFormat.IMAGE_SLASH_PNG),
                 layers=str(self),
-                styles=&#39;custom:&#39; + colorizer.to_api_dict().to_json(),
+                styles=&#39;custom:&#39; + raster_colorizer.to_api_dict().to_json(),
                 crs=bbox.srs,
                 time=bbox.time_str
             )
 
         return Image.open(BytesIO(response))
 
-    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; VegaLite:
+    def plot_json(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; geoengine_openapi_client.WrappedPlotOutput:
         &#39;&#39;&#39;
-        Query a workflow and return the plot chart result as a vega plot
+        Query a workflow and return the plot chart result as WrappedPlotOutput
         &#39;&#39;&#39;
 
         if not self.__result_descriptor.is_plot_result():
@@ -1654,7 +1659,7 @@ dict(one=1, two=2)</p></div>
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             plots_api = geoengine_openapi_client.PlotsApi(api_client)
-            response = plots_api.get_plot_handler(
+            return plots_api.get_plot_handler(
                 bbox.bbox_str,
                 bbox.time_str,
                 str(bbox.spatial_resolution),
@@ -1663,6 +1668,12 @@ dict(one=1, two=2)</p></div>
                 _request_timeout=timeout
             )
 
+    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; VegaLite:
+        &#39;&#39;&#39;
+        Query a workflow and return the plot chart result as a vega plot
+        &#39;&#39;&#39;
+
+        response = self.plot_json(bbox, timeout)
         vega_spec: VegaSpec = json.loads(response.data[&#39;vegaString&#39;])
 
         return VegaLite(vega_spec)
@@ -2569,6 +2580,26 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
     Query a workflow and return the plot chart result as a vega plot
     &#39;&#39;&#39;
 
+    response = self.plot_json(bbox, timeout)
+    vega_spec: VegaSpec = json.loads(response.data[&#39;vegaString&#39;])
+
+    return VegaLite(vega_spec)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.Workflow.plot_json"><code class="name flex">
+<span>def <span class="ident">plot_json</span></span>(<span>self, bbox: QueryRectangle, timeout: int = 3600) ‑> geoengine_openapi_client.models.wrapped_plot_output.WrappedPlotOutput</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Query a workflow and return the plot chart result as WrappedPlotOutput</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_json(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; geoengine_openapi_client.WrappedPlotOutput:
+    &#39;&#39;&#39;
+    Query a workflow and return the plot chart result as WrappedPlotOutput
+    &#39;&#39;&#39;
+
     if not self.__result_descriptor.is_plot_result():
         raise MethodNotCalledOnPlotException()
 
@@ -2576,18 +2607,14 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         plots_api = geoengine_openapi_client.PlotsApi(api_client)
-        response = plots_api.get_plot_handler(
+        return plots_api.get_plot_handler(
             bbox.bbox_str,
             bbox.time_str,
             str(bbox.spatial_resolution),
             str(self.__workflow_id),
             bbox.srs,
             _request_timeout=timeout
-        )
-
-    vega_spec: VegaSpec = json.loads(response.data[&#39;vegaString&#39;])
-
-    return VegaLite(vega_spec)</code></pre>
+        )</code></pre>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.raster_stream"><code class="name flex">
@@ -3014,7 +3041,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 </details>
 </dd>
 <dt id="geoengine.workflow.Workflow.wms_get_map_as_image"><code class="name flex">
-<span>def <span class="ident">wms_get_map_as_image</span></span>(<span>self, bbox: QueryRectangle, colorizer: Colorizer) ‑> PIL.Image.Image</span>
+<span>def <span class="ident">wms_get_map_as_image</span></span>(<span>self, bbox: QueryRectangle, raster_colorizer: RasterColorizer) ‑> PIL.Image.Image</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Return the result of a WMS request as a PIL Image</p></div>
@@ -3022,7 +3049,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -&gt; Image.Image:
+<pre><code class="python">def wms_get_map_as_image(self, bbox: QueryRectangle, raster_colorizer: RasterColorizer) -&gt; Image.Image:
     &#39;&#39;&#39;Return the result of a WMS request as a PIL Image&#39;&#39;&#39;
 
     if not self.__result_descriptor.is_raster_result():
@@ -3042,7 +3069,7 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
             bbox=bbox.bbox_ogc_str,
             format=geoengine_openapi_client.GetMapFormat(geoengine_openapi_client.GetMapFormat.IMAGE_SLASH_PNG),
             layers=str(self),
-            styles=&#39;custom:&#39; + colorizer.to_api_dict().to_json(),
+            styles=&#39;custom:&#39; + raster_colorizer.to_api_dict().to_json(),
             crs=bbox.srs,
             time=bbox.time_str
         )
@@ -3317,6 +3344,7 @@ dict(one=1, two=2)</p></div>
 <li><code><a title="geoengine.workflow.Workflow.get_xarray" href="#geoengine.workflow.Workflow.get_xarray">get_xarray</a></code></li>
 <li><code><a title="geoengine.workflow.Workflow.metadata_zip" href="#geoengine.workflow.Workflow.metadata_zip">metadata_zip</a></code></li>
 <li><code><a title="geoengine.workflow.Workflow.plot_chart" href="#geoengine.workflow.Workflow.plot_chart">plot_chart</a></code></li>
+<li><code><a title="geoengine.workflow.Workflow.plot_json" href="#geoengine.workflow.Workflow.plot_json">plot_json</a></code></li>
 <li><code><a title="geoengine.workflow.Workflow.raster_stream" href="#geoengine.workflow.Workflow.raster_stream">raster_stream</a></code></li>
 <li><code><a title="geoengine.workflow.Workflow.raster_stream_into_xarray" href="#geoengine.workflow.Workflow.raster_stream_into_xarray">raster_stream_into_xarray</a></code></li>
 <li><code><a title="geoengine.workflow.Workflow.save_as_dataset" href="#geoengine.workflow.Workflow.save_as_dataset">save_as_dataset</a></code></li>
