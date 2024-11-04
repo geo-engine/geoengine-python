@@ -33,12 +33,11 @@ import pyarrow as pa
 import geoengine_openapi_client
 from geoengine import api
 from geoengine.auth import get_session
-from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
     MethodNotCalledOnRasterException, MethodNotCalledOnVectorException
 from geoengine import backports
-from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, VectorResultDescriptor, \
-    ClassificationMeasurement
+from geoengine.types import ProvenanceEntry, QueryRectangle, RasterColorizer, ResultDescriptor, \
+    VectorResultDescriptor, ClassificationMeasurement
 from geoengine.tasks import Task, TaskId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 from geoengine.raster import RasterTile2D
@@ -258,7 +257,7 @@ class Workflow:
 
         return result
 
-    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -> Image:
+    def wms_get_map_as_image(self, bbox: QueryRectangle, raster_colorizer: RasterColorizer) -> Image.Image:
         '''Return the result of a WMS request as a PIL Image'''
 
         if not self.__result_descriptor.is_raster_result():
@@ -278,16 +277,16 @@ class Workflow:
                 bbox=bbox.bbox_ogc_str,
                 format=geoengine_openapi_client.GetMapFormat(geoengine_openapi_client.GetMapFormat.IMAGE_SLASH_PNG),
                 layers=str(self),
-                styles='custom:' + colorizer.to_api_dict().to_json(),
+                styles='custom:' + raster_colorizer.to_api_dict().to_json(),
                 crs=bbox.srs,
                 time=bbox.time_str
             )
 
         return Image.open(BytesIO(response))
 
-    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
+    def plot_json(self, bbox: QueryRectangle, timeout: int = 3600) -> geoengine_openapi_client.WrappedPlotOutput:
         '''
-        Query a workflow and return the plot chart result as a vega plot
+        Query a workflow and return the plot chart result as WrappedPlotOutput
         '''
 
         if not self.__result_descriptor.is_plot_result():
@@ -297,7 +296,7 @@ class Workflow:
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             plots_api = geoengine_openapi_client.PlotsApi(api_client)
-            response = plots_api.get_plot_handler(
+            return plots_api.get_plot_handler(
                 bbox.bbox_str,
                 bbox.time_str,
                 str(bbox.spatial_resolution),
@@ -306,6 +305,12 @@ class Workflow:
                 _request_timeout=timeout
             )
 
+    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
+        '''
+        Query a workflow and return the plot chart result as a vega plot
+        '''
+
+        response = self.plot_json(bbox, timeout)
         vega_spec: VegaSpec = json.loads(response.data['vegaString'])
 
         return VegaLite(vega_spec)
@@ -451,7 +456,7 @@ class Workflow:
             # TODO: add time information to dataset
             return data_array.load()
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def download_raster(
         self,
         bbox: QueryRectangle,
@@ -511,6 +516,7 @@ class Workflow:
             with open(path, 'wb') as file:
                 file.write(response)
 
+    # pylint: disable=too-many-positional-arguments,too-many-positional-arguments
     def save_as_dataset(
             self,
             query_rectangle: geoengine_openapi_client.RasterQueryRectangle,

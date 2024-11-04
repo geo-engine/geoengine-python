@@ -47,7 +47,7 @@ class Colorizer():
         no_data_color: Rgba = (0, 0, 0, 0)
     ) -> LinearGradientColorizer:
         """Initialize the colorizer."""
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-positional-arguments
 
         if n_steps < 2:
             raise ValueError(f"n_steps must be greater than or equal to 2, got {n_steps} instead.")
@@ -98,7 +98,7 @@ class Colorizer():
         no_data_color: Rgba = (0, 0, 0, 0)
     ) -> LogarithmicGradientColorizer:
         """Initialize the colorizer."""
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments, too-many-positional-arguments
 
         if n_steps < 2:
             raise ValueError(f"n_steps must be greater than or equal to 2, got {n_steps} instead.")
@@ -207,6 +207,10 @@ class Colorizer():
             default_color=default_color,
         )
 
+    @staticmethod
+    def rgba() -> RgbaColorizer:
+        return RgbaColorizer()
+
     @abstractmethod
     def to_api_dict(self) -> geoengine_openapi_client.Colorizer:
         pass
@@ -226,6 +230,8 @@ class Colorizer():
             return PaletteColorizer.from_response_palette(inner)
         if isinstance(inner, geoengine_openapi_client.LogarithmicGradient):
             return LogarithmicGradientColorizer.from_response_logarithmic(inner)
+        if isinstance(inner, geoengine_openapi_client.RgbaColorizer):
+            return RgbaColorizer.from_response_rgba(inner)
 
         raise TypeError("Unknown colorizer type")
 
@@ -312,4 +318,23 @@ class PaletteColorizer(Colorizer):
             colors=self.colors,
             default_color=self.default_color,
             no_data_color=self.no_data_color,
+        ))
+
+
+class RgbaColorizer(Colorizer):
+    '''A Rgba colorizer.'''
+
+    def __init__(self, no_data_color: Rgba = (0, 0, 0, 0)):
+        super().__init__(no_data_color)
+
+    @staticmethod
+    def from_response_rgba(_response: geoengine_openapi_client.RgbaColorizer) -> RgbaColorizer:
+        """Create a colorizer from a response."""
+
+        return RgbaColorizer()
+
+    def to_api_dict(self) -> geoengine_openapi_client.Colorizer:
+        """Return the colorizer as a dictionary."""
+        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.RgbaColorizer(
+            type='rgba',
         ))
