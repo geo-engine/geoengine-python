@@ -979,6 +979,8 @@ class RasterColorizer:
 
         if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
             return SingleBandRasterColorizer.from_single_band_response(inner)
+        if isinstance(inner, geoengine_openapi_client.MultiBandRasterColorizer):
+            return MultiBandRasterColorizer.from_multi_band_response(inner)
 
         raise GeoEngineException({"message": "Unknown RasterColorizer type"})
 
@@ -1006,6 +1008,58 @@ class SingleBandRasterColorizer(RasterColorizer):
             type='singleBand',
             band=self.band,
             band_colorizer=self.band_colorizer.to_api_dict(),
+        ))
+
+
+@dataclass
+class MultiBandRasterColorizer(RasterColorizer):
+    '''A raster colorizer for multiple bands'''
+
+    blue_band: int
+    blue_max: float
+    blue_min: float
+    blue_scale: Optional[float]
+    green_band: int
+    green_max: float
+    green_min: float
+    green_scale: Optional[float]
+    red_band: int
+    red_max: float
+    red_min: float
+    red_scale: Optional[float]
+
+    @staticmethod
+    def from_multi_band_response(response: geoengine_openapi_client.MultiBandRasterColorizer) -> RasterColorizer:
+        return MultiBandRasterColorizer(
+            response.blue_band,
+            response.blue_max,
+            response.blue_min,
+            response.blue_scale,
+            response.green_band,
+            response.green_max,
+            response.green_min,
+            response.green_scale,
+            response.red_band,
+            response.red_max,
+            response.red_min,
+            response.red_scale
+        )
+
+    def to_api_dict(self) -> geoengine_openapi_client.RasterColorizer:
+        return geoengine_openapi_client.RasterColorizer(geoengine_openapi_client.MultiBandRasterColorizer(
+            type='multiBand',
+            blue_band=self.blue_band,
+            blue_max=self.blue_max,
+            blue_min=self.blue_min,
+            blue_scale=self.blue_scale,
+            green_band=self.green_band,
+            green_max=self.green_max,
+            green_min=self.green_min,
+            green_scale=self.green_scale,
+            red_band=self.red_band,
+            red_max=self.red_max,
+            red_min=self.red_min,
+            red_scale=self.red_scale
         ))
 
 
