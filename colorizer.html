@@ -236,10 +236,6 @@ class Colorizer():
             default_color=default_color,
         )
 
-    @staticmethod
-    def rgba() -&gt; RgbaColorizer:
-        return RgbaColorizer()
-
     @abstractmethod
     def to_api_dict(self) -&gt; geoengine_openapi_client.Colorizer:
         pass
@@ -259,8 +255,6 @@ class Colorizer():
             return PaletteColorizer.from_response_palette(inner)
         if isinstance(inner, geoengine_openapi_client.LogarithmicGradient):
             return LogarithmicGradientColorizer.from_response_logarithmic(inner)
-        if isinstance(inner, geoengine_openapi_client.RgbaColorizer):
-            return RgbaColorizer.from_response_rgba(inner)
 
         raise TypeError(&#34;Unknown colorizer type&#34;)
 
@@ -347,25 +341,6 @@ class PaletteColorizer(Colorizer):
             colors=self.colors,
             default_color=self.default_color,
             no_data_color=self.no_data_color,
-        ))
-
-
-class RgbaColorizer(Colorizer):
-    &#39;&#39;&#39;A Rgba colorizer.&#39;&#39;&#39;
-
-    def __init__(self, no_data_color: Rgba = (0, 0, 0, 0)):
-        super().__init__(no_data_color)
-
-    @staticmethod
-    def from_response_rgba(_response: geoengine_openapi_client.RgbaColorizer) -&gt; RgbaColorizer:
-        &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
-
-        return RgbaColorizer()
-
-    def to_api_dict(self) -&gt; geoengine_openapi_client.Colorizer:
-        &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
-        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.RgbaColorizer(
-            type=&#39;rgba&#39;,
         ))</code></pre>
 </details>
 </section>
@@ -636,10 +611,6 @@ class Colorizer():
             default_color=default_color,
         )
 
-    @staticmethod
-    def rgba() -&gt; RgbaColorizer:
-        return RgbaColorizer()
-
     @abstractmethod
     def to_api_dict(self) -&gt; geoengine_openapi_client.Colorizer:
         pass
@@ -659,8 +630,6 @@ class Colorizer():
             return PaletteColorizer.from_response_palette(inner)
         if isinstance(inner, geoengine_openapi_client.LogarithmicGradient):
             return LogarithmicGradientColorizer.from_response_logarithmic(inner)
-        if isinstance(inner, geoengine_openapi_client.RgbaColorizer):
-            return RgbaColorizer.from_response_rgba(inner)
 
         raise TypeError(&#34;Unknown colorizer type&#34;)</code></pre>
 </details>
@@ -669,7 +638,6 @@ class Colorizer():
 <li><a title="geoengine.colorizer.LinearGradientColorizer" href="#geoengine.colorizer.LinearGradientColorizer">LinearGradientColorizer</a></li>
 <li><a title="geoengine.colorizer.LogarithmicGradientColorizer" href="#geoengine.colorizer.LogarithmicGradientColorizer">LogarithmicGradientColorizer</a></li>
 <li><a title="geoengine.colorizer.PaletteColorizer" href="#geoengine.colorizer.PaletteColorizer">PaletteColorizer</a></li>
-<li><a title="geoengine.colorizer.RgbaColorizer" href="#geoengine.colorizer.RgbaColorizer">RgbaColorizer</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -700,8 +668,6 @@ def from_response(response: geoengine_openapi_client.Colorizer) -&gt; Colorizer:
         return PaletteColorizer.from_response_palette(inner)
     if isinstance(inner, geoengine_openapi_client.LogarithmicGradient):
         return LogarithmicGradientColorizer.from_response_logarithmic(inner)
-    if isinstance(inner, geoengine_openapi_client.RgbaColorizer):
-        return RgbaColorizer.from_response_rgba(inner)
 
     raise TypeError(&#34;Unknown colorizer type&#34;)</code></pre>
 </details>
@@ -915,20 +881,6 @@ def palette_with_colormap(
         no_data_color=no_data_color,
         default_color=default_color,
     )</code></pre>
-</details>
-</dd>
-<dt id="geoengine.colorizer.Colorizer.rgba"><code class="name flex">
-<span>def <span class="ident">rgba</span></span>(<span>) ‑> <a title="geoengine.colorizer.RgbaColorizer" href="#geoengine.colorizer.RgbaColorizer">RgbaColorizer</a></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@staticmethod
-def rgba() -&gt; RgbaColorizer:
-    return RgbaColorizer()</code></pre>
 </details>
 </dd>
 </dl>
@@ -1311,97 +1263,6 @@ def from_response_palette(response: geoengine_openapi_client.PaletteColorizer) -
 </li>
 </ul>
 </dd>
-<dt id="geoengine.colorizer.RgbaColorizer"><code class="flex name class">
-<span>class <span class="ident">RgbaColorizer</span></span>
-<span>(</span><span>no_data_color: Rgba = (0, 0, 0, 0))</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A Rgba colorizer.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class RgbaColorizer(Colorizer):
-    &#39;&#39;&#39;A Rgba colorizer.&#39;&#39;&#39;
-
-    def __init__(self, no_data_color: Rgba = (0, 0, 0, 0)):
-        super().__init__(no_data_color)
-
-    @staticmethod
-    def from_response_rgba(_response: geoengine_openapi_client.RgbaColorizer) -&gt; RgbaColorizer:
-        &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
-
-        return RgbaColorizer()
-
-    def to_api_dict(self) -&gt; geoengine_openapi_client.Colorizer:
-        &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
-        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.RgbaColorizer(
-            type=&#39;rgba&#39;,
-        ))</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="geoengine.colorizer.Colorizer" href="#geoengine.colorizer.Colorizer">Colorizer</a></li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="geoengine.colorizer.RgbaColorizer.no_data_color"><code class="name">var <span class="ident">no_data_color</span> : Tuple[int, int, int, int]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="geoengine.colorizer.RgbaColorizer.from_response_rgba"><code class="name flex">
-<span>def <span class="ident">from_response_rgba</span></span>(<span>_response: geoengine_openapi_client.RgbaColorizer) ‑> <a title="geoengine.colorizer.RgbaColorizer" href="#geoengine.colorizer.RgbaColorizer">RgbaColorizer</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Create a colorizer from a response.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@staticmethod
-def from_response_rgba(_response: geoengine_openapi_client.RgbaColorizer) -&gt; RgbaColorizer:
-    &#34;&#34;&#34;Create a colorizer from a response.&#34;&#34;&#34;
-
-    return RgbaColorizer()</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="geoengine.colorizer.RgbaColorizer.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.colorizer.Colorizer</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Return the colorizer as a dictionary.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.Colorizer:
-    &#34;&#34;&#34;Return the colorizer as a dictionary.&#34;&#34;&#34;
-    return geoengine_openapi_client.Colorizer(geoengine_openapi_client.RgbaColorizer(
-        type=&#39;rgba&#39;,
-    ))</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="geoengine.colorizer.Colorizer" href="#geoengine.colorizer.Colorizer">Colorizer</a></b></code>:
-<ul class="hlist">
-<li><code><a title="geoengine.colorizer.Colorizer.from_response" href="#geoengine.colorizer.Colorizer.from_response">from_response</a></code></li>
-<li><code><a title="geoengine.colorizer.Colorizer.linear_with_mpl_cmap" href="#geoengine.colorizer.Colorizer.linear_with_mpl_cmap">linear_with_mpl_cmap</a></code></li>
-<li><code><a title="geoengine.colorizer.Colorizer.logarithmic_with_mpl_cmap" href="#geoengine.colorizer.Colorizer.logarithmic_with_mpl_cmap">logarithmic_with_mpl_cmap</a></code></li>
-<li><code><a title="geoengine.colorizer.Colorizer.palette" href="#geoengine.colorizer.Colorizer.palette">palette</a></code></li>
-<li><code><a title="geoengine.colorizer.Colorizer.palette_with_colormap" href="#geoengine.colorizer.Colorizer.palette_with_colormap">palette_with_colormap</a></code></li>
-<li><code><a title="geoengine.colorizer.Colorizer.to_json" href="#geoengine.colorizer.Colorizer.to_json">to_json</a></code></li>
-</ul>
-</li>
-</ul>
-</dd>
 </dl>
 </section>
 </article>
@@ -1436,7 +1297,6 @@ def from_response_rgba(_response: geoengine_openapi_client.RgbaColorizer) -&gt; 
 <li><code><a title="geoengine.colorizer.Colorizer.no_data_color" href="#geoengine.colorizer.Colorizer.no_data_color">no_data_color</a></code></li>
 <li><code><a title="geoengine.colorizer.Colorizer.palette" href="#geoengine.colorizer.Colorizer.palette">palette</a></code></li>
 <li><code><a title="geoengine.colorizer.Colorizer.palette_with_colormap" href="#geoengine.colorizer.Colorizer.palette_with_colormap">palette_with_colormap</a></code></li>
-<li><code><a title="geoengine.colorizer.Colorizer.rgba" href="#geoengine.colorizer.Colorizer.rgba">rgba</a></code></li>
 <li><code><a title="geoengine.colorizer.Colorizer.to_api_dict" href="#geoengine.colorizer.Colorizer.to_api_dict">to_api_dict</a></code></li>
 <li><code><a title="geoengine.colorizer.Colorizer.to_json" href="#geoengine.colorizer.Colorizer.to_json">to_json</a></code></li>
 </ul>
@@ -1468,14 +1328,6 @@ def from_response_rgba(_response: geoengine_openapi_client.RgbaColorizer) -&gt; 
 <li><code><a title="geoengine.colorizer.PaletteColorizer.default_color" href="#geoengine.colorizer.PaletteColorizer.default_color">default_color</a></code></li>
 <li><code><a title="geoengine.colorizer.PaletteColorizer.from_response_palette" href="#geoengine.colorizer.PaletteColorizer.from_response_palette">from_response_palette</a></code></li>
 <li><code><a title="geoengine.colorizer.PaletteColorizer.to_api_dict" href="#geoengine.colorizer.PaletteColorizer.to_api_dict">to_api_dict</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="geoengine.colorizer.RgbaColorizer" href="#geoengine.colorizer.RgbaColorizer">RgbaColorizer</a></code></h4>
-<ul class="">
-<li><code><a title="geoengine.colorizer.RgbaColorizer.from_response_rgba" href="#geoengine.colorizer.RgbaColorizer.from_response_rgba">from_response_rgba</a></code></li>
-<li><code><a title="geoengine.colorizer.RgbaColorizer.no_data_color" href="#geoengine.colorizer.RgbaColorizer.no_data_color">no_data_color</a></code></li>
-<li><code><a title="geoengine.colorizer.RgbaColorizer.to_api_dict" href="#geoengine.colorizer.RgbaColorizer.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>
 </ul>
