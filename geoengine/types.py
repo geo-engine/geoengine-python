@@ -166,7 +166,7 @@ class TimeInterval:
             raise InputException("Time inverval: Start must be <= End")
 
     def is_instant(self) -> bool:
-        return self.end is None
+        return self.end is None or self.start == self.end
 
     @property
     def time_str(self) -> str:
@@ -184,36 +184,41 @@ class TimeInterval:
         return start_iso + '/' + end_iso
 
     @staticmethod
-    def from_response(response: Any) -> TimeInterval:
+    def from_response(response: geoengine_openapi_client.models.TimeInterval) -> TimeInterval:
         '''create a `TimeInterval` from an API response'''
 
-        if 'start' not in response:
+        if response.start is None:
             raise TypeException('TimeInterval must have a start')
 
-        if isinstance(response['start'], int):
-            start = cast(int, response['start'])
-            end = cast(int, response['end']) if 'end' in response and response['end'] is not None else None
+        start = cast(int, response.start)
+        end = None
+        if response.end is not None:
+            end = cast(int, response.end)
 
-            return TimeInterval(
-                np.datetime64(start, 'ms'),
-                np.datetime64(end, 'ms') if end is not None else None,
-            )
-
-        start_str = cast(str, response['start'])
-        end_str = cast(str, response['end']) if 'end' in response and response['end'] is not None else None
+        if start == end:
+            end = None
 
         return TimeInterval(
-            datetime.fromisoformat(start_str),
-            datetime.fromisoformat(end_str) if end_str is not None else None,
+            np.datetime64(start, 'ms'),
+            np.datetime64(end, 'ms') if end is not None else None,
         )
 
     def __repr__(self) -> str:
         return f"TimeInterval(start={self.start}, end={self.end})"
 
     def to_api_dict(self) -> geoengine_openapi_client.TimeInterval:
+        '''create a openapi `TimeInterval` from self'''
+        start = self.start.astype('datetime64[ms]').astype(int)
+        end = self.end.astype('datetime64[ms]').astype(int) if self.end is not None else None
+
+        # The openapi Timeinterval does not accept end: None. So we set it to start IF self is an instant.
+        end = end if end is not None else start
+
+        print(self, start, end)
+
         return geoengine_openapi_client.TimeInterval(
-            start=int(self.start.astype('datetime64[ms]').astype(int)),
-            end=int(self.end.astype('datetime64[ms]').astype(int)) if self.end is not None else None,
+            start=int(start),
+            end=int(end)
         )
 
     @staticmethod
@@ -523,9 +528,8 @@ class VectorResultDescriptor(ResultDescriptor):
         columns = {name: VectorColumnInfo.from_response(info) for name, info in response.columns.items()}
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if 'time' in response and response['time'] is not None:
-        #    time_bounds = TimeInterval.from_response(response['time'])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -580,7 +584,7 @@ class VectorResultDescriptor(ResultDescriptor):
             data_type=self.data_type.to_api_enum(),
             spatial_reference=self.spatial_reference,
             columns={name: column_info.to_api_dict() for name, column_info in self.columns.items()},
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
         ))
@@ -687,7 +691,7 @@ class RasterResultDescriptor(ResultDescriptor):
             data_type=self.data_type,
             bands=[band.to_api_dict() for band in self.__bands],
             spatial_reference=self.spatial_reference,
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
         ))
@@ -701,9 +705,8 @@ class RasterResultDescriptor(ResultDescriptor):
         bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if 'time' in response and response['time'] is not None:
-        #    time_bounds = TimeInterval.from_response(response['time'])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = SpatialPartition2D.from_response(response.bbox)
@@ -784,9 +787,8 @@ class PlotResultDescriptor(ResultDescriptor):
         spatial_ref = response.spatial_reference
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if 'time' in response and response['time'] is not None:
-        #    time_bounds = TimeInterval.from_response(response['time'])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -817,7 +819,7 @@ class PlotResultDescriptor(ResultDescriptor):
             type='plot',
             spatial_reference=self.spatial_reference,
             data_type='Plot',
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None
         ))
 
@@ -977,6 +979,8 @@ class RasterColorizer:
 
         if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
             return SingleBandRasterColorizer.from_single_band_response(inner)
+        if isinstance(inner, geoengine_openapi_client.MultiBandRasterColorizer):
+            return MultiBandRasterColorizer.from_multi_band_response(inner)
 
         raise GeoEngineException({"message": "Unknown RasterColorizer type"})
 
@@ -1004,6 +1008,58 @@ class SingleBandRasterColorizer(RasterColorizer):
             type='singleBand',
             band=self.band,
             band_colorizer=self.band_colorizer.to_api_dict(),
+        ))
+
+
+@dataclass
+class MultiBandRasterColorizer(RasterColorizer):
+    '''A raster colorizer for multiple bands'''
+
+    blue_band: int
+    blue_max: float
+    blue_min: float
+    blue_scale: Optional[float]
+    green_band: int
+    green_max: float
+    green_min: float
+    green_scale: Optional[float]
+    red_band: int
+    red_max: float
+    red_min: float
+    red_scale: Optional[float]
+
+    @staticmethod
+    def from_multi_band_response(response: geoengine_openapi_client.MultiBandRasterColorizer) -> RasterColorizer:
+        return MultiBandRasterColorizer(
+            response.blue_band,
+            response.blue_max,
+            response.blue_min,
+            response.blue_scale,
+            response.green_band,
+            response.green_max,
+            response.green_min,
+            response.green_scale,
+            response.red_band,
+            response.red_max,
+            response.red_min,
+            response.red_scale
+        )
+
+    def to_api_dict(self) -> geoengine_openapi_client.RasterColorizer:
+        return geoengine_openapi_client.RasterColorizer(geoengine_openapi_client.MultiBandRasterColorizer(
+            type='multiBand',
+            blue_band=self.blue_band,
+            blue_max=self.blue_max,
+            blue_min=self.blue_min,
+            blue_scale=self.blue_scale,
+            green_band=self.green_band,
+            green_max=self.green_max,
+            green_min=self.green_min,
+            green_scale=self.green_scale,
+            red_band=self.red_band,
+            red_max=self.red_max,
+            red_min=self.red_min,
+            red_scale=self.red_scale
         ))
 
 
