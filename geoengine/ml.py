@@ -73,7 +73,6 @@ def validate_model_config(onnx_model: ModelProto, *,
             raise InputException(f'Model {prefix} type `{elem_type_str}` does not match the '
                                  f'expected type `{expected_type}`')
 
-
     model_inputs = onnx_model.graph.input
     model_outputs = onnx_model.graph.output
 
