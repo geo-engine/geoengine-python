@@ -23,7 +23,6 @@ class WorkflowStorageTests(unittest.TestCase):
         clf.fit(training_x, training_y)
 
         onnx_clf = to_onnx(clf, training_x[:1], options={'zipmap': False}, target_opset=9)
-        onnx_clf2 = to_onnx(clf, training_x[:1], options={'zipmap': False}, target_opset=12)
 
         with UrllibMocker() as m:
             session_id = "c4983c3e-9b53-47ae-bda9-382223bd5081"
