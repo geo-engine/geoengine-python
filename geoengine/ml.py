@@ -19,7 +19,6 @@ class MlModelConfig:
     '''Configuration for an ml model'''
     name: str
     metadata: MlModelMetadata
-    file_name: str = "model.onnx"
     display_name: str = "My Ml Model"
     description: str = "My Ml Model Description"
 
@@ -41,7 +40,7 @@ def register_ml_model(onnx_model: ModelProto,
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         with tempfile.TemporaryDirectory() as temp_dir:
-            file_name = Path(temp_dir) / model_config.file_name
+            file_name = Path(temp_dir) / model_config.metadata.file_name
 
             with open(file_name, 'wb') as file:
                 file.write(onnx_model.SerializeToString())
@@ -74,11 +73,6 @@ def validate_model_config(onnx_model: ModelProto, *,
             raise InputException(f'Model {prefix} type `{elem_type_str}` does not match the '
                                  f'expected type `{expected_type}`')
 
-    for domain in onnx_model.opset_import:
-        if domain.domain != '':
-            continue
-        if domain.version != 9:
-            raise InputException('Only ONNX models with opset version 9 are supported')
 
     model_inputs = onnx_model.graph.input
     model_outputs = onnx_model.graph.output
