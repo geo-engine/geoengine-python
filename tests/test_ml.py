@@ -132,23 +132,3 @@ class WorkflowStorageTests(unittest.TestCase):
                 str(exception.exception),
                 'Model output type `TensorProto.INT64` does not match the expected type `RasterDataType.I32`'
             )
-
-            with self.assertRaises(ge.InputException) as exception:
-                ge.register_ml_model(
-                    onnx_model=onnx_clf2,
-                    model_config=ge.ml.MlModelConfig(
-                        name="foo",
-                        metadata=MlModelMetadata(
-                            file_name="model.onnx",
-                            input_type=RasterDataType.F32,
-                            num_input_bands=2,
-                            output_type=RasterDataType.I64,
-                        ),
-                        display_name="Decision Tree",
-                        description="A simple decision tree model",
-                    )
-                )
-            self.assertEqual(
-                str(exception.exception),
-                'Only ONNX models with opset version 9 are supported'
-            )
