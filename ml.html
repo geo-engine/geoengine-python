@@ -48,7 +48,6 @@ class MlModelConfig:
     &#39;&#39;&#39;Configuration for an ml model&#39;&#39;&#39;
     name: str
     metadata: MlModelMetadata
-    file_name: str = &#34;model.onnx&#34;
     display_name: str = &#34;My Ml Model&#34;
     description: str = &#34;My Ml Model Description&#34;
 
@@ -70,7 +69,7 @@ def register_ml_model(onnx_model: ModelProto,
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         with tempfile.TemporaryDirectory() as temp_dir:
-            file_name = Path(temp_dir) / model_config.file_name
+            file_name = Path(temp_dir) / model_config.metadata.file_name
 
             with open(file_name, &#39;wb&#39;) as file:
                 file.write(onnx_model.SerializeToString())
@@ -102,12 +101,6 @@ def validate_model_config(onnx_model: ModelProto, *,
             elem_type_str = tensor_dtype_to_string(elem_type)
             raise InputException(f&#39;Model {prefix} type `{elem_type_str}` does not match the &#39;
                                  f&#39;expected type `{expected_type}`&#39;)
-
-    for domain in onnx_model.opset_import:
-        if domain.domain != &#39;&#39;:
-            continue
-        if domain.version != 9:
-            raise InputException(&#39;Only ONNX models with opset version 9 are supported&#39;)
 
     model_inputs = onnx_model.graph.input
     model_outputs = onnx_model.graph.output
@@ -176,7 +169,7 @@ RASTER_TYPE_TO_ONNX_TYPE = {
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         with tempfile.TemporaryDirectory() as temp_dir:
-            file_name = Path(temp_dir) / model_config.file_name
+            file_name = Path(temp_dir) / model_config.metadata.file_name
 
             with open(file_name, &#39;wb&#39;) as file:
                 file.write(onnx_model.SerializeToString())
@@ -218,12 +211,6 @@ RASTER_TYPE_TO_ONNX_TYPE = {
             raise InputException(f&#39;Model {prefix} type `{elem_type_str}` does not match the &#39;
                                  f&#39;expected type `{expected_type}`&#39;)
 
-    for domain in onnx_model.opset_import:
-        if domain.domain != &#39;&#39;:
-            continue
-        if domain.version != 9:
-            raise InputException(&#39;Only ONNX models with opset version 9 are supported&#39;)
-
     model_inputs = onnx_model.graph.input
     model_outputs = onnx_model.graph.output
 
@@ -251,7 +238,7 @@ RASTER_TYPE_TO_ONNX_TYPE = {
 <dl>
 <dt id="geoengine.ml.MlModelConfig"><code class="flex name class">
 <span>class <span class="ident">MlModelConfig</span></span>
-<span>(</span><span>name: str, metadata: geoengine_openapi_client.models.ml_model_metadata.MlModelMetadata, file_name: str = 'model.onnx', display_name: str = 'My Ml Model', description: str = 'My Ml Model Description')</span>
+<span>(</span><span>name: str, metadata: geoengine_openapi_client.models.ml_model_metadata.MlModelMetadata, display_name: str = 'My Ml Model', description: str = 'My Ml Model Description')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Configuration for an ml model</p></div>
@@ -264,7 +251,6 @@ class MlModelConfig:
     &#39;&#39;&#39;Configuration for an ml model&#39;&#39;&#39;
     name: str
     metadata: MlModelMetadata
-    file_name: str = &#34;model.onnx&#34;
     display_name: str = &#34;My Ml Model&#34;
     description: str = &#34;My Ml Model Description&#34;</code></pre>
 </details>
@@ -275,10 +261,6 @@ class MlModelConfig:
 <div class="desc"></div>
 </dd>
 <dt id="geoengine.ml.MlModelConfig.display_name"><code class="name">var <span class="ident">display_name</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="geoengine.ml.MlModelConfig.file_name"><code class="name">var <span class="ident">file_name</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -319,7 +301,6 @@ class MlModelConfig:
 <ul class="">
 <li><code><a title="geoengine.ml.MlModelConfig.description" href="#geoengine.ml.MlModelConfig.description">description</a></code></li>
 <li><code><a title="geoengine.ml.MlModelConfig.display_name" href="#geoengine.ml.MlModelConfig.display_name">display_name</a></code></li>
-<li><code><a title="geoengine.ml.MlModelConfig.file_name" href="#geoengine.ml.MlModelConfig.file_name">file_name</a></code></li>
 <li><code><a title="geoengine.ml.MlModelConfig.metadata" href="#geoengine.ml.MlModelConfig.metadata">metadata</a></code></li>
 <li><code><a title="geoengine.ml.MlModelConfig.name" href="#geoengine.ml.MlModelConfig.name">name</a></code></li>
 </ul>
