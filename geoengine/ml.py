@@ -5,16 +5,17 @@ Util functions for machine learning
 from pathlib import Path
 import tempfile
 from dataclasses import dataclass
+import geoengine_openapi_client.models
 from onnx import TypeProto, TensorProto, ModelProto
 from onnx.helper import tensor_dtype_to_string
-from geoengine_openapi_client.models import MlModelMetadata, MlModel, RasterDataType
+from geoengine_openapi_client.models import MlModelMetadata, MlModel, RasterDataType, TensorShape3D
 import geoengine_openapi_client
 from geoengine.auth import get_session
 from geoengine.datasets import UploadId
 from geoengine.error import InputException
 
 
-@dataclass
+@ dataclass
 class MlModelConfig:
     '''Configuration for an ml model'''
     name: str
@@ -34,7 +35,8 @@ def register_ml_model(onnx_model: ModelProto,
         onnx_model,
         input_type=model_config.metadata.input_type,
         output_type=model_config.metadata.output_type,
-        num_input_bands=model_config.metadata.num_input_bands,
+        input_shape=model_config.metadata.input_shape,
+        out_shape=model_config.metadata.output_shape
     )
 
     session = get_session()
@@ -62,7 +64,8 @@ def register_ml_model(onnx_model: ModelProto,
 def validate_model_config(onnx_model: ModelProto, *,
                           input_type: RasterDataType,
                           output_type: RasterDataType,
-                          num_input_bands: int):
+                          input_shape: TensorShape3D,
+                          out_shape: TensorShape3D):
     '''Validates the model config. Raises an exception if the model config is invalid'''
 
     def check_data_type(data_type: TypeProto, expected_type: RasterDataType, prefix: 'str'):
@@ -80,6 +83,13 @@ def validate_model_config(onnx_model: ModelProto, *,
         if domain.version != 9:
             raise InputException('Only ONNX models with opset version 9 are supported')
 
+    if input_shape.x != input_shape.y:
+        raise InputException('Currently only input shapes with x==y are allowed')
+    if out_shape.x != out_shape.y:
+        raise InputException('Currently only output shapes with x==y are allowed')
+    if out_shape.attributes != 1:
+        raise InputException('Currently only output shapes with one attribute/band allowed')
+
     model_inputs = onnx_model.graph.input
     model_outputs = onnx_model.graph.output
 
@@ -87,17 +97,57 @@ def validate_model_config(onnx_model: ModelProto, *,
         raise InputException('Models with multiple inputs are not supported')
     check_data_type(model_inputs[0].type, input_type, 'input')
 
-    dims = model_inputs[0].type.tensor_type.shape.dim
-    if len(dims) != 2:
-        raise InputException('Only 2D input tensors are supported')
-    if not dims[1].dim_value:
-        raise InputException('Dimension 1 of the input tensor must have a length')
-    if dims[1].dim_value != num_input_bands:
-        raise InputException(f'Model input has {dims[1].dim_value} bands, but {num_input_bands} bands are expected')
+    dim = model_inputs[0].type.tensor_type.shape.dim
+
+    if len(dim) == 2:
+        if not dim[1].dim_value:
+            raise InputException('Dimension 1 of a 1D input tensor must have a length')
+        if dim[1].dim_value != input_shape.attributes:
+            raise InputException(f'Model input has {dim[1].dim_value} bands, but {input_shape.attributes} are expected')
+    elif len(dim) == 4:
+        if not dim[1].dim_value:
+            raise InputException('Dimension 1 of the a 3D input tensor must have a length')
+        if not dim[2].dim_value:
+            raise InputException('Dimension 2 of the a 3D input tensor must have a length')
+        if not dim[3].dim_value:
+            raise InputException('Dimension 3 of the a 3D input tensor must have a length')
+        if dim[1].dim_value != input_shape.attributes:
+            raise InputException(f'Model input has {dim[1].dim_value} y size, but {input_shape.y} are expected')
+        if dim[2].dim_value != input_shape.attributes:
+            raise InputException(f'Model input has {dim[2].dim_value} x size, but {input_shape.x} are expected')
+        if dim[3].dim_value != input_shape.attributes:
+            raise InputException(f'Model input has {dim[3].dim_value} bands, but {input_shape.attributes} are expected')
+    else:
+        raise InputException('Only 1D and 3D input tensors are supported')
 
     if len(model_outputs) < 1:
         raise InputException('Models with no outputs are not supported')
     check_data_type(model_outputs[0].type, output_type, 'output')
+
+    dim = model_outputs[0].type.tensor_type.shape.dim
+
+    if len(dim) == 1:
+        pass  # this is a happens if there is only a single out? so shape would be [-1]
+    elif len(dim) == 2:
+        if not dim[1].dim_value:
+            raise InputException('Dimension 1 of a 1D input tensor must have a length')
+        if dim[1].dim_value != 1:
+            raise InputException(f'Model output has {dim[1].dim_value} bands, but {out_shape.attributes} are expected')
+    elif len(dim) == 4:
+        if not dim[1].dim_value:
+            raise InputException('Dimension 1 of the a 3D input tensor must have a length')
+        if not dim[2].dim_value:
+            raise InputException('Dimension 2 of the a 3D input tensor must have a length')
+        if not dim[3].dim_value:
+            raise InputException('Dimension 3 of the a 3D input tensor must have a length')
+        if dim[1].dim_value != out_shape.attributes:
+            raise InputException(f'Model output has {dim[1].dim_value} y size, but {out_shape.y} are expected')
+        if dim[2].dim_value != out_shape.attributes:
+            raise InputException(f'Model output has {dim[2].dim_value} x size, but {out_shape.x} are expected')
+        if dim[3].dim_value != out_shape.attributes:
+            raise InputException(f'Model output has {dim[3].dim_value} bands, but {out_shape.attributes} are expected')
+    else:
+        raise InputException('Only 1D and 3D output tensors are supported')
 
 
 RASTER_TYPE_TO_ONNX_TYPE = {

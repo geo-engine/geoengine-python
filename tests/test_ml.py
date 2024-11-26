@@ -4,7 +4,7 @@ import unittest
 from sklearn.ensemble import RandomForestClassifier
 from skl2onnx import to_onnx
 import numpy as np
-from geoengine_openapi_client.models import MlModelMetadata, RasterDataType
+from geoengine_openapi_client.models import MlModelMetadata, RasterDataType, TensorShape3D
 import geoengine as ge
 from . import UrllibMocker
 
@@ -48,8 +48,17 @@ class WorkflowStorageTests(unittest.TestCase):
                        "metadata": {
                            "fileName": "model.onnx",
                            "inputType": "F32",
-                           "numInputBands": 2,
-                           "outputType": "I64"
+                           "outputType": "I64",
+                           "inputShape": {
+                               "y": 1,
+                               "x": 1,
+                               "attributes": 2
+                           },
+                           "outputShape": {
+                               "y": 1,
+                               "x": 1,
+                               "attributes": 1
+                           }
                        },
                        "name": "foo",
                        "upload": upload_id
@@ -65,8 +74,9 @@ class WorkflowStorageTests(unittest.TestCase):
                     metadata=MlModelMetadata(
                         file_name="model.onnx",
                         input_type=RasterDataType.F32,
-                        num_input_bands=2,
                         output_type=RasterDataType.I64,
+                        input_shape=TensorShape3D(y=1, x=1, attributes=2),
+                        output_shape=TensorShape3D(y=1, x=1, attributes=1)
                     ),
                     display_name="Decision Tree",
                     description="A simple decision tree model",
@@ -81,8 +91,9 @@ class WorkflowStorageTests(unittest.TestCase):
                         metadata=MlModelMetadata(
                             file_name="model.onnx",
                             input_type=RasterDataType.F32,
-                            num_input_bands=4,
                             output_type=RasterDataType.I64,
+                            input_shape=TensorShape3D(y=1, x=1, attributes=4),
+                            output_shape=TensorShape3D(y=1, x=1, attributes=1)
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
@@ -90,7 +101,7 @@ class WorkflowStorageTests(unittest.TestCase):
                 )
             self.assertEqual(
                 str(exception.exception),
-                'Model input has 2 bands, but 4 bands are expected'
+                'Model input has 2 bands, but 4 are expected'
             )
 
             with self.assertRaises(ge.InputException) as exception:
@@ -101,8 +112,9 @@ class WorkflowStorageTests(unittest.TestCase):
                         metadata=MlModelMetadata(
                             file_name="model.onnx",
                             input_type=RasterDataType.F64,
-                            num_input_bands=2,
                             output_type=RasterDataType.I64,
+                            input_shape=TensorShape3D(y=1, x=1, attributes=2),
+                            output_shape=TensorShape3D(y=1, x=1, attributes=1)
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
@@ -121,8 +133,9 @@ class WorkflowStorageTests(unittest.TestCase):
                         metadata=MlModelMetadata(
                             file_name="model.onnx",
                             input_type=RasterDataType.F32,
-                            num_input_bands=2,
                             output_type=RasterDataType.I32,
+                            input_shape=TensorShape3D(y=1, x=1, attributes=2),
+                            output_shape=TensorShape3D(y=1, x=1, attributes=1)
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
@@ -141,8 +154,9 @@ class WorkflowStorageTests(unittest.TestCase):
                         metadata=MlModelMetadata(
                             file_name="model.onnx",
                             input_type=RasterDataType.F32,
-                            num_input_bands=2,
                             output_type=RasterDataType.I64,
+                            input_shape=TensorShape3D(y=1, x=1, attributes=2),
+                            output_shape=TensorShape3D(y=1, x=1, attributes=1)
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
