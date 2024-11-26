@@ -23,7 +23,6 @@ class WorkflowStorageTests(unittest.TestCase):
         clf.fit(training_x, training_y)
 
         onnx_clf = to_onnx(clf, training_x[:1], options={'zipmap': False}, target_opset=9)
-        onnx_clf2 = to_onnx(clf, training_x[:1], options={'zipmap': False}, target_opset=12)
 
         with UrllibMocker() as m:
             session_id = "c4983c3e-9b53-47ae-bda9-382223bd5081"
@@ -144,25 +143,4 @@ class WorkflowStorageTests(unittest.TestCase):
             self.assertEqual(
                 str(exception.exception),
                 'Model output type `TensorProto.INT64` does not match the expected type `RasterDataType.I32`'
-            )
-
-            with self.assertRaises(ge.InputException) as exception:
-                ge.register_ml_model(
-                    onnx_model=onnx_clf2,
-                    model_config=ge.ml.MlModelConfig(
-                        name="foo",
-                        metadata=MlModelMetadata(
-                            file_name="model.onnx",
-                            input_type=RasterDataType.F32,
-                            output_type=RasterDataType.I64,
-                            input_shape=TensorShape3D(y=1, x=1, attributes=2),
-                            output_shape=TensorShape3D(y=1, x=1, attributes=1)
-                        ),
-                        display_name="Decision Tree",
-                        description="A simple decision tree model",
-                    )
-                )
-            self.assertEqual(
-                str(exception.exception),
-                'Only ONNX models with opset version 9 are supported'
             )

@@ -15,12 +15,11 @@ from geoengine.datasets import UploadId
 from geoengine.error import InputException
 
 
-@ dataclass
+@dataclass
 class MlModelConfig:
     '''Configuration for an ml model'''
     name: str
     metadata: MlModelMetadata
-    file_name: str = "model.onnx"
     display_name: str = "My Ml Model"
     description: str = "My Ml Model Description"
 
@@ -43,7 +42,7 @@ def register_ml_model(onnx_model: ModelProto,
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         with tempfile.TemporaryDirectory() as temp_dir:
-            file_name = Path(temp_dir) / model_config.file_name
+            file_name = Path(temp_dir) / model_config.metadata.file_name
 
             with open(file_name, 'wb') as file:
                 file.write(onnx_model.SerializeToString())
@@ -61,6 +60,7 @@ def register_ml_model(onnx_model: ModelProto,
         ml_api.add_ml_model(model, _request_timeout=register_timeout)
 
 
+# pylint: disable=too-many-branches,too-many-statements
 def validate_model_config(onnx_model: ModelProto, *,
                           input_type: RasterDataType,
                           output_type: RasterDataType,
@@ -76,19 +76,6 @@ def validate_model_config(onnx_model: ModelProto, *,
             elem_type_str = tensor_dtype_to_string(elem_type)
             raise InputException(f'Model {prefix} type `{elem_type_str}` does not match the '
                                  f'expected type `{expected_type}`')
-
-    for domain in onnx_model.opset_import:
-        if domain.domain != '':
-            continue
-        if domain.version != 9:
-            raise InputException('Only ONNX models with opset version 9 are supported')
-
-    if input_shape.x != input_shape.y:
-        raise InputException('Currently only input shapes with x==y are allowed')
-    if out_shape.x != out_shape.y:
-        raise InputException('Currently only output shapes with x==y are allowed')
-    if out_shape.attributes != 1:
-        raise InputException('Currently only output shapes with one attribute/band allowed')
 
     model_inputs = onnx_model.graph.input
     model_outputs = onnx_model.graph.output
