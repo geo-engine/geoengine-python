@@ -29,6 +29,7 @@ import websockets
 import websockets.client
 import xarray as xr
 import pyarrow as pa
+import matplotlib.pyplot as plt
 
 import geoengine_openapi_client
 from geoengine import api
@@ -987,7 +988,9 @@ def data_usage(offset: int = 0, limit: int = 10) -> List[geoengine_openapi_clien
     return df
 
 
-def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity, dataset: Optional[str] = None, offset: int = 0, limit: int = 10) -> List[geoengine_openapi_client.DataUsage]:
+def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity,
+                       dataset: Optional[str] = None,
+                       offset: int = 0, limit: int = 10) -> pd.DataFrame:
     '''
     Get data usage summary
     '''
@@ -996,7 +999,8 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         user_api = geoengine_openapi_client.UserApi(api_client)
-        response = user_api.data_usage_summary_handler(dataset=dataset, granularity=granularity, offset=offset, limit=limit)
+        response = user_api.data_usage_summary_handler(dataset=dataset, granularity=granularity,
+                                                       offset=offset, limit=limit)
 
         # create dataframe from response
         usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
@@ -1005,9 +1009,11 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
     return df
 
 
-def plot_data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity, dataset: Optional[str] = None, offset: int = 0, limit: int = 10):
-    import matplotlib.pyplot as plt
-    import pandas as pd
+def plot_data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity,
+                            dataset: Optional[str] = None, offset: int = 0, limit: int = 10):
+    '''
+    Plot data usage summary
+    '''
 
     df = data_usage_summary(granularity, dataset, offset, limit)
     df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize(None)
