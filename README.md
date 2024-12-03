@@ -22,7 +22,7 @@ source env/bin/activate
 ```bash
 # go out of old venv
 deactivate
-# delete oldv env
+# delete old venv
 rm -r env
 # create new venv
 python3 -m venv env
