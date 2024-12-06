@@ -427,7 +427,7 @@ class WcsTests(unittest.TestCase):
                 },
                 dims=["band", "y", "x"],
                 attrs={
-                    'AREA_OR_POINT': 'Area',
+                    # 'AREA_OR_POINT': 'Area', # TODO: not included in min_version
                     # 'transform': TODO: could be "(45.0, 0.0, -180.0, 0.0, -22.5, 90.0, 0.0, 0.0, 1.0)" or "Affine ..."
                     # 'crs': " TODO: could be "CRS.from_wkt(..." or "CRS.from_epsg(..."
                     'res': (45.0, -22.5),
