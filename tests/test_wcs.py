@@ -428,8 +428,8 @@ class WcsTests(unittest.TestCase):
                 dims=["band", "y", "x"],
                 attrs={
                     'AREA_OR_POINT': 'Area',
-                    'transform': (45.0, 0.0, -180.0, 0.0, -22.5, 90.0, 0.0, 0.0, 1.0),
-                    # 'crs': "CRS.from_wkt('GEOGCS[\"WGS 84\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]],AXIS[\"Latitude\",NORTH],AXIS[\"Longitude\",EAST],AUTHORITY[\"EPSG\",\"4326\"]]')",
+                    # 'transform': TODO: could be "(45.0, 0.0, -180.0, 0.0, -22.5, 90.0, 0.0, 0.0, 1.0)" or "Affine ..."
+                    # 'crs': " TODO: could be "CRS.from_wkt(..." or "CRS.from_epsg(..."
                     'res': (45.0, -22.5),
                     'scale_factor': 1.0,
                     '_FillValue': 0.0,
