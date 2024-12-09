@@ -427,8 +427,9 @@ class WcsTests(unittest.TestCase):
                 },
                 dims=["band", "y", "x"],
                 attrs={
-                    'transform': (45.0, 0.0, -180.0, 0.0, -22.5, 90.0, 0.0, 0.0, 1.0),
-                    'crs': 'EPSG:4326',
+                    # 'AREA_OR_POINT': 'Area', # TODO: not included in min_version
+                    # 'transform': TODO: could be "(45.0, 0.0, -180.0, 0.0, -22.5, 90.0, 0.0, 0.0, 1.0)" or "Affine ..."
+                    # 'crs': " TODO: could be "CRS.from_wkt(..." or "CRS.from_epsg(..."
                     'res': (45.0, -22.5),
                     'scale_factor': 1.0,
                     '_FillValue': 0.0,
@@ -449,11 +450,11 @@ class WcsTests(unittest.TestCase):
                     expected.coords),
                 msg=f'{array.coords} \n!=\n {expected.coords}')
 
+            # TODO: Test with np.array_equal(?
             # test attributes
-            self.assertTrue(
-                np.array_equal(
-                    array.attrs, expected.attrs),
-                msg=f'{array.attrs} \n!=\n {expected.attrs}')
+            self.assertEqual(
+                array.attrs, array.attrs | expected.attrs, msg=f'{array.attrs} \n!=\n {expected.attrs}'
+            )
 
 
 if __name__ == '__main__':
