@@ -705,7 +705,7 @@ class Expression(RasterOperator):
             &#34;outputType&#34;: self.output_type,
             &#34;mapNoData&#34;: self.map_no_data,
         }
-        if self.output_band:
+        if self.output_band is not None:
             params[&#34;outputBand&#34;] = self.output_band.to_api_dict().to_dict()
 
         return {
@@ -722,7 +722,7 @@ class Expression(RasterOperator):
             raise ValueError(&#34;Invalid operator type&#34;)
 
         output_band = None
-        if &#34;outputBand&#34; in operator_dict[&#34;params&#34;]:
+        if &#34;outputBand&#34; in operator_dict[&#34;params&#34;] and operator_dict[&#34;params&#34;] is not None:
             output_band = RasterBandDescriptor.from_response(
                 geoengine_openapi_client.RasterBandDescriptor.from_dict(
                     operator_dict[&#34;params&#34;][&#34;outputBand&#34;]
@@ -2114,7 +2114,7 @@ def to_dict(self) -&gt; Dict[str, Any]:
             &#34;outputType&#34;: self.output_type,
             &#34;mapNoData&#34;: self.map_no_data,
         }
-        if self.output_band:
+        if self.output_band is not None:
             params[&#34;outputBand&#34;] = self.output_band.to_api_dict().to_dict()
 
         return {
@@ -2131,7 +2131,7 @@ def to_dict(self) -&gt; Dict[str, Any]:
             raise ValueError(&#34;Invalid operator type&#34;)
 
         output_band = None
-        if &#34;outputBand&#34; in operator_dict[&#34;params&#34;]:
+        if &#34;outputBand&#34; in operator_dict[&#34;params&#34;] and operator_dict[&#34;params&#34;] is not None:
             output_band = RasterBandDescriptor.from_response(
                 geoengine_openapi_client.RasterBandDescriptor.from_dict(
                     operator_dict[&#34;params&#34;][&#34;outputBand&#34;]
