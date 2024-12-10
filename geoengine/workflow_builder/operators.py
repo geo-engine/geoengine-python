@@ -693,7 +693,7 @@ class Expression(RasterOperator):
             raise ValueError("Invalid operator type")
 
         output_band = None
-        if "outputBand" in operator_dict["params"] and operator_dict["params"] is not None:
+        if "outputBand" in operator_dict["params"] and operator_dict["params"]["outputBand"] is not None:
             output_band = RasterBandDescriptor.from_response(
                 geoengine_openapi_client.RasterBandDescriptor.from_dict(
                     operator_dict["params"]["outputBand"]
