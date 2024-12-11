@@ -6,15 +6,14 @@ from __future__ import annotations
 from enum import Enum
 
 import ast
-from typing import Dict, Literal, Any
+from typing import Dict
 from uuid import UUID
 
 import geoengine_openapi_client
 
 from geoengine.auth import get_session
-from geoengine.datasets import DatasetName
+from geoengine.resource_identifier import Resource
 from geoengine.error import GeoEngineException
-import geoengine.layers as ge_layers
 
 
 class RoleId:
@@ -77,46 +76,6 @@ class UserId:
 
     def __repr__(self) -> str:
         return repr(self.__user_id)
-
-
-class Resource:
-    '''A wrapper for a resource id'''
-
-    def __init__(self, resource_type: Literal['dataset', 'layer', 'layerCollection'],
-                 resource_id: str) -> None:
-        '''Create a resource id'''
-        self.__type = resource_type
-        self.__id = resource_id
-
-    @classmethod
-    def from_layer_id(cls, layer_id: ge_layers.LayerId) -> Resource:
-        '''Create a resource id from a layer id'''
-        return Resource('layer', str(layer_id))
-
-    @classmethod
-    def from_layer_collection_id(cls, layer_collection_id: ge_layers.LayerCollectionId) -> Resource:
-        '''Create a resource id from a layer collection id'''
-        return Resource('layerCollection', str(layer_collection_id))
-
-    @classmethod
-    def from_dataset_name(cls, dataset_name: DatasetName) -> Resource:
-        '''Create a resource id from a dataset id'''
-        return Resource('dataset', str(dataset_name))
-
-    def to_api_dict(self) -> geoengine_openapi_client.Resource:
-        '''Convert to a dict for the API'''
-        inner: Any = None
-
-        if self.__type == "layer":
-            inner = geoengine_openapi_client.LayerResource(type="layer", id=self.__id)
-        elif self.__type == "layerCollection":
-            inner = geoengine_openapi_client.LayerCollectionResource(type="layerCollection", id=self.__id)
-        elif self.__type == "project":
-            inner = geoengine_openapi_client.ProjectResource(type="project", id=self.__id)
-        elif self.__type == "dataset":
-            inner = geoengine_openapi_client.DatasetResource(type="dataset", id=self.__id)
-
-        return geoengine_openapi_client.Resource(inner)
 
 
 class Permission(str, Enum):

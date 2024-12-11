@@ -10,6 +10,7 @@ from enum import Enum
 from uuid import UUID
 import tempfile
 from attr import dataclass
+import geoengine_openapi_client.models
 import numpy as np
 import geopandas as gpd
 import geoengine_openapi_client
@@ -19,6 +20,7 @@ from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
     UnitlessMeasurement, FeatureDataType
+from geoengine.resource_identifier import Resource, UploadId, DatasetName
 
 
 class UnixTimeStampType(Enum):
@@ -254,71 +256,6 @@ class OgrOnError(Enum):
 
     def to_api_enum(self) -> geoengine_openapi_client.OgrSourceErrorSpec:
         return geoengine_openapi_client.OgrSourceErrorSpec(self.value)
-
-
-class DatasetName:
-    '''A wrapper for a dataset id'''
-
-    __dataset_name: str
-
-    def __init__(self, dataset_name: str) -> None:
-        self.__dataset_name = dataset_name
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -> DatasetName:
-        '''Parse a http response to an `DatasetId`'''
-        return DatasetName(response.dataset_name)
-
-    def __str__(self) -> str:
-        return self.__dataset_name
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __eq__(self, other) -> bool:
-        '''Checks if two dataset ids are equal'''
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
-
-    def to_api_dict(self) -> geoengine_openapi_client.CreateDatasetHandler200Response:
-        return geoengine_openapi_client.CreateDatasetHandler200Response(
-            dataset_name=str(self.__dataset_name)
-        )
-
-
-class UploadId:
-    '''A wrapper for an upload id'''
-
-    __upload_id: UUID
-
-    def __init__(self, upload_id: UUID) -> None:
-        self.__upload_id = upload_id
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -> UploadId:
-        '''Parse a http response to an `UploadId`'''
-        return UploadId(UUID(response.id))
-
-    def __str__(self) -> str:
-        return str(self.__upload_id)
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __eq__(self, other) -> bool:
-        '''Checks if two upload ids are equal'''
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
-
-    def to_api_dict(self) -> geoengine_openapi_client.AddCollection200Response:
-        '''Converts the upload id to a dict for the api'''
-        return geoengine_openapi_client.AddCollection200Response(
-            id=str(self.__upload_id)
-        )
 
 
 class AddDatasetProperties():
@@ -630,3 +567,13 @@ def list_datasets(offset: int = 0,
         )
 
     return response
+
+
+def dataset_info_by_name(dataset_name: DatasetName, timeout: int = 60) -> geoengine_openapi_client.models.Dataset:
+    '''Delete a dataset. The dataset must be owned by the caller.'''
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        return datasets_api.get_dataset_handler(str(dataset_name), _request_timeout=timeout)

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import auto
 from io import StringIO
 import os
-from typing import Any, Dict, Generic, List, Literal, NewType, Optional, TypeVar, Union, cast, Tuple
+from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, Union, cast, Tuple
 from uuid import UUID
 import json
 from strenum import LowercaseStrEnum
@@ -16,16 +16,11 @@ from geoengine.auth import get_session
 from geoengine.error import ModificationNotOnLayerDbException, InputException
 from geoengine.tasks import Task, TaskId
 from geoengine.types import Symbology
-import geoengine.permissions as ge_permissions
+from geoengine.permissions import RoleId, Permission, add_permission
 from geoengine.workflow import Workflow, WorkflowId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
-
-LayerId = NewType('LayerId', str)
-LayerCollectionId = NewType('LayerCollectionId', str)
-LayerProviderId = NewType('LayerProviderId', UUID)
-
-LAYER_DB_PROVIDER_ID = LayerProviderId(UUID('ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74'))
-LAYER_DB_ROOT_COLLECTION_ID = LayerCollectionId('05102bb3-a855-4a37-8a8a-30026a91fef1')
+from geoengine.resource_identifier import LayerCollectionId, LayerId, LayerProviderId, \
+    LAYER_DB_PROVIDER_ID, Resource
 
 
 class LayerCollectionListingType(LowercaseStrEnum):
@@ -462,7 +457,7 @@ class LayerCollection:
             collection_name: str,
             create_collection_description: Optional[str] = None,
             delete_existing_with_same_name: bool = False,
-            create_permissions_tuples: Optional[List[Tuple[ge_permissions.RoleId, ge_permissions.Permission]]] = None
+            create_permissions_tuples: Optional[List[Tuple[RoleId, Permission]]] = None
     ) -> LayerCollection:
         '''
         Get a unique child by name OR if it does not exist create it.
@@ -483,11 +478,11 @@ class LayerCollection:
         if len(existing_collections) == 0:
             new_desc = create_collection_description if create_collection_description is not None else collection_name
             new_collection = parent_collection.add_collection(collection_name, new_desc)
-            new_ressource = ge_permissions.Resource.from_layer_collection_id(new_collection)
+            new_ressource = Resource.from_layer_collection_id(new_collection)
 
             if create_permissions_tuples is not None:
                 for (role, perm) in create_permissions_tuples:
-                    ge_permissions.add_permission(role, new_ressource, perm)
+                    add_permission(role, new_ressource, perm)
             parent_collection = parent_collection.reload()
             existing_collections = parent_collection.get_items_by_name(collection_name)
 
