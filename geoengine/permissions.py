@@ -14,7 +14,7 @@ import geoengine_openapi_client
 from geoengine.auth import get_session
 from geoengine.datasets import DatasetName
 from geoengine.error import GeoEngineException
-from geoengine.layers import LayerCollectionId, LayerId
+import geoengine.layers as ge_layers
 
 
 class RoleId:
@@ -89,12 +89,12 @@ class Resource:
         self.__id = resource_id
 
     @classmethod
-    def from_layer_id(cls, layer_id: LayerId) -> Resource:
+    def from_layer_id(cls, layer_id: ge_layers.LayerId) -> Resource:
         '''Create a resource id from a layer id'''
         return Resource('layer', str(layer_id))
 
     @classmethod
-    def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -> Resource:
+    def from_layer_collection_id(cls, layer_collection_id: ge_layers.LayerCollectionId) -> Resource:
         '''Create a resource id from a layer collection id'''
         return Resource('layerCollection', str(layer_collection_id))
 
