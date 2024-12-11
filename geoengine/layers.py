@@ -16,6 +16,7 @@ from geoengine.auth import get_session
 from geoengine.error import ModificationNotOnLayerDbException, InputException
 from geoengine.tasks import Task, TaskId
 from geoengine.types import Symbology
+from geoengine.permissions import Resource, add_permission, RoleId, Permission
 from geoengine.workflow import Workflow, WorkflowId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 
@@ -455,6 +456,48 @@ class LayerCollection:
                 pass  # ignore, should not happen
 
         return listings
+
+    def get_or_create_unique_collection(
+            self,
+            collection_name: str,
+            create_collection_description: Optional[str] = None,
+            delete_existing_with_same_name: bool = False,
+            create_permissions_tuples: Optional[List[(RoleId, Permission)]] = None
+    ) -> LayerCollection:
+        '''
+        Get a unique child by name OR if it does not exist create it.
+        Removes existing collections with same name if forced!
+        Sets permissions if the collection is created from a list of tuples
+        '''
+        parent_collection = self.reload()  # reload just to be safe since self's state change on the server
+        existing_collections = parent_collection.get_items_by_name(collection_name)
+
+        if delete_existing_with_same_name and len(existing_collections) > 0:
+            for c in existing_collections:
+                c.load().remove()
+            parent_collection = parent_collection.reload()
+            existing_collections = parent_collection.get_items_by_name(collection_name)
+
+        if len(existing_collections) == 0:
+            new_desc = create_collection_description if create_collection_description is not None else collection_name
+            new_collection = parent_collection.add_collection(collection_name, new_desc)
+            new_ressource = Resource.from_layer_collection_id(new_collection)
+
+            if create_permissions_tuples is not None:
+                for (role, perm) in create_permissions_tuples:
+                    add_permission(role, new_ressource, perm)
+            parent_collection = parent_collection.reload()
+            existing_collections = parent_collection.get_items_by_name(collection_name)
+
+        if len(existing_collections) == 0:
+            raise KeyError(
+                f"No collection with name {collection_name} exists in {parent_collection.name} and none was created!"
+            )
+
+        if len(existing_collections) > 1:
+            raise KeyError(f"Multiple collections with name {collection_name} exist in {parent_collection.name}")
+
+        return existing_collections[0].load()
 
 
 @dataclass(repr=False)
