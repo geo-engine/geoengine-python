@@ -10,17 +10,17 @@ from enum import Enum
 from uuid import UUID
 import tempfile
 from attr import dataclass
+import geoengine_openapi_client
 import geoengine_openapi_client.models
 import numpy as np
 import geopandas as gpd
-import geoengine_openapi_client
 from geoengine import api
 from geoengine.error import InputException, MissingFieldInResponseException
 from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
     UnitlessMeasurement, FeatureDataType
-from geoengine.resource_identifier import Resource, UploadId, DatasetName
+from geoengine.resource_identifier import UploadId, DatasetName
 
 
 class UnixTimeStampType(Enum):
