@@ -50,7 +50,12 @@ class MockWebsocket:
 
 def read_data() -> List[xr.DataArray]:
     '''Slice a raster into 4 parts'''
-    whole = rioxarray.open_rasterio("tests/responses/ndvi.tiff").isel(band=0)
+    whole = rioxarray.open_rasterio("tests/responses/ndvi.tiff")
+
+    if isinstance(whole, list):
+        return []
+
+    whole = whole.isel(band=0)
 
     parts = [
         whole[:4, :4],
