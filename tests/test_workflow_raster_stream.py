@@ -53,7 +53,7 @@ def read_data() -> List[xr.DataArray]:
     whole = rioxarray.open_rasterio("tests/responses/ndvi.tiff")
 
     if isinstance(whole, list):
-        return []
+        raise TypeError("Expected Dataset not List")
 
     whole = whole.isel(band=0)
 
