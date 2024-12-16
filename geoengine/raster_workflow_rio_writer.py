@@ -175,10 +175,12 @@ class RasterWorkflowRioWriter:
 
         self.create_tiling_geo_transform_width_height(query)
 
-        assert self.workflow is not None, "The workflow must be set"
+        assert self.bands is not None, "The bands must be set"
+        bands = list(range(0, len(self.bands)))
 
+        assert self.workflow is not None, "The workflow must be set"
         try:
-            async for tile in self.workflow.raster_stream(query):
+            async for tile in self.workflow.raster_stream(query, bands=bands):
                 if self.current_time != tile.time:
                     self.close_current_dataset()
                     self.current_time = tile.time

@@ -16,11 +16,10 @@ from .error import GeoEngineException, InputException, UninitializedException, T
     SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \
     InvalidUrlException, MissingFieldInResponseException
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
-    LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer
 from .ml import register_ml_model, MlModelConfig
 from .permissions import add_permission, remove_permission, add_role, remove_role, assign_role, revoke_role, \
-    ADMIN_ROLE_ID, REGISTERED_USER_ROLE_ID, ANONYMOUS_USER_ROLE_ID, Permission, Resource, UserId, RoleId
+    ADMIN_ROLE_ID, REGISTERED_USER_ROLE_ID, ANONYMOUS_USER_ROLE_ID, Permission, UserId, RoleId
 from .tasks import Task, TaskId
 from .types import QueryRectangle, GeoTransform, \
     RasterResultDescriptor, Provenance, UnitlessMeasurement, ContinuousMeasurement, \
@@ -28,6 +27,8 @@ from .types import QueryRectangle, GeoTransform, \
     RasterSymbology, VectorSymbology, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
     FeatureDataType, RasterBandDescriptor, DEFAULT_ISO_TIME_FORMAT, RasterColorizer, SingleBandRasterColorizer, \
     MultiBandRasterColorizer
+from .resource_identifier import LAYER_DB_PROVIDER_ID, LAYER_DB_ROOT_COLLECTION_ID, DatasetName, UploadId, \
+    LayerId, LayerCollectionId, LayerProviderId, Resource
 
 from .util import clamp_datetime_ms_ns
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow, get_quota, update_quota
