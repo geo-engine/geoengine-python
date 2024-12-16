@@ -315,6 +315,26 @@ class LayerCollection:
 
         return layer_id
 
+    def add_layer_with_permissions(self,
+                                   name: str,
+                                   description: str,
+                                   workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
+                                   symbology: Optional[Symbology],
+                                   permission_tuples: Optional[List[Tuple[RoleId, Permission]]] = None,
+                                   timeout: int = 60) -> LayerId:
+        '''
+        Add a layer to this collection and set permissions.
+        '''
+
+        layer_id = self.add_layer(name, description, workflow, symbology, timeout)
+
+        if permission_tuples is not None:
+            res = Resource.from_layer_id(layer_id)
+            for (role, perm) in permission_tuples:
+                add_permission(role, res, perm)
+
+        return layer_id
+
     def add_existing_layer(self,
                            existing_layer: Union[LayerListing, Layer, LayerId],
                            timeout: int = 60):

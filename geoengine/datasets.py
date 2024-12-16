@@ -5,12 +5,13 @@ Module for working with datasets and source definitions
 from __future__ import annotations
 from abc import abstractmethod
 from pathlib import Path
-from typing import List, NamedTuple, Optional, Union, Literal
+from typing import List, NamedTuple, Optional, Union, Literal, Tuple
 from enum import Enum
 from uuid import UUID
 import tempfile
 from attr import dataclass
 import geoengine_openapi_client
+import geoengine_openapi_client.exceptions
 import geoengine_openapi_client.models
 import numpy as np
 import geopandas as gpd
@@ -20,7 +21,8 @@ from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
     UnitlessMeasurement, FeatureDataType
-from geoengine.resource_identifier import UploadId, DatasetName
+from geoengine.resource_identifier import Resource, UploadId, DatasetName
+from geoengine.permissions import RoleId, Permission, add_permission
 
 
 class UnixTimeStampType(Enum):
@@ -532,6 +534,37 @@ def add_dataset(data_store: Union[Volume, UploadId],
     return DatasetName.from_response(response)
 
 
+def add_or_replace_dataset_with_permissions(data_store: Union[Volume, UploadId],
+                                            properties: AddDatasetProperties,
+                                            meta_data: geoengine_openapi_client.MetaDataDefinition,
+                                            permission_tuples: Optional[List[Tuple[RoleId, Permission]]] = None,
+                                            replace_existing=False,
+                                            timeout: int = 60) -> DatasetName:
+    '''
+    Add a dataset to the Geo Engine and set permissions.
+    Replaces existing datasets if forced!
+    '''
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
+
+    if replace_existing and properties.name is not None:
+        dataset_name = DatasetName(properties.name)
+        if dataset_info_by_name(dataset_name, timeout=timeout) is not None:
+            delete_dataset(dataset_name)
+
+    dataset_name = add_dataset(data_store=data_store, properties=properties, meta_data=meta_data, timeout=timeout)
+
+    # handle pemission setting
+    dataset_from_server = dataset_info_by_name(dataset_name, timeout=timeout)
+    assert dataset_from_server is not None, "Dataset added to the server must be resolvable!"
+
+    if permission_tuples is not None:
+        dataset_res = Resource.from_dataset_name(DatasetName(dataset_from_server.id))
+        for (role, perm) in permission_tuples:
+            add_permission(role, dataset_res, perm, timeout=timeout)
+
+    return dataset_name
+
+
 def delete_dataset(dataset_name: DatasetName, timeout: int = 60) -> None:
     '''Delete a dataset. The dataset must be owned by the caller.'''
 
@@ -569,11 +602,19 @@ def list_datasets(offset: int = 0,
     return response
 
 
-def dataset_info_by_name(dataset_name: DatasetName, timeout: int = 60) -> geoengine_openapi_client.models.Dataset:
+def dataset_info_by_name(
+        dataset_name: DatasetName, timeout: int = 60
+) -> geoengine_openapi_client.models.Dataset | None:
     '''Delete a dataset. The dataset must be owned by the caller.'''
 
     session = get_session()
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
-        return datasets_api.get_dataset_handler(str(dataset_name), _request_timeout=timeout)
+        res = None
+        try:
+            res = datasets_api.get_dataset_handler(str(dataset_name), _request_timeout=timeout)
+        except geoengine_openapi_client.exceptions.BadRequestException as e:
+            if 'CannotLoadDataset' not in e.body:
+                raise e
+        return res
