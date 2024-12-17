@@ -213,6 +213,12 @@ class RasterTile2D:
     def spatial_resolution(self) -> gety.SpatialResolution:
         return self.geo_transform.spatial_resolution()
 
+    def is_empty(self) -> bool:
+        ''' Returns true if the tile is empty'''
+        num_pixels = self.size_x * self.size_y
+        num_nulls = self.data.null_count
+        return num_pixels == num_nulls
+
     @staticmethod
     def from_ge_record_batch(record_batch: pa.RecordBatch) -> RasterTile2D:
         '''Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine'''
