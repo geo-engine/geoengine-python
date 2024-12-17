@@ -171,7 +171,7 @@ class RasterWorkflowRioWriter:
         for i, b in enumerate(self.bands, start=1):
             b_n = b.name
             b_m = str(b.measurement)
-            rio_dataset.update_tag(i, band_name=b_n, band_measurement=b_m)
+            rio_dataset.update_tags(i, band_name=b_n, band_measurement=b_m)
 
         self.current_dataset = rio_dataset
 
