@@ -168,6 +168,11 @@ class RasterWorkflowRioWriter:
             **self.rio_kwargs
         )
 
+        for i, b in enumerate(self.bands, start=1):
+            b_n = b.name
+            b_m = str(b.measurement)
+            rio_dataset.update_tag(i, band_name=b_n, band_measurement=b_m)
+
         self.current_dataset = rio_dataset
 
     async def query_and_write(self, query: QueryRectangle, skip_empty_times=True):
