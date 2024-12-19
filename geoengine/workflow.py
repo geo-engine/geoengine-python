@@ -989,7 +989,7 @@ def data_usage(offset: int = 0, limit: int = 10) -> List[geoengine_openapi_clien
 
 
 def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity,
-                       dataset: Optional[str] = None,
+                       data: Optional[str] = None,
                        offset: int = 0, limit: int = 10) -> pd.DataFrame:
     '''
     Get data usage summary
@@ -999,7 +999,7 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         user_api = geoengine_openapi_client.UserApi(api_client)
-        response = user_api.data_usage_summary_handler(dataset=dataset, granularity=granularity,
+        response = user_api.data_usage_summary_handler(data=data, granularity=granularity,
                                                        offset=offset, limit=limit)
 
         # create dataframe from response
@@ -1010,20 +1010,20 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
 
 
 def plot_data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity,
-                            dataset: Optional[str] = None, offset: int = 0, limit: int = 10):
+                            data: Optional[str] = None, offset: int = 0, limit: int = 10):
     '''
     Plot data usage summary
     '''
 
-    df = data_usage_summary(granularity, dataset, offset, limit)
+    df = data_usage_summary(granularity, data, offset, limit)
     df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize(None)
 
-    pivot_df = df.pivot(index='timestamp', columns='dataset', values='count').fillna(0)
+    pivot_df = df.pivot(index='timestamp', columns='data', values='count').fillna(0)
     pivot_df.plot(kind='bar', figsize=(10, 6))
 
-    plt.title('Data Usage by Dataset over time')
+    plt.title('Data Usage by Data over time')
     plt.xlabel('Timestamp')
     plt.ylabel('Count')
     plt.xticks(rotation=45)
-    plt.legend(title='Dataset')
+    plt.legend(title='Data')
     plt.show()
