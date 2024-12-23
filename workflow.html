@@ -995,7 +995,46 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -&g
                 available=new_available_quota
             ),
             _request_timeout=timeout
-        )</code></pre>
+        )
+
+
+def data_usage(offset: int = 0, limit: int = 10) -&gt; List[geoengine_openapi_client.DataUsage]:
+    &#39;&#39;&#39;
+    Get data usage
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        response = user_api.data_usage_handler(offset=offset, limit=limit)
+
+        # create dataframe from response
+        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        df = pd.DataFrame(usage_dicts)
+
+    return df
+
+
+def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity,
+                       data: Optional[str] = None,
+                       offset: int = 0, limit: int = 10) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Get data usage summary
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        response = user_api.data_usage_summary_handler(data=data, granularity=granularity,
+                                                       offset=offset, limit=limit)
+
+        # create dataframe from response
+        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        df = pd.DataFrame(usage_dicts)
+
+    return df</code></pre>
 </details>
 </section>
 <section>
@@ -1005,6 +1044,63 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -&g
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="geoengine.workflow.data_usage"><code class="name flex">
+<span>def <span class="ident">data_usage</span></span>(<span>offset: int = 0, limit: int = 10) ‑> List[geoengine_openapi_client.models.data_usage.DataUsage]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get data usage</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def data_usage(offset: int = 0, limit: int = 10) -&gt; List[geoengine_openapi_client.DataUsage]:
+    &#39;&#39;&#39;
+    Get data usage
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        response = user_api.data_usage_handler(offset=offset, limit=limit)
+
+        # create dataframe from response
+        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        df = pd.DataFrame(usage_dicts)
+
+    return df</code></pre>
+</details>
+</dd>
+<dt id="geoengine.workflow.data_usage_summary"><code class="name flex">
+<span>def <span class="ident">data_usage_summary</span></span>(<span>granularity: geoengine_openapi_client.UsageSummaryGranularity, data: Optional[str] = None, offset: int = 0, limit: int = 10) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get data usage summary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity,
+                       data: Optional[str] = None,
+                       offset: int = 0, limit: int = 10) -&gt; pd.DataFrame:
+    &#39;&#39;&#39;
+    Get data usage summary
+    &#39;&#39;&#39;
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        response = user_api.data_usage_summary_handler(data=data, granularity=granularity,
+                                                       offset=offset, limit=limit)
+
+        # create dataframe from response
+        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        df = pd.DataFrame(usage_dicts)
+
+    return df</code></pre>
+</details>
+</dd>
 <dt id="geoengine.workflow.get_quota"><code class="name flex">
 <span>def <span class="ident">get_quota</span></span>(<span>user_id: Optional[UUID] = None, timeout: int = 60) ‑> geoengine_openapi_client.models.quota.Quota</span>
 </code></dt>
@@ -3265,7 +3361,9 @@ dict(one=1, two=2)</p></div>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
+<ul class="two-column">
+<li><code><a title="geoengine.workflow.data_usage" href="#geoengine.workflow.data_usage">data_usage</a></code></li>
+<li><code><a title="geoengine.workflow.data_usage_summary" href="#geoengine.workflow.data_usage_summary">data_usage_summary</a></code></li>
 <li><code><a title="geoengine.workflow.get_quota" href="#geoengine.workflow.get_quota">get_quota</a></code></li>
 <li><code><a title="geoengine.workflow.register_workflow" href="#geoengine.workflow.register_workflow">register_workflow</a></code></li>
 <li><code><a title="geoengine.workflow.update_quota" href="#geoengine.workflow.update_quota">update_quota</a></code></li>
