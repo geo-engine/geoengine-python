@@ -29,7 +29,6 @@ import websockets
 import websockets.client
 import xarray as xr
 import pyarrow as pa
-import matplotlib.pyplot as plt
 
 import geoengine_openapi_client
 from geoengine import api
@@ -1007,23 +1006,3 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
         df = pd.DataFrame(usage_dicts)
 
     return df
-
-
-def plot_data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity,
-                            data: Optional[str] = None, offset: int = 0, limit: int = 10):
-    '''
-    Plot data usage summary
-    '''
-
-    df = data_usage_summary(granularity, data, offset, limit)
-    df['timestamp'] = pd.to_datetime(df['timestamp']).dt.tz_localize(None)
-
-    pivot_df = df.pivot(index='timestamp', columns='data', values='count').fillna(0)
-    pivot_df.plot(kind='bar', figsize=(10, 6))
-
-    plt.title('Data Usage by Data over time')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Count')
-    plt.xticks(rotation=45)
-    plt.legend(title='Data')
-    plt.show()
