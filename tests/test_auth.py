@@ -7,6 +7,7 @@ from pkg_resources import get_distribution
 import geoengine as ge
 from geoengine.error import GeoEngineException
 from geoengine.types import QueryRectangle
+from tests.ge_test import GeoEngineTestInstance
 from . import UrllibMocker
 
 
@@ -33,22 +34,33 @@ class AuthTests(unittest.TestCase):
                          'You have to call `initialize` before using other functionality')
 
     def test_initialize(self):
-        with UrllibMocker() as m:
-            m.post('http://mock-instance/anonymous', json={
-                "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
-                "user": {
-                    "id": "328ca8d1-15d7-4f59-a989-5d5d72c98744",
-                },
-                "created": "2021-06-08T15:22:22.605891994Z",
-                "validUntil": "2021-06-08T16:22:22.605892183Z",
-                "project": None,
-                "view": None
-            })
+        # with UrllibMocker() as m:
+        #     m.post('http://mock-instance/anonymous', json={
+        #         "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
+        #         "user": {
+        #             "id": "328ca8d1-15d7-4f59-a989-5d5d72c98744",
+        #         },
+        #         "created": "2021-06-08T15:22:22.605891994Z",
+        #         "validUntil": "2021-06-08T16:22:22.605892183Z",
+        #         "project": None,
+        #         "view": None
+        #     })
 
-            ge.initialize("http://mock-instance")
+        #     ge.initialize("http://mock-instance")
 
-            self.assertEqual(type(ge.get_session()),
-                             ge.Session)
+        #     self.assertEqual(type(ge.get_session()),
+        #                      ge.Session)
+
+        # TODO: use `enterContext(cm)` instead of `with cm:` in Python 3.11
+        with GeoEngineTestInstance() as ge_instance:
+            ge_instance.wait_for_ready()
+
+            # import time
+            # time.sleep(60)
+
+            ge.initialize(ge_instance.address())
+
+            self.assertEqual(type(ge.get_session()), ge.Session)
 
     def test_initialize_tuple(self):
         with UrllibMocker() as m:
