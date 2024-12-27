@@ -10,6 +10,7 @@ import subprocess
 import os
 import shutil
 import socket
+from typing import Optional
 from dotenv import load_dotenv
 
 TEST_CODE_PATH_VAR = 'GEOENGINE_TEST_CODE_PATH'
@@ -60,7 +61,7 @@ class GeoEngineProcess:
 
     timeout_seconds: int
 
-    process: subprocess.Popen | None = None
+    process: Optional[subprocess.Popen] = None
 
     def __init__(self,
                  code_path: Path,
