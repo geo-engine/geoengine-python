@@ -141,10 +141,28 @@ jobs:
           repository: geo-engine/geoengine
           ref: main # TODO: read from .ci_instance
           path: backend
-      - name: APT update
-        run: sudo apt-get update
-      - name: Install system dependencies
-        run: sudo apt-get install libgeos-dev libproj-dev
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+      - name: Install lld & GDAL & Protobuf
+        run: |
+          sudo apt-get update
+          sudo apt-get install lld libgdal-dev gdal-bin build-essential clang curl protobuf-compiler libgeos-dev libproj-dev
+          sudo apt-get clean
+          export C_INCLUDE_PATH=/usr/include/gdal:$C_INCLUDE_PATH
+          export CPLUS_INCLUDE_PATH=/usr/include/gdal:$CPLUS_INCLUDE_PATH
+          sudo ldconfig
+      - name: Install Rustup
+        run: |
+          curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -fsSL "https://sh.rustup.rs" | sh -s -- --profile minimal --default-toolchain none -y
+          echo "${CARGO_HOME:-$HOME/.cargo}/bin" >> $GITHUB_PATH
       - name: Set up Python ${{ env.python-version }}
         uses: actions/setup-python@v4
         with:
