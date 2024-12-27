@@ -27,15 +27,21 @@ jobs:
         # use all supported versions from https://devguide.python.org/versions/
         python-version: ["3.9", "3.10", "3.11", "3.12"]
 
+    defaults:
+      run:
+        working-directory: library
+
     steps:
-      - name: Checkout code
+      - name: Checkout library code
         uses: actions/checkout@v4
+        with:
+          path: library
       - name: Checkout Geo Engine code
         uses: actions/checkout@v4
         with:
           repository: geo-engine/geoengine
           ref: main # TODO: read from .ci_instance
-          path: geoengine_backend
+          path: backend
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
@@ -90,7 +96,7 @@ jobs:
       - name: Test
         run: pytest
         env:
-          GEOENGINE_TEST_CODE_PATH: geoengine_backend
+          GEOENGINE_TEST_CODE_PATH: $GITHUB_WORKSPACE/backend
 
   # Checks the library using minimum version resolution
   # `uv` has this feature built-in, c.f. https://github.com/astral-sh/uv
