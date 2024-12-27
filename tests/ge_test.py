@@ -84,7 +84,7 @@ class GeoEngineProcess:
 
         cargo_bin = shutil.which('cargo')
 
-        self.process = subprocess.Popen(
+        self.process = subprocess.Popen(  # pylint: disable=consider-using-with
             [
                 cargo_bin,
                 'run',
