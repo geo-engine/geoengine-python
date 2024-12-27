@@ -96,7 +96,7 @@ jobs:
       - name: Test
         run: pytest
         env:
-          GEOENGINE_TEST_CODE_PATH: ${{ env.GITHUB_WORKSPACE }}/backend
+          GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
 
   # Checks the library using minimum version resolution
   # `uv` has this feature built-in, c.f. https://github.com/astral-sh/uv
@@ -128,8 +128,8 @@ jobs:
           uv venv
           source .venv/bin/activate
 
-          uv pip install --resolution=${{ env.resolution}} -e .
-          uv pip install --resolution=${{ env.resolution}} -e .[dev]
+          uv pip install --resolution=${{ env.resolution }} -e .
+          uv pip install --resolution=${{ env.resolution }} -e .[dev]
       - name: Build
         run: |
           source .venv/bin/activate
@@ -137,8 +137,11 @@ jobs:
       - name: Install test dependencies
         run: |
           source .venv/bin/activate
-          uv pip install --resolution=${{ env.resolution}} -e .[test]
+          uv pip install --resolution=${{ env.resolution }} -e .[test]
+          uv pip install --resolution=${{ env.resolution }} pytest-cov==6.0.0
       - name: Test
         run: |
           source .venv/bin/activate
-          pytest
+          pytest --cov=geoengine
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2
