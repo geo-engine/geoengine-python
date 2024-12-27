@@ -96,7 +96,7 @@ jobs:
       - name: Test
         run: pytest
         env:
-          GEOENGINE_TEST_CODE_PATH: $GITHUB_WORKSPACE/backend
+          GEOENGINE_TEST_CODE_PATH: ${{ env.GITHUB_WORKSPACE }}/backend
 
   # Checks the library using minimum version resolution
   # `uv` has this feature built-in, c.f. https://github.com/astral-sh/uv
