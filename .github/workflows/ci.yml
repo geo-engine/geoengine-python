@@ -192,7 +192,6 @@ jobs:
         run: |
           source .venv/bin/activate
           uv pip install --resolution=${{ env.resolution }} -e .[test]
-          uv pip install --resolution=${{ env.resolution }} pytest-cov==6.0.0
       - name: Pre-build Geo Engine
         run: |
           cargo build --locked --bins
@@ -200,12 +199,10 @@ jobs:
       - name: Test
         run: |
           source .venv/bin/activate
-          pytest --cov=geoengine
+          pytest --cov=geoengine --cov-report=lcov
         env:
           GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
           GEOENGINE_SERVER_PATH: ${{ github.workspace }}/backend/target/debug/geoengine-server
           GEOENGINE_CLI_PATH: ${{ github.workspace }}/backend/target/debug/geoengine-cli
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2
-        with:
-          debug: true
