@@ -93,6 +93,11 @@ jobs:
       - name: Type-check tests
         run: |
           python -m mypy tests
+      - name: Pre-build Geo Engine
+        run: |
+          cargo build --locked
+          cargo build --locked --bin geoengine-cli
+        working-directory: backend
       - name: Test
         run: pytest
         env:
@@ -103,6 +108,21 @@ jobs:
   check-min-version:
     runs-on: ubuntu-22.04
 
+    services:
+      postgres:
+        image: postgis/postgis
+        env:
+          POSTGRES_USER: geoengine
+          POSTGRES_PASSWORD: geoengine
+          POSTGRES_DB: geoengine
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    defaults:
+      run:
+        working-directory: library
+    
     env:
       # use minimum supported versions from https://devguide.python.org/versions/
       python-version: "3.9"
@@ -111,7 +131,16 @@ jobs:
       resolution: "lowest-direct"
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout library code
+        uses: actions/checkout@v4
+        with:
+          path: library
+      - name: Checkout Geo Engine code
+        uses: actions/checkout@v4
+        with:
+          repository: geo-engine/geoengine
+          ref: main # TODO: read from .ci_instance
+          path: backend
       - name: APT update
         run: sudo apt-get update
       - name: Install system dependencies
@@ -139,6 +168,10 @@ jobs:
           source .venv/bin/activate
           uv pip install --resolution=${{ env.resolution }} -e .[test]
           uv pip install --resolution=${{ env.resolution }} pytest-cov==6.0.0
+      - name: Pre-build Geo Engine
+        run: |
+          cargo build --locked
+          cargo build --locked --bin geoengine-cli
       - name: Test
         run: |
           source .venv/bin/activate
