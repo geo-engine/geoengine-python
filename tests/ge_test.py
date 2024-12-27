@@ -14,20 +14,19 @@ from typing import Optional
 from dotenv import load_dotenv
 
 TEST_CODE_PATH_VAR = 'GEOENGINE_TEST_CODE_PATH'
+TEST_SERVER_PATH_VAR = 'GEOENGINE_SERVER_PATH'
+TEST_CLI_PATH_VAR = 'GEOENGINE_CLI_PATH'
 
 
 @contextmanager
 def GeoEngineTestInstance():  # pylint: disable=invalid-name
     '''Provides a Geo Engine instance for unit testing purposes.'''
 
-    load_dotenv()
-
-    if TEST_CODE_PATH_VAR not in os.environ:
-        raise RuntimeError(f'Environment variable {TEST_CODE_PATH_VAR} not set')
+    geo_engine_info = GeoEngineInfo()
 
     try:
         ge = GeoEngineProcess(
-            code_path=os.environ[TEST_CODE_PATH_VAR],
+            geo_engine_info=geo_engine_info,
             port=get_open_port(),
             db_schema=generate_test_schema_name(),
         )
@@ -52,10 +51,76 @@ def generate_test_schema_name():
     return schema_name
 
 
+class GeoEngineInfo:
+    '''Information about the Geo Engine backend.'''
+
+    _code_path: Path
+    _server_path: Optional[Path]
+    _cli_path: Optional[Path]
+
+    def __init__(self):
+        '''Initialize Geo Engine info from env.'''
+
+        load_dotenv()
+
+        if TEST_CODE_PATH_VAR not in os.environ:
+            raise RuntimeError(f'Environment variable {TEST_CODE_PATH_VAR} not set')
+
+        self._code_path = Path(os.environ[TEST_CODE_PATH_VAR])
+
+        self._server_path = Path(os.environ.get(TEST_SERVER_PATH_VAR, None)
+                                 ) if TEST_SERVER_PATH_VAR in os.environ else None
+        self._cli_path = Path(os.environ.get(TEST_CLI_PATH_VAR, None)
+                              ) if TEST_CLI_PATH_VAR in os.environ else None
+
+    def working_directory(self) -> Path:
+        '''Get the working directory for the Geo Engine.'''
+
+        return self._code_path
+
+    def server_open_args(self) -> list[str]:
+        '''Get the open arguments for the server.'''
+
+        if self._server_path is not None:
+            return [str(self._server_path)]
+
+        cargo_bin = shutil.which('cargo')
+
+        if cargo_bin is None:
+            raise RuntimeError('Cargo not found')
+
+        return [
+            cargo_bin,
+            'run',
+            '--locked',
+        ]
+
+    def cli_open_args(self) -> list[str]:
+        '''Get the open arguments for the CLI.'''
+
+        if self._cli_path is not None:
+            return [str(self._cli_path)]
+
+        cargo_bin = shutil.which('cargo')
+
+        if cargo_bin is None:
+            raise RuntimeError('Cargo not found')
+
+        return [
+            cargo_bin,
+            'run',
+            '--locked',
+            '--bin',
+            'geoengine-cli',
+            '--',
+        ]
+
+
 class GeoEngineProcess:
     '''A Geo Engine process.'''
 
-    code_path: Path
+    geo_engine_info: GeoEngineInfo
+
     port: int
     db_schema: str
 
@@ -64,13 +129,14 @@ class GeoEngineProcess:
     process: Optional[subprocess.Popen] = None
 
     def __init__(self,
-                 code_path: Path,
+                 geo_engine_info: GeoEngineInfo,
                  port: int,
                  db_schema: str,
                  timeout_seconds: int = 60):
         '''Initialize a Geo Engine process.'''
 
-        self.code_path = code_path
+        self.geo_engine_info = geo_engine_info
+
         self.port = port
         self.db_schema = db_schema
 
@@ -82,15 +148,9 @@ class GeoEngineProcess:
         if self.process is not None:
             raise RuntimeError('Process already started')
 
-        cargo_bin = shutil.which('cargo')
-
         self.process = subprocess.Popen(  # pylint: disable=consider-using-with
-            [
-                cargo_bin,
-                'run',
-                '--locked',
-            ],
-            cwd=self.code_path,
+            self.geo_engine_info.server_open_args(),
+            cwd=self.geo_engine_info.working_directory(),
             env={
                 'GEOENGINE__WEB__BIND_ADDRESS': self._bind_address(),
                 'GEOENGINE__POSTGRES__HOST': 'localhost',
@@ -117,60 +177,22 @@ class GeoEngineProcess:
     def address(self) -> str:
         return f'http://{self._bind_address()}/api'
 
-    # async def _wait_for_ready(self):
-    #     async def is_ready() -> bool:
-    #         if self.process is None:
-    #             raise RuntimeError('Process not started')
-
-    #         stderr = self.process.stderr
-
-    #         if stderr is None:
-    #             raise RuntimeError('Process has no stderr')
-
-    #         for line in stderr:
-    #             print(line)
-    #             if 'Tokio runtime found' in line:
-    #                 logging.info('Geo Engine is ready')
-    #                 return True
-
-    #         return False
-
-    #     print("wait_for_ready")
-
-    #     try:
-    #         return await asyncio.wait_for(is_ready(), timeout=self.max_attempts * self.delay_between_attempts_seconds)
-
-    #     except asyncio.TimeoutError as e:
-    #         raise RuntimeError('Geo Engine was not ready… aborting') from e
-
     def wait_for_ready(self):
         '''Wait for the Geo Engine to be ready.'''
 
         if self.process is None:
             raise RuntimeError('Process not started')
 
-        # if asyncio.run(self._wait_for_ready()):
-        #     return
-        # else:
-        #     raise RuntimeError('Geo Engine was not ready… aborting')
-
-        cargo_bin = shutil.which('cargo')
-
         try:
             subprocess.run(
                 [
-                    cargo_bin,
-                    'run',
-                    '--locked',
-                    '--bin',
-                    'geoengine-cli',
-                    '--',
+                    *self.geo_engine_info.cli_open_args(),
                     'check-successful-startup',
                     '--timeout',
                     str(self.timeout_seconds),
                     '--output-stdin',
                 ],
-                cwd=self.code_path,
+                cwd=self.geo_engine_info.working_directory(),
                 stdin=self.process.stderr,
                 text=True,
                 check=True,

@@ -36,11 +36,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: library
+      - name: Read backend version
+        id: read-backend-version
+        run: echo "GEOENGINE_VERSION=$(cat .ci_instance)" >> $GITHUB_OUTPUT
       - name: Checkout Geo Engine code
         uses: actions/checkout@v4
         with:
           repository: geo-engine/geoengine
-          ref: main # TODO: read from .ci_instance
+          ref: ${{ steps.read-backend-version.outputs.GEOENGINE_VERSION }}
           path: backend
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
@@ -95,13 +98,14 @@ jobs:
           python -m mypy tests
       - name: Pre-build Geo Engine
         run: |
-          cargo build --locked
-          cargo build --locked --bin geoengine-cli
+          cargo build --locked -- bins
         working-directory: backend
       - name: Test
         run: pytest
         env:
           GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
+          GEOENGINE_SERVER_PATH: ${{ github.workspace }}/backend/target/debug/geoengine-server
+          GEOENGINE_CLI_PATH: ${{ github.workspace }}/backend/target/debug/geoengine-cli
 
   # Checks the library using minimum version resolution
   # `uv` has this feature built-in, c.f. https://github.com/astral-sh/uv
@@ -135,11 +139,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: library
+      - name: Read backend version
+        id: read-backend-version
+        run: echo "GEOENGINE_VERSION=$(cat .ci_instance)" >> $GITHUB_OUTPUT
       - name: Checkout Geo Engine code
         uses: actions/checkout@v4
         with:
           repository: geo-engine/geoengine
-          ref: main # TODO: read from .ci_instance
+          ref: ${{ steps.read-backend-version.outputs.GEOENGINE_VERSION }}
           path: backend
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
@@ -188,11 +195,15 @@ jobs:
           uv pip install --resolution=${{ env.resolution }} pytest-cov==6.0.0
       - name: Pre-build Geo Engine
         run: |
-          cargo build --locked
-          cargo build --locked --bin geoengine-cli
+          cargo build --locked --bins
+        working-directory: backend
       - name: Test
         run: |
           source .venv/bin/activate
           pytest --cov=geoengine
+        env:
+          GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
+          GEOENGINE_SERVER_PATH: ${{ github.workspace }}/backend/target/debug/geoengine-server
+          GEOENGINE_CLI_PATH: ${{ github.workspace }}/backend/target/debug/geoengine-cli
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2
