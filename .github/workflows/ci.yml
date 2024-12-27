@@ -98,7 +98,7 @@ jobs:
           python -m mypy tests
       - name: Pre-build Geo Engine
         run: |
-          cargo build --locked -- bins
+          cargo build --locked --bins
         working-directory: backend
       - name: Test
         run: pytest
