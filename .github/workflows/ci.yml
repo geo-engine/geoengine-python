@@ -96,16 +96,10 @@ jobs:
       - name: Type-check tests
         run: |
           python -m mypy tests
-      - name: Pre-build Geo Engine
-        run: |
-          cargo build --locked --bins
-        working-directory: backend
       - name: Test
         run: pytest
         env:
           GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
-          GEOENGINE_SERVER_PATH: ${{ github.workspace }}/backend/target/debug/geoengine-server
-          GEOENGINE_CLI_PATH: ${{ github.workspace }}/backend/target/debug/geoengine-cli
 
   # Checks the library using minimum version resolution
   # `uv` has this feature built-in, c.f. https://github.com/astral-sh/uv
@@ -192,17 +186,13 @@ jobs:
         run: |
           source .venv/bin/activate
           uv pip install --resolution=${{ env.resolution }} -e .[test]
-      - name: Pre-build Geo Engine
-        run: |
-          cargo build --locked --bins
-        working-directory: backend
       - name: Test
         run: |
           source .venv/bin/activate
           pytest --cov=geoengine --cov-report=lcov
         env:
           GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
-          GEOENGINE_SERVER_PATH: ${{ github.workspace }}/backend/target/debug/geoengine-server
-          GEOENGINE_CLI_PATH: ${{ github.workspace }}/backend/target/debug/geoengine-cli
       - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2
+        with:
+          base-path: library/geoengine

@@ -10,23 +10,27 @@ import subprocess
 import os
 import shutil
 import socket
+import threading
 from typing import Optional
 from dotenv import load_dotenv
 
 TEST_CODE_PATH_VAR = 'GEOENGINE_TEST_CODE_PATH'
-TEST_SERVER_PATH_VAR = 'GEOENGINE_SERVER_PATH'
-TEST_CLI_PATH_VAR = 'GEOENGINE_CLI_PATH'
 
 
 @contextmanager
 def GeoEngineTestInstance():  # pylint: disable=invalid-name
     '''Provides a Geo Engine instance for unit testing purposes.'''
 
-    geo_engine_info = GeoEngineInfo()
+    load_dotenv()
+
+    if TEST_CODE_PATH_VAR not in os.environ:
+        raise RuntimeError(f'Environment variable {TEST_CODE_PATH_VAR} not set')
+
+    geo_engine_binaries = GeoEngineBinaries(Path(os.environ[TEST_CODE_PATH_VAR]))
 
     try:
         ge = GeoEngineProcess(
-            geo_engine_info=geo_engine_info,
+            geo_engine_binaries=geo_engine_binaries,
             port=get_open_port(),
             db_schema=generate_test_schema_name(),
         )
@@ -51,75 +55,84 @@ def generate_test_schema_name():
     return schema_name
 
 
-class GeoEngineInfo:
-    '''Information about the Geo Engine backend.'''
+class GeoEngineBinaries:
+    '''
+    Geo Engine binaries with `cargo` for testing.
+
+    This class is a singleton.
+    It builds the Geo Engine binaries from the given code path.
+    '''
+
+    _instance: Optional['GeoEngineBinaries'] = None
+    _lock = threading.Lock()
 
     _code_path: Path
-    _server_path: Optional[Path]
-    _cli_path: Optional[Path]
+    _server_binary_path: Path
+    _cli_binary_path: Path
 
-    def __init__(self):
-        '''Initialize Geo Engine info from env.'''
+    def __new__(cls, code_path: Path) -> 'GeoEngineBinaries':
+        '''Create Geo Engine binaries for testing.'''
 
-        load_dotenv()
+        if cls._instance is not None:
+            return cls._instance
 
-        if TEST_CODE_PATH_VAR not in os.environ:
-            raise RuntimeError(f'Environment variable {TEST_CODE_PATH_VAR} not set')
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+                cls._instance._code_path = code_path
 
-        self._code_path = Path(os.environ[TEST_CODE_PATH_VAR])
+                cls._instance._build_geo_engine()
 
-        self._server_path = Path(os.environ.get(TEST_SERVER_PATH_VAR, None)
-                                 ) if TEST_SERVER_PATH_VAR in os.environ else None
-        self._cli_path = Path(os.environ.get(TEST_CLI_PATH_VAR, None)
-                              ) if TEST_CLI_PATH_VAR in os.environ else None
+        return cls._instance
 
+    def _build_geo_engine(self):
+        '''Build the Geo Engine binaries.'''
+
+        cargo_bin = shutil.which('cargo')
+
+        if cargo_bin is None:
+            raise RuntimeError('Cargo not found')
+
+        subprocess.run(
+            [
+                cargo_bin,
+                'build',
+                '--locked',
+                '--bins',
+            ],
+            check=True,
+            cwd=self._code_path,
+        )
+
+        self._server_binary_path = self._code_path / 'target/debug/geoengine-server'
+        self._cli_binary_path = self._code_path / 'target/debug/geoengine-cli'
+
+        if not self._server_binary_path.exists():
+            raise RuntimeError(f'Server binary not found at {self._server_binary_path}')
+        if not self._cli_binary_path.exists():
+            raise RuntimeError(f'CLI binary not found at {self._cli_binary_path}')
+
+    @property
+    def server_binary_path(self) -> Path:
+        '''Get the path to the Geo Engine server binary.'''
+        return self._server_binary_path
+
+    @property
+    def cli_binary_path(self) -> Path:
+        '''Get the path to the Geo Engine CLI binary.'''
+        return self._cli_binary_path
+
+    @property
     def working_directory(self) -> Path:
         '''Get the working directory for the Geo Engine.'''
 
         return self._code_path
 
-    def server_open_args(self) -> list[str]:
-        '''Get the open arguments for the server.'''
-
-        if self._server_path is not None:
-            return [str(self._server_path)]
-
-        cargo_bin = shutil.which('cargo')
-
-        if cargo_bin is None:
-            raise RuntimeError('Cargo not found')
-
-        return [
-            cargo_bin,
-            'run',
-            '--locked',
-        ]
-
-    def cli_open_args(self) -> list[str]:
-        '''Get the open arguments for the CLI.'''
-
-        if self._cli_path is not None:
-            return [str(self._cli_path)]
-
-        cargo_bin = shutil.which('cargo')
-
-        if cargo_bin is None:
-            raise RuntimeError('Cargo not found')
-
-        return [
-            cargo_bin,
-            'run',
-            '--locked',
-            '--bin',
-            'geoengine-cli',
-            '--',
-        ]
-
 
 class GeoEngineProcess:
     '''A Geo Engine process.'''
 
-    geo_engine_info: GeoEngineInfo
+    geo_engine_binaries: GeoEngineBinaries
 
     port: int
     db_schema: str
@@ -129,13 +142,13 @@ class GeoEngineProcess:
     process: Optional[subprocess.Popen] = None
 
     def __init__(self,
-                 geo_engine_info: GeoEngineInfo,
+                 geo_engine_binaries: GeoEngineBinaries,
                  port: int,
                  db_schema: str,
                  timeout_seconds: int = 60):
         '''Initialize a Geo Engine process.'''
 
-        self.geo_engine_info = geo_engine_info
+        self.geo_engine_binaries = geo_engine_binaries
 
         self.port = port
         self.db_schema = db_schema
@@ -149,8 +162,8 @@ class GeoEngineProcess:
             raise RuntimeError('Process already started')
 
         self.process = subprocess.Popen(  # pylint: disable=consider-using-with
-            self.geo_engine_info.server_open_args(),
-            cwd=self.geo_engine_info.working_directory(),
+            self.geo_engine_binaries.server_binary_path,
+            cwd=self.geo_engine_binaries.working_directory,
             env={
                 'GEOENGINE__WEB__BIND_ADDRESS': self._bind_address(),
                 'GEOENGINE__POSTGRES__HOST': 'localhost',
@@ -186,13 +199,13 @@ class GeoEngineProcess:
         try:
             subprocess.run(
                 [
-                    *self.geo_engine_info.cli_open_args(),
+                    self.geo_engine_binaries.cli_binary_path,
                     'check-successful-startup',
                     '--timeout',
                     str(self.timeout_seconds),
                     '--output-stdin',
                 ],
-                cwd=self.geo_engine_info.working_directory(),
+                cwd=self.geo_engine_binaries.working_directory,
                 stdin=self.process.stderr,
                 text=True,
                 check=True,
