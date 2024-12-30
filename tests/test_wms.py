@@ -5,12 +5,12 @@ import textwrap
 import unittest
 from PIL import Image
 import numpy as np
+import geoengine_openapi_client
 import geoengine as ge
 from geoengine.colorizer import Colorizer
 from geoengine.types import RasterBandDescriptor, SingleBandRasterColorizer
 from tests.ge_test import GeoEngineTestInstance
 from . import UrllibMocker
-import geoengine_openapi_client
 
 
 class WmsTests(unittest.TestCase):

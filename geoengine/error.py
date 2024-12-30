@@ -4,9 +4,9 @@ Package errors and backend mapped error types
 
 from typing import Any, Dict, Union
 import json
+import xml.etree.ElementTree as ET
 from requests import Response, HTTPError
 import geoengine_openapi_client
-import xml.etree.ElementTree as ET
 
 
 class GeoEngineException(Exception):
