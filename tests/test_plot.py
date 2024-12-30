@@ -1,13 +1,12 @@
 '''Tests for the plotting functionality'''
 
-import json
 import textwrap
 from datetime import datetime
 import unittest
 from vega import VegaLite
+import numpy as np
 import geoengine as ge
 from tests.ge_test import GeoEngineTestInstance
-import numpy as np
 from . import UrllibMocker
 
 
