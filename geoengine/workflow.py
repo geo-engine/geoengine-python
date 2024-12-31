@@ -1001,7 +1001,7 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         user_api = geoengine_openapi_client.UserApi(api_client)
-        response = user_api.data_usage_summary_handler(data=data, granularity=granularity,
+        response = user_api.data_usage_summary_handler(dataset=data, granularity=granularity,
                                                        offset=offset, limit=limit)
 
         # create dataframe from response
