@@ -2,6 +2,7 @@
 Provides a Geo Engine instance for unit testing purposes.
 '''
 
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 import random
@@ -13,12 +14,19 @@ import socket
 import threading
 from typing import Optional
 from dotenv import load_dotenv
+import psycopg
 
 TEST_CODE_PATH_VAR = 'GEOENGINE_TEST_CODE_PATH'
 
+POSTGRES_HOST = 'localhost'
+POSTGRES_PORT = 5432
+POSTGRES_DATABASE = 'geoengine'
+POSTGRES_USER = 'geoengine'
+POSTGRES_PASSWORD = 'geoengine'
+
 
 @contextmanager
-def GeoEngineTestInstance(port: Optional[int] = None):  # pylint: disable=invalid-name
+def GeoEngineTestInstance(port: Optional[int] = None) -> Iterator['GeoEngineProcess']:  # pylint: disable=invalid-name
     '''Provides a Geo Engine instance for unit testing purposes.'''
 
     load_dotenv()
@@ -47,7 +55,7 @@ def get_open_port() -> int:
         return s.getsockname()[1]
 
 
-def generate_test_schema_name():
+def generate_test_schema_name() -> str:
     '''Generate a test schema name.'''
     schema_name = 'pytest_'
     for _ in range(10):
@@ -85,7 +93,7 @@ class GeoEngineBinaries:
 
         return cls._instance
 
-    def _build_geo_engine(self):
+    def _build_geo_engine(self) -> None:
         '''Build the Geo Engine binaries.'''
 
         cargo_bin = shutil.which('cargo')
@@ -145,7 +153,7 @@ class GeoEngineProcess:
                  geo_engine_binaries: GeoEngineBinaries,
                  port: int,
                  db_schema: str,
-                 timeout_seconds: int = 60):
+                 timeout_seconds: int = 60) -> None:
         '''Initialize a Geo Engine process.'''
 
         self.geo_engine_binaries = geo_engine_binaries
@@ -155,7 +163,7 @@ class GeoEngineProcess:
 
         self.timeout_seconds = timeout_seconds
 
-    def _start(self):
+    def _start(self) -> None:
         '''Start the Geo Engine process.'''
 
         if self.process is not None:
@@ -166,8 +174,11 @@ class GeoEngineProcess:
             cwd=self.geo_engine_binaries.working_directory,
             env={
                 'GEOENGINE__WEB__BIND_ADDRESS': self._bind_address(),
-                'GEOENGINE__POSTGRES__HOST': 'localhost',
-                'GEOENGINE__POSTGRES__PORT': "5432",
+                'GEOENGINE__POSTGRES__HOST': POSTGRES_HOST,
+                'GEOENGINE__POSTGRES__PORT': str(POSTGRES_PORT),
+                'GEOENGINE__POSTGRES__DATABASE': POSTGRES_DATABASE,
+                'GEOENGINE__POSTGRES__USER': POSTGRES_USER,
+                'GEOENGINE__POSTGRES__PASSWORD': POSTGRES_PASSWORD,
                 'GEOENGINE__POSTGRES__SCHEMA': self.db_schema,
                 'PATH': os.environ['PATH'],
             },
@@ -175,14 +186,36 @@ class GeoEngineProcess:
             text=True,
         )
 
-    def _stop(self):
+    def _stop(self) -> None:
         '''Stop the Geo Engine process.'''
 
         if self.process is None:
             raise RuntimeError('Process not started')
-        self.process.terminate()
 
-        # TODO: Clean up schema?
+        terminate_exception: Optional[Exception] = None
+
+        try:
+            self.process.terminate()
+        except Exception as e:  # pylint: disable=broad-except
+            terminate_exception = e
+
+        self._clean_up_schema()
+
+        if terminate_exception is not None:
+            raise terminate_exception
+
+    def _clean_up_schema(self) -> None:
+        '''Clean up the schema.'''
+
+        with psycopg.connect(  # pylint: disable=not-context-manager # false-positive
+            dbname=POSTGRES_DATABASE,
+            user=POSTGRES_USER,
+            password=POSTGRES_PASSWORD,
+            host=POSTGRES_HOST,
+            port=POSTGRES_PORT
+        ) as connection, connection.cursor() as cursor:
+            cursor.execute(f"DROP SCHEMA IF EXISTS {self.db_schema} CASCADE")
+            connection.commit()
 
     def _bind_address(self) -> str:
         return f'127.0.0.1:{self.port}'
@@ -190,7 +223,7 @@ class GeoEngineProcess:
     def address(self) -> str:
         return f'http://{self._bind_address()}/api'
 
-    def wait_for_ready(self):
+    def wait_for_ready(self) -> None:
         '''Wait for the Geo Engine to be ready.'''
 
         if self.process is None:

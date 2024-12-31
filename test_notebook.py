@@ -3,6 +3,7 @@
 '''Run Jupyter Notebooks and check for errors.'''
 
 import argparse
+import ast
 import sys
 import warnings
 from nbconvert import PythonExporter
@@ -47,13 +48,15 @@ def convert_to_python(input_file: str) -> str:
 def run_script(script: str) -> bool:
     '''Run the script.'''
 
+    code = compile(script, '<string>', 'exec', flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+
     try:
         # prevent interactive backend to pop up
         matplotlib.use('AGG')
 
         with warnings.catch_warnings(record=True):
             # pylint: disable-next=exec-used
-            exec(script, {})
+            exec(code, {})
 
         eprint("SUCCESS")
         return True

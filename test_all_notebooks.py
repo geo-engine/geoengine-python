@@ -9,10 +9,12 @@ import sys
 
 # TODO: fix the blacklisted notebooks
 BLACKLIST = [
-    'ml_pipeline.ipynb',
+    'copernicus_dataspace.ipynb',
     'layers.ipynb',
+    'ml_pipeline.ipynb',
     'permissions.ipynb',
     'plots.ipynb',
+    'raster_dataset.ipynb',
     'raster_stream.ipynb',
     'vector_stream.ipynb',
 ]
