@@ -970,3 +970,42 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> 
             ),
             _request_timeout=timeout
         )
+
+
+def data_usage(offset: int = 0, limit: int = 10) -> List[geoengine_openapi_client.DataUsage]:
+    '''
+    Get data usage
+    '''
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        response = user_api.data_usage_handler(offset=offset, limit=limit)
+
+        # create dataframe from response
+        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        df = pd.DataFrame(usage_dicts)
+
+    return df
+
+
+def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity,
+                       data: Optional[str] = None,
+                       offset: int = 0, limit: int = 10) -> pd.DataFrame:
+    '''
+    Get data usage summary
+    '''
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        response = user_api.data_usage_summary_handler(data=data, granularity=granularity,
+                                                       offset=offset, limit=limit)
+
+        # create dataframe from response
+        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        df = pd.DataFrame(usage_dicts)
+
+    return df
