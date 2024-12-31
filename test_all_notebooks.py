@@ -10,6 +10,7 @@ import sys
 # TODO: fix the blacklisted notebooks
 BLACKLIST = [
     'copernicus_dataspace.ipynb',
+    'data_usage.ipynb',
     'layers.ipynb',
     'ml_pipeline.ipynb',
     'permissions.ipynb',
