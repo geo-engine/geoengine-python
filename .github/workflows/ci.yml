@@ -100,6 +100,12 @@ jobs:
         run: pytest
         env:
           GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
+      - name: Examples
+        run: |
+          python -m pip install -e .[examples]
+          python test_all_notebooks.py
+        env:
+          GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
 
   # Checks the library using minimum version resolution
   # `uv` has this feature built-in, c.f. https://github.com/astral-sh/uv
@@ -196,3 +202,9 @@ jobs:
         uses: coverallsapp/github-action@v2
         with:
           base-path: library
+      - name: Examples
+        run: |
+          python -m pip install -e .[examples]
+          python test_all_notebooks.py
+        env:
+          GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend

@@ -52,12 +52,26 @@ pytest
 You have to set the environment variable `GEOENGINE_TEST_CODE_PATH` to the code folder of the Geo Engine instance you want to test against.
 Dotenv is supported, so you can create a `.env` file in the root of the project.
 
-### Coverage
+#### Coverage
 
 You can check the coverage with:
 
 ```bash
 pytest --cov=geoengine
+```
+
+### Test examples
+
+You can test the examples with:
+
+```bash
+./test_all_notebooks.py
+```
+
+Or you can test a single example with:
+
+```bash
+./test_notebook.py examples/ndvi_ports.ipynb
 ```
 
 ## Dependencies

@@ -18,7 +18,7 @@ TEST_CODE_PATH_VAR = 'GEOENGINE_TEST_CODE_PATH'
 
 
 @contextmanager
-def GeoEngineTestInstance():  # pylint: disable=invalid-name
+def GeoEngineTestInstance(port: Optional[int] = None):  # pylint: disable=invalid-name
     '''Provides a Geo Engine instance for unit testing purposes.'''
 
     load_dotenv()
@@ -31,7 +31,7 @@ def GeoEngineTestInstance():  # pylint: disable=invalid-name
     try:
         ge = GeoEngineProcess(
             geo_engine_binaries=geo_engine_binaries,
-            port=get_open_port(),
+            port=get_open_port() if port is None else port,
             db_schema=generate_test_schema_name(),
         )
         ge._start()  # pylint: disable=protected-access
