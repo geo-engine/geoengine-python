@@ -12,7 +12,6 @@ BLACKLIST = [
     'ml_pipeline.ipynb',
     'layers.ipynb',
     'permissions.ipynb',
-    'wms.ipynb',
     'plots.ipynb',
     'raster_stream.ipynb',
     'vector_stream.ipynb',

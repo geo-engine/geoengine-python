@@ -65,6 +65,7 @@ pytest --cov=geoengine
 You can test the examples with:
 
 ```bash
+python3 -m pip install -e .[examples]
 ./test_all_notebooks.py
 ```
 

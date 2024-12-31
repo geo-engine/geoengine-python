@@ -44,7 +44,7 @@ def convert_to_python(input_file: str) -> str:
     return body
 
 
-async def run_script(script: str) -> bool:
+def run_script(script: str) -> bool:
     '''Run the script.'''
 
     try:
