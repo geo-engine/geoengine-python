@@ -204,6 +204,7 @@ jobs:
           base-path: library
       - name: Examples
         run: |
+          source .venv/bin/activate
           python -m pip install -e .[examples]
           python test_all_notebooks.py
         env:
