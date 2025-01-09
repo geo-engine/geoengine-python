@@ -38,7 +38,7 @@ jobs:
           path: library
       - name: Read backend version
         id: read-backend-version
-        run: echo "GEOENGINE_VERSION=$(cat .ci_instance)" >> $GITHUB_OUTPUT
+        run: echo "GEOENGINE_VERSION=$(cat .github/.backend_git_ref)" >> $GITHUB_OUTPUT
       - name: Checkout Geo Engine code
         uses: actions/checkout@v4
         with:
@@ -141,7 +141,7 @@ jobs:
           path: library
       - name: Read backend version
         id: read-backend-version
-        run: echo "GEOENGINE_VERSION=$(cat .ci_instance)" >> $GITHUB_OUTPUT
+        run: echo "GEOENGINE_VERSION=$(cat .github/.backend_git_ref)" >> $GITHUB_OUTPUT
       - name: Checkout Geo Engine code
         uses: actions/checkout@v4
         with:
