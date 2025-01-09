@@ -101,6 +101,8 @@ class GeoEngineBinaries:
         if cargo_bin is None:
             raise RuntimeError('Cargo not found')
 
+        print("Building Geo Engine binaries… this may take a while.", file=os.sys.stderr)
+
         subprocess.run(
             [
                 cargo_bin,
