@@ -56,7 +56,7 @@ class DataUsageTests(unittest.TestCase):
                 ],
                 'count': [4, 4],
                 'data': ['land_cover', 'land_cover'],
-                'timestamp': [pd.Timestamp('2025-01-09 16:40:22.933000+0000', tz='UTC'), 
+                'timestamp': [pd.Timestamp('2025-01-09 16:40:22.933000+0000', tz='UTC'),
                               pd.Timestamp('2025-01-09 16:40:10.970000+0000', tz='UTC')],
                 'userId': ['e440bffc-d899-4304-aace-b23fc56828b2', 'e440bffc-d899-4304-aace-b23fc56828b2']})
 
