@@ -4,6 +4,7 @@ Provides a Geo Engine instance for unit testing purposes.
 
 from collections.abc import Iterator
 from contextlib import contextmanager
+from enum import Enum
 from pathlib import Path
 import random
 import string
@@ -18,6 +19,7 @@ from dotenv import load_dotenv
 import psycopg
 
 TEST_CODE_PATH_VAR = 'GEOENGINE_TEST_CODE_PATH'
+TEST_BUILD_TYPE_VAR = 'GEOENGINE_TEST_BUILD_TYPE'
 
 POSTGRES_HOST = 'localhost'
 POSTGRES_PORT = 5432
@@ -35,7 +37,12 @@ def GeoEngineTestInstance(port: Optional[int] = None) -> Iterator['GeoEngineProc
     if TEST_CODE_PATH_VAR not in os.environ:
         raise RuntimeError(f'Environment variable {TEST_CODE_PATH_VAR} not set')
 
-    geo_engine_binaries = GeoEngineBinaries(Path(os.environ[TEST_CODE_PATH_VAR]))
+    if os.environ.get('GEOENGINE_TEST_BUILD_TYPE', 'debug').lower() == 'release':
+        build_type = BuildType.RELEASE
+    else:
+        build_type = BuildType.DEBUG
+
+    geo_engine_binaries = GeoEngineBinaries(Path(os.environ[TEST_CODE_PATH_VAR]), build_type)
 
     try:
         ge = GeoEngineProcess(
@@ -47,6 +54,12 @@ def GeoEngineTestInstance(port: Optional[int] = None) -> Iterator['GeoEngineProc
         yield ge
     finally:
         ge._stop()  # pylint: disable=protected-access
+
+
+class BuildType(Enum):
+    '''Build type of the cargo build.'''
+    DEBUG = 'debug'
+    RELEASE = 'release'
 
 
 def get_open_port() -> int:
@@ -76,10 +89,11 @@ class GeoEngineBinaries:
     _lock = threading.Lock()
 
     _code_path: Path
+    _build_type: BuildType
     _server_binary_path: Path
     _cli_binary_path: Path
 
-    def __new__(cls, code_path: Path) -> 'GeoEngineBinaries':
+    def __new__(cls, code_path: Path, build_type: BuildType) -> 'GeoEngineBinaries':
         '''Create Geo Engine binaries for testing.'''
 
         if cls._instance is not None:
@@ -89,6 +103,7 @@ class GeoEngineBinaries:
             if cls._instance is None:
                 cls._instance = super().__new__(cls)
                 cls._instance._code_path = code_path
+                cls._instance._build_type = build_type
 
                 cls._instance._build_geo_engine()
 
@@ -102,7 +117,7 @@ class GeoEngineBinaries:
         if cargo_bin is None:
             raise RuntimeError('Cargo not found')
 
-        logging.info("Building Geo Engine binaries… this may take a while.")
+        logging.info("Building Geo Engine binaries in %s mode… this may take a while.", self._build_type.value)
 
         subprocess.run(
             [
@@ -110,13 +125,13 @@ class GeoEngineBinaries:
                 'build',
                 '--locked',
                 '--bins',
-            ],
+            ] + (['--release'] if self._build_type == BuildType.RELEASE else []),
             check=True,
             cwd=self._code_path,
         )
 
         self._server_binary_path = self._code_path / 'target/debug/geoengine-server'
-        self._cli_binary_path = self._code_path / 'target/debug/geoengine-cli'
+        self._cli_binary_path = self._code_path / 'target' / self._build_type.value / 'geoengine-cli'
 
         if not self._server_binary_path.exists():
             raise RuntimeError(f'Server binary not found at {self._server_binary_path}')
