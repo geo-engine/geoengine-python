@@ -130,7 +130,7 @@ class GeoEngineBinaries:
             cwd=self._code_path,
         )
 
-        self._server_binary_path = self._code_path / 'target/debug/geoengine-server'
+        self._server_binary_path = self._code_path / 'target' / self._build_type.value / 'geoengine-server'
         self._cli_binary_path = self._code_path / 'target' / self._build_type.value / 'geoengine-cli'
 
         if not self._server_binary_path.exists():
