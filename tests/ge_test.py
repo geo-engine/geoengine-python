@@ -27,6 +27,8 @@ POSTGRES_DATABASE = 'geoengine'
 POSTGRES_USER = 'geoengine'
 POSTGRES_PASSWORD = 'geoengine'
 
+GE_LOG_SPEC = 'info'
+
 
 @contextmanager
 def GeoEngineTestInstance(port: Optional[int] = None) -> Iterator['GeoEngineProcess']:  # pylint: disable=invalid-name
@@ -198,6 +200,7 @@ class GeoEngineProcess:
                 'GEOENGINE__POSTGRES__USER': POSTGRES_USER,
                 'GEOENGINE__POSTGRES__PASSWORD': POSTGRES_PASSWORD,
                 'GEOENGINE__POSTGRES__SCHEMA': self.db_schema,
+                'GEOENGINE__LOGGING__LOG_SPEC': GE_LOG_SPEC,
                 'PATH': os.environ['PATH'],
             },
             stderr=subprocess.PIPE,
