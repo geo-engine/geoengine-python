@@ -106,7 +106,7 @@ class Resource:
     @classmethod
     def from_ml_model_name(cls, ml_model_name: str) -> Resource:
         '''Create a resource from an ml model name'''
-        return Resource('ml_model', str(ml_model_name))
+        return Resource('mlModel', str(ml_model_name))
 
     def to_api_dict(self) -> geoengine_openapi_client.Resource:
         '''Convert to a dict for the API'''
@@ -120,8 +120,8 @@ class Resource:
             inner = geoengine_openapi_client.ProjectResource(type="project", id=self.__id)
         elif self.__type == "dataset":
             inner = geoengine_openapi_client.DatasetResource(type="dataset", id=self.__id)
-        elif self.__type == "ml_model":
-            inner = geoengine_openapi_client.DatasetResource(type="ml_model", id=self.__id)
+        elif self.__type == "mlModel":
+            inner = geoengine_openapi_client.DatasetResource(type="mlModel", id=self.__id)
 
         return geoengine_openapi_client.Resource(inner)
 
