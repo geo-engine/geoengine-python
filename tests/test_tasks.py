@@ -7,6 +7,7 @@ import geoengine as ge
 from geoengine import BadRequestException, ValidationError, DEFAULT_ISO_TIME_FORMAT
 from geoengine.tasks import CompletedTaskStatusInfo, TaskStatus, RunningTaskStatusInfo, \
     AbortedTaskStatusInfo, FailedTaskStatusInfo, TaskId, Task
+from tests.ge_test import GeoEngineTestInstance
 from . import UrllibMocker
 
 
@@ -17,23 +18,16 @@ class TaskTests(unittest.TestCase):
         ge.reset(False)
 
     def test_get_task_list_empty(self):
-        with UrllibMocker() as m:
-            m.post('http://mock-instance/anonymous', json={
-                "id": "26a4c585-8aa5-4de8-9ede-293d3cd3544a",
-                "project": None,
-                "view": None
-            })
+        # TODO: use `enterContext(cm)` instead of `with cm:` in Python 3.11
+        with GeoEngineTestInstance() as ge_instance:
+            ge_instance.wait_for_ready()
 
-            m.get('http://mock-instance/tasks/list', json=[])
-
-            ge.initialize('http://mock-instance')
-
-            expected_result = []
+            ge.initialize(ge_instance.address())
 
             task_list = ge.tasks.get_task_list()
 
             self.assertEqual(len(task_list), 0)
-            self.assertEqual(task_list, expected_result)
+            self.assertEqual(task_list, [])
 
     def test_get_task_list_all_types(self):
         with UrllibMocker() as m:

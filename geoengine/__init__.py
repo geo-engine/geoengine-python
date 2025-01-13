@@ -15,7 +15,7 @@ from .datasets import upload_dataframe, StoredDataset, add_dataset, volumes, Add
 from .error import GeoEngineException, InputException, UninitializedException, TypeException, \
     MethodNotCalledOnPlotException, MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, \
     SpatialReferenceMismatchException, check_response_for_error, ModificationNotOnLayerDbException, \
-    InvalidUrlException, MissingFieldInResponseException
+    InvalidUrlException, MissingFieldInResponseException, OGCXMLError
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
     LayerId, LayerCollectionId, LayerProviderId, \
     layer_collection, layer

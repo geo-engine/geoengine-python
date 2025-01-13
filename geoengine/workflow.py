@@ -34,7 +34,7 @@ import geoengine_openapi_client
 from geoengine import api
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
-    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException
+    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, OGCXMLError
 from geoengine import backports
 from geoengine.types import ProvenanceEntry, QueryRectangle, RasterColorizer, ResultDescriptor, \
     VectorResultDescriptor, ClassificationMeasurement
@@ -281,6 +281,9 @@ class Workflow:
                 crs=bbox.srs,
                 time=bbox.time_str
             )
+
+        if OGCXMLError.is_ogc_error(response):
+            raise OGCXMLError(response)
 
         return Image.open(BytesIO(response))
 

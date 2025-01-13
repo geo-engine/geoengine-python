@@ -1,6 +1,10 @@
 [build-system]
 requires = [
     "setuptools>=42",
-    "wheel"
+    "wheel",
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+log_cli = true
+log_level = "INFO"

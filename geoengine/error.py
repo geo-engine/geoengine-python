@@ -4,6 +4,7 @@ Package errors and backend mapped error types
 
 from typing import Any, Dict, Union
 import json
+import xml.etree.ElementTree as ET
 from requests import Response, HTTPError
 import geoengine_openapi_client
 
@@ -206,3 +207,29 @@ class MethodOnlyAvailableInGeoEnginePro(Exception):
 
     def __str__(self) -> str:
         return f"Method is only available in Geo Engine Pro: {self.__message}"
+
+
+class OGCXMLError(Exception):
+    '''
+    Exception when an OGC XML error is returned
+    '''
+
+    __xml: ET.Element
+
+    def __init__(self, xml: bytearray) -> None:
+        super().__init__()
+
+        self.__xml = ET.fromstring(xml[1:])
+
+    def __str__(self) -> str:
+        service_exception = ''
+        for e in self.__xml:
+            if 'ServiceException' in e.tag and e.text is not None:
+                service_exception = e.text
+                break
+
+        return f'OGC API error: {service_exception}'
+
+    @classmethod
+    def is_ogc_error(cls, xml: bytearray) -> bool:
+        return xml.startswith(b"\n<?xml")
