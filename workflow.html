@@ -63,7 +63,7 @@ import geoengine_openapi_client
 from geoengine import api
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
-    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException
+    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, OGCXMLError
 from geoengine import backports
 from geoengine.types import ProvenanceEntry, QueryRectangle, RasterColorizer, ResultDescriptor, \
     VectorResultDescriptor, ClassificationMeasurement
@@ -310,6 +310,9 @@ class Workflow:
                 crs=bbox.srs,
                 time=bbox.time_str
             )
+
+        if OGCXMLError.is_ogc_error(response):
+            raise OGCXMLError(response)
 
         return Image.open(BytesIO(response))
 
@@ -1741,6 +1744,9 @@ dict(one=1, two=2)</p></div>
                 time=bbox.time_str
             )
 
+        if OGCXMLError.is_ogc_error(response):
+            raise OGCXMLError(response)
+
         return Image.open(BytesIO(response))
 
     def plot_json(self, bbox: QueryRectangle, timeout: int = 3600) -&gt; geoengine_openapi_client.WrappedPlotOutput:
@@ -3169,6 +3175,9 @@ Otherwise, use the Geo Engine will produce masked rasters.</p></div>
             crs=bbox.srs,
             time=bbox.time_str
         )
+
+    if OGCXMLError.is_ogc_error(response):
+        raise OGCXMLError(response)
 
     return Image.open(BytesIO(response))</code></pre>
 </details>
