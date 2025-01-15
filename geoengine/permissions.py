@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum
 
 import ast
-from typing import Dict, Literal, Any
+from typing import Dict, Literal, Any, Union
 from uuid import UUID
 
 import geoengine_openapi_client
@@ -82,7 +82,7 @@ class UserId:
 class Resource:
     '''A wrapper for a resource id'''
 
-    def __init__(self, resource_type: Literal['dataset', 'layer', 'layerCollection'],
+    def __init__(self, resource_type: Literal['dataset', 'layer', 'layerCollection', 'mlModel'],
                  resource_id: str) -> None:
         '''Create a resource id'''
         self.__type = resource_type
@@ -99,14 +99,16 @@ class Resource:
         return Resource('layerCollection', str(layer_collection_id))
 
     @classmethod
-    def from_dataset_name(cls, dataset_name: DatasetName) -> Resource:
+    def from_dataset_name(cls, dataset_name: Union[DatasetName, str]) -> Resource:
         '''Create a resource id from a dataset name'''
-        return Resource('dataset', str(dataset_name))
+        if isinstance(dataset_name, DatasetName):
+            dataset_name = str(dataset_name)
+        return Resource('dataset', dataset_name)
 
     @classmethod
     def from_ml_model_name(cls, ml_model_name: str) -> Resource:
         '''Create a resource from an ml model name'''
-        return Resource('mlModel', str(ml_model_name))
+        return Resource('mlModel', ml_model_name)
 
     def to_api_dict(self) -> geoengine_openapi_client.Resource:
         '''Convert to a dict for the API'''
@@ -121,7 +123,7 @@ class Resource:
         elif self.__type == "dataset":
             inner = geoengine_openapi_client.DatasetResource(type="dataset", id=self.__id)
         elif self.__type == "mlModel":
-            inner = geoengine_openapi_client.DatasetResource(type="mlModel", id=self.__id)
+            inner = geoengine_openapi_client.MlModelResource(type="mlModel", id=self.__id)
 
         return geoengine_openapi_client.Resource(inner)
 

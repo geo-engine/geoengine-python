@@ -276,7 +276,7 @@ class DatasetName:
         return str(self)
 
     def __eq__(self, other) -> bool:
-        '''Checks if two dataset ids are equal'''
+        '''Checks if two dataset names are equal'''
         if not isinstance(other, self.__class__):
             return False
 
