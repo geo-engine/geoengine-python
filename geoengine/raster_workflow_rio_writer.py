@@ -176,7 +176,13 @@ class RasterWorkflowRioWriter:
         self.current_dataset = rio_dataset
 
     async def query_and_write(self, query: QueryRectangle, skip_empty_times=True):
-        ''' Query the raster workflow and write the tiles to the dataset.'''
+        ''' 
+        Query the raster workflow and write the resulting tiles to a GDAL dataset per timeslice.
+
+        :param query: The QueryRectangle to write to GDAL dataset(s)
+        :param skip_empty_times: Skip timeslices where all pixels are empty/nodata
+        
+        '''
 
         self.create_tiling_geo_transform_width_height(query)
 
