@@ -41,7 +41,7 @@ jobs:
         id: vars
         run: |
           echo "GEOENGINE_VERSION=$(cat .github/.backend_git_ref)" >> $GITHUB_OUTPUT
-          if ${{ inputs.use-uv }}"; then
+          if ${{ inputs.use-uv }}; then
             echo "PIP_PREFIX=uv" >> $GITHUB_OUTPUT
             echo "PIP_RESOLUTION='--resolution=lowest-direct'" >> $GITHUB_OUTPUT
             echo "VENV_CALL='source .venv/bin/activate'" >> $GITHUB_OUTPUT
@@ -50,7 +50,7 @@ jobs:
             echo "PIP_RESOLUTION=" >> $GITHUB_OUTPUT
             echo "VENV_CALL=" >> $GITHUB_OUTPUT
           fi
-          if ${{ inputs.coverage }}"; then
+          if ${{ inputs.coverage }}; then
             echo "COVERAGE_COMMAND='--cov=geoengine --cov-report=lcov'" >> $GITHUB_OUTPUT
           else
             echo "COVERAGE_COMMAND=" >> $GITHUB_OUTPUT
