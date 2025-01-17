@@ -42,12 +42,10 @@ jobs:
         run: |
           echo "GEOENGINE_VERSION=$(cat .github/.backend_git_ref)" >> $GITHUB_OUTPUT
           if ${{ inputs.use-uv }}; then
-            echo "PIP_PREFIX=uv" >> $GITHUB_OUTPUT
-            echo "PIP_RESOLUTION=--resolution=lowest-direct" >> $GITHUB_OUTPUT
+            echo "PIP_INSTALL=uv pip install --resolution=lowest-direct" >> $GITHUB_OUTPUT
             echo "VENV_CALL=source .venv/bin/activate" >> $GITHUB_OUTPUT
           else
-            echo "PIP_PREFIX=" >> $GITHUB_OUTPUT
-            echo "PIP_RESOLUTION=" >> $GITHUB_OUTPUT
+            echo "PIP_INSTALL=pip install" >> $GITHUB_OUTPUT
             echo "VENV_CALL=" >> $GITHUB_OUTPUT
           fi
           if ${{ inputs.coverage }}; then
@@ -97,7 +95,7 @@ jobs:
       - name: Install build dependencies
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
-          ${{ steps.vars.outputs.PIP_PREFIX }} pip install ${{ steps.vars.outputs.PIP_RESOLUTION }} -e .[dev]
+          ${{ steps.vars.outputs.PIP_INSTALL }} -e .[dev]
       - name: Check Formatting
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
@@ -115,7 +113,7 @@ jobs:
       - name: Install test dependencies
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
-          ${{ steps.vars.outputs.PIP_PREFIX }} pip install ${{ steps.vars.outputs.PIP_RESOLUTION }} -e .[test]
+          ${{ steps.vars.outputs.PIP_INSTALL }} -e .[test]
       - name: Lint tests
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
@@ -139,7 +137,7 @@ jobs:
       - name: Examples
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
-          ${{ steps.vars.outputs.PIP_PREFIX }} pip install ${{ steps.vars.outputs.PIP_RESOLUTION }} -e .[examples]
+          ${{ steps.vars.outputs.PIP_INSTALL }} -e .[examples]
           python test_all_notebooks.py
         env:
           GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
