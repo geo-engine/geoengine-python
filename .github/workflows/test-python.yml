@@ -105,6 +105,8 @@ jobs:
           ${{ steps.vars.outputs.VENV_CALL }}
           python -m pylint geoengine
       - name: Type-check code
+        # mypy seems buggy with uv
+        if: ${{ !inputs.use-uv }}
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
           python -m mypy geoengine
@@ -119,6 +121,8 @@ jobs:
           ${{ steps.vars.outputs.VENV_CALL }}
           python -m pylint tests
       - name: Type-check tests
+        # mypy seems buggy with uv
+        if: ${{ !inputs.use-uv }}
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
           python -m mypy tests
