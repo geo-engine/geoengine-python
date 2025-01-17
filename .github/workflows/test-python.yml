@@ -111,7 +111,9 @@ jobs:
           ${{ steps.vars.outputs.VENV_CALL }}
           python -m mypy geoengine
       - name: Build
-        run: python -m build .
+        run: |
+          ${{ steps.vars.outputs.VENV_CALL }}
+          python -m build .
       - name: Install test dependencies
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
