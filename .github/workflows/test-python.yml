@@ -6,12 +6,15 @@ on:
       python-version:
         type: string
         required: true
+        description: 'Python version to use, e.g., "3.9"'
       use-uv:
         type: boolean
         default: false
+        description: 'Use `uv` for minimum version resolution'
       coverage:
         type: boolean
         default: false
+        description: 'Generate coverage report'
 
 jobs:
   check:
