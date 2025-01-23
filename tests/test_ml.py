@@ -49,6 +49,15 @@ class WorkflowStorageTests(unittest.TestCase):
             )
             self.assertEqual(str(res_name), model_name)
 
+            # Now test permission setting
+            ge.add_permission(
+                ge.REGISTERED_USER_ROLE_ID, ge.Resource.from_ml_model_name(res_name), ge.Permission.READ
+            )
+            ge.remove_permission(
+                ge.REGISTERED_USER_ROLE_ID, ge.Resource.from_ml_model_name(res_name), ge.Permission.READ
+            )
+
+            # failing tests
             with self.assertRaises(ge.InputException) as exception:
                 _res_name = ge.register_ml_model(
                     onnx_model=onnx_clf,
