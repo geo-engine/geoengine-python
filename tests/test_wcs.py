@@ -450,8 +450,13 @@ class WcsTests(unittest.TestCase):
                     expected.coords),
                 msg=f'{array.coords} \n!=\n {expected.coords}')
 
-            # TODO: Test with np.array_equal(?
             # test attributes
+            # Since OWSLib produces different outputs depending on its version, we don't test equality on attributes.
+            # Instead, we only check the expected attributes (the ones we need) and ignore the rest.
+            # Problematic attributes are:
+            #   "AREA_OR_POINT":    This is not available with OWSLib min_version.
+            #   "transform":        This used to be a tuple but in newer versions it is an instance of "Affine".
+            #   "crs":              OWS "CRS.from_wkt(..." or "CRS.from_epsg(..." depending on the OWSLib version.
             self.assertEqual(
                 array.attrs, array.attrs | expected.attrs, msg=f'{array.attrs} \n!=\n {expected.attrs}'
             )
