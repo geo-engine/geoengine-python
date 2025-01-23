@@ -2,9 +2,11 @@
 Util functions for machine learning
 '''
 
+from __future__ import annotations
 from pathlib import Path
 import tempfile
 from dataclasses import dataclass
+import geoengine_openapi_client.models
 from onnx import TypeProto, TensorProto, ModelProto
 from onnx.helper import tensor_dtype_to_string
 from geoengine_openapi_client.models import MlModelMetadata, MlModel, RasterDataType
@@ -23,10 +25,42 @@ class MlModelConfig:
     description: str = "My Ml Model Description"
 
 
+class MlModelName:
+    '''A wrapper for an MlModel name'''
+
+    __ml_model_name: str
+
+    def __init__(self, ml_model_name: str) -> None:
+        self.__ml_model_name = ml_model_name
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.models.MlModelNameResponse) -> MlModelName:
+        '''Parse a http response to an `DatasetName`'''
+        return MlModelName(response.ml_model_name)
+
+    def __str__(self) -> str:
+        return self.__ml_model_name
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __eq__(self, other) -> bool:
+        '''Checks if two dataset names are equal'''
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__ml_model_name == other.__ml_model_name  # pylint: disable=protected-access
+
+    def to_api_dict(self) -> geoengine_openapi_client.models.MlModelNameResponse:
+        return geoengine_openapi_client.models.MlModelNameResponse(
+            ml_model_name=str(self.__ml_model_name)
+        )
+
+
 def register_ml_model(onnx_model: ModelProto,
                       model_config: MlModelConfig,
                       upload_timeout: int = 3600,
-                      register_timeout: int = 60):
+                      register_timeout: int = 60) -> MlModelName:
     '''Uploads an onnx file and registers it as an ml model'''
 
     validate_model_config(
@@ -55,7 +89,8 @@ def register_ml_model(onnx_model: ModelProto,
 
         model = MlModel(name=model_config.name, upload=str(upload_id), metadata=model_config.metadata,
                         display_name=model_config.display_name, description=model_config.description)
-        ml_api.add_ml_model(model, _request_timeout=register_timeout)
+        res_name = ml_api.add_ml_model(model, _request_timeout=register_timeout)
+        return MlModelName.from_response(res_name)
 
 
 def validate_model_config(onnx_model: ModelProto, *,

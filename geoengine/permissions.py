@@ -15,6 +15,7 @@ from geoengine.auth import get_session
 from geoengine.datasets import DatasetName
 from geoengine.error import GeoEngineException
 from geoengine.layers import LayerCollectionId, LayerId
+from geoengine.ml import MlModelName
 
 
 class RoleId:
@@ -106,8 +107,10 @@ class Resource:
         return Resource('dataset', dataset_name)
 
     @classmethod
-    def from_ml_model_name(cls, ml_model_name: str) -> Resource:
+    def from_ml_model_name(cls, ml_model_name: Union[MlModelName, str]) -> Resource:
         '''Create a resource from an ml model name'''
+        if isinstance(ml_model_name, MlModelName):
+            ml_model_name = str(ml_model_name)
         return Resource('mlModel', ml_model_name)
 
     def to_api_dict(self) -> geoengine_openapi_client.Resource:

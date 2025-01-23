@@ -13,7 +13,7 @@ class UploadTests(unittest.TestCase):
     '''Test runner regarding upload functionality'''
 
     def setUp(self) -> None:
-        ge.reset(False)
+        ge.reset(logout=False)
 
     def test_upload(self):
         # TODO: use `enterContext(cm)` instead of `with cm:` in Python 3.11
