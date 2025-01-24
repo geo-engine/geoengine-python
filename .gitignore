@@ -24,3 +24,4 @@ env-*
 examples/raster_download.tif
 examples/download
 examples/test
+examples/export_data/test
