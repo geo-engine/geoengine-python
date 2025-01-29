@@ -3,23 +3,16 @@ name: CI
 on:
   pull_request:
   merge_group:
+  # Creates a coverage of the main branch
+  push:
+    branches:
+      - main
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   check:
-    runs-on: ubuntu-22.04
-
-    services:
-      postgres:
-        image: postgis/postgis
-        env:
-          POSTGRES_USER: geoengine
-          POSTGRES_PASSWORD: geoengine
-          POSTGRES_DB: geoengine
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@reusable-workflow
 
     strategy:
       fail-fast: false
@@ -27,189 +20,17 @@ jobs:
         # use all supported versions from https://devguide.python.org/versions/
         python-version: ["3.9", "3.10", "3.11", "3.12"]
 
-    defaults:
-      run:
-        working-directory: library
-
-    steps:
-      - name: Checkout library code
-        uses: actions/checkout@v4
-        with:
-          path: library
-      - name: Read backend version
-        id: read-backend-version
-        run: echo "GEOENGINE_VERSION=$(cat .github/.backend_git_ref)" >> $GITHUB_OUTPUT
-      - name: Checkout Geo Engine code
-        uses: actions/checkout@v4
-        with:
-          repository: geo-engine/geoengine
-          ref: ${{ steps.read-backend-version.outputs.GEOENGINE_VERSION }}
-          path: backend
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
-      - name: Install lld & GDAL & Protobuf
-        run: |
-          sudo apt-get update
-          sudo apt-get install lld libgdal-dev gdal-bin build-essential clang curl protobuf-compiler libgeos-dev libproj-dev
-          sudo apt-get clean
-          export C_INCLUDE_PATH=/usr/include/gdal:$C_INCLUDE_PATH
-          export CPLUS_INCLUDE_PATH=/usr/include/gdal:$CPLUS_INCLUDE_PATH
-          sudo ldconfig
-      - name: Install Rustup
-        run: |
-          curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -fsSL "https://sh.rustup.rs" | sh -s -- --profile minimal --default-toolchain none -y
-          echo "${CARGO_HOME:-$HOME/.cargo}/bin" >> $GITHUB_PATH
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-          pip install -e .[dev]
-      - name: Check Formatting
-        run: |
-          python -m pycodestyle
-      - name: Lint code
-        run: |
-          python -m pylint geoengine
-      - name: Type-check code
-        run: |
-          python -m mypy geoengine
-      - name: Build
-        run: python -m build .
-      - name: Install test dependencies
-        run: |
-          pip install -e .[test]
-      - name: Lint tests
-        run: |
-          python -m pylint tests
-      - name: Type-check tests
-        run: |
-          python -m mypy tests
-      - name: Test
-        run: pytest
-        env:
-          GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
-          GEOENGINE_TEST_BUILD_TYPE: "release"
-      - name: Examples
-        run: |
-          python -m pip install -e .[examples]
-          python test_all_notebooks.py
-        env:
-          GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
-          GEOENGINE_TEST_BUILD_TYPE: "release"
+    with:
+      python-version: ${{ matrix.python-version }}
+      use-uv: false
+      coverage: false
 
   # Checks the library using minimum version resolution
   # `uv` has this feature built-in, c.f. https://github.com/astral-sh/uv
   check-min-version:
-    runs-on: ubuntu-22.04
+    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@reusable-workflow
 
-    services:
-      postgres:
-        image: postgis/postgis
-        env:
-          POSTGRES_USER: geoengine
-          POSTGRES_PASSWORD: geoengine
-          POSTGRES_DB: geoengine
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-
-    defaults:
-      run:
-        working-directory: library
-
-    env:
-      # use minimum supported versions from https://devguide.python.org/versions/
-      python-version: "3.9"
-      # lowest compatible versions for all direct dependencies
-      # cf., https://github.com/astral-sh/uv#resolution-strategy
-      resolution: "lowest-direct"
-
-    steps:
-      - name: Checkout library code
-        uses: actions/checkout@v4
-        with:
-          path: library
-      - name: Read backend version
-        id: read-backend-version
-        run: echo "GEOENGINE_VERSION=$(cat .github/.backend_git_ref)" >> $GITHUB_OUTPUT
-      - name: Checkout Geo Engine code
-        uses: actions/checkout@v4
-        with:
-          repository: geo-engine/geoengine
-          ref: ${{ steps.read-backend-version.outputs.GEOENGINE_VERSION }}
-          path: backend
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
-      - name: Install lld & GDAL & Protobuf
-        run: |
-          sudo apt-get update
-          sudo apt-get install lld libgdal-dev gdal-bin build-essential clang curl protobuf-compiler libgeos-dev libproj-dev
-          sudo apt-get clean
-          export C_INCLUDE_PATH=/usr/include/gdal:$C_INCLUDE_PATH
-          export CPLUS_INCLUDE_PATH=/usr/include/gdal:$CPLUS_INCLUDE_PATH
-          sudo ldconfig
-      - name: Install Rustup
-        run: |
-          curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -fsSL "https://sh.rustup.rs" | sh -s -- --profile minimal --default-toolchain none -y
-          echo "${CARGO_HOME:-$HOME/.cargo}/bin" >> $GITHUB_PATH
-      - name: Set up Python ${{ env.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.python-version }}
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install uv
-
-          uv venv
-          source .venv/bin/activate
-
-          uv pip install --resolution=${{ env.resolution }} -e .
-          uv pip install --resolution=${{ env.resolution }} -e .[dev]
-      - name: Build
-        run: |
-          source .venv/bin/activate
-          python -m build .
-      - name: Install test dependencies
-        run: |
-          source .venv/bin/activate
-          uv pip install --resolution=${{ env.resolution }} -e .[test]
-      - name: Test
-        run: |
-          source .venv/bin/activate
-          pytest --cov=geoengine --cov-report=lcov
-        env:
-          GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
-          GEOENGINE_TEST_BUILD_TYPE: "release"
-      - name: Upload coverage to Coveralls
-        uses: coverallsapp/github-action@v2
-        with:
-          base-path: library
-      - name: Examples
-        run: |
-          source .venv/bin/activate
-          uv pip install --resolution=${{ env.resolution }} -e .[examples]
-          python test_all_notebooks.py
-        env:
-          GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
-          GEOENGINE_TEST_BUILD_TYPE: "release"
+    with:
+      python-version: 3.9
+      use-uv: true
+      coverage: true

@@ -1,6 +1,8 @@
 # Geo Engine Python Package
 
 [![CI](https://github.com/geo-engine/geoengine-python/actions/workflows/ci.yml/badge.svg)](https://github.com/geo-engine/geoengine-python/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/geo-engine/geoengine-python/badge.svg)](https://coveralls.io/github/geo-engine/geoengine-python)
+[![Documentation](https://img.shields.io/badge/documentation-python.docs.geoengine.io-blue)](https://python.docs.geoengine.io/)
 
 This package allows easy access to Geo Engine functionality from Python environments.
 
