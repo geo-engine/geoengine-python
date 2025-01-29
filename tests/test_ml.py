@@ -49,13 +49,24 @@ class WorkflowStorageTests(unittest.TestCase):
             )
             self.assertEqual(str(res_name), model_name)
 
-            # Now test permission setting
+            # Now test permission setting and removal
             ge.add_permission(
                 ge.REGISTERED_USER_ROLE_ID, ge.Resource.from_ml_model_name(res_name), ge.Permission.READ
             )
+
+            expected = ge.permissions.PermissionListing(
+                permission=ge.Permission.READ,
+                resource=ge.Resource.from_ml_model_name(res_name),
+                role=ge.permissions.Role(ge.REGISTERED_USER_ROLE_ID, 'user')
+            )
+
+            self.assertIn(expected, ge.permissions.list_permissions(ge.Resource.from_ml_model_name(res_name)))
+
             ge.remove_permission(
                 ge.REGISTERED_USER_ROLE_ID, ge.Resource.from_ml_model_name(res_name), ge.Permission.READ
             )
+
+            self.assertNotIn(expected, ge.permissions.list_permissions(ge.Resource.from_ml_model_name(res_name)))
 
             # failing tests
             with self.assertRaises(ge.InputException) as exception:
