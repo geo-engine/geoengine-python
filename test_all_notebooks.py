@@ -11,10 +11,7 @@ import sys
 BLACKLIST = [
     'copernicus_dataspace.ipynb',
     'data_usage.ipynb',
-    'layers.ipynb',
-    'permissions.ipynb',
     'plots.ipynb',
-    'raster_dataset.ipynb',
 ]
 
 
