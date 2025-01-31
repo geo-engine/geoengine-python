@@ -286,7 +286,7 @@ class OgrOnError(Enum):
 
 
 class DatasetName:
-    &#39;&#39;&#39;A wrapper for a dataset id&#39;&#39;&#39;
+    &#39;&#39;&#39;A wrapper for a dataset name&#39;&#39;&#39;
 
     __dataset_name: str
 
@@ -295,7 +295,7 @@ class DatasetName:
 
     @classmethod
     def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
-        &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
+        &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
         return DatasetName(response.dataset_name)
 
     def __str__(self) -&gt; str:
@@ -305,7 +305,7 @@ class DatasetName:
         return str(self)
 
     def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Checks if two dataset ids are equal&#39;&#39;&#39;
+        &#39;&#39;&#39;Checks if two dataset names are equal&#39;&#39;&#39;
         if not isinstance(other, self.__class__):
             return False
 
@@ -1189,13 +1189,13 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 <span>(</span><span>dataset_name: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>A wrapper for a dataset id</p></div>
+<div class="desc"><p>A wrapper for a dataset name</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class DatasetName:
-    &#39;&#39;&#39;A wrapper for a dataset id&#39;&#39;&#39;
+    &#39;&#39;&#39;A wrapper for a dataset name&#39;&#39;&#39;
 
     __dataset_name: str
 
@@ -1204,7 +1204,7 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 
     @classmethod
     def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
-        &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
+        &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
         return DatasetName(response.dataset_name)
 
     def __str__(self) -&gt; str:
@@ -1214,7 +1214,7 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
         return str(self)
 
     def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Checks if two dataset ids are equal&#39;&#39;&#39;
+        &#39;&#39;&#39;Checks if two dataset names are equal&#39;&#39;&#39;
         if not isinstance(other, self.__class__):
             return False
 
@@ -1231,14 +1231,14 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 <span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.CreateDatasetHandler200Response) ‑> <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Parse a http response to an <code>DatasetId</code></p></div>
+<div class="desc"><p>Parse a http response to an <code><a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
 def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
-    &#39;&#39;&#39;Parse a http response to an `DatasetId`&#39;&#39;&#39;
+    &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
     return DatasetName(response.dataset_name)</code></pre>
 </details>
 </dd>

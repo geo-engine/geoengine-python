@@ -35,19 +35,24 @@ from __future__ import annotations
 from enum import Enum
 
 import ast
-from typing import Dict, Literal, Any
+from typing import Dict, List, Literal, Any, Union
 from uuid import UUID
 
 import geoengine_openapi_client
+import geoengine_openapi_client.api
+import geoengine_openapi_client.models
+import geoengine_openapi_client.models.role
 
 from geoengine.auth import get_session
 from geoengine.datasets import DatasetName
 from geoengine.error import GeoEngineException
 from geoengine.layers import LayerCollectionId, LayerId
+from geoengine.ml import MlModelName
 
 
 class RoleId:
     &#39;&#39;&#39;A wrapper for a role id&#39;&#39;&#39;
+    __role_id: UUID
 
     def __init__(self, role_id: UUID) -&gt; None:
         self.__role_id = role_id
@@ -75,6 +80,48 @@ class RoleId:
 
     def __repr__(self) -&gt; str:
         return repr(self.__role_id)
+
+
+class Role:
+    &#39;&#39;&#39;A wrapper for a role&#39;&#39;&#39;
+    name: str
+    id: RoleId
+
+    def __init__(self, role_id: Union[UUID, RoleId, str], role_name: str):
+        &#39;&#39;&#39; Create a role with name and id &#39;&#39;&#39;
+
+        if isinstance(role_id, UUID):
+            real_id = RoleId(role_id)
+        elif isinstance(role_id, str):
+            real_id = RoleId(UUID(role_id))
+        else:
+            real_id = role_id
+
+        self.id = real_id
+        self.name = role_name
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.models.role.Role) -&gt; Role:
+        &#39;&#39;&#39;Parse a http response to an `RoleId`&#39;&#39;&#39;
+
+        role_id = response.id
+        role_name = response.name
+
+        return Role(role_id, role_name)
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two role ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.id == other.id and self.name == other.name
+
+    def role_id(self) -&gt; RoleId:
+        &#39;&#39;&#39;get the role id&#39;&#39;&#39;
+        return self.id
+
+    def __repr__(self) -&gt; str:
+        return &#39;id: &#39; + repr(self.id) + &#39;, name: &#39; + repr(self.name)
 
 
 class UserId:
@@ -111,11 +158,14 @@ class UserId:
 class Resource:
     &#39;&#39;&#39;A wrapper for a resource id&#39;&#39;&#39;
 
-    def __init__(self, resource_type: Literal[&#39;dataset&#39;, &#39;layer&#39;, &#39;layerCollection&#39;],
+    id: str
+    type: Literal[&#39;dataset&#39;, &#39;layer&#39;, &#39;layerCollection&#39;, &#39;mlModel&#39;, &#39;project&#39;]
+
+    def __init__(self, resource_type: Literal[&#39;dataset&#39;, &#39;layer&#39;, &#39;layerCollection&#39;, &#39;mlModel&#39;, &#39;project&#39;],
                  resource_id: str) -&gt; None:
         &#39;&#39;&#39;Create a resource id&#39;&#39;&#39;
-        self.__type = resource_type
-        self.__id = resource_id
+        self.type = resource_type
+        self.id = resource_id
 
     @classmethod
     def from_layer_id(cls, layer_id: LayerId) -&gt; Resource:
@@ -128,24 +178,99 @@ class Resource:
         return Resource(&#39;layerCollection&#39;, str(layer_collection_id))
 
     @classmethod
-    def from_dataset_name(cls, dataset_name: DatasetName) -&gt; Resource:
-        &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
-        return Resource(&#39;dataset&#39;, str(dataset_name))
+    def from_dataset_name(cls, dataset_name: Union[DatasetName, str]) -&gt; Resource:
+        &#39;&#39;&#39;Create a resource id from a dataset name&#39;&#39;&#39;
+        if isinstance(dataset_name, DatasetName):
+            dataset_name = str(dataset_name)
+        return Resource(&#39;dataset&#39;, dataset_name)
+
+    @classmethod
+    def from_ml_model_name(cls, ml_model_name: Union[MlModelName, str]) -&gt; Resource:
+        &#39;&#39;&#39;Create a resource from an ml model name&#39;&#39;&#39;
+        if isinstance(ml_model_name, MlModelName):
+            ml_model_name = str(ml_model_name)
+        return Resource(&#39;mlModel&#39;, ml_model_name)
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.Resource:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
         inner: Any = None
 
-        if self.__type == &#34;layer&#34;:
-            inner = geoengine_openapi_client.LayerResource(type=&#34;layer&#34;, id=self.__id)
-        elif self.__type == &#34;layerCollection&#34;:
-            inner = geoengine_openapi_client.LayerCollectionResource(type=&#34;layerCollection&#34;, id=self.__id)
-        elif self.__type == &#34;project&#34;:
-            inner = geoengine_openapi_client.ProjectResource(type=&#34;project&#34;, id=self.__id)
-        elif self.__type == &#34;dataset&#34;:
-            inner = geoengine_openapi_client.DatasetResource(type=&#34;dataset&#34;, id=self.__id)
+        if self.type == &#34;layer&#34;:
+            inner = geoengine_openapi_client.LayerResource(type=&#34;layer&#34;, id=self.id)
+        elif self.type == &#34;layerCollection&#34;:
+            inner = geoengine_openapi_client.LayerCollectionResource(type=&#34;layerCollection&#34;, id=self.id)
+        elif self.type == &#34;project&#34;:
+            inner = geoengine_openapi_client.ProjectResource(type=&#34;project&#34;, id=self.id)
+        elif self.type == &#34;dataset&#34;:
+            inner = geoengine_openapi_client.DatasetResource(type=&#34;dataset&#34;, id=self.id)
+        elif self.type == &#34;mlModel&#34;:
+            inner = geoengine_openapi_client.MlModelResource(type=&#34;mlModel&#34;, id=self.id)
+        else:
+            raise KeyError(f&#34;Unknown resource type: {self.type}&#34;)
 
         return geoengine_openapi_client.Resource(inner)
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.Resource) -&gt; Resource:
+        &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
+        inner: Resource
+        if isinstance(response.actual_instance, geoengine_openapi_client.LayerResource):
+            inner = Resource(&#39;layer&#39;, response.actual_instance.id)
+        elif isinstance(response.actual_instance, geoengine_openapi_client.LayerCollectionResource):
+            inner = Resource(&#39;layerCollection&#39;, response.actual_instance.id)
+        elif isinstance(response.actual_instance, geoengine_openapi_client.ProjectResource):
+            inner = Resource(&#39;project&#39;, response.actual_instance.id)
+        elif isinstance(response.actual_instance, geoengine_openapi_client.DatasetResource):
+            inner = Resource(&#39;dataset&#39;, response.actual_instance.id)
+        elif isinstance(response.actual_instance, geoengine_openapi_client.MlModelResource):
+            inner = Resource(&#39;mlModel&#39;, response.actual_instance.id)
+        else:
+            raise KeyError(f&#34;Unknown resource type from API: {response.actual_instance}&#34;)
+        return inner
+
+    def __repr__(self):
+        return &#39;id: &#39; + repr(self.id) + &#39;, type: &#39; + repr(self.type)
+
+    def __eq__(self, value):
+        &#39;&#39;&#39;Checks if two listings are equal&#39;&#39;&#39;
+        if not isinstance(value, self.__class__):
+            return False
+        return self.id == value.id and self.type == value.type
+
+
+class PermissionListing:
+    &#34;&#34;&#34;
+    PermissionListing
+    &#34;&#34;&#34;
+    permission: Permission
+    resource: Resource
+    role: Role
+
+    def __init__(self, permission: Permission, resource: Resource, role: Role):
+        &#39;&#39;&#39; Create  a PermissionListing &#39;&#39;&#39;
+        self.permission = permission
+        self.resource = resource
+        self.role = role
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.models.PermissionListing) -&gt; PermissionListing:
+        &#39;&#39;&#39; Transforms a response PermissionListing to a PermissionListing &#39;&#39;&#39;
+        return PermissionListing(
+            permission=Permission.from_response(response.permission),
+            resource=Resource.from_response(response.resource),
+            role=Role.from_response(response.role)
+        )
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two listings are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+        return self.permission == other.permission and self.resource == other.resource and self.role == other.role
+
+    def __repr__(self) -&gt; str:
+        return &#39;Role: &#39; + repr(self.role) + &#39;, &#39; \
+            + &#39;Resource: &#39; + repr(self.resource) + &#39;, &#39; \
+            + &#39;Permission: &#39; + repr(self.permission)
 
 
 class Permission(str, Enum):
@@ -156,6 +281,10 @@ class Permission(str, Enum):
     def to_api_dict(self) -&gt; geoengine_openapi_client.Permission:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
         return geoengine_openapi_client.Permission(self.value)
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.Permission) -&gt; Permission:
+        return Permission(response)
 
 
 ADMIN_ROLE_ID: RoleId = RoleId(UUID(&#34;d5328854-6190-4af9-ad69-4e74b0961ac9&#34;))
@@ -191,6 +320,24 @@ def remove_permission(role: RoleId, resource: Resource, permission: Permission, 
             permission=permission.to_api_dict(),
             _request_timeout=timeout
         ))
+
+
+def list_permissions(resource: Resource, timeout: int = 60, offset=0, limit=20) -&gt; List[PermissionListing]:
+    &#39;&#39;&#39;Lists the roles and permissions assigned to a ressource&#39;&#39;&#39;
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        permission_api = geoengine_openapi_client.PermissionsApi(api_client)
+        res = permission_api.get_resource_permissions_handler(
+            resource_id=resource.id,
+            resource_type=resource.type,
+            offset=offset,
+            limit=limit,
+            _request_timeout=timeout
+        )
+
+        return [PermissionListing.from_response(r) for r in res]
 
 
 def add_role(name: str, timeout: int = 60) -&gt; RoleId:
@@ -320,6 +467,33 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
         user_api.assign_role_handler(str(user), str(role), _request_timeout=timeout)</code></pre>
 </details>
 </dd>
+<dt id="geoengine.permissions.list_permissions"><code class="name flex">
+<span>def <span class="ident">list_permissions</span></span>(<span>resource: <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a>, timeout: int = 60, offset=0, limit=20) ‑> List[<a title="geoengine.permissions.PermissionListing" href="#geoengine.permissions.PermissionListing">PermissionListing</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Lists the roles and permissions assigned to a ressource</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def list_permissions(resource: Resource, timeout: int = 60, offset=0, limit=20) -&gt; List[PermissionListing]:
+    &#39;&#39;&#39;Lists the roles and permissions assigned to a ressource&#39;&#39;&#39;
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        permission_api = geoengine_openapi_client.PermissionsApi(api_client)
+        res = permission_api.get_resource_permissions_handler(
+            resource_id=resource.id,
+            resource_type=resource.type,
+            offset=offset,
+            limit=limit,
+            _request_timeout=timeout
+        )
+
+        return [PermissionListing.from_response(r) for r in res]</code></pre>
+</details>
+</dd>
 <dt id="geoengine.permissions.remove_permission"><code class="name flex">
 <span>def <span class="ident">remove_permission</span></span>(<span>role: <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a>, resource: <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a>, permission: <a title="geoengine.permissions.Permission" href="#geoengine.permissions.Permission">Permission</a>, timeout: int = 60)</span>
 </code></dt>
@@ -404,7 +578,11 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.Permission:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
-        return geoengine_openapi_client.Permission(self.value)</code></pre>
+        return geoengine_openapi_client.Permission(self.value)
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.Permission) -&gt; Permission:
+        return Permission(response)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -420,6 +598,23 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 <dt id="geoengine.permissions.Permission.READ"><code class="name">var <span class="ident">READ</span></code></dt>
 <dd>
 <div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.permissions.Permission.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.Permission) ‑> <a title="geoengine.permissions.Permission" href="#geoengine.permissions.Permission">Permission</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: geoengine_openapi_client.Permission) -&gt; Permission:
+    return Permission(response)</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -440,9 +635,93 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 </dd>
 </dl>
 </dd>
+<dt id="geoengine.permissions.PermissionListing"><code class="flex name class">
+<span>class <span class="ident">PermissionListing</span></span>
+<span>(</span><span>permission: <a title="geoengine.permissions.Permission" href="#geoengine.permissions.Permission">Permission</a>, resource: <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a>, role: <a title="geoengine.permissions.Role" href="#geoengine.permissions.Role">Role</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>PermissionListing</p>
+<p>Create
+a PermissionListing</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PermissionListing:
+    &#34;&#34;&#34;
+    PermissionListing
+    &#34;&#34;&#34;
+    permission: Permission
+    resource: Resource
+    role: Role
+
+    def __init__(self, permission: Permission, resource: Resource, role: Role):
+        &#39;&#39;&#39; Create  a PermissionListing &#39;&#39;&#39;
+        self.permission = permission
+        self.resource = resource
+        self.role = role
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.models.PermissionListing) -&gt; PermissionListing:
+        &#39;&#39;&#39; Transforms a response PermissionListing to a PermissionListing &#39;&#39;&#39;
+        return PermissionListing(
+            permission=Permission.from_response(response.permission),
+            resource=Resource.from_response(response.resource),
+            role=Role.from_response(response.role)
+        )
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two listings are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+        return self.permission == other.permission and self.resource == other.resource and self.role == other.role
+
+    def __repr__(self) -&gt; str:
+        return &#39;Role: &#39; + repr(self.role) + &#39;, &#39; \
+            + &#39;Resource: &#39; + repr(self.resource) + &#39;, &#39; \
+            + &#39;Permission: &#39; + repr(self.permission)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.permissions.PermissionListing.permission"><code class="name">var <span class="ident">permission</span> : <a title="geoengine.permissions.Permission" href="#geoengine.permissions.Permission">Permission</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.permissions.PermissionListing.resource"><code class="name">var <span class="ident">resource</span> : <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.permissions.PermissionListing.role"><code class="name">var <span class="ident">role</span> : <a title="geoengine.permissions.Role" href="#geoengine.permissions.Role">Role</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.permissions.PermissionListing.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.models.PermissionListing) ‑> <a title="geoengine.permissions.PermissionListing" href="#geoengine.permissions.PermissionListing">PermissionListing</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Transforms a response PermissionListing to a PermissionListing</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: geoengine_openapi_client.models.PermissionListing) -&gt; PermissionListing:
+    &#39;&#39;&#39; Transforms a response PermissionListing to a PermissionListing &#39;&#39;&#39;
+    return PermissionListing(
+        permission=Permission.from_response(response.permission),
+        resource=Resource.from_response(response.resource),
+        role=Role.from_response(response.role)
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="geoengine.permissions.Resource"><code class="flex name class">
 <span>class <span class="ident">Resource</span></span>
-<span>(</span><span>resource_type: "Literal['dataset', 'layer', 'layerCollection']", resource_id: str)</span>
+<span>(</span><span>resource_type: "Literal['dataset', 'layer', 'layerCollection', 'mlModel', 'project']", resource_id: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A wrapper for a resource id</p>
@@ -454,11 +733,14 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 <pre><code class="python">class Resource:
     &#39;&#39;&#39;A wrapper for a resource id&#39;&#39;&#39;
 
-    def __init__(self, resource_type: Literal[&#39;dataset&#39;, &#39;layer&#39;, &#39;layerCollection&#39;],
+    id: str
+    type: Literal[&#39;dataset&#39;, &#39;layer&#39;, &#39;layerCollection&#39;, &#39;mlModel&#39;, &#39;project&#39;]
+
+    def __init__(self, resource_type: Literal[&#39;dataset&#39;, &#39;layer&#39;, &#39;layerCollection&#39;, &#39;mlModel&#39;, &#39;project&#39;],
                  resource_id: str) -&gt; None:
         &#39;&#39;&#39;Create a resource id&#39;&#39;&#39;
-        self.__type = resource_type
-        self.__id = resource_id
+        self.type = resource_type
+        self.id = resource_id
 
     @classmethod
     def from_layer_id(cls, layer_id: LayerId) -&gt; Resource:
@@ -471,40 +753,93 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
         return Resource(&#39;layerCollection&#39;, str(layer_collection_id))
 
     @classmethod
-    def from_dataset_name(cls, dataset_name: DatasetName) -&gt; Resource:
-        &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
-        return Resource(&#39;dataset&#39;, str(dataset_name))
+    def from_dataset_name(cls, dataset_name: Union[DatasetName, str]) -&gt; Resource:
+        &#39;&#39;&#39;Create a resource id from a dataset name&#39;&#39;&#39;
+        if isinstance(dataset_name, DatasetName):
+            dataset_name = str(dataset_name)
+        return Resource(&#39;dataset&#39;, dataset_name)
+
+    @classmethod
+    def from_ml_model_name(cls, ml_model_name: Union[MlModelName, str]) -&gt; Resource:
+        &#39;&#39;&#39;Create a resource from an ml model name&#39;&#39;&#39;
+        if isinstance(ml_model_name, MlModelName):
+            ml_model_name = str(ml_model_name)
+        return Resource(&#39;mlModel&#39;, ml_model_name)
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.Resource:
         &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
         inner: Any = None
 
-        if self.__type == &#34;layer&#34;:
-            inner = geoengine_openapi_client.LayerResource(type=&#34;layer&#34;, id=self.__id)
-        elif self.__type == &#34;layerCollection&#34;:
-            inner = geoengine_openapi_client.LayerCollectionResource(type=&#34;layerCollection&#34;, id=self.__id)
-        elif self.__type == &#34;project&#34;:
-            inner = geoengine_openapi_client.ProjectResource(type=&#34;project&#34;, id=self.__id)
-        elif self.__type == &#34;dataset&#34;:
-            inner = geoengine_openapi_client.DatasetResource(type=&#34;dataset&#34;, id=self.__id)
+        if self.type == &#34;layer&#34;:
+            inner = geoengine_openapi_client.LayerResource(type=&#34;layer&#34;, id=self.id)
+        elif self.type == &#34;layerCollection&#34;:
+            inner = geoengine_openapi_client.LayerCollectionResource(type=&#34;layerCollection&#34;, id=self.id)
+        elif self.type == &#34;project&#34;:
+            inner = geoengine_openapi_client.ProjectResource(type=&#34;project&#34;, id=self.id)
+        elif self.type == &#34;dataset&#34;:
+            inner = geoengine_openapi_client.DatasetResource(type=&#34;dataset&#34;, id=self.id)
+        elif self.type == &#34;mlModel&#34;:
+            inner = geoengine_openapi_client.MlModelResource(type=&#34;mlModel&#34;, id=self.id)
+        else:
+            raise KeyError(f&#34;Unknown resource type: {self.type}&#34;)
 
-        return geoengine_openapi_client.Resource(inner)</code></pre>
+        return geoengine_openapi_client.Resource(inner)
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.Resource) -&gt; Resource:
+        &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
+        inner: Resource
+        if isinstance(response.actual_instance, geoengine_openapi_client.LayerResource):
+            inner = Resource(&#39;layer&#39;, response.actual_instance.id)
+        elif isinstance(response.actual_instance, geoengine_openapi_client.LayerCollectionResource):
+            inner = Resource(&#39;layerCollection&#39;, response.actual_instance.id)
+        elif isinstance(response.actual_instance, geoengine_openapi_client.ProjectResource):
+            inner = Resource(&#39;project&#39;, response.actual_instance.id)
+        elif isinstance(response.actual_instance, geoengine_openapi_client.DatasetResource):
+            inner = Resource(&#39;dataset&#39;, response.actual_instance.id)
+        elif isinstance(response.actual_instance, geoengine_openapi_client.MlModelResource):
+            inner = Resource(&#39;mlModel&#39;, response.actual_instance.id)
+        else:
+            raise KeyError(f&#34;Unknown resource type from API: {response.actual_instance}&#34;)
+        return inner
+
+    def __repr__(self):
+        return &#39;id: &#39; + repr(self.id) + &#39;, type: &#39; + repr(self.type)
+
+    def __eq__(self, value):
+        &#39;&#39;&#39;Checks if two listings are equal&#39;&#39;&#39;
+        if not isinstance(value, self.__class__):
+            return False
+        return self.id == value.id and self.type == value.type</code></pre>
 </details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.permissions.Resource.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.permissions.Resource.type"><code class="name">var <span class="ident">type</span> : Literal['dataset', 'layer', 'layerCollection', 'mlModel', 'project']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.permissions.Resource.from_dataset_name"><code class="name flex">
-<span>def <span class="ident">from_dataset_name</span></span>(<span>dataset_name: DatasetName) ‑> <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a></span>
+<span>def <span class="ident">from_dataset_name</span></span>(<span>dataset_name: Union[DatasetName, str]) ‑> <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Create a resource id from a dataset id</p></div>
+<div class="desc"><p>Create a resource id from a dataset name</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_dataset_name(cls, dataset_name: DatasetName) -&gt; Resource:
-    &#39;&#39;&#39;Create a resource id from a dataset id&#39;&#39;&#39;
-    return Resource(&#39;dataset&#39;, str(dataset_name))</code></pre>
+def from_dataset_name(cls, dataset_name: Union[DatasetName, str]) -&gt; Resource:
+    &#39;&#39;&#39;Create a resource id from a dataset name&#39;&#39;&#39;
+    if isinstance(dataset_name, DatasetName):
+        dataset_name = str(dataset_name)
+    return Resource(&#39;dataset&#39;, dataset_name)</code></pre>
 </details>
 </dd>
 <dt id="geoengine.permissions.Resource.from_layer_collection_id"><code class="name flex">
@@ -537,6 +872,51 @@ def from_layer_id(cls, layer_id: LayerId) -&gt; Resource:
     return Resource(&#39;layer&#39;, str(layer_id))</code></pre>
 </details>
 </dd>
+<dt id="geoengine.permissions.Resource.from_ml_model_name"><code class="name flex">
+<span>def <span class="ident">from_ml_model_name</span></span>(<span>ml_model_name: Union[MlModelName, str]) ‑> <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a resource from an ml model name</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_ml_model_name(cls, ml_model_name: Union[MlModelName, str]) -&gt; Resource:
+    &#39;&#39;&#39;Create a resource from an ml model name&#39;&#39;&#39;
+    if isinstance(ml_model_name, MlModelName):
+        ml_model_name = str(ml_model_name)
+    return Resource(&#39;mlModel&#39;, ml_model_name)</code></pre>
+</details>
+</dd>
+<dt id="geoengine.permissions.Resource.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.Resource) ‑> <a title="geoengine.permissions.Resource" href="#geoengine.permissions.Resource">Resource</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert to a dict for the API</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: geoengine_openapi_client.Resource) -&gt; Resource:
+    &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
+    inner: Resource
+    if isinstance(response.actual_instance, geoengine_openapi_client.LayerResource):
+        inner = Resource(&#39;layer&#39;, response.actual_instance.id)
+    elif isinstance(response.actual_instance, geoengine_openapi_client.LayerCollectionResource):
+        inner = Resource(&#39;layerCollection&#39;, response.actual_instance.id)
+    elif isinstance(response.actual_instance, geoengine_openapi_client.ProjectResource):
+        inner = Resource(&#39;project&#39;, response.actual_instance.id)
+    elif isinstance(response.actual_instance, geoengine_openapi_client.DatasetResource):
+        inner = Resource(&#39;dataset&#39;, response.actual_instance.id)
+    elif isinstance(response.actual_instance, geoengine_openapi_client.MlModelResource):
+        inner = Resource(&#39;mlModel&#39;, response.actual_instance.id)
+    else:
+        raise KeyError(f&#34;Unknown resource type from API: {response.actual_instance}&#34;)
+    return inner</code></pre>
+</details>
+</dd>
 </dl>
 <h3>Methods</h3>
 <dl>
@@ -553,16 +933,123 @@ def from_layer_id(cls, layer_id: LayerId) -&gt; Resource:
     &#39;&#39;&#39;Convert to a dict for the API&#39;&#39;&#39;
     inner: Any = None
 
-    if self.__type == &#34;layer&#34;:
-        inner = geoengine_openapi_client.LayerResource(type=&#34;layer&#34;, id=self.__id)
-    elif self.__type == &#34;layerCollection&#34;:
-        inner = geoengine_openapi_client.LayerCollectionResource(type=&#34;layerCollection&#34;, id=self.__id)
-    elif self.__type == &#34;project&#34;:
-        inner = geoengine_openapi_client.ProjectResource(type=&#34;project&#34;, id=self.__id)
-    elif self.__type == &#34;dataset&#34;:
-        inner = geoengine_openapi_client.DatasetResource(type=&#34;dataset&#34;, id=self.__id)
+    if self.type == &#34;layer&#34;:
+        inner = geoengine_openapi_client.LayerResource(type=&#34;layer&#34;, id=self.id)
+    elif self.type == &#34;layerCollection&#34;:
+        inner = geoengine_openapi_client.LayerCollectionResource(type=&#34;layerCollection&#34;, id=self.id)
+    elif self.type == &#34;project&#34;:
+        inner = geoengine_openapi_client.ProjectResource(type=&#34;project&#34;, id=self.id)
+    elif self.type == &#34;dataset&#34;:
+        inner = geoengine_openapi_client.DatasetResource(type=&#34;dataset&#34;, id=self.id)
+    elif self.type == &#34;mlModel&#34;:
+        inner = geoengine_openapi_client.MlModelResource(type=&#34;mlModel&#34;, id=self.id)
+    else:
+        raise KeyError(f&#34;Unknown resource type: {self.type}&#34;)
 
     return geoengine_openapi_client.Resource(inner)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="geoengine.permissions.Role"><code class="flex name class">
+<span>class <span class="ident">Role</span></span>
+<span>(</span><span>role_id: Union[UUID, <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a>, str], role_name: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A wrapper for a role</p>
+<p>Create a role with name and id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Role:
+    &#39;&#39;&#39;A wrapper for a role&#39;&#39;&#39;
+    name: str
+    id: RoleId
+
+    def __init__(self, role_id: Union[UUID, RoleId, str], role_name: str):
+        &#39;&#39;&#39; Create a role with name and id &#39;&#39;&#39;
+
+        if isinstance(role_id, UUID):
+            real_id = RoleId(role_id)
+        elif isinstance(role_id, str):
+            real_id = RoleId(UUID(role_id))
+        else:
+            real_id = role_id
+
+        self.id = real_id
+        self.name = role_name
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.models.role.Role) -&gt; Role:
+        &#39;&#39;&#39;Parse a http response to an `RoleId`&#39;&#39;&#39;
+
+        role_id = response.id
+        role_name = response.name
+
+        return Role(role_id, role_name)
+
+    def __eq__(self, other) -&gt; bool:
+        &#39;&#39;&#39;Checks if two role ids are equal&#39;&#39;&#39;
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.id == other.id and self.name == other.name
+
+    def role_id(self) -&gt; RoleId:
+        &#39;&#39;&#39;get the role id&#39;&#39;&#39;
+        return self.id
+
+    def __repr__(self) -&gt; str:
+        return &#39;id: &#39; + repr(self.id) + &#39;, name: &#39; + repr(self.name)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.permissions.Role.id"><code class="name">var <span class="ident">id</span> : <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.permissions.Role.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="geoengine.permissions.Role.from_response"><code class="name flex">
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.models.role.Role) ‑> <a title="geoengine.permissions.Role" href="#geoengine.permissions.Role">Role</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Parse a http response to an <code><a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a></code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_response(cls, response: geoengine_openapi_client.models.role.Role) -&gt; Role:
+    &#39;&#39;&#39;Parse a http response to an `RoleId`&#39;&#39;&#39;
+
+    role_id = response.id
+    role_name = response.name
+
+    return Role(role_id, role_name)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="geoengine.permissions.Role.role_id"><code class="name flex">
+<span>def <span class="ident">role_id</span></span>(<span>self) ‑> <a title="geoengine.permissions.RoleId" href="#geoengine.permissions.RoleId">RoleId</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>get the role id</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def role_id(self) -&gt; RoleId:
+    &#39;&#39;&#39;get the role id&#39;&#39;&#39;
+    return self.id</code></pre>
 </details>
 </dd>
 </dl>
@@ -579,6 +1066,7 @@ def from_layer_id(cls, layer_id: LayerId) -&gt; Resource:
 </summary>
 <pre><code class="python">class RoleId:
     &#39;&#39;&#39;A wrapper for a role id&#39;&#39;&#39;
+    __role_id: UUID
 
     def __init__(self, role_id: UUID) -&gt; None:
         self.__role_id = role_id
@@ -716,6 +1204,7 @@ def from_response(cls, response: Dict[str, str]) -&gt; UserId:
 <li><code><a title="geoengine.permissions.add_permission" href="#geoengine.permissions.add_permission">add_permission</a></code></li>
 <li><code><a title="geoengine.permissions.add_role" href="#geoengine.permissions.add_role">add_role</a></code></li>
 <li><code><a title="geoengine.permissions.assign_role" href="#geoengine.permissions.assign_role">assign_role</a></code></li>
+<li><code><a title="geoengine.permissions.list_permissions" href="#geoengine.permissions.list_permissions">list_permissions</a></code></li>
 <li><code><a title="geoengine.permissions.remove_permission" href="#geoengine.permissions.remove_permission">remove_permission</a></code></li>
 <li><code><a title="geoengine.permissions.remove_role" href="#geoengine.permissions.remove_role">remove_role</a></code></li>
 <li><code><a title="geoengine.permissions.revoke_role" href="#geoengine.permissions.revoke_role">revoke_role</a></code></li>
@@ -728,7 +1217,17 @@ def from_response(cls, response: Dict[str, str]) -&gt; UserId:
 <ul class="">
 <li><code><a title="geoengine.permissions.Permission.OWNER" href="#geoengine.permissions.Permission.OWNER">OWNER</a></code></li>
 <li><code><a title="geoengine.permissions.Permission.READ" href="#geoengine.permissions.Permission.READ">READ</a></code></li>
+<li><code><a title="geoengine.permissions.Permission.from_response" href="#geoengine.permissions.Permission.from_response">from_response</a></code></li>
 <li><code><a title="geoengine.permissions.Permission.to_api_dict" href="#geoengine.permissions.Permission.to_api_dict">to_api_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.permissions.PermissionListing" href="#geoengine.permissions.PermissionListing">PermissionListing</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.permissions.PermissionListing.from_response" href="#geoengine.permissions.PermissionListing.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.permissions.PermissionListing.permission" href="#geoengine.permissions.PermissionListing.permission">permission</a></code></li>
+<li><code><a title="geoengine.permissions.PermissionListing.resource" href="#geoengine.permissions.PermissionListing.resource">resource</a></code></li>
+<li><code><a title="geoengine.permissions.PermissionListing.role" href="#geoengine.permissions.PermissionListing.role">role</a></code></li>
 </ul>
 </li>
 <li>
@@ -737,7 +1236,20 @@ def from_response(cls, response: Dict[str, str]) -&gt; UserId:
 <li><code><a title="geoengine.permissions.Resource.from_dataset_name" href="#geoengine.permissions.Resource.from_dataset_name">from_dataset_name</a></code></li>
 <li><code><a title="geoengine.permissions.Resource.from_layer_collection_id" href="#geoengine.permissions.Resource.from_layer_collection_id">from_layer_collection_id</a></code></li>
 <li><code><a title="geoengine.permissions.Resource.from_layer_id" href="#geoengine.permissions.Resource.from_layer_id">from_layer_id</a></code></li>
+<li><code><a title="geoengine.permissions.Resource.from_ml_model_name" href="#geoengine.permissions.Resource.from_ml_model_name">from_ml_model_name</a></code></li>
+<li><code><a title="geoengine.permissions.Resource.from_response" href="#geoengine.permissions.Resource.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.permissions.Resource.id" href="#geoengine.permissions.Resource.id">id</a></code></li>
 <li><code><a title="geoengine.permissions.Resource.to_api_dict" href="#geoengine.permissions.Resource.to_api_dict">to_api_dict</a></code></li>
+<li><code><a title="geoengine.permissions.Resource.type" href="#geoengine.permissions.Resource.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="geoengine.permissions.Role" href="#geoengine.permissions.Role">Role</a></code></h4>
+<ul class="">
+<li><code><a title="geoengine.permissions.Role.from_response" href="#geoengine.permissions.Role.from_response">from_response</a></code></li>
+<li><code><a title="geoengine.permissions.Role.id" href="#geoengine.permissions.Role.id">id</a></code></li>
+<li><code><a title="geoengine.permissions.Role.name" href="#geoengine.permissions.Role.name">name</a></code></li>
+<li><code><a title="geoengine.permissions.Role.role_id" href="#geoengine.permissions.Role.role_id">role_id</a></code></li>
 </ul>
 </li>
 <li>
