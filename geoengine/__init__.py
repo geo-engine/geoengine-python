@@ -18,7 +18,7 @@ from .error import GeoEngineException, InputException, UninitializedException, T
     InvalidUrlException, MissingFieldInResponseException, OGCXMLError
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
     layer_collection, layer
-from .ml import register_ml_model, MlModelConfig
+from .ml import register_ml_model, MlModelConfig, MlModelName
 from .permissions import add_permission, remove_permission, add_role, remove_role, assign_role, revoke_role, \
     ADMIN_ROLE_ID, REGISTERED_USER_ROLE_ID, ANONYMOUS_USER_ROLE_ID, Permission, UserId, RoleId
 from .tasks import Task, TaskId
