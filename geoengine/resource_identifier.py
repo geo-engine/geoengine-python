@@ -5,14 +5,44 @@ from typing import Any, Literal, NewType, Union
 from uuid import UUID
 import geoengine_openapi_client
 
-from geoengine.ml import MlModelName
-
 LayerId = NewType('LayerId', str)
 LayerCollectionId = NewType('LayerCollectionId', str)
 LayerProviderId = NewType('LayerProviderId', UUID)
 
 LAYER_DB_PROVIDER_ID = LayerProviderId(UUID('ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74'))
 LAYER_DB_ROOT_COLLECTION_ID = LayerCollectionId('05102bb3-a855-4a37-8a8a-30026a91fef1')
+
+
+class MlModelName:
+    '''A wrapper for an MlModel name'''
+
+    __ml_model_name: str
+
+    def __init__(self, ml_model_name: str) -> None:
+        self.__ml_model_name = ml_model_name
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.models.MlModelNameResponse) -> MlModelName:
+        '''Parse a http response to an `DatasetName`'''
+        return MlModelName(response.ml_model_name)
+
+    def __str__(self) -> str:
+        return self.__ml_model_name
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __eq__(self, other) -> bool:
+        '''Checks if two dataset names are equal'''
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.__ml_model_name == other.__ml_model_name  # pylint: disable=protected-access
+
+    def to_api_dict(self) -> geoengine_openapi_client.models.MlModelNameResponse:
+        return geoengine_openapi_client.models.MlModelNameResponse(
+            ml_model_name=str(self.__ml_model_name)
+        )
 
 
 class DatasetName:

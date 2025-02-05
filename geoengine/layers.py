@@ -520,6 +520,15 @@ class LayerCollection:
 
         return cast(LayerCollection, existing_collections[0].load())  # we know that it is a collection since check that
 
+    def __eq__(self, other):
+        ''' Tests if two layer listings are identical '''
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.name == other.name and self.description == other.description \
+            and self.provider_id == other.provider_id \
+            and self.collection_id == other.collection_id and self.items == other.items
+
 
 @dataclass(repr=False)
 class Layer:
@@ -727,7 +736,7 @@ def layer(layer_id: LayerId,
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         layers_api = geoengine_openapi_client.LayersApi(api_client)
-        response = layers_api.layer_handler(str(layer_provider_id), layer_id, _request_timeout=timeout)
+        response = layers_api.layer_handler(str(layer_provider_id), str(layer_id), _request_timeout=timeout)
 
     return Layer.from_response(response)
 

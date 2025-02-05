@@ -5,8 +5,7 @@ A wrapper for the GeoEngine permissions API.
 from __future__ import annotations
 import ast
 from uuid import UUID
-from typing import Dict, List, Literal, Any, Union
-from typing import Dict
+from typing import Dict, List, Union
 from enum import Enum
 
 import geoengine_openapi_client.models.role
@@ -14,8 +13,6 @@ import geoengine_openapi_client.models
 import geoengine_openapi_client.api
 import geoengine_openapi_client
 
-from geoengine.ml import MlModelName
-from geoengine.layers import LayerCollectionId, LayerId
 from geoengine.error import GeoEngineException
 from geoengine.resource_identifier import Resource
 from geoengine.auth import get_session

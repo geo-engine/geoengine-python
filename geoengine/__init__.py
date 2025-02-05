@@ -18,7 +18,7 @@ from .error import GeoEngineException, InputException, UninitializedException, T
     InvalidUrlException, MissingFieldInResponseException, OGCXMLError
 from .layers import Layer, LayerCollection, LayerListing, LayerCollectionListing, \
     layer_collection, layer
-from .ml import register_ml_model, MlModelConfig, MlModelName
+from .ml import register_ml_model, MlModelConfig
 from .permissions import add_permission, remove_permission, add_role, remove_role, assign_role, revoke_role, \
     ADMIN_ROLE_ID, REGISTERED_USER_ROLE_ID, ANONYMOUS_USER_ROLE_ID, Permission, UserId, RoleId
 from .tasks import Task, TaskId
@@ -29,7 +29,7 @@ from .types import QueryRectangle, GeoTransform, \
     FeatureDataType, RasterBandDescriptor, DEFAULT_ISO_TIME_FORMAT, RasterColorizer, SingleBandRasterColorizer, \
     MultiBandRasterColorizer
 from .resource_identifier import LAYER_DB_PROVIDER_ID, LAYER_DB_ROOT_COLLECTION_ID, DatasetName, UploadId, \
-    LayerId, LayerCollectionId, LayerProviderId, Resource
+    LayerId, LayerCollectionId, LayerProviderId, Resource, MlModelName
 
 from .util import clamp_datetime_ms_ns
 from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow, get_quota, update_quota, data_usage, \

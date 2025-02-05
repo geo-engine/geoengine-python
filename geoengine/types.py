@@ -959,6 +959,9 @@ class Symbology:
 
         raise InputException("Invalid symbology type")
 
+    def __repr__(self):
+        "Symbology"
+
 
 class VectorSymbology(Symbology):
     '''A vector symbology'''
@@ -1065,22 +1068,22 @@ class MultiBandRasterColorizer(RasterColorizer):
 
 class RasterSymbology(Symbology):
     '''A raster symbology'''
-    __opacity: float
-    __raster_colorizer: RasterColorizer
+    opacity: float
+    raster_colorizer: RasterColorizer
 
     def __init__(self, raster_colorizer: RasterColorizer, opacity: float = 1.0) -> None:
         '''Initialize a new `RasterSymbology`'''
 
-        self.__raster_colorizer = raster_colorizer
-        self.__opacity = opacity
+        self.raster_colorizer = raster_colorizer
+        self.opacity = opacity
 
     def to_api_dict(self) -> geoengine_openapi_client.Symbology:
         '''Convert the raster symbology to a dictionary'''
 
         return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbology(
             type='raster',
-            raster_colorizer=self.__raster_colorizer.to_api_dict(),
-            opacity=self.__opacity,
+            raster_colorizer=self.raster_colorizer.to_api_dict(),
+            opacity=self.opacity,
         ))
 
     @staticmethod
@@ -1092,7 +1095,14 @@ class RasterSymbology(Symbology):
         return RasterSymbology(raster_colorizer, response.opacity)
 
     def __repr__(self) -> str:
-        return super().__repr__() + f"({self.__raster_colorizer}, {self.__opacity})"
+        return str(self.__class__) + f"({self.raster_colorizer}, {self.opacity})"
+
+    def __eq__(self, value):
+        '''Check if two RasterSymbologies are equal'''
+
+        if not isinstance(value, self.__class__):
+            return False
+        return self.opacity == value.opacity and self.raster_colorizer == value.raster_colorizer
 
 
 class DataId:  # pylint: disable=too-few-public-methods
