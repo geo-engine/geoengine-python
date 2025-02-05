@@ -369,6 +369,44 @@ class LayerTests(unittest.TestCase):
             self.assertEqual(overwrite_collection.description, "the third collection description")
             self.assertEqual(overwrite_collection, collection_in)
 
+            new_layer = overwrite_collection.add_layer_with_permissions(
+                name="ports clone",
+                description="test description",
+                workflow={
+                    "type": "Vector",
+                    "operator": {
+                        "type": "PointInPolygonFilter",
+                        "params": {},
+                        "sources": {
+                            "points": {
+                                "type": "OgrSource",
+                                "params": {
+                                    "data": "ne_10m_ports",
+                                    "attributeProjection": None,
+                                    "attributeFilters": None
+                                }
+                            },
+                            "polygons": {
+                                "type": "OgrSource",
+                                "params": {
+                                    "data": "germany_outline",
+                                    "attributeProjection": None,
+                                    "attributeFilters": None
+                                }
+                            }
+                        }
+                    }
+                },
+                symbology=None,
+                permission_tuples=permisions)
+
+            expected_permission = PermissionListing(
+                role=Role(role_name="user", role_id=REGISTERED_USER_ROLE_ID),
+                resource=Resource.from_layer_id(new_layer),
+                permission=Permission.READ
+            )
+            self.assertIn(expected_permission, ge.permissions.list_permissions(Resource.from_layer_id(new_layer)))
+
 
 if __name__ == '__main__':
     unittest.main()
