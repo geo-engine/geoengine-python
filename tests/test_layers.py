@@ -5,7 +5,8 @@ from uuid import UUID
 import geoengine as ge
 from geoengine import StoredDataset, BadRequestException
 from geoengine import api
-from geoengine.resource_identifier import LAYER_DB_PROVIDER_ID
+from geoengine.permissions import REGISTERED_USER_ROLE_ID, Permission, PermissionListing, Role
+from geoengine.resource_identifier import LAYER_DB_PROVIDER_ID, Resource
 from geoengine.layers import Layer, LayerId, LayerProviderId
 from geoengine.tasks import TaskStatus
 from geoengine.types import RasterSymbology
@@ -303,6 +304,70 @@ class LayerTests(unittest.TestCase):
         )))
 
         _html = layer._repr_html_()  # pylint: disable=protected-access
+
+    def test_layer_collection_advanced_modification(self):
+        """Test addition and overwrite to a data collection."""
+
+        permisions = [(REGISTERED_USER_ROLE_ID, Permission.READ)]
+
+        # TODO: use `enterContext(cm)` instead of `with cm:` in Python 3.11
+        with GeoEngineTestInstance() as ge_instance:
+            ge_instance.wait_for_ready()
+
+            ge.initialize(ge_instance.address(), credentials=("admin@localhost", "adminadmin"))
+
+            root_of_layerdb = ge.layer_collection('05102bb3-a855-4a37-8a8a-30026a91fef1')
+
+            # create a new collection with permissions
+            created_collection = root_of_layerdb.get_or_create_unique_collection(
+                "my test collection",
+                create_collection_description="the first collection description",
+                create_permissions_tuples=permisions)
+
+            root_of_layerdb = root_of_layerdb.reload()
+
+            collection_in = root_of_layerdb.get_items_by_name("my test collection")[0].load()
+
+            self.assertEqual(created_collection.description, "the first collection description")
+            self.assertEqual(created_collection, collection_in)
+
+            expected_permission = PermissionListing(
+                role=Role(role_name="user", role_id=REGISTERED_USER_ROLE_ID),
+                resource=Resource.from_layer_collection_id(created_collection.collection_id),
+                permission=Permission.READ
+            )
+
+            self.assertIn(expected_permission,
+                          ge.permissions.list_permissions(
+                              Resource.from_layer_collection_id(created_collection.collection_id)
+                          )
+                          )
+
+            # get the existing collection (no overwrite)
+            existing_collection = root_of_layerdb.get_or_create_unique_collection(
+                "my test collection",
+                create_collection_description="the second collection description",
+                create_permissions_tuples=permisions)
+
+            root_of_layerdb = root_of_layerdb.reload()
+
+            collection_in = root_of_layerdb.get_items_by_name("my test collection")[0].load()
+            self.assertEqual(existing_collection.description, "the first collection description")
+            self.assertEqual(existing_collection, collection_in)
+
+            # now overwrite existing collection
+            overwrite_collection = root_of_layerdb.get_or_create_unique_collection(
+                "my test collection",
+                create_collection_description="the third collection description",
+                create_permissions_tuples=permisions,
+                delete_existing_with_same_name=True
+            )
+
+            root_of_layerdb = root_of_layerdb.reload()
+
+            collection_in = root_of_layerdb.get_items_by_name("my test collection")[0].load()
+            self.assertEqual(overwrite_collection.description, "the third collection description")
+            self.assertEqual(overwrite_collection, collection_in)
 
 
 if __name__ == '__main__':
