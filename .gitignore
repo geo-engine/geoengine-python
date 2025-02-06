@@ -14,6 +14,7 @@ __pycache__
 # Virtual Environments
 env
 env-*
+.venv
 
 # Private files
 .pypirc
@@ -24,3 +25,4 @@ env-*
 examples/raster_download.tif
 examples/download
 examples/test
+examples/export_data/test

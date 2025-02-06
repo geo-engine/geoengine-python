@@ -427,8 +427,9 @@ class WcsTests(unittest.TestCase):
                 },
                 dims=["band", "y", "x"],
                 attrs={
-                    'transform': (45.0, 0.0, -180.0, 0.0, -22.5, 90.0, 0.0, 0.0, 1.0),
-                    'crs': 'EPSG:4326',
+                    # 'AREA_OR_POINT': 'Area', # TODO: not included in min_version
+                    # 'transform': TODO: could be "(45.0, 0.0, -180.0, 0.0, -22.5, 90.0, 0.0, 0.0, 1.0)" or "Affine ..."
+                    # 'crs': " TODO: could be "CRS.from_wkt(..." or "CRS.from_epsg(..."
                     'res': (45.0, -22.5),
                     'scale_factor': 1.0,
                     '_FillValue': 0.0,
@@ -450,10 +451,15 @@ class WcsTests(unittest.TestCase):
                 msg=f'{array.coords} \n!=\n {expected.coords}')
 
             # test attributes
-            self.assertTrue(
-                np.array_equal(
-                    array.attrs, expected.attrs),
-                msg=f'{array.attrs} \n!=\n {expected.attrs}')
+            # Since OWSLib produces different outputs depending on its version, we don't test equality on attributes.
+            # Instead, we only check the expected attributes (the ones we need) and ignore the rest.
+            # Problematic attributes are:
+            #   "AREA_OR_POINT":    This is not available with OWSLib min_version.
+            #   "transform":        This used to be a tuple but in newer versions it is an instance of "Affine".
+            #   "crs":              OWS "CRS.from_wkt(..." or "CRS.from_epsg(..." depending on the OWSLib version.
+            self.assertEqual(
+                array.attrs, array.attrs | expected.attrs, msg=f'{array.attrs} \n!=\n {expected.attrs}'
+            )
 
 
 if __name__ == '__main__':
