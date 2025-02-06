@@ -12,7 +12,7 @@ from onnx.helper import tensor_dtype_to_string
 from geoengine_openapi_client.models import MlModelMetadata, MlModel, RasterDataType
 import geoengine_openapi_client
 from geoengine.auth import get_session
-from geoengine.datasets import UploadId
+from geoengine.resource_identifier import UploadId, MlModelName
 from geoengine.error import InputException
 
 
@@ -23,38 +23,6 @@ class MlModelConfig:
     metadata: MlModelMetadata
     display_name: str = "My Ml Model"
     description: str = "My Ml Model Description"
-
-
-class MlModelName:
-    '''A wrapper for an MlModel name'''
-
-    __ml_model_name: str
-
-    def __init__(self, ml_model_name: str) -> None:
-        self.__ml_model_name = ml_model_name
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.models.MlModelNameResponse) -> MlModelName:
-        '''Parse a http response to an `DatasetName`'''
-        return MlModelName(response.ml_model_name)
-
-    def __str__(self) -> str:
-        return self.__ml_model_name
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __eq__(self, other) -> bool:
-        '''Checks if two dataset names are equal'''
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.__ml_model_name == other.__ml_model_name  # pylint: disable=protected-access
-
-    def to_api_dict(self) -> geoengine_openapi_client.models.MlModelNameResponse:
-        return geoengine_openapi_client.models.MlModelNameResponse(
-            ml_model_name=str(self.__ml_model_name)
-        )
 
 
 def register_ml_model(onnx_model: ModelProto,

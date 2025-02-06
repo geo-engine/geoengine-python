@@ -170,18 +170,25 @@ class RasterWorkflowRioWriter:
 
         self.current_dataset = rio_dataset
 
-    async def query_and_write(self, query: QueryRectangle):
+    async def query_and_write(self, query: QueryRectangle, skip_empty_times=True):
         ''' Query the raster workflow and write the tiles to the dataset.'''
 
         self.create_tiling_geo_transform_width_height(query)
 
-        assert self.workflow is not None, "The workflow must be set"
+        assert self.bands is not None, "The bands must be set"
+        bands = list(range(0, len(self.bands)))
 
+        assert self.workflow is not None, "The workflow must be set"
         try:
-            async for tile in self.workflow.raster_stream(query):
+            async for tile in self.workflow.raster_stream(query, bands=bands):
                 if self.current_time != tile.time:
                     self.close_current_dataset()
                     self.current_time = tile.time
+
+                if tile.is_empty() and skip_empty_times:
+                    continue
+
+                if self.current_dataset is None:
                     self.__create_new_dataset(query)
 
                 assert self.current_time == tile.time, "The time of the current dataset does not match the tile"

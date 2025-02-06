@@ -3,22 +3,19 @@ A wrapper for the GeoEngine permissions API.
 '''
 
 from __future__ import annotations
+import ast
+from uuid import UUID
+from typing import Dict, List, Union
 from enum import Enum
 
-import ast
-from typing import Dict, List, Literal, Any, Union
-from uuid import UUID
-
-import geoengine_openapi_client
-import geoengine_openapi_client.api
-import geoengine_openapi_client.models
 import geoengine_openapi_client.models.role
+import geoengine_openapi_client.models
+import geoengine_openapi_client.api
+import geoengine_openapi_client
 
-from geoengine.auth import get_session
-from geoengine.datasets import DatasetName
 from geoengine.error import GeoEngineException
-from geoengine.layers import LayerCollectionId, LayerId
-from geoengine.ml import MlModelName
+from geoengine.resource_identifier import Resource
+from geoengine.auth import get_session
 
 
 class RoleId:
@@ -124,89 +121,6 @@ class UserId:
 
     def __repr__(self) -> str:
         return repr(self.__user_id)
-
-
-class Resource:
-    '''A wrapper for a resource id'''
-
-    id: str
-    type: Literal['dataset', 'layer', 'layerCollection', 'mlModel', 'project']
-
-    def __init__(self, resource_type: Literal['dataset', 'layer', 'layerCollection', 'mlModel', 'project'],
-                 resource_id: str) -> None:
-        '''Create a resource id'''
-        self.type = resource_type
-        self.id = resource_id
-
-    @classmethod
-    def from_layer_id(cls, layer_id: LayerId) -> Resource:
-        '''Create a resource id from a layer id'''
-        return Resource('layer', str(layer_id))
-
-    @classmethod
-    def from_layer_collection_id(cls, layer_collection_id: LayerCollectionId) -> Resource:
-        '''Create a resource id from a layer collection id'''
-        return Resource('layerCollection', str(layer_collection_id))
-
-    @classmethod
-    def from_dataset_name(cls, dataset_name: Union[DatasetName, str]) -> Resource:
-        '''Create a resource id from a dataset name'''
-        if isinstance(dataset_name, DatasetName):
-            dataset_name = str(dataset_name)
-        return Resource('dataset', dataset_name)
-
-    @classmethod
-    def from_ml_model_name(cls, ml_model_name: Union[MlModelName, str]) -> Resource:
-        '''Create a resource from an ml model name'''
-        if isinstance(ml_model_name, MlModelName):
-            ml_model_name = str(ml_model_name)
-        return Resource('mlModel', ml_model_name)
-
-    def to_api_dict(self) -> geoengine_openapi_client.Resource:
-        '''Convert to a dict for the API'''
-        inner: Any = None
-
-        if self.type == "layer":
-            inner = geoengine_openapi_client.LayerResource(type="layer", id=self.id)
-        elif self.type == "layerCollection":
-            inner = geoengine_openapi_client.LayerCollectionResource(type="layerCollection", id=self.id)
-        elif self.type == "project":
-            inner = geoengine_openapi_client.ProjectResource(type="project", id=self.id)
-        elif self.type == "dataset":
-            inner = geoengine_openapi_client.DatasetResource(type="dataset", id=self.id)
-        elif self.type == "mlModel":
-            inner = geoengine_openapi_client.MlModelResource(type="mlModel", id=self.id)
-        else:
-            raise KeyError(f"Unknown resource type: {self.type}")
-
-        return geoengine_openapi_client.Resource(inner)
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.Resource) -> Resource:
-        '''Convert to a dict for the API'''
-        inner: Resource
-        if isinstance(response.actual_instance, geoengine_openapi_client.LayerResource):
-            inner = Resource('layer', response.actual_instance.id)
-        elif isinstance(response.actual_instance, geoengine_openapi_client.LayerCollectionResource):
-            inner = Resource('layerCollection', response.actual_instance.id)
-        elif isinstance(response.actual_instance, geoengine_openapi_client.ProjectResource):
-            inner = Resource('project', response.actual_instance.id)
-        elif isinstance(response.actual_instance, geoengine_openapi_client.DatasetResource):
-            inner = Resource('dataset', response.actual_instance.id)
-        elif isinstance(response.actual_instance, geoengine_openapi_client.MlModelResource):
-            inner = Resource('mlModel', response.actual_instance.id)
-        else:
-            raise KeyError(f"Unknown resource type from API: {response.actual_instance}")
-        return inner
-
-    def __repr__(self):
-        return 'id: ' + repr(self.id) + ', type: ' + repr(self.type)
-
-    def __eq__(self, value):
-        '''Checks if two listings are equal'''
-        if not isinstance(value, self.__class__):
-            return False
-        return self.id == value.id and self.type == value.type
 
 
 class PermissionListing:

@@ -3,7 +3,8 @@
 import unittest
 from uuid import UUID
 import geoengine_openapi_client
-from geoengine.datasets import DatasetName, UploadId, StoredDataset
+from geoengine.datasets import DatasetName, StoredDataset
+from geoengine.resource_identifier import UploadId
 import geoengine as ge
 from . import UrllibMocker
 
