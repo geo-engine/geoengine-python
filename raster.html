@@ -242,6 +242,12 @@ class RasterTile2D:
     def spatial_resolution(self) -&gt; gety.SpatialResolution:
         return self.geo_transform.spatial_resolution()
 
+    def is_empty(self) -&gt; bool:
+        &#39;&#39;&#39; Returns true if the tile is empty&#39;&#39;&#39;
+        num_pixels = self.size_x * self.size_y
+        num_nulls = self.data.null_count
+        return num_pixels == num_nulls
+
     @staticmethod
     def from_ge_record_batch(record_batch: pa.RecordBatch) -&gt; RasterTile2D:
         &#39;&#39;&#39;Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine&#39;&#39;&#39;
@@ -665,6 +671,12 @@ async def tile_stream_to_stack_stream(raster_stream: AsyncIterator[RasterTile2D]
     def spatial_resolution(self) -&gt; gety.SpatialResolution:
         return self.geo_transform.spatial_resolution()
 
+    def is_empty(self) -&gt; bool:
+        &#39;&#39;&#39; Returns true if the tile is empty&#39;&#39;&#39;
+        num_pixels = self.size_x * self.size_y
+        num_nulls = self.data.null_count
+        return num_pixels == num_nulls
+
     @staticmethod
     def from_ge_record_batch(record_batch: pa.RecordBatch) -&gt; RasterTile2D:
         &#39;&#39;&#39;Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine&#39;&#39;&#39;
@@ -914,6 +926,22 @@ Otherwise they will be the upper left edges.</p></div>
         stop=self.geo_transform.y_min(self.size_y),
         step=self.geo_transform.y_pixel_size,
     )</code></pre>
+</details>
+</dd>
+<dt id="geoengine.raster.RasterTile2D.is_empty"><code class="name flex">
+<span>def <span class="ident">is_empty</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns true if the tile is empty</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_empty(self) -&gt; bool:
+    &#39;&#39;&#39; Returns true if the tile is empty&#39;&#39;&#39;
+    num_pixels = self.size_x * self.size_y
+    num_nulls = self.data.null_count
+    return num_pixels == num_nulls</code></pre>
 </details>
 </dd>
 <dt id="geoengine.raster.RasterTile2D.spatial_partition"><code class="name flex">
@@ -1260,6 +1288,7 @@ It is possible to specify whether NaN values should be considered as no data whe
 <li><code><a title="geoengine.raster.RasterTile2D.from_ge_record_batch" href="#geoengine.raster.RasterTile2D.from_ge_record_batch">from_ge_record_batch</a></code></li>
 <li><code><a title="geoengine.raster.RasterTile2D.geo_transform" href="#geoengine.raster.RasterTile2D.geo_transform">geo_transform</a></code></li>
 <li><code><a title="geoengine.raster.RasterTile2D.has_null_values" href="#geoengine.raster.RasterTile2D.has_null_values">has_null_values</a></code></li>
+<li><code><a title="geoengine.raster.RasterTile2D.is_empty" href="#geoengine.raster.RasterTile2D.is_empty">is_empty</a></code></li>
 <li><code><a title="geoengine.raster.RasterTile2D.numpy_data_type" href="#geoengine.raster.RasterTile2D.numpy_data_type">numpy_data_type</a></code></li>
 <li><code><a title="geoengine.raster.RasterTile2D.pixel_size" href="#geoengine.raster.RasterTile2D.pixel_size">pixel_size</a></code></li>
 <li><code><a title="geoengine.raster.RasterTile2D.shape" href="#geoengine.raster.RasterTile2D.shape">shape</a></code></li>

@@ -197,20 +197,37 @@ class RasterWorkflowRioWriter:
             **self.rio_kwargs
         )
 
+        for i, b in enumerate(self.bands, start=1):
+            b_n = b.name
+            b_m = str(b.measurement)
+            rio_dataset.update_tags(i, band_name=b_n, band_measurement=b_m)
+
         self.current_dataset = rio_dataset
 
-    async def query_and_write(self, query: QueryRectangle):
-        &#39;&#39;&#39; Query the raster workflow and write the tiles to the dataset.&#39;&#39;&#39;
+    async def query_and_write(self, query: QueryRectangle, skip_empty_times=True):
+        &#39;&#39;&#39;
+        Query the raster workflow and write the resulting tiles to a GDAL dataset per timeslice.
+
+        :param query: The QueryRectangle to write to GDAL dataset(s)
+        :param skip_empty_times: Skip timeslices where all pixels are empty/nodata
+        &#39;&#39;&#39;
 
         self.create_tiling_geo_transform_width_height(query)
 
-        assert self.workflow is not None, &#34;The workflow must be set&#34;
+        assert self.bands is not None, &#34;The bands must be set&#34;
+        bands = list(range(0, len(self.bands)))
 
+        assert self.workflow is not None, &#34;The workflow must be set&#34;
         try:
-            async for tile in self.workflow.raster_stream(query):
+            async for tile in self.workflow.raster_stream(query, bands=bands):
                 if self.current_time != tile.time:
                     self.close_current_dataset()
                     self.current_time = tile.time
+
+                if tile.is_empty() and skip_empty_times:
+                    continue
+
+                if self.current_dataset is None:
                     self.__create_new_dataset(query)
 
                 assert self.current_time == tile.time, &#34;The time of the current dataset does not match the tile&#34;
@@ -417,20 +434,37 @@ Multiple bands are supported and the bands are written to the dataset in the ord
             **self.rio_kwargs
         )
 
+        for i, b in enumerate(self.bands, start=1):
+            b_n = b.name
+            b_m = str(b.measurement)
+            rio_dataset.update_tags(i, band_name=b_n, band_measurement=b_m)
+
         self.current_dataset = rio_dataset
 
-    async def query_and_write(self, query: QueryRectangle):
-        &#39;&#39;&#39; Query the raster workflow and write the tiles to the dataset.&#39;&#39;&#39;
+    async def query_and_write(self, query: QueryRectangle, skip_empty_times=True):
+        &#39;&#39;&#39;
+        Query the raster workflow and write the resulting tiles to a GDAL dataset per timeslice.
+
+        :param query: The QueryRectangle to write to GDAL dataset(s)
+        :param skip_empty_times: Skip timeslices where all pixels are empty/nodata
+        &#39;&#39;&#39;
 
         self.create_tiling_geo_transform_width_height(query)
 
-        assert self.workflow is not None, &#34;The workflow must be set&#34;
+        assert self.bands is not None, &#34;The bands must be set&#34;
+        bands = list(range(0, len(self.bands)))
 
+        assert self.workflow is not None, &#34;The workflow must be set&#34;
         try:
-            async for tile in self.workflow.raster_stream(query):
+            async for tile in self.workflow.raster_stream(query, bands=bands):
                 if self.current_time != tile.time:
                     self.close_current_dataset()
                     self.current_time = tile.time
+
+                if tile.is_empty() and skip_empty_times:
+                    continue
+
+                if self.current_dataset is None:
                     self.__create_new_dataset(query)
 
                 assert self.current_time == tile.time, &#34;The time of the current dataset does not match the tile&#34;
@@ -688,26 +722,40 @@ dtype([('surname', 'S25'), ('age', 'u1')])
 </details>
 </dd>
 <dt id="geoengine.raster_workflow_rio_writer.RasterWorkflowRioWriter.query_and_write"><code class="name flex">
-<span>async def <span class="ident">query_and_write</span></span>(<span>self, query: <a title="geoengine.types.QueryRectangle" href="types.html#geoengine.types.QueryRectangle">QueryRectangle</a>)</span>
+<span>async def <span class="ident">query_and_write</span></span>(<span>self, query: <a title="geoengine.types.QueryRectangle" href="types.html#geoengine.types.QueryRectangle">QueryRectangle</a>, skip_empty_times=True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Query the raster workflow and write the tiles to the dataset.</p></div>
+<div class="desc"><p>Query the raster workflow and write the resulting tiles to a GDAL dataset per timeslice.</p>
+<p>:param query: The QueryRectangle to write to GDAL dataset(s)
+:param skip_empty_times: Skip timeslices where all pixels are empty/nodata</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def query_and_write(self, query: QueryRectangle):
-    &#39;&#39;&#39; Query the raster workflow and write the tiles to the dataset.&#39;&#39;&#39;
+<pre><code class="python">async def query_and_write(self, query: QueryRectangle, skip_empty_times=True):
+    &#39;&#39;&#39;
+    Query the raster workflow and write the resulting tiles to a GDAL dataset per timeslice.
+
+    :param query: The QueryRectangle to write to GDAL dataset(s)
+    :param skip_empty_times: Skip timeslices where all pixels are empty/nodata
+    &#39;&#39;&#39;
 
     self.create_tiling_geo_transform_width_height(query)
 
-    assert self.workflow is not None, &#34;The workflow must be set&#34;
+    assert self.bands is not None, &#34;The bands must be set&#34;
+    bands = list(range(0, len(self.bands)))
 
+    assert self.workflow is not None, &#34;The workflow must be set&#34;
     try:
-        async for tile in self.workflow.raster_stream(query):
+        async for tile in self.workflow.raster_stream(query, bands=bands):
             if self.current_time != tile.time:
                 self.close_current_dataset()
                 self.current_time = tile.time
+
+            if tile.is_empty() and skip_empty_times:
+                continue
+
+            if self.current_dataset is None:
                 self.__create_new_dataset(query)
 
             assert self.current_time == tile.time, &#34;The time of the current dataset does not match the tile&#34;
