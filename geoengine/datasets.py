@@ -546,21 +546,26 @@ def add_or_replace_dataset_with_permissions(data_store: Union[Volume, UploadId],
     '''
     # pylint: disable=too-many-arguments,too-many-positional-arguments
 
-    if replace_existing and properties.name is not None:
+    def add_dataset_and_permissions() -> DatasetName:
+        dataset_name = add_dataset(data_store=data_store, properties=properties, meta_data=meta_data, timeout=timeout)
+        if permission_tuples is not None:
+            dataset_res = Resource.from_dataset_name(dataset_name)
+            for (role, perm) in permission_tuples:
+                add_permission(role, dataset_res, perm, timeout=timeout)
+        return dataset_name
+
+    if properties.name is None:
+        dataset_name = add_dataset_and_permissions()
+
+    else:
         dataset_name = DatasetName(properties.name)
-        if dataset_info_by_name(dataset_name, timeout=timeout) is not None:
-            delete_dataset(dataset_name)
-
-    dataset_name = add_dataset(data_store=data_store, properties=properties, meta_data=meta_data, timeout=timeout)
-
-    # handle pemission setting
-    dataset_from_server = dataset_info_by_name(dataset_name, timeout=timeout)
-    assert dataset_from_server is not None, "Dataset added to the server must be resolvable!"
-
-    if permission_tuples is not None:
-        dataset_res = Resource.from_dataset_name(DatasetName(dataset_from_server.id))
-        for (role, perm) in permission_tuples:
-            add_permission(role, dataset_res, perm, timeout=timeout)
+        dataset_info = dataset_info_by_name(dataset_name)
+        if dataset_info is None:  # dataset is not existing
+            dataset_name = add_dataset_and_permissions()
+        else:
+            if replace_existing:  # dataset exists and we overwrite it
+                delete_dataset(dataset_name)
+                dataset_name = add_dataset_and_permissions()
 
     return dataset_name
 
@@ -603,9 +608,12 @@ def list_datasets(offset: int = 0,
 
 
 def dataset_info_by_name(
-        dataset_name: DatasetName, timeout: int = 60
+        dataset_name: Union[DatasetName, str], timeout: int = 60
 ) -> geoengine_openapi_client.models.Dataset | None:
-    '''Delete a dataset. The dataset must be owned by the caller.'''
+    '''Get dataset information.'''
+
+    if not isinstance(dataset_name, DatasetName):
+        dataset_name = DatasetName(dataset_name)
 
     session = get_session()
 

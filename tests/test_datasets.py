@@ -1,7 +1,12 @@
 """Tests for the datasets module."""
 
 import unittest
+
+import geoengine_openapi_client
 import geoengine as ge
+from geoengine.permissions import REGISTERED_USER_ROLE_ID, Permission, PermissionListing, Role
+from geoengine.resource_identifier import Resource
+from geoengine.types import RasterBandDescriptor
 from tests.ge_test import GeoEngineTestInstance
 
 
@@ -35,6 +40,336 @@ class DatasetsTests(unittest.TestCase):
             self.assertEqual(dataset.name, 'ne2_raster_blue')
             self.assertEqual(dataset.display_name, 'Natural Earth II – Blue')
             self.assertEqual(dataset.result_descriptor.actual_instance.type, 'raster')
+
+    def test_add_dataset(self):
+        """Test `add_datset`."""
+
+        # TODO: use `enterContext(cm)` instead of `with cm:` in Python 3.11
+        with GeoEngineTestInstance() as ge_instance:
+            ge_instance.wait_for_ready()
+
+            ge.initialize(ge_instance.address(), credentials=("admin@localhost", "adminadmin"))
+
+            volumes = ge.volumes()
+
+            geo_transform = ge.GeoTransform(
+                x_min=180.0,
+                y_max=90.0,
+                x_pixel_size=0.1,
+                y_pixel_size=-0.1
+            )
+
+            gdal_params = geoengine_openapi_client.GdalDatasetParameters.from_dict({
+                "filePath": "raster/landcover/landcover.tif",
+                "rasterbandChannel": 1,
+                "geoTransform": geo_transform.to_api_dict(),
+                "width": 3600,
+                "height": 1800,
+                "fileNotFoundHandling": geoengine_openapi_client.FileNotFoundHandling.NODATA,
+                "noDataValue": None,
+                "propertiesMapping": None,
+                "gdalOpenOptions": None,
+                "gdalConfigOptions": None,
+                "allowAlphabandAsMask": True
+            })
+
+            result_descriptor_measurement = ge.ClassificationMeasurement(
+                measurement="Land Cover",
+                classes={
+                    "0": "Water Bodies",
+                    "1": "Evergreen Needleleaf Forests",
+                    "2": "Evergreen Broadleaf Forests",
+                    "3": "Deciduous Needleleaf Forests",
+                    "4": "Deciduous Broadleleaf Forests",
+                    "5": "Mixed Forests",
+                    "6": "Closed Shrublands",
+                    "7": "Open Shrublands",
+                    "8": "Woody Savannas",
+                    "9": "Savannas",
+                    "10": "Grasslands",
+                    "11": "Permanent Wtlands",
+                    "12": "Croplands",
+                    "13": "Urban and Built-Up",
+                    "14": "Cropland-Natural Vegetation Mosaics",
+                    "15": "Snow and Ice",
+                    "16": "Barren or Sparsely Vegetated"
+                }
+
+            )
+
+            result_descriptor = ge.RasterResultDescriptor(
+                "U8",
+                [RasterBandDescriptor("band", result_descriptor_measurement)],
+                "EPSG:4326",
+                spatial_bounds=ge.SpatialPartition2D(-180.0, -90.0, 180.0, 90.0),
+                spatial_resolution=ge.SpatialResolution(0.1, 0.1)
+            )
+
+            meta_data = geoengine_openapi_client.GdalMetaDataStatic.from_dict({
+                "type": "GdalStatic",
+                "time": None,
+                "params": gdal_params,
+                "resultDescriptor": result_descriptor.to_api_dict().to_dict(),
+            })
+
+            add_dataset_properties = ge.AddDatasetProperties(
+                name="MCD12C1_test",
+                display_name="Land Cover TEST",
+                source_operator="GdalSource",
+                description="Land Cover",
+                symbology=ge.RasterSymbology(
+                    opacity=1.0,
+                    raster_colorizer=ge.SingleBandRasterColorizer(
+                        band=0,
+                        band_colorizer=ge.LinearGradientColorizer(
+                            breakpoints=[
+                                ge.ColorBreakpoint(value=0, color=(0, 0, 255, 255)),
+                                ge.ColorBreakpoint(value=8, color=(0, 255, 0, 255)),
+                                ge.ColorBreakpoint(value=16, color=(255, 0, 0, 255))
+                            ],
+                            no_data_color=(0, 0, 0, 0),
+                            over_color=(0, 0, 0, 0),
+                            under_color=(0, 0, 0, 0)
+                        )
+                    )
+                ),
+                provenance=[ge.Provenance(
+                    citation="The data was obtained from <https://lpdaac.usgs.gov/products/mcd12c1v006>.",
+                    uri="https://lpdaac.usgs.gov/products/mcd12c1v006/",
+                    license="All data distributed by the LP DAAC contain no restrictions on the data reuse."
+                )],
+
+
+            )
+
+            dataset_name = ge.add_dataset(
+                volumes[0],
+                add_dataset_properties,
+                geoengine_openapi_client.MetaDataDefinition(
+                    meta_data,
+                ),
+            )
+
+            self.assertEqual(dataset_name, ge.DatasetName('MCD12C1_test'))
+            self.assertEqual(len(ge.list_datasets(name_filter='Land Cover TEST')), 1)
+
+    def test_add_dataset_with_permissions(self):
+        """Test `add_datset`."""
+
+        # TODO: use `enterContext(cm)` instead of `with cm:` in Python 3.11
+        with GeoEngineTestInstance() as ge_instance:
+            ge_instance.wait_for_ready()
+
+            ge.initialize(ge_instance.address(), credentials=("admin@localhost", "adminadmin"))
+
+            volumes = ge.volumes()
+
+            geo_transform = ge.GeoTransform(
+                x_min=180.0,
+                y_max=90.0,
+                x_pixel_size=0.1,
+                y_pixel_size=-0.1
+            )
+
+            gdal_params = geoengine_openapi_client.GdalDatasetParameters.from_dict({
+                "filePath": "raster/landcover/landcover.tif",
+                "rasterbandChannel": 1,
+                "geoTransform": geo_transform.to_api_dict(),
+                "width": 3600,
+                "height": 1800,
+                "fileNotFoundHandling": geoengine_openapi_client.FileNotFoundHandling.NODATA,
+                "noDataValue": None,
+                "propertiesMapping": None,
+                "gdalOpenOptions": None,
+                "gdalConfigOptions": None,
+                "allowAlphabandAsMask": True
+            })
+
+            result_descriptor_measurement = ge.ClassificationMeasurement(
+                measurement="Land Cover",
+                classes={
+                    "0": "Water Bodies",
+                    "1": "Evergreen Needleleaf Forests",
+                    "2": "Evergreen Broadleaf Forests",
+                    "3": "Deciduous Needleleaf Forests",
+                    "4": "Deciduous Broadleleaf Forests",
+                    "5": "Mixed Forests",
+                    "6": "Closed Shrublands",
+                    "7": "Open Shrublands",
+                    "8": "Woody Savannas",
+                    "9": "Savannas",
+                    "10": "Grasslands",
+                    "11": "Permanent Wtlands",
+                    "12": "Croplands",
+                    "13": "Urban and Built-Up",
+                    "14": "Cropland-Natural Vegetation Mosaics",
+                    "15": "Snow and Ice",
+                    "16": "Barren or Sparsely Vegetated"
+                }
+
+            )
+
+            result_descriptor = ge.RasterResultDescriptor(
+                "U8",
+                [RasterBandDescriptor("band", result_descriptor_measurement)],
+                "EPSG:4326",
+                spatial_bounds=ge.SpatialPartition2D(-180.0, -90.0, 180.0, 90.0),
+                spatial_resolution=ge.SpatialResolution(0.1, 0.1)
+            )
+
+            meta_data = geoengine_openapi_client.GdalMetaDataStatic.from_dict({
+                "type": "GdalStatic",
+                "time": None,
+                "params": gdal_params,
+                "resultDescriptor": result_descriptor.to_api_dict().to_dict(),
+            })
+
+            add_dataset_properties = ge.AddDatasetProperties(
+                name="MCD12C1_test",
+                display_name="Land Cover TEST",
+                source_operator="GdalSource",
+                description="Land Cover",
+                symbology=ge.RasterSymbology(
+                    opacity=1.0,
+                    raster_colorizer=ge.SingleBandRasterColorizer(
+                        band=0,
+                        band_colorizer=ge.LinearGradientColorizer(
+                            breakpoints=[
+                                ge.ColorBreakpoint(value=0, color=(0, 0, 255, 255)),
+                                ge.ColorBreakpoint(value=16, color=(255, 0, 0, 255))
+                            ],
+                            no_data_color=(0, 0, 0, 0),
+                            over_color=(0, 0, 0, 0),
+                            under_color=(0, 0, 0, 0)
+                        )
+                    )
+                ),
+                provenance=[],
+            )
+
+            permisions = [(REGISTERED_USER_ROLE_ID, Permission.READ)]
+
+            dataset_name = ge.add_or_replace_dataset_with_permissions(
+                volumes[0],
+                add_dataset_properties,
+                geoengine_openapi_client.MetaDataDefinition(
+                    meta_data,
+                ),
+                permission_tuples=permisions
+            )
+
+            self.assertEqual(dataset_name, ge.DatasetName('MCD12C1_test'))
+            self.assertEqual(len(ge.list_datasets(name_filter='Land Cover TEST')), 1)
+            dataset_info = ge.dataset_info_by_name(ge.DatasetName('MCD12C1_test'))
+            self.assertEqual(
+                dataset_info.name,
+                'MCD12C1_test'
+            )
+            self.assertEqual(
+                dataset_info.description,
+                'Land Cover'
+            )
+
+            expected_permission = PermissionListing(
+                role=Role(role_name="user", role_id=REGISTERED_USER_ROLE_ID),
+                resource=Resource.from_dataset_name(dataset_name),
+                permission=Permission.READ
+            )
+            self.assertIn(
+                expected_permission,
+                ge.permissions.list_permissions(Resource.from_dataset_name(dataset_name))
+            )
+
+            # now get without overwrite
+            add_dataset_properties = ge.AddDatasetProperties(
+                name="MCD12C1_test",
+                display_name="Land Cover TEST",
+                source_operator="GdalSource",
+                description="Land Cover 2",
+                symbology=ge.RasterSymbology(
+                    opacity=1.0,
+                    raster_colorizer=ge.SingleBandRasterColorizer(
+                        band=0,
+                        band_colorizer=ge.LinearGradientColorizer(
+                            breakpoints=[
+                                ge.ColorBreakpoint(value=0, color=(0, 0, 255, 255)),
+                                ge.ColorBreakpoint(value=16, color=(255, 0, 0, 255))
+                            ],
+                            no_data_color=(0, 0, 0, 0),
+                            over_color=(0, 0, 0, 0),
+                            under_color=(0, 0, 0, 0)
+                        )
+                    )
+                ),
+                provenance=[],
+            )
+
+            dataset_name = ge.add_or_replace_dataset_with_permissions(
+                volumes[0],
+                add_dataset_properties,
+                geoengine_openapi_client.MetaDataDefinition(
+                    meta_data,
+                ),
+                permission_tuples=permisions
+            )
+
+            self.assertEqual(dataset_name, ge.DatasetName('MCD12C1_test'))
+            self.assertEqual(len(ge.list_datasets(name_filter='Land Cover TEST')), 1)
+            dataset_info = ge.dataset_info_by_name(ge.DatasetName('MCD12C1_test'))
+            self.assertEqual(
+                dataset_info.name,
+                'MCD12C1_test'
+            )
+            self.assertEqual(
+                dataset_info.description,
+                'Land Cover'  # Still the first value, since no overwrite
+            )
+
+            # now overwrite
+            add_dataset_properties = ge.AddDatasetProperties(
+                name="MCD12C1_test",
+                display_name="Land Cover TEST",
+                source_operator="GdalSource",
+                description="Land Cover 3",
+                symbology=ge.RasterSymbology(
+                    opacity=1.0,
+                    raster_colorizer=ge.SingleBandRasterColorizer(
+                        band=0,
+                        band_colorizer=ge.LinearGradientColorizer(
+                            breakpoints=[
+                                ge.ColorBreakpoint(value=0, color=(0, 0, 255, 255)),
+                                ge.ColorBreakpoint(value=16, color=(255, 0, 0, 255))
+                            ],
+                            no_data_color=(0, 0, 0, 0),
+                            over_color=(0, 0, 0, 0),
+                            under_color=(0, 0, 0, 0)
+                        )
+                    )
+                ),
+                provenance=[],
+            )
+
+            dataset_name = ge.add_or_replace_dataset_with_permissions(
+                volumes[0],
+                add_dataset_properties,
+                geoengine_openapi_client.MetaDataDefinition(
+                    meta_data,
+                ),
+                permission_tuples=permisions,
+                replace_existing=True
+            )
+
+            self.assertEqual(dataset_name, ge.DatasetName('MCD12C1_test'))
+            self.assertEqual(len(ge.list_datasets(name_filter='Land Cover TEST')), 1)
+            dataset_info = ge.dataset_info_by_name(ge.DatasetName('MCD12C1_test'))
+            self.assertEqual(
+                dataset_info.name,
+                'MCD12C1_test'
+            )
+            self.assertEqual(
+                dataset_info.description,
+                'Land Cover 3'  # Now the third value, replaced with new dataset
+            )
 
 
 if __name__ == '__main__':
