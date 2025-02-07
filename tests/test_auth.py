@@ -7,6 +7,7 @@ from pkg_resources import get_distribution
 import geoengine as ge
 from geoengine.error import GeoEngineException
 from geoengine.types import QueryRectangle
+from tests.ge_test import GeoEngineTestInstance
 from . import UrllibMocker
 
 
@@ -33,22 +34,41 @@ class AuthTests(unittest.TestCase):
                          'You have to call `initialize` before using other functionality')
 
     def test_initialize(self):
-        with UrllibMocker() as m:
-            m.post('http://mock-instance/anonymous', json={
-                "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
-                "user": {
-                    "id": "328ca8d1-15d7-4f59-a989-5d5d72c98744",
-                },
-                "created": "2021-06-08T15:22:22.605891994Z",
-                "validUntil": "2021-06-08T16:22:22.605892183Z",
-                "project": None,
-                "view": None
-            })
+        def get_session_id(session: ge.Session) -> str:
+            return session.auth_header['Authorization'].split(' ')[1]
 
-            ge.initialize("http://mock-instance")
+        # TODO: use `enterContext(cm)` instead of `with cm:` in Python 3.11
+        with GeoEngineTestInstance() as ge_instance:
+            ge_instance.wait_for_ready()
 
-            self.assertEqual(type(ge.get_session()),
-                             ge.Session)
+            # anonymous
+
+            ge.initialize(ge_instance.address())
+
+            self.assertEqual(type(ge.get_session()), ge.Session)
+
+            session_id = get_session_id(ge.get_session())
+
+            ge.reset(False)
+
+            # token as parameter
+
+            ge.initialize(ge_instance.address(), token=session_id)
+
+            self.assertEqual(get_session_id(ge.get_session()), session_id)
+
+            ge.reset(False)
+
+            # token as environment variable
+
+            os.environ["GEOENGINE_TOKEN"] = session_id
+
+            try:
+                ge.initialize(ge_instance.address())
+            finally:
+                del os.environ["GEOENGINE_TOKEN"]
+
+            self.assertEqual(get_session_id(ge.get_session()), session_id)
 
     def test_initialize_tuple(self):
         with UrllibMocker() as m:
@@ -93,51 +113,6 @@ class AuthTests(unittest.TestCase):
             finally:
                 del os.environ["GEOENGINE_EMAIL"]
                 del os.environ["GEOENGINE_PASSWORD"]
-
-            self.assertEqual(type(ge.get_session()),
-                             ge.Session)
-
-    def test_initialize_token(self):
-        with UrllibMocker() as m:
-            m.get('http://mock-instance/session',
-                  request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
-                  json={
-                      "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
-                      "user": {
-                          "id": "328ca8d1-15d7-4f59-a989-5d5d72c98744",
-                      },
-                      "created": "2021-06-08T15:22:22.605891994Z",
-                      "validUntil": "2021-06-08T16:22:22.605892183Z",
-                      "project": None,
-                      "view": None
-                  })
-
-            ge.initialize("http://mock-instance", token="e327d9c3-a4f3-4bd7-a5e1-30b26cae8064")
-
-            self.assertEqual(type(ge.get_session()),
-                             ge.Session)
-
-    def test_initialize_token_env(self):
-        with UrllibMocker() as m:
-            m.get('http://mock-instance/session',
-                  request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
-                  json={
-                      "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
-                      "user": {
-                          "id": "328ca8d1-15d7-4f59-a989-5d5d72c98744",
-                      },
-                      "created": "2021-06-08T15:22:22.605891994Z",
-                      "validUntil": "2021-06-08T16:22:22.605892183Z",
-                      "project": None,
-                      "view": None
-                  })
-
-            os.environ["GEOENGINE_TOKEN"] = "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"
-
-            try:
-                ge.initialize("http://mock-instance")
-            finally:
-                del os.environ["GEOENGINE_TOKEN"]
 
             self.assertEqual(type(ge.get_session()),
                              ge.Session)

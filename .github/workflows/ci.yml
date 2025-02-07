@@ -3,12 +3,16 @@ name: CI
 on:
   pull_request:
   merge_group:
+  # Creates a coverage of the main branch
+  push:
+    branches:
+      - main
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   check:
-    runs-on: ubuntu-22.04
+    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@main
 
     strategy:
       fail-fast: false
@@ -16,85 +20,17 @@ jobs:
         # use all supported versions from https://devguide.python.org/versions/
         python-version: ["3.9", "3.10", "3.11", "3.12"]
 
-    steps:
-      - uses: actions/checkout@v3
-      - name: APT update
-        run: sudo apt-get update
-      - name: Install system dependencies
-        run: sudo apt-get install libgeos-dev libproj-dev
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-          pip install -e .[dev]
-      - name: Check Formatting
-        run: |
-          python -m pycodestyle
-      - name: Lint code
-        run: |
-          python -m pylint geoengine
-      - name: Type-check code
-        run: |
-          python -m mypy geoengine
-      - name: Build
-        run: python -m build .
-      - name: Install test dependencies
-        run: |
-          pip install -e .[test]
-      - name: Lint tests
-        run: |
-          python -m pylint tests
-      - name: Type-check tests
-        run: |
-          python -m mypy tests
-      - name: Test
-        run: pytest
+    with:
+      python-version: ${{ matrix.python-version }}
+      use-uv: false
+      coverage: false
 
   # Checks the library using minimum version resolution
   # `uv` has this feature built-in, c.f. https://github.com/astral-sh/uv
   check-min-version:
-    runs-on: ubuntu-22.04
+    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@main
 
-    env:
-      # use minimum supported versions from https://devguide.python.org/versions/
-      python-version: "3.9"
-      # lowest compatible versions for all direct dependencies
-      # cf., https://github.com/astral-sh/uv#resolution-strategy
-      resolution: "lowest-direct"
-
-    steps:
-      - uses: actions/checkout@v3
-      - name: APT update
-        run: sudo apt-get update
-      - name: Install system dependencies
-        run: sudo apt-get install libgeos-dev libproj-dev
-      - name: Set up Python ${{ env.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.python-version }}
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install uv
-
-          uv venv
-          source .venv/bin/activate
-
-          uv pip install --resolution=${{ env.resolution}} -e .
-          uv pip install --resolution=${{ env.resolution}} -e .[dev]
-      - name: Build
-        run: |
-          source .venv/bin/activate
-          python -m build .
-      - name: Install test dependencies
-        run: |
-          source .venv/bin/activate
-          uv pip install --resolution=${{ env.resolution}} -e .[test]
-      - name: Test
-        run: |
-          source .venv/bin/activate
-          pytest
+    with:
+      python-version: 3.9
+      use-uv: true
+      coverage: true

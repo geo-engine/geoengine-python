@@ -6,7 +6,7 @@ from skl2onnx import to_onnx
 import numpy as np
 from geoengine_openapi_client.models import MlModelMetadata, RasterDataType, TensorShape3D
 import geoengine as ge
-from . import UrllibMocker
+from tests.ge_test import GeoEngineTestInstance
 
 
 class WorkflowStorageTests(unittest.TestCase):
@@ -24,69 +24,57 @@ class WorkflowStorageTests(unittest.TestCase):
 
         onnx_clf = to_onnx(clf, training_x[:1], options={'zipmap': False}, target_opset=9)
 
-        with UrllibMocker() as m:
-            session_id = "c4983c3e-9b53-47ae-bda9-382223bd5081"
-            request_headers = {'Authorization': f'Bearer {session_id}'}
+        # TODO: use `enterContext(cm)` instead of `with cm:` in Python 3.11
+        with GeoEngineTestInstance() as ge_instance:
+            ge_instance.wait_for_ready()
 
-            m.post('http://mock-instance/anonymous', json={
-                "id": session_id,
-                "project": None,
-                "view": None
-            })
+            ge.initialize(ge_instance.address())
 
-            upload_id = "c314ff6d-3e37-41b4-b9b2-3669f13f7369"
+            session = ge.get_session()
+            model_name = f"{session.user_id}:foo"
 
-            m.post('http://mock-instance/upload', json={
-                "id": upload_id
-            }, request_headers=request_headers)
-
-            m.post('http://mock-instance/ml/models',
-                   expected_request_body={
-                       "description": "A simple decision tree model",
-                       "displayName": "Decision Tree",
-                       "metadata": {
-                           "fileName": "model.onnx",
-                           "inputType": "F32",
-                           "outputType": "I64",
-                           "inputShape": {
-                               "y": 1,
-                               "x": 1,
-                               "attributes": 2
-                           },
-                           "outputShape": {
-                               "y": 1,
-                               "x": 1,
-                               "attributes": 1
-                           }
-                       },
-                       "name": "foo",
-                       "upload": upload_id
-                   },
-                   request_headers=request_headers)
-
-            ge.initialize("http://mock-instance")
-
-            ge.register_ml_model(
+            res_name = ge.register_ml_model(
                 onnx_model=onnx_clf,
                 model_config=ge.ml.MlModelConfig(
-                    name="foo",
+                    name=model_name,
                     metadata=MlModelMetadata(
                         file_name="model.onnx",
                         input_type=RasterDataType.F32,
                         output_type=RasterDataType.I64,
-                        input_shape=TensorShape3D(y=1, x=1, attributes=2),
-                        output_shape=TensorShape3D(y=1, x=1, attributes=1)
+                        input_shape=TensorShape3D(y=1, x=1, bands=2),
+                        output_shape=TensorShape3D(y=1, x=1, bands=1)
                     ),
                     display_name="Decision Tree",
                     description="A simple decision tree model",
                 )
             )
+            self.assertEqual(str(res_name), model_name)
 
+            # Now test permission setting and removal
+            ge.add_permission(
+                ge.REGISTERED_USER_ROLE_ID, ge.Resource.from_ml_model_name(res_name), ge.Permission.READ
+            )
+
+            expected = ge.permissions.PermissionListing(
+                permission=ge.Permission.READ,
+                resource=ge.Resource.from_ml_model_name(res_name),
+                role=ge.permissions.Role(ge.REGISTERED_USER_ROLE_ID, 'user')
+            )
+
+            self.assertIn(expected, ge.permissions.list_permissions(ge.Resource.from_ml_model_name(res_name)))
+
+            ge.remove_permission(
+                ge.REGISTERED_USER_ROLE_ID, ge.Resource.from_ml_model_name(res_name), ge.Permission.READ
+            )
+
+            self.assertNotIn(expected, ge.permissions.list_permissions(ge.Resource.from_ml_model_name(res_name)))
+
+            # failing tests
             with self.assertRaises(ge.InputException) as exception:
-                ge.register_ml_model(
+                _res_name = ge.register_ml_model(
                     onnx_model=onnx_clf,
                     model_config=ge.ml.MlModelConfig(
-                        name="foo",
+                        name=model_name,
                         metadata=MlModelMetadata(
                             file_name="model.onnx",
                             input_type=RasterDataType.F32,
@@ -104,10 +92,10 @@ class WorkflowStorageTests(unittest.TestCase):
             )
 
             with self.assertRaises(ge.InputException) as exception:
-                ge.register_ml_model(
+                _res_name = ge.register_ml_model(
                     onnx_model=onnx_clf,
                     model_config=ge.ml.MlModelConfig(
-                        name="foo",
+                        name=model_name,
                         metadata=MlModelMetadata(
                             file_name="model.onnx",
                             input_type=RasterDataType.F64,

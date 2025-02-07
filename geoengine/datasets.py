@@ -257,7 +257,7 @@ class OgrOnError(Enum):
 
 
 class DatasetName:
-    '''A wrapper for a dataset id'''
+    '''A wrapper for a dataset name'''
 
     __dataset_name: str
 
@@ -266,7 +266,7 @@ class DatasetName:
 
     @classmethod
     def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -> DatasetName:
-        '''Parse a http response to an `DatasetId`'''
+        '''Parse a http response to an `DatasetName`'''
         return DatasetName(response.dataset_name)
 
     def __str__(self) -> str:
@@ -276,7 +276,7 @@ class DatasetName:
         return str(self)
 
     def __eq__(self, other) -> bool:
-        '''Checks if two dataset ids are equal'''
+        '''Checks if two dataset names are equal'''
         if not isinstance(other, self.__class__):
             return False
 
