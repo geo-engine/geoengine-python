@@ -123,8 +123,8 @@ def validate_model_config(onnx_model: ModelProto, *,
     if len(dim) == 2:
         if not dim[1].dim_value:
             raise InputException('Dimension 1 of a 1D input tensor must have a length')
-        if dim[1].dim_value != input_shape.attributes:
-            raise InputException(f'Model input has {dim[1].dim_value} bands, but {input_shape.attributes} are expected')
+        if dim[1].dim_value != input_shape.bands:
+            raise InputException(f'Model input has {dim[1].dim_value} bands, but {input_shape.bands} are expected')
     elif len(dim) == 4:
         if not dim[1].dim_value:
             raise InputException('Dimension 1 of the a 3D input tensor must have a length')
@@ -136,8 +136,8 @@ def validate_model_config(onnx_model: ModelProto, *,
             raise InputException(f'Model input has {dim[1].dim_value} y size, but {input_shape.y} are expected')
         if dim[2].dim_value != input_shape.x:
             raise InputException(f'Model input has {dim[2].dim_value} x size, but {input_shape.x} are expected')
-        if dim[3].dim_value != input_shape.attributes:
-            raise InputException(f'Model input has {dim[3].dim_value} bands, but {input_shape.attributes} are expected')
+        if dim[3].dim_value != input_shape.bands:
+            raise InputException(f'Model input has {dim[3].dim_value} bands, but {input_shape.bands} are expected')
     else:
         raise InputException('Only 1D and 3D input tensors are supported')
 
@@ -152,7 +152,7 @@ def validate_model_config(onnx_model: ModelProto, *,
         if not dim[1].dim_value:
             raise InputException('Dimension 1 of a 1D input tensor must have a length')
         if dim[1].dim_value != 1:
-            raise InputException(f'Model output has {dim[1].dim_value} bands, but {out_shape.attributes} are expected')
+            raise InputException(f'Model output has {dim[1].dim_value} bands, but {out_shape.bands} are expected')
     elif len(dim) == 3:
         if not dim[1].dim_value:
             raise InputException('Dimension 1 of a 3D input tensor must have a length')
@@ -173,8 +173,8 @@ def validate_model_config(onnx_model: ModelProto, *,
             raise InputException(f'Model output has {dim[1].dim_value} y size, but {out_shape.y} are expected')
         if dim[2].dim_value != out_shape.x:
             raise InputException(f'Model output has {dim[2].dim_value} x size, but {out_shape.x} are expected')
-        if dim[3].dim_value != out_shape.attributes:
-            raise InputException(f'Model output has {dim[3].dim_value} bands, but {out_shape.attributes} are expected')
+        if dim[3].dim_value != out_shape.bands:
+            raise InputException(f'Model output has {dim[3].dim_value} bands, but {out_shape.bands} are expected')
     else:
         raise InputException('Only 1D and 3D output tensors are supported')
 

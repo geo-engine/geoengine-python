@@ -79,8 +79,8 @@ class WorkflowStorageTests(unittest.TestCase):
                             file_name="model.onnx",
                             input_type=RasterDataType.F32,
                             output_type=RasterDataType.I64,
-                            input_shape=TensorShape3D(y=1, x=1, attributes=4),
-                            output_shape=TensorShape3D(y=1, x=1, attributes=1)
+                            input_shape=TensorShape3D(y=1, x=1, bands=4),
+                            output_shape=TensorShape3D(y=1, x=1, bands=1)
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
@@ -100,8 +100,8 @@ class WorkflowStorageTests(unittest.TestCase):
                             file_name="model.onnx",
                             input_type=RasterDataType.F64,
                             output_type=RasterDataType.I64,
-                            input_shape=TensorShape3D(y=1, x=1, attributes=2),
-                            output_shape=TensorShape3D(y=1, x=1, attributes=1)
+                            input_shape=TensorShape3D(y=1, x=1, bands=2),
+                            output_shape=TensorShape3D(y=1, x=1, bands=1)
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
@@ -121,8 +121,8 @@ class WorkflowStorageTests(unittest.TestCase):
                             file_name="model.onnx",
                             input_type=RasterDataType.F32,
                             output_type=RasterDataType.I32,
-                            input_shape=TensorShape3D(y=1, x=1, attributes=2),
-                            output_shape=TensorShape3D(y=1, x=1, attributes=1)
+                            input_shape=TensorShape3D(y=1, x=1, bands=2),
+                            output_shape=TensorShape3D(y=1, x=1, bands=1)
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
