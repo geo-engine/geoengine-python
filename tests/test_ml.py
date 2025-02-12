@@ -106,7 +106,7 @@ class WorkflowStorageTests(unittest.TestCase):
                 )
             self.assertEqual(
                 str(exception.exception),
-                'Model input type `TensorProto.FLOAT` does not match the expected type `RasterDataType.F64`'
+                'Model input type `TensorProto.FLOAT` does not match the expected type `F64`'
             )
 
             with self.assertRaises(ge.InputException) as exception:
@@ -126,5 +126,5 @@ class WorkflowStorageTests(unittest.TestCase):
                 )
             self.assertEqual(
                 str(exception.exception),
-                'Model output type `TensorProto.INT64` does not match the expected type `RasterDataType.I32`'
+                'Model output type `TensorProto.INT64` does not match the expected type `I32`'
             )
