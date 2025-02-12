@@ -103,10 +103,12 @@ def validate_model_config(onnx_model: ModelProto, *,
         if not data_type.tensor_type:
             raise InputException('Only tensor input types are supported')
         elem_type = data_type.tensor_type.elem_type
-        if elem_type != RASTER_TYPE_TO_ONNX_TYPE[expected_type]:
+        expected_tensor_type = RASTER_TYPE_TO_ONNX_TYPE[expected_type]
+        if elem_type != expected_tensor_type:
             elem_type_str = tensor_dtype_to_string(elem_type)
+            expected_type_str = tensor_dtype_to_string(expected_tensor_type)
             raise InputException(f'Model {prefix} type `{elem_type_str}` does not match the '
-                                 f'expected type `{expected_type}`')
+                                 f'expected type `{expected_type_str}`')
 
     model_inputs = onnx_model.graph.input
     model_outputs = onnx_model.graph.output
