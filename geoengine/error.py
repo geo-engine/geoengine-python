@@ -21,7 +21,7 @@ class GeoEngineException(Exception):
         super().__init__()
 
         if isinstance(response, geoengine_openapi_client.ApiException):
-            obj = json.loads(response.body)
+            obj = json.loads(response.body) if response.body else {'error': 'unknown', 'message': 'unknown'}
         else:
             obj = response
 

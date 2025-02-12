@@ -201,6 +201,7 @@ class GeoEngineProcess:
                 'GEOENGINE__POSTGRES__PASSWORD': POSTGRES_PASSWORD,
                 'GEOENGINE__POSTGRES__SCHEMA': self.db_schema,
                 'GEOENGINE__LOGGING__LOG_SPEC': GE_LOG_SPEC,
+                'GEOENGINE__POSTGRES__CLEAR_DATABASE_ON_START': 'true',
                 'PATH': os.environ['PATH'],
             },
             stderr=subprocess.PIPE,
