@@ -535,13 +535,6 @@ class Workflow:
 
         session = get_session()
 
-        print(geoengine_openapi_client.RasterDatasetFromWorkflow(
-                    name=name,
-                    display_name=display_name,
-                    description=description,
-                    query=query_rectangle
-                ).to_json())
-
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
             response = workflows_api.dataset_from_workflow_handler(
