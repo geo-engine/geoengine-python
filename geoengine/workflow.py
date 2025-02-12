@@ -535,6 +535,13 @@ class Workflow:
 
         session = get_session()
 
+        print(geoengine_openapi_client.RasterDatasetFromWorkflow(
+                    name=name,
+                    display_name=display_name,
+                    description=description,
+                    query=query_rectangle
+                ).to_json())
+
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
             response = workflows_api.dataset_from_workflow_handler(
@@ -984,8 +991,9 @@ def data_usage(offset: int = 0, limit: int = 10) -> List[geoengine_openapi_clien
         response = user_api.data_usage_handler(offset=offset, limit=limit)
 
         # create dataframe from response
-        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
+        df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
 
     return df
 
@@ -1005,7 +1013,8 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
                                                        offset=offset, limit=limit)
 
         # create dataframe from response
-        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
+        df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
 
     return df

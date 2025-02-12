@@ -309,7 +309,7 @@ class PaletteColorizer(Colorizer):
         """Return the colorizer as a dictionary."""
         return geoengine_openapi_client.Colorizer(geoengine_openapi_client.PaletteColorizer(
             type='palette',
-            colors=self.colors,
+            colors={str(k): v for k,v in self.colors.items()},
             default_color=self.default_color,
             no_data_color=self.no_data_color,
         ))

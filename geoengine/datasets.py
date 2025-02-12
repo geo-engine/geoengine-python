@@ -494,11 +494,11 @@ def upload_dataframe(
                         ),
                         on_error=on_error.to_api_enum(),
                     ),
-                    result_descriptor=VectorResultDescriptor(
+                    result_descriptor=geoengine_openapi_client.VectorResultDescriptor.from_dict(VectorResultDescriptor(
                         data_type=vector_type,
                         spatial_reference=df.crs.to_string(),
                         columns=columns,
-                    ).to_api_dict().actual_instance
+                    ).to_api_dict().actual_instance.to_dict())
                 )
             )
         )
