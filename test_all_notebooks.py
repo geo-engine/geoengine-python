@@ -7,13 +7,6 @@ import subprocess
 import shutil
 import sys
 
-# TODO: fix the blacklisted notebooks
-BLACKLIST = [
-    'copernicus_dataspace.ipynb',
-    'data_usage.ipynb',
-    'plots.ipynb',
-]
-
 
 def eprint(*args, **kwargs):
     '''Print to stderr.'''
@@ -56,9 +49,6 @@ def main() -> int:
         for file in files:
             if not file.endswith('.ipynb'):
                 eprint(f"Skipping non-notebook file {file}")
-                continue
-            if file in BLACKLIST:
-                eprint(f"Skipping blacklisted notebook {file}")
                 continue
             notebook_path = os.path.join(root, file)
             if not run_test_notebook(notebook_path):
