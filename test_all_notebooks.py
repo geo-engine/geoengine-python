@@ -9,7 +9,6 @@ import sys
 
 # TODO: fix the blacklisted notebooks
 BLACKLIST = [
-    'copernicus_dataspace.ipynb',
     'data_usage.ipynb',
     'plots.ipynb',
 ]
