@@ -689,6 +689,29 @@ class RasterBandDescriptor:
         return f&#39;{self.name}: {self.measurement}&#39;
 
 
+def literal_raster_data_type(
+    data_type: geoengine_openapi_client.RasterDataType
+) -&gt; Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;]:
+    &#39;&#39;&#39;Convert a `RasterDataType` to a literal&#39;&#39;&#39;
+
+    data_type_map: dict[
+        geoengine_openapi_client.RasterDataType,
+        Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;]
+    ] = {
+        geoengine_openapi_client.RasterDataType.U8: &#39;U8&#39;,
+        geoengine_openapi_client.RasterDataType.U16: &#39;U16&#39;,
+        geoengine_openapi_client.RasterDataType.U32: &#39;U32&#39;,
+        geoengine_openapi_client.RasterDataType.U64: &#39;U64&#39;,
+        geoengine_openapi_client.RasterDataType.I8: &#39;I8&#39;,
+        geoengine_openapi_client.RasterDataType.I16: &#39;I16&#39;,
+        geoengine_openapi_client.RasterDataType.I32: &#39;I32&#39;,
+        geoengine_openapi_client.RasterDataType.I64: &#39;I64&#39;,
+        geoengine_openapi_client.RasterDataType.F32: &#39;F32&#39;,
+        geoengine_openapi_client.RasterDataType.F64: &#39;F64&#39;,
+    }
+    return data_type_map[data_type]
+
+
 class RasterResultDescriptor(ResultDescriptor):
     &#39;&#39;&#39;
     A raster result descriptor
@@ -730,7 +753,7 @@ class RasterResultDescriptor(ResultDescriptor):
             response: geoengine_openapi_client.TypedRasterResultDescriptor) -&gt; RasterResultDescriptor:
         &#39;&#39;&#39;Parse a raster result descriptor from an http response&#39;&#39;&#39;
         spatial_ref = response.spatial_reference
-        data_type = response.data_type.value
+        data_type = literal_raster_data_type(response.data_type)
         bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
@@ -1459,6 +1482,41 @@ class GeoTransform:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="geoengine.types.literal_raster_data_type"><code class="name flex">
+<span>def <span class="ident">literal_raster_data_type</span></span>(<span>data_type: geoengine_openapi_client.RasterDataType) ‑> Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convert a <code>RasterDataType</code> to a literal</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def literal_raster_data_type(
+    data_type: geoengine_openapi_client.RasterDataType
+) -&gt; Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;]:
+    &#39;&#39;&#39;Convert a `RasterDataType` to a literal&#39;&#39;&#39;
+
+    data_type_map: dict[
+        geoengine_openapi_client.RasterDataType,
+        Literal[&#39;U8&#39;, &#39;U16&#39;, &#39;U32&#39;, &#39;U64&#39;, &#39;I8&#39;, &#39;I16&#39;, &#39;I32&#39;, &#39;I64&#39;, &#39;F32&#39;, &#39;F64&#39;]
+    ] = {
+        geoengine_openapi_client.RasterDataType.U8: &#39;U8&#39;,
+        geoengine_openapi_client.RasterDataType.U16: &#39;U16&#39;,
+        geoengine_openapi_client.RasterDataType.U32: &#39;U32&#39;,
+        geoengine_openapi_client.RasterDataType.U64: &#39;U64&#39;,
+        geoengine_openapi_client.RasterDataType.I8: &#39;I8&#39;,
+        geoengine_openapi_client.RasterDataType.I16: &#39;I16&#39;,
+        geoengine_openapi_client.RasterDataType.I32: &#39;I32&#39;,
+        geoengine_openapi_client.RasterDataType.I64: &#39;I64&#39;,
+        geoengine_openapi_client.RasterDataType.F32: &#39;F32&#39;,
+        geoengine_openapi_client.RasterDataType.F64: &#39;F64&#39;,
+    }
+    return data_type_map[data_type]</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -3666,7 +3724,7 @@ def to_api_dict(self) -&gt; geoengine_openapi_client.RasterColorizer:
             response: geoengine_openapi_client.TypedRasterResultDescriptor) -&gt; RasterResultDescriptor:
         &#39;&#39;&#39;Parse a raster result descriptor from an http response&#39;&#39;&#39;
         spatial_ref = response.spatial_reference
-        data_type = response.data_type.value
+        data_type = literal_raster_data_type(response.data_type)
         bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
@@ -3742,7 +3800,7 @@ def from_response_raster(
         response: geoengine_openapi_client.TypedRasterResultDescriptor) -&gt; RasterResultDescriptor:
     &#39;&#39;&#39;Parse a raster result descriptor from an http response&#39;&#39;&#39;
     spatial_ref = response.spatial_reference
-    data_type = response.data_type.value
+    data_type = literal_raster_data_type(response.data_type)
     bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
     time_bounds = None
@@ -5726,6 +5784,11 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="geoengine" href="index.html">geoengine</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="geoengine.types.literal_raster_data_type" href="#geoengine.types.literal_raster_data_type">literal_raster_data_type</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

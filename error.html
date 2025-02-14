@@ -50,7 +50,7 @@ class GeoEngineException(Exception):
         super().__init__()
 
         if isinstance(response, geoengine_openapi_client.ApiException):
-            obj = json.loads(response.body)
+            obj = json.loads(response.body) if response.body else {&#39;error&#39;: &#39;unknown&#39;, &#39;message&#39;: &#39;unknown&#39;}
         else:
             obj = response
 
@@ -333,7 +333,7 @@ class OGCXMLError(Exception):
         super().__init__()
 
         if isinstance(response, geoengine_openapi_client.ApiException):
-            obj = json.loads(response.body)
+            obj = json.loads(response.body) if response.body else {&#39;error&#39;: &#39;unknown&#39;, &#39;message&#39;: &#39;unknown&#39;}
         else:
             obj = response
 

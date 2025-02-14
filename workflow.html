@@ -1013,8 +1013,10 @@ def data_usage(offset: int = 0, limit: int = 10) -&gt; List[geoengine_openapi_cl
         response = user_api.data_usage_handler(offset=offset, limit=limit)
 
         # create dataframe from response
-        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
+        if &#39;timestamp&#39; in df.columns:
+            df[&#39;timestamp&#39;] = pd.to_datetime(df[&#39;timestamp&#39;], utc=True)
 
     return df
 
@@ -1034,8 +1036,10 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
                                                        offset=offset, limit=limit)
 
         # create dataframe from response
-        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
+        if &#39;timestamp&#39; in df.columns:
+            df[&#39;timestamp&#39;] = pd.to_datetime(df[&#39;timestamp&#39;], utc=True)
 
     return df</code></pre>
 </details>
@@ -1068,8 +1072,10 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
         response = user_api.data_usage_handler(offset=offset, limit=limit)
 
         # create dataframe from response
-        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
+        if &#39;timestamp&#39; in df.columns:
+            df[&#39;timestamp&#39;] = pd.to_datetime(df[&#39;timestamp&#39;], utc=True)
 
     return df</code></pre>
 </details>
@@ -1098,8 +1104,10 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
                                                        offset=offset, limit=limit)
 
         # create dataframe from response
-        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
+        if &#39;timestamp&#39; in df.columns:
+            df[&#39;timestamp&#39;] = pd.to_datetime(df[&#39;timestamp&#39;], utc=True)
 
     return df</code></pre>
 </details>
