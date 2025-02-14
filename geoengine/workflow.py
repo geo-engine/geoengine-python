@@ -984,8 +984,10 @@ def data_usage(offset: int = 0, limit: int = 10) -> List[geoengine_openapi_clien
         response = user_api.data_usage_handler(offset=offset, limit=limit)
 
         # create dataframe from response
-        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
+        if 'timestamp' in df.columns:
+            df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
 
     return df
 
@@ -1005,7 +1007,9 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
                                                        offset=offset, limit=limit)
 
         # create dataframe from response
-        usage_dicts = [data_usage.dict(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
+        if 'timestamp' in df.columns:
+            df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
 
     return df
