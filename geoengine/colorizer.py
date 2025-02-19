@@ -230,6 +230,13 @@ class Colorizer():
         raise TypeError("Unknown colorizer type")
 
 
+def rgba_from_list(values: list[int]) -> Rgba:
+    """Convert a list of integers to an RGBA tuple."""
+    if len(values) != 4:
+        raise ValueError(f"Expected a list of 4 integers, got {len(values)} instead.")
+    return (values[0], values[1], values[2], values[3])
+
+
 @dataclass
 class LinearGradientColorizer(Colorizer):
     '''A linear gradient colorizer.'''
@@ -242,10 +249,10 @@ class LinearGradientColorizer(Colorizer):
         """Create a colorizer from a response."""
         breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response.breakpoints]
         return LinearGradientColorizer(
-            no_data_color=response.no_data_color,
+            no_data_color=rgba_from_list(response.no_data_color),
             breakpoints=breakpoints,
-            over_color=response.over_color,
-            under_color=response.under_color,
+            over_color=rgba_from_list(response.over_color),
+            under_color=rgba_from_list(response.under_color),
         )
 
     def to_api_dict(self) -> geoengine_openapi_client.Colorizer:
@@ -273,9 +280,9 @@ class LogarithmicGradientColorizer(Colorizer):
         breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response.breakpoints]
         return LogarithmicGradientColorizer(
             breakpoints=breakpoints,
-            no_data_color=response.no_data_color,
-            over_color=response.over_color,
-            under_color=response.under_color,
+            no_data_color=rgba_from_list(response.no_data_color),
+            over_color=rgba_from_list(response.over_color),
+            under_color=rgba_from_list(response.under_color),
         )
 
     def to_api_dict(self) -> geoengine_openapi_client.Colorizer:
@@ -300,16 +307,16 @@ class PaletteColorizer(Colorizer):
         """Create a colorizer from a response."""
 
         return PaletteColorizer(
-            colors={float(k): v for k, v in response.colors.items()},
-            no_data_color=response.no_data_color,
-            default_color=response.default_color,
+            colors={float(k): rgba_from_list(v) for k, v in response.colors.items()},
+            no_data_color=rgba_from_list(response.no_data_color),
+            default_color=rgba_from_list(response.default_color),
         )
 
     def to_api_dict(self) -> geoengine_openapi_client.Colorizer:
         """Return the colorizer as a dictionary."""
         return geoengine_openapi_client.Colorizer(geoengine_openapi_client.PaletteColorizer(
             type='palette',
-            colors=self.colors,
+            colors={str(k): v for k, v in self.colors.items()},
             default_color=self.default_color,
             no_data_color=self.no_data_color,
         ))

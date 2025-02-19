@@ -18,28 +18,29 @@ class WorkflowStorageTests(unittest.TestCase):
     def test_storing_workflow(self):
 
         expected_request_text = {
-            'name': None,
-            'displayName': 'Foo',
-            'description': 'Bar',
-            'query': {
-                           'spatialBounds': {
-                               'upperLeftCoordinate': {
-                                   'x': -180.0,
-                                   'y': 90.0
-                               },
-                               'lowerRightCoordinate': {
-                                   'x': 180.0,
-                                   'y': -90.0
-                               }
-                           },
-                'timeInterval': {
-                               'start': 1396353600000,
-                               'end': 1396353600000,
-                           },
-                'spatialResolution': {
-                               'x': 1.8,
-                               'y': 1.8
-                           }
+            "asCog": True,
+            "description": "Bar",
+            "displayName": "Foo",
+            "name": None,
+            "query": {
+                "spatialBounds": {
+                    "lowerRightCoordinate": {
+                        "x": 180,
+                        "y": -90
+                    },
+                    "upperLeftCoordinate": {
+                        "x": -180,
+                        "y": 90
+                    }
+                },
+                "spatialResolution": {
+                    "x": 1.8,
+                    "y": 1.8
+                },
+                "timeInterval": {
+                    "end": 1396353600000,
+                    "start": 1396353600000
+                }
             }
         }
 
