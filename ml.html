@@ -41,7 +41,7 @@ from onnx.helper import tensor_dtype_to_string
 from geoengine_openapi_client.models import MlModelMetadata, MlModel, RasterDataType
 import geoengine_openapi_client
 from geoengine.auth import get_session
-from geoengine.datasets import UploadId
+from geoengine.resource_identifier import UploadId, MlModelName
 from geoengine.error import InputException
 
 
@@ -52,38 +52,6 @@ class MlModelConfig:
     metadata: MlModelMetadata
     display_name: str = &#34;My Ml Model&#34;
     description: str = &#34;My Ml Model Description&#34;
-
-
-class MlModelName:
-    &#39;&#39;&#39;A wrapper for an MlModel name&#39;&#39;&#39;
-
-    __ml_model_name: str
-
-    def __init__(self, ml_model_name: str) -&gt; None:
-        self.__ml_model_name = ml_model_name
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.models.MlModelNameResponse) -&gt; MlModelName:
-        &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
-        return MlModelName(response.ml_model_name)
-
-    def __str__(self) -&gt; str:
-        return self.__ml_model_name
-
-    def __repr__(self) -&gt; str:
-        return str(self)
-
-    def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Checks if two dataset names are equal&#39;&#39;&#39;
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.__ml_model_name == other.__ml_model_name  # pylint: disable=protected-access
-
-    def to_api_dict(self) -&gt; geoengine_openapi_client.models.MlModelNameResponse:
-        return geoengine_openapi_client.models.MlModelNameResponse(
-            ml_model_name=str(self.__ml_model_name)
-        )
 
 
 def register_ml_model(onnx_model: ModelProto,
@@ -181,7 +149,7 @@ RASTER_TYPE_TO_ONNX_TYPE = {
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="geoengine.ml.register_ml_model"><code class="name flex">
-<span>def <span class="ident">register_ml_model</span></span>(<span>onnx_model: ModelProto, model_config: <a title="geoengine.ml.MlModelConfig" href="#geoengine.ml.MlModelConfig">MlModelConfig</a>, upload_timeout: int = 3600, register_timeout: int = 60) ‑> <a title="geoengine.ml.MlModelName" href="#geoengine.ml.MlModelName">MlModelName</a></span>
+<span>def <span class="ident">register_ml_model</span></span>(<span>onnx_model: ModelProto, model_config: <a title="geoengine.ml.MlModelConfig" href="#geoengine.ml.MlModelConfig">MlModelConfig</a>, upload_timeout: int = 3600, register_timeout: int = 60) ‑> <a title="geoengine.resource_identifier.MlModelName" href="resource_identifier.html#geoengine.resource_identifier.MlModelName">MlModelName</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Uploads an onnx file and registers it as an ml model</p></div>
@@ -314,84 +282,6 @@ class MlModelConfig:
 </dd>
 </dl>
 </dd>
-<dt id="geoengine.ml.MlModelName"><code class="flex name class">
-<span>class <span class="ident">MlModelName</span></span>
-<span>(</span><span>ml_model_name: str)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A wrapper for an MlModel name</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class MlModelName:
-    &#39;&#39;&#39;A wrapper for an MlModel name&#39;&#39;&#39;
-
-    __ml_model_name: str
-
-    def __init__(self, ml_model_name: str) -&gt; None:
-        self.__ml_model_name = ml_model_name
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.models.MlModelNameResponse) -&gt; MlModelName:
-        &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
-        return MlModelName(response.ml_model_name)
-
-    def __str__(self) -&gt; str:
-        return self.__ml_model_name
-
-    def __repr__(self) -&gt; str:
-        return str(self)
-
-    def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Checks if two dataset names are equal&#39;&#39;&#39;
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.__ml_model_name == other.__ml_model_name  # pylint: disable=protected-access
-
-    def to_api_dict(self) -&gt; geoengine_openapi_client.models.MlModelNameResponse:
-        return geoengine_openapi_client.models.MlModelNameResponse(
-            ml_model_name=str(self.__ml_model_name)
-        )</code></pre>
-</details>
-<h3>Static methods</h3>
-<dl>
-<dt id="geoengine.ml.MlModelName.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.models.MlModelNameResponse) ‑> <a title="geoengine.ml.MlModelName" href="#geoengine.ml.MlModelName">MlModelName</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Parse a http response to an <code>DatasetName</code></p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def from_response(cls, response: geoengine_openapi_client.models.MlModelNameResponse) -&gt; MlModelName:
-    &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
-    return MlModelName(response.ml_model_name)</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="geoengine.ml.MlModelName.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.ml_model_name_response.MlModelNameResponse</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.models.MlModelNameResponse:
-    return geoengine_openapi_client.models.MlModelNameResponse(
-        ml_model_name=str(self.__ml_model_name)
-    )</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
 </dl>
 </section>
 </article>
@@ -421,13 +311,6 @@ def from_response(cls, response: geoengine_openapi_client.models.MlModelNameResp
 <li><code><a title="geoengine.ml.MlModelConfig.display_name" href="#geoengine.ml.MlModelConfig.display_name">display_name</a></code></li>
 <li><code><a title="geoengine.ml.MlModelConfig.metadata" href="#geoengine.ml.MlModelConfig.metadata">metadata</a></code></li>
 <li><code><a title="geoengine.ml.MlModelConfig.name" href="#geoengine.ml.MlModelConfig.name">name</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="geoengine.ml.MlModelName" href="#geoengine.ml.MlModelName">MlModelName</a></code></h4>
-<ul class="">
-<li><code><a title="geoengine.ml.MlModelName.from_response" href="#geoengine.ml.MlModelName.from_response">from_response</a></code></li>
-<li><code><a title="geoengine.ml.MlModelName.to_api_dict" href="#geoengine.ml.MlModelName.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>
 </ul>

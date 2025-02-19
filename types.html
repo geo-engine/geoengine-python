@@ -1011,6 +1011,9 @@ class Symbology:
 
         raise InputException(&#34;Invalid symbology type&#34;)
 
+    def __repr__(self):
+        &#34;Symbology&#34;
+
 
 class VectorSymbology(Symbology):
     &#39;&#39;&#39;A vector symbology&#39;&#39;&#39;
@@ -1117,22 +1120,22 @@ class MultiBandRasterColorizer(RasterColorizer):
 
 class RasterSymbology(Symbology):
     &#39;&#39;&#39;A raster symbology&#39;&#39;&#39;
-    __opacity: float
-    __raster_colorizer: RasterColorizer
+    opacity: float
+    raster_colorizer: RasterColorizer
 
     def __init__(self, raster_colorizer: RasterColorizer, opacity: float = 1.0) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterSymbology`&#39;&#39;&#39;
 
-        self.__raster_colorizer = raster_colorizer
-        self.__opacity = opacity
+        self.raster_colorizer = raster_colorizer
+        self.opacity = opacity
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
         &#39;&#39;&#39;Convert the raster symbology to a dictionary&#39;&#39;&#39;
 
         return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbology(
             type=&#39;raster&#39;,
-            raster_colorizer=self.__raster_colorizer.to_api_dict(),
-            opacity=self.__opacity,
+            raster_colorizer=self.raster_colorizer.to_api_dict(),
+            opacity=self.opacity,
         ))
 
     @staticmethod
@@ -1144,7 +1147,14 @@ class RasterSymbology(Symbology):
         return RasterSymbology(raster_colorizer, response.opacity)
 
     def __repr__(self) -&gt; str:
-        return super().__repr__() + f&#34;({self.__raster_colorizer}, {self.__opacity})&#34;
+        return str(self.__class__) + f&#34;({self.raster_colorizer}, {self.opacity})&#34;
+
+    def __eq__(self, value):
+        &#39;&#39;&#39;Check if two RasterSymbologies are equal&#39;&#39;&#39;
+
+        if not isinstance(value, self.__class__):
+            return False
+        return self.opacity == value.opacity and self.raster_colorizer == value.raster_colorizer
 
 
 class DataId:  # pylint: disable=too-few-public-methods
@@ -3917,22 +3927,22 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
 </summary>
 <pre><code class="python">class RasterSymbology(Symbology):
     &#39;&#39;&#39;A raster symbology&#39;&#39;&#39;
-    __opacity: float
-    __raster_colorizer: RasterColorizer
+    opacity: float
+    raster_colorizer: RasterColorizer
 
     def __init__(self, raster_colorizer: RasterColorizer, opacity: float = 1.0) -&gt; None:
         &#39;&#39;&#39;Initialize a new `RasterSymbology`&#39;&#39;&#39;
 
-        self.__raster_colorizer = raster_colorizer
-        self.__opacity = opacity
+        self.raster_colorizer = raster_colorizer
+        self.opacity = opacity
 
     def to_api_dict(self) -&gt; geoengine_openapi_client.Symbology:
         &#39;&#39;&#39;Convert the raster symbology to a dictionary&#39;&#39;&#39;
 
         return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbology(
             type=&#39;raster&#39;,
-            raster_colorizer=self.__raster_colorizer.to_api_dict(),
-            opacity=self.__opacity,
+            raster_colorizer=self.raster_colorizer.to_api_dict(),
+            opacity=self.opacity,
         ))
 
     @staticmethod
@@ -3944,12 +3954,30 @@ def spatial_bounds(self) -&gt; Optional[SpatialPartition2D]:
         return RasterSymbology(raster_colorizer, response.opacity)
 
     def __repr__(self) -&gt; str:
-        return super().__repr__() + f&#34;({self.__raster_colorizer}, {self.__opacity})&#34;</code></pre>
+        return str(self.__class__) + f&#34;({self.raster_colorizer}, {self.opacity})&#34;
+
+    def __eq__(self, value):
+        &#39;&#39;&#39;Check if two RasterSymbologies are equal&#39;&#39;&#39;
+
+        if not isinstance(value, self.__class__):
+            return False
+        return self.opacity == value.opacity and self.raster_colorizer == value.raster_colorizer</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="geoengine.types.Symbology" href="#geoengine.types.Symbology">Symbology</a></li>
 </ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="geoengine.types.RasterSymbology.opacity"><code class="name">var <span class="ident">opacity</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="geoengine.types.RasterSymbology.raster_colorizer"><code class="name">var <span class="ident">raster_colorizer</span> : <a title="geoengine.types.RasterColorizer" href="#geoengine.types.RasterColorizer">RasterColorizer</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.types.RasterSymbology.from_response_raster"><code class="name flex">
@@ -3987,8 +4015,8 @@ def from_response_raster(response: geoengine_openapi_client.RasterSymbology) -&g
 
     return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbology(
         type=&#39;raster&#39;,
-        raster_colorizer=self.__raster_colorizer.to_api_dict(),
-        opacity=self.__opacity,
+        raster_colorizer=self.raster_colorizer.to_api_dict(),
+        opacity=self.opacity,
     ))</code></pre>
 </details>
 </dd>
@@ -4776,7 +4804,10 @@ def from_response(response: geoengine_openapi_client.SpatialResolution) -&gt; Sp
         if isinstance(inner, geoengine_openapi_client.RasterSymbology):
             return RasterSymbology.from_response_raster(inner)
 
-        raise InputException(&#34;Invalid symbology type&#34;)</code></pre>
+        raise InputException(&#34;Invalid symbology type&#34;)
+
+    def __repr__(self):
+        &#34;Symbology&#34;</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -5972,6 +6003,8 @@ def spatial_bounds(self) -&gt; Optional[BoundingBox2D]:
 <h4><code><a title="geoengine.types.RasterSymbology" href="#geoengine.types.RasterSymbology">RasterSymbology</a></code></h4>
 <ul class="">
 <li><code><a title="geoengine.types.RasterSymbology.from_response_raster" href="#geoengine.types.RasterSymbology.from_response_raster">from_response_raster</a></code></li>
+<li><code><a title="geoengine.types.RasterSymbology.opacity" href="#geoengine.types.RasterSymbology.opacity">opacity</a></code></li>
+<li><code><a title="geoengine.types.RasterSymbology.raster_colorizer" href="#geoengine.types.RasterSymbology.raster_colorizer">raster_colorizer</a></code></li>
 <li><code><a title="geoengine.types.RasterSymbology.to_api_dict" href="#geoengine.types.RasterSymbology.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>

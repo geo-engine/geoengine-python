@@ -34,20 +34,24 @@ Module for working with datasets and source definitions
 from __future__ import annotations
 from abc import abstractmethod
 from pathlib import Path
-from typing import List, NamedTuple, Optional, Union, Literal
+from typing import List, NamedTuple, Optional, Union, Literal, Tuple
 from enum import Enum
 from uuid import UUID
 import tempfile
 from attr import dataclass
+import geoengine_openapi_client
+import geoengine_openapi_client.exceptions
+import geoengine_openapi_client.models
 import numpy as np
 import geopandas as gpd
-import geoengine_openapi_client
 from geoengine import api
 from geoengine.error import InputException, MissingFieldInResponseException
 from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
     UnitlessMeasurement, FeatureDataType
+from geoengine.resource_identifier import Resource, UploadId, DatasetName
+from geoengine.permissions import RoleId, Permission, add_permission
 
 
 class UnixTimeStampType(Enum):
@@ -283,71 +287,6 @@ class OgrOnError(Enum):
 
     def to_api_enum(self) -&gt; geoengine_openapi_client.OgrSourceErrorSpec:
         return geoengine_openapi_client.OgrSourceErrorSpec(self.value)
-
-
-class DatasetName:
-    &#39;&#39;&#39;A wrapper for a dataset name&#39;&#39;&#39;
-
-    __dataset_name: str
-
-    def __init__(self, dataset_name: str) -&gt; None:
-        self.__dataset_name = dataset_name
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
-        &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
-        return DatasetName(response.dataset_name)
-
-    def __str__(self) -&gt; str:
-        return self.__dataset_name
-
-    def __repr__(self) -&gt; str:
-        return str(self)
-
-    def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Checks if two dataset names are equal&#39;&#39;&#39;
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
-
-    def to_api_dict(self) -&gt; geoengine_openapi_client.CreateDatasetHandler200Response:
-        return geoengine_openapi_client.CreateDatasetHandler200Response(
-            dataset_name=str(self.__dataset_name)
-        )
-
-
-class UploadId:
-    &#39;&#39;&#39;A wrapper for an upload id&#39;&#39;&#39;
-
-    __upload_id: UUID
-
-    def __init__(self, upload_id: UUID) -&gt; None:
-        self.__upload_id = upload_id
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -&gt; UploadId:
-        &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
-        return UploadId(UUID(response.id))
-
-    def __str__(self) -&gt; str:
-        return str(self.__upload_id)
-
-    def __repr__(self) -&gt; str:
-        return str(self)
-
-    def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Checks if two upload ids are equal&#39;&#39;&#39;
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
-
-    def to_api_dict(self) -&gt; geoengine_openapi_client.AddCollection200Response:
-        &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
-        return geoengine_openapi_client.AddCollection200Response(
-            id=str(self.__upload_id)
-        )
 
 
 class AddDatasetProperties():
@@ -630,6 +569,42 @@ def add_dataset(data_store: Union[Volume, UploadId],
     return DatasetName.from_response(response)
 
 
+def add_or_replace_dataset_with_permissions(data_store: Union[Volume, UploadId],
+                                            properties: AddDatasetProperties,
+                                            meta_data: geoengine_openapi_client.MetaDataDefinition,
+                                            permission_tuples: Optional[List[Tuple[RoleId, Permission]]] = None,
+                                            replace_existing=False,
+                                            timeout: int = 60) -&gt; DatasetName:
+    &#39;&#39;&#39;
+    Add a dataset to the Geo Engine and set permissions.
+    Replaces existing datasets if forced!
+    &#39;&#39;&#39;
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
+
+    def add_dataset_and_permissions() -&gt; DatasetName:
+        dataset_name = add_dataset(data_store=data_store, properties=properties, meta_data=meta_data, timeout=timeout)
+        if permission_tuples is not None:
+            dataset_res = Resource.from_dataset_name(dataset_name)
+            for (role, perm) in permission_tuples:
+                add_permission(role, dataset_res, perm, timeout=timeout)
+        return dataset_name
+
+    if properties.name is None:
+        dataset_name = add_dataset_and_permissions()
+
+    else:
+        dataset_name = DatasetName(properties.name)
+        dataset_info = dataset_info_by_name(dataset_name)
+        if dataset_info is None:  # dataset is not existing
+            dataset_name = add_dataset_and_permissions()
+        else:
+            if replace_existing:  # dataset exists and we overwrite it
+                delete_dataset(dataset_name)
+                dataset_name = add_dataset_and_permissions()
+
+    return dataset_name
+
+
 def delete_dataset(dataset_name: DatasetName, timeout: int = 60) -&gt; None:
     &#39;&#39;&#39;Delete a dataset. The dataset must be owned by the caller.&#39;&#39;&#39;
 
@@ -664,7 +639,29 @@ def list_datasets(offset: int = 0,
             _request_timeout=timeout
         )
 
-    return response</code></pre>
+    return response
+
+
+def dataset_info_by_name(
+        dataset_name: Union[DatasetName, str], timeout: int = 60
+) -&gt; geoengine_openapi_client.models.Dataset | None:
+    &#39;&#39;&#39;Get dataset information.&#39;&#39;&#39;
+
+    if not isinstance(dataset_name, DatasetName):
+        dataset_name = DatasetName(dataset_name)
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        res = None
+        try:
+            res = datasets_api.get_dataset_handler(str(dataset_name), _request_timeout=timeout)
+        except geoengine_openapi_client.exceptions.BadRequestException as e:
+            e_body = e.body
+            if isinstance(e_body, str) and &#39;CannotLoadDataset&#39; not in e_body:
+                raise e
+        return res</code></pre>
 </details>
 </section>
 <section>
@@ -675,7 +672,7 @@ def list_datasets(offset: int = 0,
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="geoengine.datasets.add_dataset"><code class="name flex">
-<span>def <span class="ident">add_dataset</span></span>(<span>data_store: Union[<a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a>, <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>], properties: <a title="geoengine.datasets.AddDatasetProperties" href="#geoengine.datasets.AddDatasetProperties">AddDatasetProperties</a>, meta_data: geoengine_openapi_client.MetaDataDefinition, timeout: int = 60) ‑> <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></span>
+<span>def <span class="ident">add_dataset</span></span>(<span>data_store: Union[<a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a>, UploadId], properties: <a title="geoengine.datasets.AddDatasetProperties" href="#geoengine.datasets.AddDatasetProperties">AddDatasetProperties</a>, meta_data: geoengine_openapi_client.MetaDataDefinition, timeout: int = 60) ‑> <a title="geoengine.resource_identifier.DatasetName" href="resource_identifier.html#geoengine.resource_identifier.DatasetName">DatasetName</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds a dataset to the Geo Engine</p></div>
@@ -715,8 +712,85 @@ def list_datasets(offset: int = 0,
     return DatasetName.from_response(response)</code></pre>
 </details>
 </dd>
+<dt id="geoengine.datasets.add_or_replace_dataset_with_permissions"><code class="name flex">
+<span>def <span class="ident">add_or_replace_dataset_with_permissions</span></span>(<span>data_store: Union[<a title="geoengine.datasets.Volume" href="#geoengine.datasets.Volume">Volume</a>, UploadId], properties: <a title="geoengine.datasets.AddDatasetProperties" href="#geoengine.datasets.AddDatasetProperties">AddDatasetProperties</a>, meta_data: geoengine_openapi_client.MetaDataDefinition, permission_tuples: Optional[List[Tuple[RoleId, Permission]]] = None, replace_existing=False, timeout: int = 60) ‑> <a title="geoengine.resource_identifier.DatasetName" href="resource_identifier.html#geoengine.resource_identifier.DatasetName">DatasetName</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a dataset to the Geo Engine and set permissions.
+Replaces existing datasets if forced!</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_or_replace_dataset_with_permissions(data_store: Union[Volume, UploadId],
+                                            properties: AddDatasetProperties,
+                                            meta_data: geoengine_openapi_client.MetaDataDefinition,
+                                            permission_tuples: Optional[List[Tuple[RoleId, Permission]]] = None,
+                                            replace_existing=False,
+                                            timeout: int = 60) -&gt; DatasetName:
+    &#39;&#39;&#39;
+    Add a dataset to the Geo Engine and set permissions.
+    Replaces existing datasets if forced!
+    &#39;&#39;&#39;
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
+
+    def add_dataset_and_permissions() -&gt; DatasetName:
+        dataset_name = add_dataset(data_store=data_store, properties=properties, meta_data=meta_data, timeout=timeout)
+        if permission_tuples is not None:
+            dataset_res = Resource.from_dataset_name(dataset_name)
+            for (role, perm) in permission_tuples:
+                add_permission(role, dataset_res, perm, timeout=timeout)
+        return dataset_name
+
+    if properties.name is None:
+        dataset_name = add_dataset_and_permissions()
+
+    else:
+        dataset_name = DatasetName(properties.name)
+        dataset_info = dataset_info_by_name(dataset_name)
+        if dataset_info is None:  # dataset is not existing
+            dataset_name = add_dataset_and_permissions()
+        else:
+            if replace_existing:  # dataset exists and we overwrite it
+                delete_dataset(dataset_name)
+                dataset_name = add_dataset_and_permissions()
+
+    return dataset_name</code></pre>
+</details>
+</dd>
+<dt id="geoengine.datasets.dataset_info_by_name"><code class="name flex">
+<span>def <span class="ident">dataset_info_by_name</span></span>(<span>dataset_name: Union[DatasetName, str], timeout: int = 60) ‑> geoengine_openapi_client.models.Dataset | None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get dataset information.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dataset_info_by_name(
+        dataset_name: Union[DatasetName, str], timeout: int = 60
+) -&gt; geoengine_openapi_client.models.Dataset | None:
+    &#39;&#39;&#39;Get dataset information.&#39;&#39;&#39;
+
+    if not isinstance(dataset_name, DatasetName):
+        dataset_name = DatasetName(dataset_name)
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        res = None
+        try:
+            res = datasets_api.get_dataset_handler(str(dataset_name), _request_timeout=timeout)
+        except geoengine_openapi_client.exceptions.BadRequestException as e:
+            e_body = e.body
+            if isinstance(e_body, str) and &#39;CannotLoadDataset&#39; not in e_body:
+                raise e
+        return res</code></pre>
+</details>
+</dd>
 <dt id="geoengine.datasets.delete_dataset"><code class="name flex">
-<span>def <span class="ident">delete_dataset</span></span>(<span>dataset_name: <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a>, timeout: int = 60) ‑> None</span>
+<span>def <span class="ident">delete_dataset</span></span>(<span>dataset_name: DatasetName, timeout: int = 60) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Delete a dataset. The dataset must be owned by the caller.</p></div>
@@ -791,7 +865,7 @@ def list_datasets(offset: int = 0,
 </details>
 </dd>
 <dt id="geoengine.datasets.upload_dataframe"><code class="name flex">
-<span>def <span class="ident">upload_dataframe</span></span>(<span>df: gpd.GeoDataFrame, display_name: str = 'Upload from Python', name: Optional[str] = None, time: <a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a> = NoneOgrSourceDatasetTimeType(), on_error: <a title="geoengine.datasets.OgrOnError" href="#geoengine.datasets.OgrOnError">OgrOnError</a> = OgrOnError.ABORT, timeout: int = 3600) ‑> <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></span>
+<span>def <span class="ident">upload_dataframe</span></span>(<span>df: gpd.GeoDataFrame, display_name: str = 'Upload from Python', name: Optional[str] = None, time: <a title="geoengine.datasets.OgrSourceDatasetTimeType" href="#geoengine.datasets.OgrSourceDatasetTimeType">OgrSourceDatasetTimeType</a> = NoneOgrSourceDatasetTimeType(), on_error: <a title="geoengine.datasets.OgrOnError" href="#geoengine.datasets.OgrOnError">OgrOnError</a> = OgrOnError.ABORT, timeout: int = 3600) ‑> <a title="geoengine.resource_identifier.DatasetName" href="resource_identifier.html#geoengine.resource_identifier.DatasetName">DatasetName</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Uploads a given dataframe to Geo Engine.</p>
@@ -812,7 +886,7 @@ def list_datasets(offset: int = 0,
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code><a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></code></dt>
+<dt><code>DatasetName</code></dt>
 <dd>The name of the uploaded dataset</dd>
 </dl>
 <h2 id="raises">Raises</h2>
@@ -1193,84 +1267,6 @@ class CustomOgrSourceTimeFormat(OgrSourceTimeFormat):
 <dt id="geoengine.datasets.DatasetListOrder.NAME_DESC"><code class="name">var <span class="ident">NAME_DESC</span></code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-</dl>
-</dd>
-<dt id="geoengine.datasets.DatasetName"><code class="flex name class">
-<span>class <span class="ident">DatasetName</span></span>
-<span>(</span><span>dataset_name: str)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A wrapper for a dataset name</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DatasetName:
-    &#39;&#39;&#39;A wrapper for a dataset name&#39;&#39;&#39;
-
-    __dataset_name: str
-
-    def __init__(self, dataset_name: str) -&gt; None:
-        self.__dataset_name = dataset_name
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
-        &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
-        return DatasetName(response.dataset_name)
-
-    def __str__(self) -&gt; str:
-        return self.__dataset_name
-
-    def __repr__(self) -&gt; str:
-        return str(self)
-
-    def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Checks if two dataset names are equal&#39;&#39;&#39;
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
-
-    def to_api_dict(self) -&gt; geoengine_openapi_client.CreateDatasetHandler200Response:
-        return geoengine_openapi_client.CreateDatasetHandler200Response(
-            dataset_name=str(self.__dataset_name)
-        )</code></pre>
-</details>
-<h3>Static methods</h3>
-<dl>
-<dt id="geoengine.datasets.DatasetName.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.CreateDatasetHandler200Response) ‑> <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Parse a http response to an <code><a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></code></p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
-    &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
-    return DatasetName(response.dataset_name)</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="geoengine.datasets.DatasetName.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.create_dataset_handler200_response.CreateDatasetHandler200Response</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.CreateDatasetHandler200Response:
-    return geoengine_openapi_client.CreateDatasetHandler200Response(
-        dataset_name=str(self.__dataset_name)
-    )</code></pre>
-</details>
 </dd>
 </dl>
 </dd>
@@ -2019,7 +2015,7 @@ class StartOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
 </dd>
 <dt id="geoengine.datasets.StoredDataset"><code class="flex name class">
 <span>class <span class="ident">StoredDataset</span></span>
-<span>(</span><span>dataset_name: ForwardRef('<a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a>'), upload_id: ForwardRef('<a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a>'))</span>
+<span>(</span><span>dataset_name: ForwardRef('DatasetName'), upload_id: ForwardRef('UploadId'))</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The result of a store dataset request is a combination of <code>upload_id</code> and <code>dataset_name</code></p></div>
@@ -2083,11 +2079,11 @@ def from_response(cls, response: api.StoredDataset) -&gt; StoredDataset:
 </dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="geoengine.datasets.StoredDataset.dataset_name"><code class="name">var <span class="ident">dataset_name</span> : <a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></code></dt>
+<dt id="geoengine.datasets.StoredDataset.dataset_name"><code class="name">var <span class="ident">dataset_name</span> : <a title="geoengine.resource_identifier.DatasetName" href="resource_identifier.html#geoengine.resource_identifier.DatasetName">DatasetName</a></code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
-<dt id="geoengine.datasets.StoredDataset.upload_id"><code class="name">var <span class="ident">upload_id</span> : <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a></code></dt>
+<dt id="geoengine.datasets.StoredDataset.upload_id"><code class="name">var <span class="ident">upload_id</span> : <a title="geoengine.resource_identifier.UploadId" href="resource_identifier.html#geoengine.resource_identifier.UploadId">UploadId</a></code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 1</p></div>
 </dd>
@@ -2208,86 +2204,6 @@ class UnixTimeStampOgrSourceTimeFormat(OgrSourceTimeFormat):
 </summary>
 <pre><code class="python">def to_api_enum(self) -&gt; geoengine_openapi_client.UnixTimeStampType:
     return geoengine_openapi_client.UnixTimeStampType(self.value)</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="geoengine.datasets.UploadId"><code class="flex name class">
-<span>class <span class="ident">UploadId</span></span>
-<span>(</span><span>upload_id: UUID)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A wrapper for an upload id</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class UploadId:
-    &#39;&#39;&#39;A wrapper for an upload id&#39;&#39;&#39;
-
-    __upload_id: UUID
-
-    def __init__(self, upload_id: UUID) -&gt; None:
-        self.__upload_id = upload_id
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -&gt; UploadId:
-        &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
-        return UploadId(UUID(response.id))
-
-    def __str__(self) -&gt; str:
-        return str(self.__upload_id)
-
-    def __repr__(self) -&gt; str:
-        return str(self)
-
-    def __eq__(self, other) -&gt; bool:
-        &#39;&#39;&#39;Checks if two upload ids are equal&#39;&#39;&#39;
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
-
-    def to_api_dict(self) -&gt; geoengine_openapi_client.AddCollection200Response:
-        &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
-        return geoengine_openapi_client.AddCollection200Response(
-            id=str(self.__upload_id)
-        )</code></pre>
-</details>
-<h3>Static methods</h3>
-<dl>
-<dt id="geoengine.datasets.UploadId.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.AddCollection200Response) ‑> <a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Parse a http response to an <code><a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a></code></p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -&gt; UploadId:
-    &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
-    return UploadId(UUID(response.id))</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="geoengine.datasets.UploadId.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.add_collection200_response.AddCollection200Response</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Converts the upload id to a dict for the api</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.AddCollection200Response:
-    &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
-    return geoengine_openapi_client.AddCollection200Response(
-        id=str(self.__upload_id)
-    )</code></pre>
 </details>
 </dd>
 </dl>
@@ -2526,6 +2442,8 @@ def from_response(cls, response: geoengine_openapi_client.Volume) -&gt; Volume:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="geoengine.datasets.add_dataset" href="#geoengine.datasets.add_dataset">add_dataset</a></code></li>
+<li><code><a title="geoengine.datasets.add_or_replace_dataset_with_permissions" href="#geoengine.datasets.add_or_replace_dataset_with_permissions">add_or_replace_dataset_with_permissions</a></code></li>
+<li><code><a title="geoengine.datasets.dataset_info_by_name" href="#geoengine.datasets.dataset_info_by_name">dataset_info_by_name</a></code></li>
 <li><code><a title="geoengine.datasets.delete_dataset" href="#geoengine.datasets.delete_dataset">delete_dataset</a></code></li>
 <li><code><a title="geoengine.datasets.list_datasets" href="#geoengine.datasets.list_datasets">list_datasets</a></code></li>
 <li><code><a title="geoengine.datasets.pandas_dtype_to_column_type" href="#geoengine.datasets.pandas_dtype_to_column_type">pandas_dtype_to_column_type</a></code></li>
@@ -2565,13 +2483,6 @@ def from_response(cls, response: geoengine_openapi_client.Volume) -&gt; Volume:
 <ul class="">
 <li><code><a title="geoengine.datasets.DatasetListOrder.NAME_ASC" href="#geoengine.datasets.DatasetListOrder.NAME_ASC">NAME_ASC</a></code></li>
 <li><code><a title="geoengine.datasets.DatasetListOrder.NAME_DESC" href="#geoengine.datasets.DatasetListOrder.NAME_DESC">NAME_DESC</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="geoengine.datasets.DatasetName" href="#geoengine.datasets.DatasetName">DatasetName</a></code></h4>
-<ul class="">
-<li><code><a title="geoengine.datasets.DatasetName.from_response" href="#geoengine.datasets.DatasetName.from_response">from_response</a></code></li>
-<li><code><a title="geoengine.datasets.DatasetName.to_api_dict" href="#geoengine.datasets.DatasetName.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>
 <li>
@@ -2672,13 +2583,6 @@ def from_response(cls, response: geoengine_openapi_client.Volume) -&gt; Volume:
 <li><code><a title="geoengine.datasets.UnixTimeStampType.EPOCHMILLISECONDS" href="#geoengine.datasets.UnixTimeStampType.EPOCHMILLISECONDS">EPOCHMILLISECONDS</a></code></li>
 <li><code><a title="geoengine.datasets.UnixTimeStampType.EPOCHSECONDS" href="#geoengine.datasets.UnixTimeStampType.EPOCHSECONDS">EPOCHSECONDS</a></code></li>
 <li><code><a title="geoengine.datasets.UnixTimeStampType.to_api_enum" href="#geoengine.datasets.UnixTimeStampType.to_api_enum">to_api_enum</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="geoengine.datasets.UploadId" href="#geoengine.datasets.UploadId">UploadId</a></code></h4>
-<ul class="">
-<li><code><a title="geoengine.datasets.UploadId.from_response" href="#geoengine.datasets.UploadId.from_response">from_response</a></code></li>
-<li><code><a title="geoengine.datasets.UploadId.to_api_dict" href="#geoengine.datasets.UploadId.to_api_dict">to_api_dict</a></code></li>
 </ul>
 </li>
 <li>
