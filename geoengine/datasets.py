@@ -629,6 +629,7 @@ def dataset_info_by_name(
         try:
             res = datasets_api.get_dataset_handler(str(dataset_name), _request_timeout=timeout)
         except geoengine_openapi_client.exceptions.BadRequestException as e:
-            if 'CannotLoadDataset' not in e.body:
+            e_body = e.body
+            if isinstance(e_body, str) and 'CannotLoadDataset' not in e_body:
                 raise e
         return res
