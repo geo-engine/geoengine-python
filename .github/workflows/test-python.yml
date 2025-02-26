@@ -101,6 +101,7 @@ jobs:
           python -m mypy tests
       - name: Test
         run: |
+          service postgresql start
           ${{ steps.vars.outputs.VENV_CALL }}
           pytest ${{ steps.vars.outputs.COVERAGE_COMMAND }}
         env:
