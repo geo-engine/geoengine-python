@@ -36,7 +36,7 @@ jobs:
           echo "GEOENGINE_VERSION=$(cat .github/.backend_git_ref)" >> $GITHUB_OUTPUT
           if ${{ inputs.use-uv }}; then
             echo "PIP_INSTALL=uv pip install --resolution=lowest-direct" >> $GITHUB_OUTPUT
-            echo "VENV_CALL=source .venv/bin/activate" >> $GITHUB_OUTPUT
+            echo "VENV_CALL=. .venv/bin/activate" >> $GITHUB_OUTPUT
           else
             echo "PIP_INSTALL=python -m pip install" >> $GITHUB_OUTPUT
             echo "VENV_CALL=" >> $GITHUB_OUTPUT
