@@ -38,7 +38,7 @@ jobs:
             echo "PIP_INSTALL=uv pip install --resolution=lowest-direct" >> $GITHUB_OUTPUT
             echo "VENV_CALL=source .venv/bin/activate" >> $GITHUB_OUTPUT
           else
-            echo "PIP_INSTALL=pip install" >> $GITHUB_OUTPUT
+            echo "PIP_INSTALL=python -m pip install" >> $GITHUB_OUTPUT
             echo "VENV_CALL=" >> $GITHUB_OUTPUT
           fi
           if ${{ inputs.coverage }}; then
@@ -61,7 +61,7 @@ jobs:
       - name: Setup UV and create venv
         if: ${{ inputs.use-uv }}
         run: |
-          pip install uv
+          python -m pip install uv
           uv venv
       - name: Install build dependencies
         run: |
