@@ -18,18 +18,8 @@ on:
 
 jobs:
   check:
-    runs-on: ubuntu-22.04
-
-    services:
-      postgres:
-        image: postgis/postgis
-        env:
-          POSTGRES_USER: geoengine
-          POSTGRES_PASSWORD: geoengine
-          POSTGRES_DB: geoengine
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    runs-on: ubuntu-24.04
+    container: quay.io/geoengine/devcontainer:latest
 
     defaults:
       run:
@@ -62,28 +52,6 @@ jobs:
           repository: geo-engine/geoengine
           ref: ${{ steps.vars.outputs.GEOENGINE_VERSION }}
           path: backend
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: true
-      - name: Install lld & GDAL & Protobuf
-        run: |
-          sudo apt-get update
-          sudo apt-get install lld libgdal-dev gdal-bin build-essential clang curl protobuf-compiler libgeos-dev libproj-dev
-          sudo apt-get clean
-          export C_INCLUDE_PATH=/usr/include/gdal:$C_INCLUDE_PATH
-          export CPLUS_INCLUDE_PATH=/usr/include/gdal:$CPLUS_INCLUDE_PATH
-          sudo ldconfig
-      - name: Install Rustup
-        run: |
-          curl --proto '=https' --tlsv1.2 --retry 10 --retry-connrefused -fsSL "https://sh.rustup.rs" | sh -s -- --profile minimal --default-toolchain none -y
-          echo "${CARGO_HOME:-$HOME/.cargo}/bin" >> $GITHUB_PATH
       - name: Set up Python ${{ inputs.python-version }}
         uses: actions/setup-python@v4
         with:
