@@ -111,7 +111,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lcov.info
-          path: coverage.lcov
+          path: library/coverage.lcov
       - name: Upload coverage to Coveralls
         if: ${{ inputs.coverage }}
         uses: coverallsapp/github-action@v2
