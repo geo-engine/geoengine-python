@@ -107,16 +107,17 @@ jobs:
         env:
           GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
           GEOENGINE_TEST_BUILD_TYPE: "release"
-      - name: Debug coverage # TODO: remove
-        uses: actions/upload-artifact@v4
-        with:
-          name: lcov.info
-          path: library/coverage.lcov
-      - name: Upload coverage to Coveralls
+      - name: Report coverage to Coveralls
         if: ${{ inputs.coverage }}
-        uses: coverallsapp/github-action@v2
-        with:
-          base-path: library
+        # 1. We need to adjust the paths in the lcov file to match the repository structure.
+        # 2. We need to download the coveralls script and upload the report.
+        run: |
+          sed -i 's|SF:geoengine/|SF:|' ../coverage.lcov
+          curl -sL https://coveralls.io/coveralls-linux.tar.gz | tar -xz && ./coveralls report ../coverage.lcov
+        # If we don't run it in the code folder, the paths in the report will prefixed with `library/geoengine/`.
+        working-directory: library/geoengine
+        env:
+          COVERALLS_REPO_TOKEN: ${{ github.token }}
       - name: Examples
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
