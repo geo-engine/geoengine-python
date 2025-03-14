@@ -229,6 +229,7 @@ class Task:
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             tasks_api = geoengine_openapi_client.TasksApi(api_client)
+            print(task_id_str)
             response = tasks_api.status_handler(task_id_str, _request_timeout=timeout)
 
         return TaskStatusInfo.from_response(response)

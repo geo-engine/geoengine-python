@@ -54,7 +54,7 @@ class DatasetName:
         self.__dataset_name = dataset_name
 
     @classmethod
-    def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -> DatasetName:
+    def from_response(cls, response: geoengine_openapi_client.DatasetNameResponse) -> DatasetName:
         '''Parse a http response to an `DatasetName`'''
         return DatasetName(response.dataset_name)
 
@@ -71,8 +71,8 @@ class DatasetName:
 
         return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
 
-    def to_api_dict(self) -> geoengine_openapi_client.CreateDatasetHandler200Response:
-        return geoengine_openapi_client.CreateDatasetHandler200Response(
+    def to_api_dict(self) -> geoengine_openapi_client.DatasetNameResponse:
+        return geoengine_openapi_client.DatasetNameResponse(
             dataset_name=str(self.__dataset_name)
         )
 
@@ -86,7 +86,7 @@ class UploadId:
         self.__upload_id = upload_id
 
     @classmethod
-    def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -> UploadId:
+    def from_response(cls, response: geoengine_openapi_client.IdResponse) -> UploadId:
         '''Parse a http response to an `UploadId`'''
         return UploadId(UUID(response.id))
 
@@ -103,9 +103,9 @@ class UploadId:
 
         return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
 
-    def to_api_dict(self) -> geoengine_openapi_client.AddCollection200Response:
+    def to_api_dict(self) -> geoengine_openapi_client.IdResponse:
         '''Converts the upload id to a dict for the api'''
-        return geoengine_openapi_client.AddCollection200Response(
+        return geoengine_openapi_client.IdResponse(
             id=str(self.__upload_id)
         )
 
