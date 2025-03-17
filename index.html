@@ -29,12 +29,12 @@
 </summary>
 <pre><code class="python">&#39;&#39;&#39;Entry point for Geo Engine Python Library&#39;&#39;&#39;
 
-from pkg_resources import get_distribution
 from requests import utils
 from pydantic import ValidationError
 from geoengine_openapi_client.exceptions import BadRequestException, OpenApiException, ApiTypeError, ApiValueError, \
     ApiKeyError, ApiAttributeError, ApiException, NotFoundException
 from geoengine_openapi_client import UsageSummaryGranularity
+import geoengine_openapi_client
 
 from . import workflow_builder
 from .raster_workflow_rio_writer import RasterWorkflowRioWriter
@@ -68,7 +68,7 @@ from .datasets import upload_dataframe, StoredDataset, add_dataset, volumes, Add
     add_or_replace_dataset_with_permissions, dataset_info_by_name
 
 
-DEFAULT_USER_AGENT = f&#39;geoengine-python/{get_distribution(&#34;geoengine&#34;).version}&#39;
+DEFAULT_USER_AGENT = f&#39;geoengine-python/{geoengine_openapi_client.__version__}&#39;
 
 
 def default_user_agent(_name=&#34;python-requests&#34;):
