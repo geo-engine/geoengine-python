@@ -3,7 +3,7 @@
 from datetime import datetime
 import unittest
 import os
-from pkg_resources import get_distribution
+import geoengine_openapi_client
 import geoengine as ge
 from geoengine.error import GeoEngineException
 from geoengine.types import QueryRectangle
@@ -120,7 +120,7 @@ class AuthTests(unittest.TestCase):
     def test_user_agent(self):
         with UrllibMocker() as m:
             m.post('http://mock-instance/anonymous',
-                   request_headers={'User-Agent': f'geoengine-python/{get_distribution("geoengine").version}'},
+                   request_headers={'User-Agent': f'geoengine-python/{geoengine_openapi_client.__version__}'},
                    json={
                        "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
                        "user": None,
