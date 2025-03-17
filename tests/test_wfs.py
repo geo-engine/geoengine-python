@@ -8,7 +8,7 @@ from numpy import nan
 import geopandas as gpd
 import geopandas.testing  # pylint: disable=unused-import
 from shapely.geometry import Point
-from pkg_resources import get_distribution
+import geoengine_openapi_client
 import geoengine as ge
 from . import UrllibMocker
 
@@ -829,7 +829,7 @@ class WfsTests(unittest.TestCase):
                     }]
                 },
                 request_headers={'Authorization': 'Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064',
-                                 'User-Agent': f'geoengine/openapi-client/python/{get_distribution("geoengine-openapi-client").version}'}
+                                 'User-Agent': f'geoengine/openapi-client/python/{geoengine_openapi_client.__version__}'}
             )
 
             ge.initialize("http://mock-instance")
