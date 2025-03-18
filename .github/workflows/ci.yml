@@ -12,13 +12,13 @@ on:
 
 jobs:
   check:
-    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@ubuntu-24
+    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@main
 
     strategy:
       fail-fast: false
       matrix:
         # use all supported versions from https://devguide.python.org/versions/
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
     with:
       python-version: ${{ matrix.python-version }}
@@ -28,7 +28,7 @@ jobs:
   # Checks the library using minimum version resolution
   # `uv` has this feature built-in, c.f. https://github.com/astral-sh/uv
   check-min-version:
-    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@ubuntu-24
+    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@main
 
     with:
       python-version: 3.9
