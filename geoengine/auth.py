@@ -8,7 +8,6 @@ from uuid import UUID
 
 import os
 from dotenv import load_dotenv
-from pkg_resources import get_distribution
 from requests.auth import AuthBase
 import urllib3
 
@@ -71,7 +70,7 @@ class Session:
         # Auto-generated SessionApi cannot handle dynamically differing return types (SimpleSession or UserSession).
         # Because of that requests must be send manually.
         http = urllib3.PoolManager()
-        user_agent = f'geoengine-python/{get_distribution("geoengine").version}'
+        user_agent = f'geoengine-python/{geoengine_openapi_client.__version__}'
 
         if credentials is not None:
             session = http.request(
