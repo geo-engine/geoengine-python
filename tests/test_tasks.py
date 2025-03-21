@@ -244,7 +244,7 @@ class TaskTests(unittest.TestCase):
 
             # Malformed
             malformed_status_task = Task(TaskId(UUID('ee4f1ed9-fd06-40be-90f5-d6289c154fcd')))
-            with self.assertRaises(ValidationError):
+            with self.assertRaises(ValueError):
                 malformed_status_task.get_status()
 
     def test_get_abort_task(self):

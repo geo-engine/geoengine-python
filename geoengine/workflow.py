@@ -69,7 +69,7 @@ class WorkflowId:
         self.__workflow_id = workflow_id
 
     @classmethod
-    def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -> WorkflowId:
+    def from_response(cls, response: geoengine_openapi_client.IdResponse) -> WorkflowId:
         '''
         Create a `WorkflowId` from an http response
         '''

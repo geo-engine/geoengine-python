@@ -21,7 +21,6 @@ class WorkflowStorageTests(unittest.TestCase):
             "asCog": True,
             "description": "Bar",
             "displayName": "Foo",
-            "name": None,
             "query": {
                 "spatialBounds": {
                     "lowerRightCoordinate": {
