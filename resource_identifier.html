@@ -83,7 +83,7 @@ class DatasetName:
         self.__dataset_name = dataset_name
 
     @classmethod
-    def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
+    def from_response(cls, response: geoengine_openapi_client.DatasetNameResponse) -&gt; DatasetName:
         &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
         return DatasetName(response.dataset_name)
 
@@ -100,8 +100,8 @@ class DatasetName:
 
         return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
 
-    def to_api_dict(self) -&gt; geoengine_openapi_client.CreateDatasetHandler200Response:
-        return geoengine_openapi_client.CreateDatasetHandler200Response(
+    def to_api_dict(self) -&gt; geoengine_openapi_client.DatasetNameResponse:
+        return geoengine_openapi_client.DatasetNameResponse(
             dataset_name=str(self.__dataset_name)
         )
 
@@ -115,7 +115,7 @@ class UploadId:
         self.__upload_id = upload_id
 
     @classmethod
-    def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -&gt; UploadId:
+    def from_response(cls, response: geoengine_openapi_client.IdResponse) -&gt; UploadId:
         &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
         return UploadId(UUID(response.id))
 
@@ -132,9 +132,9 @@ class UploadId:
 
         return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
 
-    def to_api_dict(self) -&gt; geoengine_openapi_client.AddCollection200Response:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.IdResponse:
         &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
-        return geoengine_openapi_client.AddCollection200Response(
+        return geoengine_openapi_client.IdResponse(
             id=str(self.__upload_id)
         )
 
@@ -250,7 +250,7 @@ class Resource:
         self.__dataset_name = dataset_name
 
     @classmethod
-    def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
+    def from_response(cls, response: geoengine_openapi_client.DatasetNameResponse) -&gt; DatasetName:
         &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
         return DatasetName(response.dataset_name)
 
@@ -267,15 +267,15 @@ class Resource:
 
         return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
 
-    def to_api_dict(self) -&gt; geoengine_openapi_client.CreateDatasetHandler200Response:
-        return geoengine_openapi_client.CreateDatasetHandler200Response(
+    def to_api_dict(self) -&gt; geoengine_openapi_client.DatasetNameResponse:
+        return geoengine_openapi_client.DatasetNameResponse(
             dataset_name=str(self.__dataset_name)
         )</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.resource_identifier.DatasetName.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.CreateDatasetHandler200Response) ‑> <a title="geoengine.resource_identifier.DatasetName" href="#geoengine.resource_identifier.DatasetName">DatasetName</a></span>
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.DatasetNameResponse) ‑> <a title="geoengine.resource_identifier.DatasetName" href="#geoengine.resource_identifier.DatasetName">DatasetName</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse a http response to an <code><a title="geoengine.resource_identifier.DatasetName" href="#geoengine.resource_identifier.DatasetName">DatasetName</a></code></p></div>
@@ -284,7 +284,7 @@ class Resource:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -&gt; DatasetName:
+def from_response(cls, response: geoengine_openapi_client.DatasetNameResponse) -&gt; DatasetName:
     &#39;&#39;&#39;Parse a http response to an `DatasetName`&#39;&#39;&#39;
     return DatasetName(response.dataset_name)</code></pre>
 </details>
@@ -293,7 +293,7 @@ def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler20
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.resource_identifier.DatasetName.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.create_dataset_handler200_response.CreateDatasetHandler200Response</span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.dataset_name_response.DatasetNameResponse</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -301,8 +301,8 @@ def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler20
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.CreateDatasetHandler200Response:
-    return geoengine_openapi_client.CreateDatasetHandler200Response(
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.DatasetNameResponse:
+    return geoengine_openapi_client.DatasetNameResponse(
         dataset_name=str(self.__dataset_name)
     )</code></pre>
 </details>
@@ -638,7 +638,7 @@ def from_response(cls, response: geoengine_openapi_client.Resource) -&gt; Resour
         self.__upload_id = upload_id
 
     @classmethod
-    def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -&gt; UploadId:
+    def from_response(cls, response: geoengine_openapi_client.IdResponse) -&gt; UploadId:
         &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
         return UploadId(UUID(response.id))
 
@@ -655,16 +655,16 @@ def from_response(cls, response: geoengine_openapi_client.Resource) -&gt; Resour
 
         return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
 
-    def to_api_dict(self) -&gt; geoengine_openapi_client.AddCollection200Response:
+    def to_api_dict(self) -&gt; geoengine_openapi_client.IdResponse:
         &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
-        return geoengine_openapi_client.AddCollection200Response(
+        return geoengine_openapi_client.IdResponse(
             id=str(self.__upload_id)
         )</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
 <dt id="geoengine.resource_identifier.UploadId.from_response"><code class="name flex">
-<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.AddCollection200Response) ‑> <a title="geoengine.resource_identifier.UploadId" href="#geoengine.resource_identifier.UploadId">UploadId</a></span>
+<span>def <span class="ident">from_response</span></span>(<span>response: geoengine_openapi_client.IdResponse) ‑> <a title="geoengine.resource_identifier.UploadId" href="#geoengine.resource_identifier.UploadId">UploadId</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parse a http response to an <code><a title="geoengine.resource_identifier.UploadId" href="#geoengine.resource_identifier.UploadId">UploadId</a></code></p></div>
@@ -673,7 +673,7 @@ def from_response(cls, response: geoengine_openapi_client.Resource) -&gt; Resour
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -&gt; UploadId:
+def from_response(cls, response: geoengine_openapi_client.IdResponse) -&gt; UploadId:
     &#39;&#39;&#39;Parse a http response to an `UploadId`&#39;&#39;&#39;
     return UploadId(UUID(response.id))</code></pre>
 </details>
@@ -682,7 +682,7 @@ def from_response(cls, response: geoengine_openapi_client.AddCollection200Respon
 <h3>Methods</h3>
 <dl>
 <dt id="geoengine.resource_identifier.UploadId.to_api_dict"><code class="name flex">
-<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.add_collection200_response.AddCollection200Response</span>
+<span>def <span class="ident">to_api_dict</span></span>(<span>self) ‑> geoengine_openapi_client.models.id_response.IdResponse</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts the upload id to a dict for the api</p></div>
@@ -690,9 +690,9 @@ def from_response(cls, response: geoengine_openapi_client.AddCollection200Respon
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.AddCollection200Response:
+<pre><code class="python">def to_api_dict(self) -&gt; geoengine_openapi_client.IdResponse:
     &#39;&#39;&#39;Converts the upload id to a dict for the api&#39;&#39;&#39;
-    return geoengine_openapi_client.AddCollection200Response(
+    return geoengine_openapi_client.IdResponse(
         id=str(self.__upload_id)
     )</code></pre>
 </details>
