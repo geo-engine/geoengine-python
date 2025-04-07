@@ -107,7 +107,7 @@ python3 -m mypy tests
 Using the config file `mypy.ini`, you can suppress missing stub errors for external libraries.
 You can ignore a library by adding two lines to the config file. For example, suppressing matplotlib would look like this:
 
-```
+```ini
 [mypy-matplotlib.*]
 ignore_missing_imports = True
 

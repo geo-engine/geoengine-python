@@ -57,9 +57,30 @@ class DatasetsTests(unittest.TestCase):
                                                                     '8': 'Woody Savannas',
                                                                     '9': 'Savannas'}}}],
                                          'time': None,
-                                         'bbox': {'upperLeftCoordinate': {'x': -180.0, 'y': 90.0},
-                                                  'lowerRightCoordinate': {'x': 180.0, 'y': -90.0}},
-                                         'resolution': {'x': 0.1, 'y': 0.1}},
+                                         'spatialGrid': {
+                                             'descriptor': 'source',
+                                             'spatialGrid': {
+                                                 'geoTransform': {
+                                                     'originCoordinate': {
+                                                         'x': -180.0,
+                                                         'y': 90.0
+                                                     },
+                                                     'xPixelSize': 0.1,
+                                                     'yPixelSize': -0.1
+                                                 },
+                                                 'gridBounds': {
+                                                     'bottomRightIdx': {
+                                                         'xIdx': 3599,
+                                                         'yIdx': 1799
+                                                     },
+                                                     'topLeftIdx': {
+                                                         'xIdx': 0,
+                                                         'yIdx': 0
+                                                     }
+                                                 }
+                                             }
+                                         }
+                                         },
                     'symbology': {'type': 'raster',
                                   'opacity': 1.0,
                                   'rasterColorizer': {

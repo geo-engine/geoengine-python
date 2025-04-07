@@ -40,7 +40,30 @@ class WcsTests(unittest.TestCase):
                                  "measurement": {
                                      "type": "unitless"
                                  }
-                             }]
+                             }],
+                             "spatialGrid": {
+                                 "descriptor": "source",
+                                 "spatialGrid": {
+                                     "geoTransform": {
+                                         "originCoordinate": {
+                                             "x": 0.0,
+                                             "y": 0.0
+                                         },
+                                         "xPixelSize": 1.0,
+                                         "yPixelSize": -1.0
+                                     },
+                                     "gridBounds": {
+                                         "topLeftIdx": {
+                                             "xIdx": 0,
+                                             "yIdx": 0
+                                         },
+                                         "bottomRightIdx": {
+                                             "xIdx": 10,
+                                             "yIdx": 20
+                                         }
+                                     }
+                                 }
+                             }
                          },
                          request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -176,7 +199,30 @@ class WcsTests(unittest.TestCase):
                                  "measurement": {
                                      "type": "unitless"
                                  }
-                             }]
+                             }],
+                             "spatialGrid": {
+                                 "descriptor": "source",
+                                 "spatialGrid": {
+                                     "geoTransform": {
+                                         "originCoordinate": {
+                                             "x": 0.0,
+                                             "y": 0.0
+                                         },
+                                         "xPixelSize": 1.0,
+                                         "yPixelSize": -1.0
+                                     },
+                                     "gridBounds": {
+                                         "topLeftIdx": {
+                                             "xIdx": 0,
+                                             "yIdx": 0
+                                         },
+                                         "bottomRightIdx": {
+                                             "xIdx": 10,
+                                             "yIdx": 20
+                                         }
+                                     }
+                                 }
+                             }
                          },
                          request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -308,7 +354,30 @@ class WcsTests(unittest.TestCase):
                                  "measurement": {
                                      "type": "unitless"
                                  }
-                             }]
+                             }],
+                             "spatialGrid": {
+                                 "descriptor": "source",
+                                 "spatialGrid": {
+                                     "geoTransform": {
+                                         "originCoordinate": {
+                                             "x": 0.0,
+                                             "y": 0.0
+                                         },
+                                         "xPixelSize": 1.0,
+                                         "yPixelSize": -1.0
+                                     },
+                                     "gridBounds": {
+                                         "topLeftIdx": {
+                                             "xIdx": 0,
+                                             "yIdx": 0
+                                         },
+                                         "bottomRightIdx": {
+                                             "xIdx": 10,
+                                             "yIdx": 20
+                                         }
+                                     }
+                                 }
+                             }
                          },
                          request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 

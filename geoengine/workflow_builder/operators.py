@@ -197,48 +197,57 @@ class Interpolation(RasterOperator):
     '''An interpolation operator.'''
     source: RasterOperator
     interpolation: Literal["biLinear", "nearestNeighbor"] = "biLinear"
-    input_resolution: Optional[Tuple[float, float]] = None
+    output_method: Literal["resolution", "fraction"] = "resolution"
+    output_x: float
+    output_y: float
+    # outputOriginReference: Optional[Coordinate2D]
 
     def __init__(
         self,
             source_operator: RasterOperator,
+            output_x: float,
+            output_y: float,
+            output_method: Literal["resolution", "fraction"] = "resolution",
             interpolation: Literal["biLinear", "nearestNeighbor"] = "biLinear",
-            input_resolution: Optional[Tuple[float, float]] = None
+
     ):
         '''Creates a new interpolation operator.'''
         self.source = source_operator
         self.interpolation = interpolation
-        self.input_resolution = input_resolution
+        self.output_method = output_method
+        self.output_x = output_x
+        self.output_y = output_y
 
     def name(self) -> str:
         return 'Interpolation'
 
     def to_dict(self) -> Dict[str, Any]:
 
-        input_res: Dict[str, Union[str, float]]
-        if self.input_resolution is None:
+        if self.output_method == 'fraction':
             input_res = {
-                "type": "source"
+                "type": "fraction",
+                "x": self.output_x,
+                "y": self.output_y
             }
         else:
             input_res = {
-                "type": "value",
-                "x": self.input_resolution[0],
-                "y": self.input_resolution[1]
+                "type": "resolution",
+                "x": self.output_x,
+                "y": self.output_y
             }
 
         return {
             "type": self.name(),
             "params": {
                 "interpolation": self.interpolation,
-                "inputResolution": input_res
+                "outputResolution": input_res
             },
             "sources": {
                 "raster": self.source.to_dict()
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> Interpolation:
         '''Returns an operator from a dictionary.'''
         if operator_dict["type"] != "Interpolation":
@@ -246,32 +255,126 @@ class Interpolation(RasterOperator):
 
         source = RasterOperator.from_operator_dict(cast(Dict[str, Any], operator_dict['sources']['raster']))
 
-        def parse_input_params(params: Dict[str, Any]) -> Optional[Tuple[float, float]]:
-            if 'type' not in params:
-                return None
-            if params['type'] == 'source':
-                return None
-            if params['type'] == 'value':
-                return (float(params['x']), float(params['y']))
-            raise ValueError(f"Invalid input resolution type {params['type']}")
+        def parse_input_params(params: Dict[str, Any]) -> Tuple[Literal["resolution", "fraction"], float, float]:
+            output_x = float(params['x'])
+            output_y = float(params['y'])
 
-        input_resolution = parse_input_params(cast(Dict[str, Any], operator_dict['params']['inputResolution']))
+            if 'type' not in params:
+                raise KeyError("Interpolation outputResolution must contain a type: resolution OR fraction")
+            if params['type'] == 'fraction':
+                return ('fraction', output_x, output_y)
+            if params['type'] == 'fraction':
+                return ('fraction', output_x, output_y)
+            raise ValueError(f"Invalid interpolation outputResolution type {params['type']}")
+
+        (output_method, output_x, output_y) = parse_input_params(
+            cast(Dict[str, Any], operator_dict['params']['outputResolution'])
+        )
 
         return Interpolation(
             source_operator=source,
-            interpolation=cast(Literal["biLinear", "nearestNeighbor"], operator_dict['params']['interpolation']),
-            input_resolution=input_resolution
+            output_method=output_method,
+            output_x=output_x,
+            output_y=output_y,
+            interpolation=cast(Literal["biLinear", "nearestNeighbor"], operator_dict['params']['interpolation'])
+        )
+
+
+class Downsampling(RasterOperator):
+    '''A Downsampling operator.'''
+    source: RasterOperator
+    sample_method: Literal["nearestNeighbor"] = "nearestNeighbor"
+    output_method: Literal["resolution", "fraction"] = "resolution"
+    output_x: float
+    output_y: float
+    # outputOriginReference: Optional[Coordinate2D]
+
+    def __init__(
+        self,
+            source_operator: RasterOperator,
+            output_x: float,
+            output_y: float,
+            output_method: Literal["resolution", "fraction"] = "resolution",
+            sample_method: Literal["nearestNeighbor"] = "nearestNeighbor",
+
+    ):
+        '''Creates a new Downsampling operator.'''
+        self.source = source_operator
+        self.sample_method = sample_method
+        self.output_method = output_method
+        self.output_x = output_x
+        self.output_y = output_y
+
+    def name(self) -> str:
+        return 'Downsampling'
+
+    def to_dict(self) -> Dict[str, Any]:
+
+        if self.output_method == 'fraction':
+            input_res = {
+                "type": "fraction",
+                "x": self.output_x,
+                "y": self.output_y
+            }
+        else:
+            input_res = {
+                "type": "resolution",
+                "x": self.output_x,
+                "y": self.output_y
+            }
+
+        return {
+            "type": self.name(),
+            "params": {
+                "samplingMethod": self.sample_method,
+                "outputResolution": input_res
+            },
+            "sources": {
+                "raster": self.source.to_dict()
+            }
+        }
+
+    @ classmethod
+    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> Downsampling:
+        '''Returns an operator from a dictionary.'''
+        if operator_dict["type"] != "Downsampling":
+            raise ValueError("Invalid operator type")
+
+        source = RasterOperator.from_operator_dict(cast(Dict[str, Any], operator_dict['sources']['raster']))
+
+        def parse_input_params(params: Dict[str, Any]) -> Tuple[Literal["resolution", "fraction"], float, float]:
+            output_x = float(params['x'])
+            output_y = float(params['y'])
+
+            if 'type' not in params:
+                raise KeyError("Downsampling outputResolution must contain a type: resolution OR fraction")
+            if params['type'] == 'fraction':
+                return ('fraction', output_x, output_y)
+            if params['type'] == 'fraction':
+                return ('fraction', output_x, output_y)
+            raise ValueError(f"Invalid Downsampling outputResolution type {params['type']}")
+
+        (output_method, output_x, output_y) = parse_input_params(
+            cast(Dict[str, Any], operator_dict['params']['outputResolution'])
+        )
+
+        return Downsampling(
+            source_operator=source,
+            output_method=output_method,
+            output_x=output_x,
+            output_y=output_y,
+            sample_method=cast(Literal["nearestNeighbor"], operator_dict['params']['downsampling'])
         )
 
 
 class ColumnNames:
     '''Base class for deriving column names from bands of a raster.'''
 
-    @abstractmethod
+    @ abstractmethod
     def to_dict(self) -> Dict[str, Any]:
         pass
 
-    @classmethod
+    @ classmethod
     def from_dict(cls, rename_dict: Dict[str, Any]) -> 'ColumnNames':
         '''Returns a ColumnNames object from a dictionary.'''
         if rename_dict["type"] == "default":
@@ -282,15 +385,15 @@ class ColumnNames:
             return ColumnNamesNames(cast(List[str], rename_dict["values"]))
         raise ValueError("Invalid rename type")
 
-    @classmethod
+    @ classmethod
     def default(cls) -> 'ColumnNames':
         return ColumnNamesDefault()
 
-    @classmethod
+    @ classmethod
     def suffix(cls, values: List[str]) -> 'ColumnNames':
         return ColumnNamesSuffix(values)
 
-    @classmethod
+    @ classmethod
     def rename(cls, values: List[str]) -> 'ColumnNames':
         return ColumnNamesNames(values)
 
@@ -384,7 +487,7 @@ class RasterVectorJoin(VectorOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterVectorJoin':
         '''Returns an operator from a dictionary.'''
         if operator_dict["type"] != "RasterVectorJoin":
@@ -436,7 +539,7 @@ class PointInPolygonFilter(VectorOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> PointInPolygonFilter:
         '''Returns an operator from a dictionary.'''
         if operator_dict["type"] != "PointInPolygonFilter":
@@ -513,7 +616,7 @@ class RasterScaling(RasterOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterScaling':
         if operator_dict["type"] != "RasterScaling":
             raise ValueError("Invalid operator type")
@@ -567,7 +670,7 @@ class RasterTypeConversion(RasterOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterTypeConversion':
         if operator_dict["type"] != "RasterTypeConversion":
             raise ValueError("Invalid operator type")
@@ -622,7 +725,7 @@ class Reprojection(Operator):
             raise TypeError("Cannot cast to RasterOperator")
         return cast(RasterOperator, self)
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'Reprojection':
         '''Constructs the operator from the given dictionary.'''
         if operator_dict["type"] != "Reprojection":
@@ -684,7 +787,7 @@ class Expression(RasterOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'Expression':
         if operator_dict["type"] != "Expression":
             raise ValueError("Invalid operator type")
@@ -745,7 +848,7 @@ class BandwiseExpression(RasterOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'BandwiseExpression':
         if operator_dict["type"] != "BandwiseExpression":
             raise ValueError("Invalid operator type")
@@ -831,7 +934,7 @@ class VectorExpression(VectorOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> VectorExpression:
         if operator_dict["type"] != "Expression":
             raise ValueError("Invalid operator type")
@@ -930,7 +1033,7 @@ class TemporalRasterAggregation(RasterOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'TemporalRasterAggregation':
         if operator_dict["type"] != "TemporalRasterAggregation":
             raise ValueError("Invalid operator type")
@@ -1012,7 +1115,7 @@ class TimeShift(Operator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'TimeShift':
         '''Constructs the operator from the given dictionary.'''
         if operator_dict["type"] != "TimeShift":
@@ -1034,11 +1137,11 @@ class TimeShift(Operator):
 class RenameBands:
     '''Base class for renaming bands of a raster.'''
 
-    @abstractmethod
+    @ abstractmethod
     def to_dict(self) -> Dict[str, Any]:
         pass
 
-    @classmethod
+    @ classmethod
     def from_dict(cls, rename_dict: Dict[str, Any]) -> 'RenameBands':
         '''Returns a RenameBands object from a dictionary.'''
         if rename_dict["type"] == "default":
@@ -1049,15 +1152,15 @@ class RenameBands:
             return RenameBandsRename(cast(List[str], rename_dict["values"]))
         raise ValueError("Invalid rename type")
 
-    @classmethod
+    @ classmethod
     def default(cls) -> 'RenameBands':
         return RenameBandsDefault()
 
-    @classmethod
+    @ classmethod
     def suffix(cls, values: List[str]) -> 'RenameBands':
         return RenameBandsSuffix(values)
 
-    @classmethod
+    @ classmethod
     def rename(cls, values: List[str]) -> 'RenameBands':
         return RenameBandsRename(values)
 
@@ -1132,7 +1235,7 @@ class RasterStacker(RasterOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterStacker':
         if operator_dict["type"] != "RasterStacker":
             raise ValueError("Invalid operator type")
@@ -1175,7 +1278,7 @@ class BandNeighborhoodAggregate(RasterOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregate':
         if operator_dict["type"] != "BandNeighborhoodAggregate":
             raise ValueError("Invalid operator type")
@@ -1192,11 +1295,11 @@ class BandNeighborhoodAggregate(RasterOperator):
 class BandNeighborhoodAggregateParams:
     '''Abstract base class for band neighborhood aggregate params.'''
 
-    @abstractmethod
+    @ abstractmethod
     def to_dict(self) -> Dict[str, Any]:
         pass
 
-    @classmethod
+    @ classmethod
     def from_dict(cls, band_neighborhood_aggregate_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregateParams':
         '''Returns a BandNeighborhoodAggregate object from a dictionary.'''
         if band_neighborhood_aggregate_dict["type"] == "firstDerivative":
@@ -1205,22 +1308,22 @@ class BandNeighborhoodAggregateParams:
             return BandNeighborhoodAggregateAverage(band_neighborhood_aggregate_dict["windowSize"])
         raise ValueError("Invalid neighborhood aggregate type")
 
-    @classmethod
+    @ classmethod
     def first_derivative(cls, equally_spaced_band_distance: float) -> 'BandNeighborhoodAggregateParams':
         return BandNeighborhoodAggregateFirstDerivative(equally_spaced_band_distance)
 
-    @classmethod
+    @ classmethod
     def average(cls, window_size: int) -> 'BandNeighborhoodAggregateParams':
         return BandNeighborhoodAggregateAverage(window_size)
 
 
-@dataclass
+@ dataclass
 class BandNeighborhoodAggregateFirstDerivative(BandNeighborhoodAggregateParams):
     '''The first derivative band neighborhood aggregate.'''
 
     equally_spaced_band_distance: float
 
-    @classmethod
+    @ classmethod
     def from_dict(cls, band_neighborhood_aggregate_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregateParams':
         if band_neighborhood_aggregate_dict["type"] != "firstDerivative":
             raise ValueError("Invalid neighborhood aggregate type")
@@ -1239,7 +1342,7 @@ class BandNeighborhoodAggregateFirstDerivative(BandNeighborhoodAggregateParams):
         }
 
 
-@dataclass
+@ dataclass
 class BandNeighborhoodAggregateAverage(BandNeighborhoodAggregateParams):
     '''The average band neighborhood aggregate.'''
 
@@ -1281,7 +1384,7 @@ class Onnx(RasterOperator):
             }
         }
 
-    @classmethod
+    @ classmethod
     def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'Onnx':
         if operator_dict["type"] != "Onnx":
             raise ValueError("Invalid operator type")

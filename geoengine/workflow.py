@@ -350,6 +350,10 @@ class Workflow:
 
         if force_no_data_value is not None:
             kwargs["nodatavalue"] = str(float(force_no_data_value))
+        if resx is not None:
+            kwargs["resx"] = resx
+        if resy is not None:
+            kwargs["resy"] = resy
 
         return wcs.getCoverage(
             identifier=f'{self.__workflow_id}',
@@ -357,8 +361,6 @@ class Workflow:
             time=[bbox.time_str],
             format=file_format,
             crs=crs,
-            resx=resx,
-            resy=resy,
             timeout=timeout,
             **kwargs
         )
@@ -549,6 +551,9 @@ class Workflow:
     ) -> AsyncIterator[RasterTile2D]:
         '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
 
+        if query_rectangle.spatial_resolution is not None:
+            raise ValueError("Stream query can't use a resolution. Set it to 'None'.")
+
         if bands is None:
             bands = [0]
 
@@ -568,7 +573,6 @@ class Workflow:
                 'resultType': 'arrow',
                 'spatialBounds': query_rectangle.bbox_str,
                 'timeInterval': query_rectangle.time_str,
-                'spatialResolution': str(query_rectangle.spatial_resolution),
                 'attributes': ','.join(map(str, bands))
             },
         ).prepare().url

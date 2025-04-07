@@ -128,6 +128,9 @@ class SpatialPartition2D(SpatialBounds):
         '''convert to a `BoundingBox2D`'''
         return BoundingBox2D(self.xmin, self.ymin, self.xmax, self.ymax)
 
+    def __repr__(self) -> str:
+        return f'SpatialPartition2D(xmin={self.xmin}, ymin={self.ymin}, xmax={self.xmax}, ymax={self.ymax})'
+
 
 class TimeInterval:
     ''''A time interval.'''
@@ -150,7 +153,7 @@ class TimeInterval:
             raise InputException("`start` must be of type `datetime.datetime` or `numpy.datetime64`")
 
         if end is None:
-            self.end = None
+            self.end = start
         elif isinstance(end, np.datetime64):
             self.end = end
         elif isinstance(end, datetime):
@@ -268,13 +271,13 @@ class QueryRectangle:
 
     __spatial_bounds: BoundingBox2D
     __time_interval: TimeInterval
-    __resolution: SpatialResolution
+    __resolution: Optional[SpatialResolution]
     __srs: str
 
     def __init__(self,
-                 spatial_bounds: Union[BoundingBox2D, Tuple[float, float, float, float]],
+                 spatial_bounds: Union[BoundingBox2D, SpatialPartition2D, Tuple[float, float, float, float]],
                  time_interval: Union[TimeInterval, Tuple[datetime, Optional[datetime]]],
-                 resolution: Union[SpatialResolution, Tuple[float, float]],
+                 resolution: Optional[Union[SpatialResolution, Tuple[float, float]]] = None,
                  srs='EPSG:4326') -> None:
         """
         Initialize a new `QueryRectangle` object
@@ -293,10 +296,13 @@ class QueryRectangle:
         """
 
         if not isinstance(spatial_bounds, BoundingBox2D):
-            spatial_bounds = BoundingBox2D(*spatial_bounds)
+            if isinstance(spatial_bounds, SpatialPartition2D):
+                spatial_bounds = spatial_bounds.to_bounding_box()
+            else:
+                spatial_bounds = BoundingBox2D(*spatial_bounds)
         if not isinstance(time_interval, TimeInterval):
             time_interval = TimeInterval(*time_interval)
-        if not isinstance(resolution, SpatialResolution):
+        if resolution is not None and not isinstance(resolution, SpatialResolution):
             resolution = SpatialResolution(*resolution)
 
         self.__spatial_bounds = spatial_bounds
@@ -330,12 +336,16 @@ class QueryRectangle:
         return self.__spatial_bounds.as_bbox_tuple(y_axis_first=y_axis_first)
 
     @property
-    def resolution_ogc(self) -> Tuple[float, float]:
+    def resolution_ogc(self) -> Tuple[Optional[float], Optional[float]]:
         '''
         Return the resolution in OGC style
         '''
         # TODO: properly handle axis order
         res = self.__resolution
+
+        # if no resolution is set use none for both...
+        if res is None:
+            return (None, None)
 
         # TODO: why is the y resolution in this case negative but not in all other cases?
         if self.__srs == "EPSG:4326":
@@ -358,7 +368,7 @@ class QueryRectangle:
         return self.__spatial_bounds
 
     @property
-    def spatial_resolution(self) -> SpatialResolution:
+    def spatial_resolution(self) -> Optional[SpatialResolution]:
         '''
         Return the spatial resolution
         '''
@@ -383,23 +393,13 @@ class QueryRectangle:
         r = 'QueryRectangle( \n'
         r += '    ' + repr(self.__spatial_bounds) + '\n'
         r += '    ' + repr(self.__time_interval) + '\n'
-        r += '    ' + repr(self.__resolution) + '\n'
+        if self.__resolution is not None:
+            r += '    ' + repr(self.__resolution) + '\n'
+        else:
+            r += '    ' + 'No resolution specified!' + '\n'
         r += f'    srs={self.__srs} \n'
         r += ')'
         return r
-
-    def as_raster_query_rectangle_api_dict(self) -> geoengine_openapi_client.RasterQueryRectangle:
-        '''Return the query rectangle as a dictionary for the API'''
-        return geoengine_openapi_client.RasterQueryRectangle(
-            spatial_bounds=SpatialPartition2D(
-                self.spatial_bounds.xmin,
-                self.spatial_bounds.ymin,
-                self.spatial_bounds.xmax,
-                self.spatial_bounds.ymax,
-            ).to_api_dict(),
-            spatial_resolution=self.spatial_resolution.to_api_dict(),
-            time_interval=self.time.to_api_dict(),
-        )
 
 
 class ResultDescriptor:  # pylint: disable=too-few-public-methods
@@ -409,23 +409,16 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
 
     __spatial_reference: str
     __time_bounds: Optional[TimeInterval]
-    __spatial_resolution: Optional[SpatialResolution]
 
     def __init__(
         self,
         spatial_reference: str,
         time_bounds: Optional[TimeInterval] = None,
-        spatial_resolution: Optional[SpatialResolution] = None
     ) -> None:
         '''Initialize a new `ResultDescriptor` object'''
 
         self.__spatial_reference = spatial_reference
         self.__time_bounds = time_bounds
-
-        if spatial_resolution is None or isinstance(spatial_resolution, SpatialResolution):
-            self.__spatial_resolution = spatial_resolution
-        else:
-            raise TypeException('Spatial resolution must be of type `SpatialResolution` or `None`')
 
     @staticmethod
     def from_response(response: geoengine_openapi_client.TypedResultDescriptor) -> ResultDescriptor:
@@ -478,12 +471,6 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
 
         return self.__time_bounds
 
-    @property
-    def spatial_resolution(self) -> Optional[SpatialResolution]:
-        '''Return the spatial resolution'''
-
-        return self.__spatial_resolution
-
     @abstractmethod
     def to_api_dict(self) -> geoengine_openapi_client.TypedResultDescriptor:
         pass
@@ -509,7 +496,7 @@ class VectorResultDescriptor(ResultDescriptor):
         spatial_bounds: Optional[BoundingBox2D] = None
     ) -> None:
         ''' Initialize a vector result descriptor '''
-        super().__init__(spatial_reference, time_bounds, None)
+        super().__init__(spatial_reference, time_bounds)
         self.__data_type = data_type
         self.__columns = columns
         self.__spatial_bounds = spatial_bounds
@@ -582,7 +569,6 @@ class VectorResultDescriptor(ResultDescriptor):
             columns={name: column_info.to_api_dict() for name, column_info in self.columns.items()},
             time=self.time_bounds.time_str if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
-            resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None,
         ))
 
 
@@ -642,7 +628,7 @@ class RasterBandDescriptor:
 
     @classmethod
     def from_response(cls, response: geoengine_openapi_client.RasterBandDescriptor) -> RasterBandDescriptor:
-        '''Parse an http response to a `Provenance` object'''
+        '''Parse an http response to a `RasterBandDescriptor` object'''
         return RasterBandDescriptor(response.name, Measurement.from_response(response.measurement))
 
     def to_api_dict(self) -> geoengine_openapi_client.RasterBandDescriptor:
@@ -656,28 +642,153 @@ class RasterBandDescriptor:
         return f'{self.name}: {self.measurement}'
 
 
+@dataclass
+class GridIdx2D:
+    '''A grid index'''
+
+    x_idx: int
+    y_idx: int
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.GridIdx2D) -> GridIdx2D:
+        '''Parse an http response to a `GridIdx2D` object'''
+        return GridIdx2D(x_idx=response.x_idx, y_idx=response.y_idx)
+
+    def to_api_dict(self) -> geoengine_openapi_client.GridIdx2D:
+        return geoengine_openapi_client.GridIdx2D(
+            y_idx=self.y_idx,
+            x_idx=self.x_idx
+        )
+
+
+@dataclass
+class GridBoundingBox2D:
+    '''A grid boundingbox where lower right is inclusive index'''
+
+    top_left_idx: GridIdx2D
+    bottom_right_idx: GridIdx2D
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.GridBoundingBox2D) -> GridBoundingBox2D:
+        '''Parse an http response to a `GridBoundingBox2D` object'''
+        ul_idx = GridIdx2D.from_response(response.top_left_idx)
+        lr_idx = GridIdx2D.from_response(response.bottom_right_idx)
+        return GridBoundingBox2D(top_left_idx=ul_idx, bottom_right_idx=lr_idx)
+
+    def to_api_dict(self) -> geoengine_openapi_client.GridBoundingBox2D:
+        return geoengine_openapi_client.GridBoundingBox2D(
+            top_left_idx=self.top_left_idx.to_api_dict(),
+            bottom_right_idx=self.bottom_right_idx.to_api_dict(),
+        )
+
+    def contains_idx(self, idx: GridIdx2D) -> bool:
+        '''Test if a `GridIdx2D` is contained by this '''
+        contains_x = self.top_left_idx.x_idx <= idx.x_idx <= self.bottom_right_idx.x_idx
+        contains_y = self.top_left_idx.y_idx <= idx.y_idx <= self.bottom_right_idx.y_idx
+        return contains_x and contains_y
+
+
+@dataclass
+class SpatialGridDefinition:
+    '''A grid boundingbox where lower right is inclusive index'''
+
+    geo_transform: GeoTransform
+    grid_bounds: GridBoundingBox2D
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.SpatialGridDefinition) -> SpatialGridDefinition:
+        '''Parse an http response to a `SpatialGridDefinition` object'''
+        geo_transform = GeoTransform.from_response(response.geo_transform)
+        grid_bounds = GridBoundingBox2D.from_response(response.grid_bounds)
+        return SpatialGridDefinition(geo_transform=geo_transform, grid_bounds=grid_bounds)
+
+    def to_api_dict(self) -> geoengine_openapi_client.SpatialGridDefinition:
+        return geoengine_openapi_client.SpatialGridDefinition(
+            geo_transform=self.geo_transform.to_api_dict(),
+            grid_bounds=self.grid_bounds.to_api_dict(),
+        )
+
+    def contains_idx(self, idx: GridIdx2D) -> bool:
+        return self.grid_bounds.contains_idx(idx)
+
+    def spatial_bounds(self) -> SpatialPartition2D:
+        return self.geo_transform.grid_bounds_to_spatial_bounds(self.grid_bounds)
+
+    def spatial_resolution(self) -> SpatialResolution:
+        return self.geo_transform.spatial_resolution()
+
+    def __repr__(self) -> str:
+        '''Display representation of the SpatialGridDefinition'''
+        r = 'SpatialGridDefinition: \n'
+        r += f'    GeoTransform: {self.geo_transform}\n'
+        r += f'    GridBounds: {self.grid_bounds}\n'
+        return r
+
+
+@dataclass
+class SpatialGridDescriptor:
+    '''A grid boundingbox where lower right is inclusive index'''
+
+    spatial_grid: SpatialGridDefinition
+    descriptor: geoengine_openapi_client.SpatialGridDescriptorState
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.SpatialGridDescriptor) -> SpatialGridDescriptor:
+        '''Parse an http response to a `SpatialGridDefinition` object'''
+        spatial_grid = SpatialGridDefinition.from_response(response.spatial_grid)
+        return SpatialGridDescriptor(spatial_grid=spatial_grid, descriptor=response.descriptor)
+
+    def to_api_dict(self) -> geoengine_openapi_client.SpatialGridDescriptor:
+        return geoengine_openapi_client.SpatialGridDescriptor(
+            spatial_grid=self.spatial_grid.to_api_dict(),
+            descriptor=self.descriptor,
+        )
+
+    def contains_idx(self, idx: GridIdx2D) -> bool:
+        return self.spatial_grid.contains_idx(idx)
+
+    def spatial_resolution(self) -> SpatialResolution:
+        return self.spatial_grid.spatial_resolution()
+
+    def spatial_bounds(self) -> SpatialPartition2D:
+        return self.spatial_grid.spatial_bounds()
+
+    def is_source(self) -> bool:
+        return self.descriptor == 'source'
+
+    def is_derived(self) -> bool:
+        return self.descriptor == 'derived'
+
+    def __repr__(self) -> str:
+        '''Display representation of the SpatialGridDescriptor'''
+        r = 'SpatialGridDescriptor: \n'
+        r += f'    Definition: {self.spatial_grid}\n'
+        r += f'    Is a {self.descriptor} grid.\n'
+        return r
+
+
 class RasterResultDescriptor(ResultDescriptor):
     '''
     A raster result descriptor
     '''
     __data_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']
     __bands: List[RasterBandDescriptor]
-    __spatial_bounds: Optional[SpatialPartition2D]
+    __spatial_grid: SpatialGridDescriptor
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
         data_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64'],
         bands: List[RasterBandDescriptor],
         spatial_reference: str,
+        spatial_grid: SpatialGridDescriptor,
         time_bounds: Optional[TimeInterval] = None,
-        spatial_bounds: Optional[SpatialPartition2D] = None,
-        spatial_resolution: Optional[SpatialResolution] = None
+
     ) -> None:
         '''Initialize a new `RasterResultDescriptor`'''
-        super().__init__(spatial_reference, time_bounds, spatial_resolution)
+        super().__init__(spatial_reference, time_bounds)
         self.__data_type = data_type
         self.__bands = bands
-        self.__spatial_bounds = spatial_bounds
+        self.__spatial_grid = spatial_grid
 
     def to_api_dict(self) -> geoengine_openapi_client.TypedResultDescriptor:
         '''Convert the raster result descriptor to a dictionary'''
@@ -688,8 +799,7 @@ class RasterResultDescriptor(ResultDescriptor):
             bands=[band.to_api_dict() for band in self.__bands],
             spatial_reference=self.spatial_reference,
             time=self.time_bounds.time_str if self.time_bounds is not None else None,
-            bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
-            resolution=self.spatial_resolution.to_api_dict() if self.spatial_resolution is not None else None
+            spatial_grid=self.__spatial_grid.to_api_dict()
         ))
 
     @staticmethod
@@ -704,20 +814,14 @@ class RasterResultDescriptor(ResultDescriptor):
         # FIXME: datetime can not represent our min max range
         # if 'time' in response and response['time'] is not None:
         #    time_bounds = TimeInterval.from_response(response['time'])
-        spatial_bounds = None
-        if response.bbox is not None:
-            spatial_bounds = SpatialPartition2D.from_response(response.bbox)
-        spatial_resolution = None
-        if response.resolution is not None:
-            spatial_resolution = SpatialResolution.from_response(response.resolution)
+        spatial_grid = SpatialGridDescriptor.from_response(response.spatial_grid)
 
         return RasterResultDescriptor(
             data_type=data_type,
             bands=bands,
             spatial_reference=spatial_ref,
             time_bounds=time_bounds,
-            spatial_bounds=spatial_bounds,
-            spatial_resolution=spatial_resolution
+            spatial_grid=spatial_grid
         )
 
     @classmethod
@@ -733,8 +837,12 @@ class RasterResultDescriptor(ResultDescriptor):
         return self.__bands
 
     @property
-    def spatial_bounds(self) -> Optional[SpatialPartition2D]:
-        return self.__spatial_bounds
+    def spatial_grid(self) -> SpatialGridDescriptor:
+        return self.__spatial_grid
+
+    @property
+    def spatial_bounds(self) -> SpatialPartition2D:
+        return self.spatial_grid.spatial_bounds()
 
     @property
     def spatial_reference(self) -> str:
@@ -747,6 +855,8 @@ class RasterResultDescriptor(ResultDescriptor):
         r = ''
         r += f'Data type:         {self.data_type}\n'
         r += f'Spatial Reference: {self.spatial_reference}\n'
+        r += f'Spatial Grid: {self.spatial_grid} \n'
+        r += f'Spatial Bounds: {self.spatial_bounds}\n'
         r += 'Bands:\n'
 
         for band in self.__bands:
@@ -769,7 +879,7 @@ class PlotResultDescriptor(ResultDescriptor):
         spatial_bounds: Optional[BoundingBox2D] = None
     ) -> None:
         '''Initialize a new `PlotResultDescriptor`'''
-        super().__init__(spatial_reference, time_bounds, None)
+        super().__init__(spatial_reference, time_bounds)
         self.__spatial_bounds = spatial_bounds
 
     def __repr__(self) -> str:
@@ -1278,7 +1388,6 @@ class ClassificationMeasurement(Measurement):
 
 class GeoTransform:
     '''The `GeoTransform` specifies the relationship between pixel coordinates and geographic coordinates.'''
-
     x_min: float
     y_max: float
     '''In Geo Engine, x_pixel_size is always positive.'''
@@ -1298,7 +1407,19 @@ class GeoTransform:
         self.y_pixel_size = y_pixel_size
 
     @classmethod
-    def from_response(cls, response: geoengine_openapi_client.GdalDatasetGeoTransform) -> GeoTransform:
+    def from_response_gdal_geo_transform(
+        cls, response: geoengine_openapi_client.GdalDatasetGeoTransform
+    ) -> GeoTransform:
+        '''Parse a geotransform from an HTTP JSON response'''
+        return GeoTransform(
+            x_min=response.origin_coordinate.x,
+            y_max=response.origin_coordinate.y,
+            x_pixel_size=response.x_pixel_size,
+            y_pixel_size=response.y_pixel_size,
+        )
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.GeoTransform) -> GeoTransform:
         '''Parse a geotransform from an HTTP JSON response'''
 
         return GeoTransform(
@@ -1308,7 +1429,17 @@ class GeoTransform:
             y_pixel_size=response.y_pixel_size,
         )
 
-    def to_api_dict(self) -> geoengine_openapi_client.GdalDatasetGeoTransform:
+    def to_api_dict(self) -> geoengine_openapi_client.GeoTransform:
+        return geoengine_openapi_client.GeoTransform(
+            origin_coordinate=geoengine_openapi_client.Coordinate2D(
+                x=self.x_min,
+                y=self.y_max,
+            ),
+            x_pixel_size=self.x_pixel_size,
+            y_pixel_size=self.y_pixel_size
+        )
+
+    def to_api_dict_gdal_geo_transform(self) -> geoengine_openapi_client.GdalDatasetGeoTransform:
         return geoengine_openapi_client.GdalDatasetGeoTransform(
             origin_coordinate=geoengine_openapi_client.Coordinate2D(
                 x=self.x_min,
@@ -1338,27 +1469,53 @@ class GeoTransform:
     def y_half_pixel_size(self) -> float:
         return self.y_pixel_size / 2.0
 
-    def x_max(self, number_of_pixels: int) -> float:
-        return self.x_min + number_of_pixels * self.x_pixel_size
+    def pixel_x_to_coord_x(self, pixel: int) -> float:
+        return self.x_min + pixel * self.x_pixel_size
 
-    def y_min(self, number_of_pixels: int) -> float:
-        return self.y_max + number_of_pixels * self.y_pixel_size
+    def pixel_y_to_coord_y(self, pixel: int) -> float:
+        return self.y_max + pixel * self.y_pixel_size
 
-    def coord_to_pixel_ul(self, x_cord: float, y_coord: float) -> Tuple[int, int]:
+    def coord_to_pixel_ul(self, x_cord: float, y_coord: float) -> GridIdx2D:
         '''Convert a coordinate to a pixel index rould towards top left'''
-        return (int(np.floor((x_cord - self.x_min) / self.x_pixel_size)),
-                int(np.ceil((y_coord - self.y_max) / self.y_pixel_size)))
+        return GridIdx2D(x_idx=int(np.floor((x_cord - self.x_min) / self.x_pixel_size)),
+                         y_idx=int(np.ceil((y_coord - self.y_max) / self.y_pixel_size)))
 
-    def coord_to_pixel_lr(self, x_cord: float, y_coord: float) -> Tuple[int, int]:
+    def coord_to_pixel_lr(self, x_cord: float, y_coord: float) -> GridIdx2D:
         '''Convert a coordinate to a pixel index ound towards lower right'''
-        return (int(np.ceil((x_cord - self.x_min) / self.x_pixel_size)),
-                int(np.floor((y_coord - self.y_max) / self.y_pixel_size)))
+        return GridIdx2D(x_idx=int(np.ceil((x_cord - self.x_min) / self.x_pixel_size)),
+                         y_idx=int(np.floor((y_coord - self.y_max) / self.y_pixel_size)))
+
+    def pixel_ul_to_coord(self, x_pixel: int, y_pixel: int) -> Tuple[float, float]:
+        '''Convert a pixel position into a coordinate'''
+        x = self.pixel_x_to_coord_x(x_pixel)
+        y = self.pixel_y_to_coord_y(y_pixel)
+        return (x, y)
+
+    def pixel_lr_to_coord(self, x_pixel: int, y_pixel: int) -> Tuple[float, float]:
+        (x, y) = self.pixel_ul_to_coord(x_pixel, y_pixel)
+        return (x + self.x_pixel_size, y + self.y_pixel_size)
+
+    def pixel_center_to_coord(self, x_pixel, y_pixel) -> Tuple[float, float]:
+        (x, y) = self.pixel_ul_to_coord(x_pixel, y_pixel)
+        return (x + self.x_half_pixel_size, y + self.y_half_pixel_size)
 
     def spatial_resolution(self) -> SpatialResolution:
         return SpatialResolution(
             x_resolution=abs(self.x_pixel_size),
             y_resolution=abs(self.y_pixel_size)
         )
+
+    def spatial_to_grid_bounds(self, bounds: Union[SpatialPartition2D, BoundingBox2D]) -> GridBoundingBox2D:
+        '''Converts a BoundingBox2D or a SpatialPartition2D into a GridBoundingBox2D'''
+        ul = self.coord_to_pixel_ul(bounds.xmin, bounds.ymax)
+        rl = self.coord_to_pixel_lr(bounds.xmax, bounds.ymin)
+        return GridBoundingBox2D(top_left_idx=ul, bottom_right_idx=rl)
+
+    def grid_bounds_to_spatial_bounds(self, bounds: GridBoundingBox2D) -> SpatialPartition2D:
+        '''Converts a GridBoundingBox2D into a SpatialPartition2D'''
+        xmin, ymax = self.pixel_ul_to_coord(bounds.top_left_idx.x_idx, bounds.top_left_idx.y_idx)
+        xmax, ymin = self.pixel_lr_to_coord(bounds.bottom_right_idx.x_idx, bounds.bottom_right_idx.y_idx)
+        return SpatialPartition2D(xmin, ymin, xmax, ymax)
 
     def __eq__(self, other) -> bool:
         '''Check if two geotransforms are equal'''

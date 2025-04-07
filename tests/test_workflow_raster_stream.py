@@ -113,8 +113,21 @@ class WorkflowRasterStreamTests(unittest.TestCase):
                 "U8",
                 [RasterBandDescriptor("band", ge.UnitlessMeasurement())],
                 "EPSG:4326",
-                spatial_bounds=ge.SpatialPartition2D(-180.0, -90.0, 180.0, 90.0),
-                spatial_resolution=ge.SpatialResolution(45.0, 22.5)
+                spatial_grid=ge.SpatialGridDescriptor(
+                    descriptor="source",
+                    spatial_grid=ge.SpatialGridDefinition(
+                        geo_transform=ge.GeoTransform(
+                            x_min=-180.0,
+                            y_max=90.0,
+                            y_pixel_size=-22.5,
+                            x_pixel_size=45.0
+                        ),
+                        grid_bounds=ge.GridBoundingBox2D(
+                            top_left_idx=ge.GridIdx2D(x_idx=0, y_idx=0),
+                            bottom_right_idx=(7, 7)
+                        )
+                    )
+                )
             ),
         ):
             workflow = ge.Workflow(UUID("00000000-0000-0000-0000-000000000000"))
