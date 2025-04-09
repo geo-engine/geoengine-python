@@ -23,9 +23,9 @@ class MockWebsocket:
 
         self.__tiles = []
 
-        for time in ["2014-01-01T00:00:00", "2014-01-02T00:00:00"]:
+        for time in [datetime(2014, 1, 1, 0, 0, 0), datetime(2014, 1, 2, 0, 0, 0)]:
             for tiles in read_data():
-                self.__tiles.append(arrow_bytes(tiles, time, 0))
+                self.__tiles.append(arrow_bytes(tiles, ge.TimeInterval(start=time), 0))
 
     async def __aenter__(self):
         return self
@@ -50,7 +50,12 @@ class MockWebsocket:
 
 def read_data() -> List[xr.DataArray]:
     '''Slice a raster into 4 parts'''
-    whole = rioxarray.open_rasterio("tests/responses/ndvi.tiff").isel(band=0)
+    whole = rioxarray.open_rasterio("tests/responses/ndvi.tiff")
+
+    if isinstance(whole, list):
+        raise TypeError("Expected Dataset not List")
+
+    whole = whole.isel(band=0)
 
     parts = [
         whole[:4, :4],
@@ -62,7 +67,7 @@ def read_data() -> List[xr.DataArray]:
     return parts
 
 
-def arrow_bytes(data: xr.DataArray, time: str, band: int) -> bytes:
+def arrow_bytes(data: xr.DataArray, time: ge.TimeInterval, band: int) -> bytes:
     '''Convert a xarray.DataArray into an Arrow record batch within an IPC file'''
 
     array = pa.array(data.to_numpy().reshape(-1))
@@ -80,8 +85,8 @@ def arrow_bytes(data: xr.DataArray, time: str, band: int) -> bytes:
         "ySize": "4",
         "spatialReference": "EPSG:4326",
         "time": json.dumps({
-            "start": time,
-            "end": time,
+            "start": int(time.start.astype('datetime64[ms]').astype(int)),
+            "end": int(time.start.astype('datetime64[ms]').astype(int))
         }),
         "band": str(band),
     })
@@ -135,7 +140,7 @@ class WorkflowRasterStreamTests(unittest.TestCase):
         query_rect = ge.QueryRectangle(
             spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
             time_interval=ge.TimeInterval(datetime(2014, 1, 1, 0, 0, 0), datetime(2014, 1, 3, 0, 0, 0)),
-            resolution=ge.SpatialResolution(45.0, 22.5),
+            resolution=None,
         )
 
         with unittest.mock.patch("websockets.client.connect", return_value=MockWebsocket()):

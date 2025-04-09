@@ -33,12 +33,11 @@ import pyarrow as pa
 import geoengine_openapi_client
 from geoengine import api
 from geoengine.auth import get_session
-from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
-    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException
+    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, OGCXMLError
 from geoengine import backports
-from geoengine.types import ProvenanceEntry, QueryRectangle, ResultDescriptor, VectorResultDescriptor, \
-    ClassificationMeasurement
+from geoengine.types import ProvenanceEntry, QueryRectangle, RasterColorizer, ResultDescriptor, \
+    VectorResultDescriptor, ClassificationMeasurement
 from geoengine.tasks import Task, TaskId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 from geoengine.raster import RasterTile2D
@@ -70,7 +69,7 @@ class WorkflowId:
         self.__workflow_id = workflow_id
 
     @classmethod
-    def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -> WorkflowId:
+    def from_response(cls, response: geoengine_openapi_client.IdResponse) -> WorkflowId:
         '''
         Create a `WorkflowId` from an http response
         '''
@@ -258,7 +257,7 @@ class Workflow:
 
         return result
 
-    def wms_get_map_as_image(self, bbox: QueryRectangle, colorizer: Colorizer) -> Image:
+    def wms_get_map_as_image(self, bbox: QueryRectangle, raster_colorizer: RasterColorizer) -> Image.Image:
         '''Return the result of a WMS request as a PIL Image'''
 
         if not self.__result_descriptor.is_raster_result():
@@ -278,16 +277,19 @@ class Workflow:
                 bbox=bbox.bbox_ogc_str,
                 format=geoengine_openapi_client.GetMapFormat(geoengine_openapi_client.GetMapFormat.IMAGE_SLASH_PNG),
                 layers=str(self),
-                styles='custom:' + colorizer.to_api_dict().to_json(),
+                styles='custom:' + raster_colorizer.to_api_dict().to_json(),
                 crs=bbox.srs,
                 time=bbox.time_str
             )
 
+        if OGCXMLError.is_ogc_error(response):
+            raise OGCXMLError(response)
+
         return Image.open(BytesIO(response))
 
-    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
+    def plot_json(self, bbox: QueryRectangle, timeout: int = 3600) -> geoengine_openapi_client.WrappedPlotOutput:
         '''
-        Query a workflow and return the plot chart result as a vega plot
+        Query a workflow and return the plot chart result as WrappedPlotOutput
         '''
 
         if not self.__result_descriptor.is_plot_result():
@@ -297,7 +299,7 @@ class Workflow:
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             plots_api = geoengine_openapi_client.PlotsApi(api_client)
-            response = plots_api.get_plot_handler(
+            return plots_api.get_plot_handler(
                 bbox.bbox_str,
                 bbox.time_str,
                 str(bbox.spatial_resolution),
@@ -306,6 +308,12 @@ class Workflow:
                 _request_timeout=timeout
             )
 
+    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
+        '''
+        Query a workflow and return the plot chart result as a vega plot
+        '''
+
+        response = self.plot_json(bbox, timeout)
         vega_spec: VegaSpec = json.loads(response.data['vegaString'])
 
         return VegaLite(vega_spec)
@@ -453,7 +461,7 @@ class Workflow:
             # TODO: add time information to dataset
             return data_array.load()
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def download_raster(
         self,
         bbox: QueryRectangle,
@@ -513,6 +521,7 @@ class Workflow:
             with open(path, 'wb') as file:
                 file.write(response)
 
+    # pylint: disable=too-many-positional-arguments,too-many-positional-arguments
     def save_as_dataset(
             self,
             query_rectangle: geoengine_openapi_client.RasterQueryRectangle,
@@ -965,3 +974,46 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> 
             ),
             _request_timeout=timeout
         )
+
+
+def data_usage(offset: int = 0, limit: int = 10) -> List[geoengine_openapi_client.DataUsage]:
+    '''
+    Get data usage
+    '''
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        response = user_api.data_usage_handler(offset=offset, limit=limit)
+
+        # create dataframe from response
+        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
+        df = pd.DataFrame(usage_dicts)
+        if 'timestamp' in df.columns:
+            df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
+
+    return df
+
+
+def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity,
+                       dataset: Optional[str] = None,
+                       offset: int = 0, limit: int = 10) -> pd.DataFrame:
+    '''
+    Get data usage summary
+    '''
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        user_api = geoengine_openapi_client.UserApi(api_client)
+        response = user_api.data_usage_summary_handler(dataset=dataset, granularity=granularity,
+                                                       offset=offset, limit=limit)
+
+        # create dataframe from response
+        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
+        df = pd.DataFrame(usage_dicts)
+        if 'timestamp' in df.columns:
+            df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
+
+    return df

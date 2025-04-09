@@ -1,10 +1,16 @@
 '''Utility methods for testing'''
 
+import sys
 from unittest.mock import _patch, patch
 from json import dumps, loads
 import unittest
 from urllib.parse import parse_qs
 import urllib3
+
+
+def eprint(*args, **kwargs):
+    '''Print to stderr'''
+    print(*args, file=sys.stderr, **kwargs)
 
 
 def is_url_match(url1: str, url2: str) -> bool:
@@ -92,14 +98,15 @@ class UrllibMocker:
                 body=matcher["body"]
             )
 
-        # TODO: remove
-        print([matcher["url"] for matcher in self._matchers])
+        # Note: Use for debgging
+        # eprint([matcher["url"] for matcher in self._matchers])
 
-        print(f'No handler found for {method} {url}')
+        eprint(f'No handler found for {method} {url} with body {dumps(sent_body, indent=4)}')
 
         raise KeyError(f'No handler found for {method} {url}')
 
-    # pylint: disable-next=too-many-arguments # follows `requests-mock` API
+    # follows `requests-mock` API
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def register_uri(self, method, url,
                      request_headers=None, expected_request_body=None, status_code=200,
                      json=None, text=None, body=None):

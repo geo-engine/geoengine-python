@@ -1,6 +1,5 @@
 '''Raster data types'''
 from __future__ import annotations
-import json
 from typing import AsyncIterator, List, Literal, Optional, Tuple, Union, cast
 import numpy as np
 import pyarrow as pa
@@ -47,7 +46,7 @@ class RasterTile2D:
     time: gety.TimeInterval
     band: int
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
             self,
             shape: Tuple[int, int],
@@ -214,6 +213,12 @@ class RasterTile2D:
     def spatial_resolution(self) -> gety.SpatialResolution:
         return self.geo_transform.spatial_resolution()
 
+    def is_empty(self) -> bool:
+        ''' Returns true if the tile is empty'''
+        num_pixels = self.size_x * self.size_y
+        num_nulls = self.data.null_count
+        return num_pixels == num_nulls
+
     @staticmethod
     def from_ge_record_batch(record_batch: pa.RecordBatch) -> RasterTile2D:
         '''Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine'''
@@ -227,7 +232,9 @@ class RasterTile2D:
         # We know from the backend that there is only one array a.k.a. one column
         arrow_array = record_batch.column(0)
 
-        time = gety.TimeInterval.from_response(json.loads(metadata[b'time']))
+        inner_time = geoengine_openapi_client.TimeInterval.from_json(metadata[b'time'])
+        assert inner_time is not None, "Failed to parse time"
+        time = gety.TimeInterval.from_response(inner_time)
 
         band = int(metadata[b'band'])
 
@@ -251,7 +258,7 @@ class RasterTileStack2D:
     data: List[pa.Array]
     bands: List[int]
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
             self,
             tile_shape: Tuple[int, int],

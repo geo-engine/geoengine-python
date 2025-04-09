@@ -449,7 +449,7 @@ class RasterVectorJoin(VectorOperator):
     feature_aggregation: Literal["first", "mean"] = "mean"
     feature_aggregation_ignore_nodata: bool = False
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self,
                  raster_sources: List[RasterOperator],
                  vector_source: VectorOperator,
@@ -574,7 +574,7 @@ class RasterScaling(RasterOperator):
     output_measurement: Optional[str] = None
 
     def __init__(self,
-                 # pylint: disable=too-many-arguments
+                 # pylint: disable=too-many-arguments,too-many-positional-arguments
                  source: RasterOperator,
                  slope: Optional[Union[float, str]] = None,
                  offset: Optional[Union[float, str]] = None,
@@ -600,6 +600,9 @@ class RasterScaling(RasterOperator):
 
             if isinstance(key_or_value, float):
                 return {"type": "constant", "value": key_or_value}
+
+            if isinstance(key_or_value, int):
+                return {"type": "constant", "value": float(key_or_value)}
 
             # TODO: incorporate `domain` field
             return {"type": "metadataKey", "key": key_or_value}
@@ -752,7 +755,7 @@ class Expression(RasterOperator):
     map_no_data: bool = False
     output_band: Optional[RasterBandDescriptor] = None
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self,
                  expression: str,
                  source: RasterOperator,
@@ -776,7 +779,7 @@ class Expression(RasterOperator):
             "outputType": self.output_type,
             "mapNoData": self.map_no_data,
         }
-        if self.output_band:
+        if self.output_band is not None:
             params["outputBand"] = self.output_band.to_api_dict().to_dict()
 
         return {
@@ -793,12 +796,13 @@ class Expression(RasterOperator):
             raise ValueError("Invalid operator type")
 
         output_band = None
-        if "outputBand" in operator_dict["params"]:
-            output_band = RasterBandDescriptor.from_response(
-                geoengine_openapi_client.RasterBandDescriptor.from_dict(
-                    operator_dict["params"]["outputBand"]
-                )
+        if "outputBand" in operator_dict["params"] and operator_dict["params"]["outputBand"] is not None:
+            raster_band_descriptor = geoengine_openapi_client.RasterBandDescriptor.from_dict(
+                operator_dict["params"]["outputBand"]
             )
+            if raster_band_descriptor is None:
+                raise ValueError("Invalid output band")
+            output_band = RasterBandDescriptor.from_response(raster_band_descriptor)
 
         return Expression(
             expression=operator_dict["params"]["expression"],
@@ -903,6 +907,7 @@ class VectorExpression(VectorOperator):
         return 'VectorExpression'
 
     def to_dict(self) -> Dict[str, Any]:
+        output_column_dict = None
         if isinstance(self.output_column, GeoVectorDataType):
             output_column_dict = {
                 "type": "geometry",
@@ -913,6 +918,8 @@ class VectorExpression(VectorOperator):
                 "type": "column",
                 "value": self.output_column,
             }
+        else:
+            raise NotImplementedError("Invalid output column type")
 
         params = {
             "expression": self.expression,
@@ -970,7 +977,7 @@ class TemporalRasterAggregation(RasterOperator):
     percentile: Optional[float] = None
     window_ref: Optional[np.datetime64] = None
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(self,
                  source: RasterOperator,
                  aggregation_type:

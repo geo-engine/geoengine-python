@@ -5,20 +5,24 @@ Module for working with datasets and source definitions
 from __future__ import annotations
 from abc import abstractmethod
 from pathlib import Path
-from typing import List, NamedTuple, Optional, Union, Literal
+from typing import List, NamedTuple, Optional, Union, Literal, Tuple
 from enum import Enum
 from uuid import UUID
 import tempfile
 from attr import dataclass
+import geoengine_openapi_client
+import geoengine_openapi_client.exceptions
+import geoengine_openapi_client.models
 import numpy as np
 import geopandas as gpd
-import geoengine_openapi_client
 from geoengine import api
 from geoengine.error import InputException, MissingFieldInResponseException
 from geoengine.auth import get_session
 from geoengine.types import Provenance, RasterSymbology, TimeStep, \
     TimeStepGranularity, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
     UnitlessMeasurement, FeatureDataType
+from geoengine.resource_identifier import Resource, UploadId, DatasetName
+from geoengine.permissions import RoleId, Permission, add_permission
 
 
 class UnixTimeStampType(Enum):
@@ -256,71 +260,6 @@ class OgrOnError(Enum):
         return geoengine_openapi_client.OgrSourceErrorSpec(self.value)
 
 
-class DatasetName:
-    '''A wrapper for a dataset id'''
-
-    __dataset_name: str
-
-    def __init__(self, dataset_name: str) -> None:
-        self.__dataset_name = dataset_name
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.CreateDatasetHandler200Response) -> DatasetName:
-        '''Parse a http response to an `DatasetId`'''
-        return DatasetName(response.dataset_name)
-
-    def __str__(self) -> str:
-        return self.__dataset_name
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __eq__(self, other) -> bool:
-        '''Checks if two dataset ids are equal'''
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.__dataset_name == other.__dataset_name  # pylint: disable=protected-access
-
-    def to_api_dict(self) -> geoengine_openapi_client.CreateDatasetHandler200Response:
-        return geoengine_openapi_client.CreateDatasetHandler200Response(
-            dataset_name=str(self.__dataset_name)
-        )
-
-
-class UploadId:
-    '''A wrapper for an upload id'''
-
-    __upload_id: UUID
-
-    def __init__(self, upload_id: UUID) -> None:
-        self.__upload_id = upload_id
-
-    @classmethod
-    def from_response(cls, response: geoengine_openapi_client.AddCollection200Response) -> UploadId:
-        '''Parse a http response to an `UploadId`'''
-        return UploadId(UUID(response.id))
-
-    def __str__(self) -> str:
-        return str(self.__upload_id)
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __eq__(self, other) -> bool:
-        '''Checks if two upload ids are equal'''
-        if not isinstance(other, self.__class__):
-            return False
-
-        return self.__upload_id == other.__upload_id  # pylint: disable=protected-access
-
-    def to_api_dict(self) -> geoengine_openapi_client.AddCollection200Response:
-        '''Converts the upload id to a dict for the api'''
-        return geoengine_openapi_client.AddCollection200Response(
-            id=str(self.__upload_id)
-        )
-
-
 class AddDatasetProperties():
     '''The properties for adding a dataset'''
     name: Optional[str]
@@ -331,7 +270,7 @@ class AddDatasetProperties():
     provenance: Optional[List[Provenance]]
 
     def __init__(
-        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         display_name: str,
         description: str,
@@ -433,7 +372,7 @@ def upload_dataframe(
     GeoEngineException
         If the dataset could not be uploaded or the name is already taken.
     """
-    # pylint: disable=too-many-arguments,too-many-locals
+    # pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
 
     if len(df) == 0:
         raise InputException("Cannot upload empty dataframe")
@@ -466,6 +405,14 @@ def upload_dataframe(
     ints = [key for (key, value) in columns.items() if value.data_type == 'int']
     texts = [key for (key, value) in columns.items() if value.data_type == 'text']
 
+    result_descriptor = VectorResultDescriptor(
+        data_type=vector_type,
+        spatial_reference=df.crs.to_string(),
+        columns=columns,
+    ).to_api_dict().actual_instance
+    if not isinstance(result_descriptor, geoengine_openapi_client.TypedVectorResultDescriptor):
+        raise TypeError('Expected TypedVectorResultDescriptor')
+
     create = geoengine_openapi_client.CreateDataset(
         data_path=geoengine_openapi_client.DataPath(geoengine_openapi_client.DataPathOneOf1(
             upload=str(upload_id)
@@ -494,11 +441,9 @@ def upload_dataframe(
                         ),
                         on_error=on_error.to_api_enum(),
                     ),
-                    result_descriptor=VectorResultDescriptor(
-                        data_type=vector_type,
-                        spatial_reference=df.crs.to_string(),
-                        columns=columns,
-                    ).to_api_dict().actual_instance
+                    result_descriptor=geoengine_openapi_client.VectorResultDescriptor.from_dict(
+                        result_descriptor.to_dict()
+                    )
                 )
             )
         )
@@ -595,6 +540,42 @@ def add_dataset(data_store: Union[Volume, UploadId],
     return DatasetName.from_response(response)
 
 
+def add_or_replace_dataset_with_permissions(data_store: Union[Volume, UploadId],
+                                            properties: AddDatasetProperties,
+                                            meta_data: geoengine_openapi_client.MetaDataDefinition,
+                                            permission_tuples: Optional[List[Tuple[RoleId, Permission]]] = None,
+                                            replace_existing=False,
+                                            timeout: int = 60) -> DatasetName:
+    '''
+    Add a dataset to the Geo Engine and set permissions.
+    Replaces existing datasets if forced!
+    '''
+    # pylint: disable=too-many-arguments,too-many-positional-arguments
+
+    def add_dataset_and_permissions() -> DatasetName:
+        dataset_name = add_dataset(data_store=data_store, properties=properties, meta_data=meta_data, timeout=timeout)
+        if permission_tuples is not None:
+            dataset_res = Resource.from_dataset_name(dataset_name)
+            for (role, perm) in permission_tuples:
+                add_permission(role, dataset_res, perm, timeout=timeout)
+        return dataset_name
+
+    if properties.name is None:
+        dataset_name = add_dataset_and_permissions()
+
+    else:
+        dataset_name = DatasetName(properties.name)
+        dataset_info = dataset_info_by_name(dataset_name)
+        if dataset_info is None:  # dataset is not existing
+            dataset_name = add_dataset_and_permissions()
+        else:
+            if replace_existing:  # dataset exists and we overwrite it
+                delete_dataset(dataset_name)
+                dataset_name = add_dataset_and_permissions()
+
+    return dataset_name
+
+
 def delete_dataset(dataset_name: DatasetName, timeout: int = 60) -> None:
     '''Delete a dataset. The dataset must be owned by the caller.'''
 
@@ -630,3 +611,25 @@ def list_datasets(offset: int = 0,
         )
 
     return response
+
+
+def dataset_info_by_name(
+        dataset_name: Union[DatasetName, str], timeout: int = 60
+) -> geoengine_openapi_client.models.Dataset | None:
+    '''Get dataset information.'''
+
+    if not isinstance(dataset_name, DatasetName):
+        dataset_name = DatasetName(dataset_name)
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        res = None
+        try:
+            res = datasets_api.get_dataset_handler(str(dataset_name), _request_timeout=timeout)
+        except geoengine_openapi_client.exceptions.BadRequestException as e:
+            e_body = e.body
+            if isinstance(e_body, str) and 'CannotLoadDataset' not in e_body:
+                raise e
+        return res

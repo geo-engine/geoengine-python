@@ -169,7 +169,7 @@ class TimeInterval:
             raise InputException("Time inverval: Start must be <= End")
 
     def is_instant(self) -> bool:
-        return self.end is None
+        return self.end is None or self.start == self.end
 
     @property
     def time_str(self) -> str:
@@ -187,36 +187,41 @@ class TimeInterval:
         return start_iso + '/' + end_iso
 
     @staticmethod
-    def from_response(response: Any) -> TimeInterval:
+    def from_response(response: geoengine_openapi_client.models.TimeInterval) -> TimeInterval:
         '''create a `TimeInterval` from an API response'''
 
-        if 'start' not in response:
+        if response.start is None:
             raise TypeException('TimeInterval must have a start')
 
-        if isinstance(response['start'], int):
-            start = cast(int, response['start'])
-            end = cast(int, response['end']) if 'end' in response and response['end'] is not None else None
+        start = cast(int, response.start)
+        end = None
+        if response.end is not None:
+            end = cast(int, response.end)
 
-            return TimeInterval(
-                np.datetime64(start, 'ms'),
-                np.datetime64(end, 'ms') if end is not None else None,
-            )
-
-        start_str = cast(str, response['start'])
-        end_str = cast(str, response['end']) if 'end' in response and response['end'] is not None else None
+        if start == end:
+            end = None
 
         return TimeInterval(
-            datetime.fromisoformat(start_str),
-            datetime.fromisoformat(end_str) if end_str is not None else None,
+            np.datetime64(start, 'ms'),
+            np.datetime64(end, 'ms') if end is not None else None,
         )
 
     def __repr__(self) -> str:
         return f"TimeInterval(start={self.start}, end={self.end})"
 
     def to_api_dict(self) -> geoengine_openapi_client.TimeInterval:
+        '''create a openapi `TimeInterval` from self'''
+        start = self.start.astype('datetime64[ms]').astype(int)
+        end = self.end.astype('datetime64[ms]').astype(int) if self.end is not None else None
+
+        # The openapi Timeinterval does not accept end: None. So we set it to start IF self is an instant.
+        end = end if end is not None else start
+
+        print(self, start, end)
+
         return geoengine_openapi_client.TimeInterval(
-            start=int(self.start.astype('datetime64[ms]').astype(int)),
-            end=int(self.end.astype('datetime64[ms]').astype(int)) if self.end is not None else None,
+            start=int(start),
+            end=int(end)
         )
 
     @staticmethod
@@ -487,7 +492,7 @@ class VectorResultDescriptor(ResultDescriptor):
     __data_type: VectorDataType
     __columns: Dict[str, VectorColumnInfo]
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         spatial_reference: str,
         data_type: VectorDataType,
@@ -510,9 +515,8 @@ class VectorResultDescriptor(ResultDescriptor):
         columns = {name: VectorColumnInfo.from_response(info) for name, info in response.columns.items()}
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if 'time' in response and response['time'] is not None:
-        #    time_bounds = TimeInterval.from_response(response['time'])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -567,7 +571,7 @@ class VectorResultDescriptor(ResultDescriptor):
             data_type=self.data_type.to_api_enum(),
             spatial_reference=self.spatial_reference,
             columns={name: column_info.to_api_dict() for name, column_info in self.columns.items()},
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
         ))
 
@@ -767,6 +771,29 @@ class SpatialGridDescriptor:
         return r
 
 
+def literal_raster_data_type(
+    data_type: geoengine_openapi_client.RasterDataType
+) -> Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']:
+    '''Convert a `RasterDataType` to a literal'''
+
+    data_type_map: dict[
+        geoengine_openapi_client.RasterDataType,
+        Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']
+    ] = {
+        geoengine_openapi_client.RasterDataType.U8: 'U8',
+        geoengine_openapi_client.RasterDataType.U16: 'U16',
+        geoengine_openapi_client.RasterDataType.U32: 'U32',
+        geoengine_openapi_client.RasterDataType.U64: 'U64',
+        geoengine_openapi_client.RasterDataType.I8: 'I8',
+        geoengine_openapi_client.RasterDataType.I16: 'I16',
+        geoengine_openapi_client.RasterDataType.I32: 'I32',
+        geoengine_openapi_client.RasterDataType.I64: 'I64',
+        geoengine_openapi_client.RasterDataType.F32: 'F32',
+        geoengine_openapi_client.RasterDataType.F64: 'F64',
+    }
+    return data_type_map[data_type]
+
+
 class RasterResultDescriptor(ResultDescriptor):
     '''
     A raster result descriptor
@@ -775,7 +802,7 @@ class RasterResultDescriptor(ResultDescriptor):
     __bands: List[RasterBandDescriptor]
     __spatial_grid: SpatialGridDescriptor
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         data_type: Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64'],
         bands: List[RasterBandDescriptor],
@@ -807,14 +834,18 @@ class RasterResultDescriptor(ResultDescriptor):
             response: geoengine_openapi_client.TypedRasterResultDescriptor) -> RasterResultDescriptor:
         '''Parse a raster result descriptor from an http response'''
         spatial_ref = response.spatial_reference
-        data_type = response.data_type.value
+        data_type = literal_raster_data_type(response.data_type)
         bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
+
         # FIXME: datetime can not represent our min max range
         # if 'time' in response and response['time'] is not None:
         #    time_bounds = TimeInterval.from_response(response['time'])
         spatial_grid = SpatialGridDescriptor.from_response(response.spatial_grid)
+
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
 
         return RasterResultDescriptor(
             data_type=data_type,
@@ -856,7 +887,7 @@ class RasterResultDescriptor(ResultDescriptor):
         r += f'Data type:         {self.data_type}\n'
         r += f'Spatial Reference: {self.spatial_reference}\n'
         r += f'Spatial Grid: {self.spatial_grid} \n'
-        r += f'Spatial Bounds: {self.spatial_bounds}\n'
+        r += f'Time Bounds: {self.time_bounds}\n'
         r += 'Bands:\n'
 
         for band in self.__bands:
@@ -894,9 +925,8 @@ class PlotResultDescriptor(ResultDescriptor):
         spatial_ref = response.spatial_reference
 
         time_bounds = None
-        # FIXME: datetime can not represent our min max range
-        # if 'time' in response and response['time'] is not None:
-        #    time_bounds = TimeInterval.from_response(response['time'])
+        if response.time is not None:
+            time_bounds = TimeInterval.from_response(response.time)
         spatial_bounds = None
         if response.bbox is not None:
             spatial_bounds = BoundingBox2D.from_response(response.bbox)
@@ -927,7 +957,7 @@ class PlotResultDescriptor(ResultDescriptor):
             type='plot',
             spatial_reference=self.spatial_reference,
             data_type='Plot',
-            time=self.time_bounds.time_str if self.time_bounds is not None else None,
+            time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
             bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None
         ))
 
@@ -1067,6 +1097,9 @@ class Symbology:
 
         raise InputException("Invalid symbology type")
 
+    def __repr__(self):
+        "Symbology"
+
 
 class VectorSymbology(Symbology):
     '''A vector symbology'''
@@ -1087,6 +1120,8 @@ class RasterColorizer:
 
         if isinstance(inner, geoengine_openapi_client.SingleBandRasterColorizer):
             return SingleBandRasterColorizer.from_single_band_response(inner)
+        if isinstance(inner, geoengine_openapi_client.MultiBandRasterColorizer):
+            return MultiBandRasterColorizer.from_multi_band_response(inner)
 
         raise GeoEngineException({"message": "Unknown RasterColorizer type"})
 
@@ -1117,24 +1152,76 @@ class SingleBandRasterColorizer(RasterColorizer):
         ))
 
 
+@dataclass
+class MultiBandRasterColorizer(RasterColorizer):
+    '''A raster colorizer for multiple bands'''
+
+    blue_band: int
+    blue_max: float
+    blue_min: float
+    blue_scale: Optional[float]
+    green_band: int
+    green_max: float
+    green_min: float
+    green_scale: Optional[float]
+    red_band: int
+    red_max: float
+    red_min: float
+    red_scale: Optional[float]
+
+    @staticmethod
+    def from_multi_band_response(response: geoengine_openapi_client.MultiBandRasterColorizer) -> RasterColorizer:
+        return MultiBandRasterColorizer(
+            response.blue_band,
+            response.blue_max,
+            response.blue_min,
+            response.blue_scale,
+            response.green_band,
+            response.green_max,
+            response.green_min,
+            response.green_scale,
+            response.red_band,
+            response.red_max,
+            response.red_min,
+            response.red_scale
+        )
+
+    def to_api_dict(self) -> geoengine_openapi_client.RasterColorizer:
+        return geoengine_openapi_client.RasterColorizer(geoengine_openapi_client.MultiBandRasterColorizer(
+            type='multiBand',
+            blue_band=self.blue_band,
+            blue_max=self.blue_max,
+            blue_min=self.blue_min,
+            blue_scale=self.blue_scale,
+            green_band=self.green_band,
+            green_max=self.green_max,
+            green_min=self.green_min,
+            green_scale=self.green_scale,
+            red_band=self.red_band,
+            red_max=self.red_max,
+            red_min=self.red_min,
+            red_scale=self.red_scale
+        ))
+
+
 class RasterSymbology(Symbology):
     '''A raster symbology'''
-    __opacity: float
-    __raster_colorizer: RasterColorizer
+    opacity: float
+    raster_colorizer: RasterColorizer
 
     def __init__(self, raster_colorizer: RasterColorizer, opacity: float = 1.0) -> None:
         '''Initialize a new `RasterSymbology`'''
 
-        self.__raster_colorizer = raster_colorizer
-        self.__opacity = opacity
+        self.raster_colorizer = raster_colorizer
+        self.opacity = opacity
 
     def to_api_dict(self) -> geoengine_openapi_client.Symbology:
         '''Convert the raster symbology to a dictionary'''
 
         return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbology(
             type='raster',
-            raster_colorizer=self.__raster_colorizer.to_api_dict(),
-            opacity=self.__opacity,
+            raster_colorizer=self.raster_colorizer.to_api_dict(),
+            opacity=self.opacity,
         ))
 
     @staticmethod
@@ -1146,7 +1233,14 @@ class RasterSymbology(Symbology):
         return RasterSymbology(raster_colorizer, response.opacity)
 
     def __repr__(self) -> str:
-        return super().__repr__() + f"({self.__raster_colorizer}, {self.__opacity})"
+        return str(self.__class__) + f"({self.raster_colorizer}, {self.opacity})"
+
+    def __eq__(self, value):
+        '''Check if two RasterSymbologies are equal'''
+
+        if not isinstance(value, self.__class__):
+            return False
+        return self.opacity == value.opacity and self.raster_colorizer == value.raster_colorizer
 
 
 class DataId:  # pylint: disable=too-few-public-methods

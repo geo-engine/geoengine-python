@@ -1,6 +1,8 @@
 # Geo Engine Python Package
 
-[![CI](https://github.com/geo-engine/geoengine-python/actions/workflows/ci.yml/badge.svg)](https://github.com/geo-engine/geoengine-python/actions/workflows/ci.yml)
+[![CI](https://github.com/geo-engine/geoengine-python/actions/workflows/ci.yml/badge.svg?event=merge_group)](https://github.com/geo-engine/geoengine-python/actions/workflows/ci.yml?query=event%3Amerge_group)
+[![Coverage Status](https://coveralls.io/repos/github/geo-engine/geoengine-python/badge.svg)](https://coveralls.io/github/geo-engine/geoengine-python)
+[![Documentation](https://img.shields.io/badge/documentation-python.docs.geoengine.io-blue)](https://python.docs.geoengine.io/)
 
 This package allows easy access to Geo Engine functionality from Python environments.
 
@@ -22,7 +24,7 @@ source env/bin/activate
 ```bash
 # go out of old venv
 deactivate
-# delete oldv env
+# delete old venv
 rm -r env
 # create new venv
 python3 -m venv env
@@ -45,6 +47,34 @@ Run tests with:
 
 ```bash
 pytest
+```
+
+#### Test instance
+
+You have to set the environment variable `GEOENGINE_TEST_CODE_PATH` to the code folder of the Geo Engine instance you want to test against.
+Dotenv is supported, so you can create a `.env` file in the root of the project.
+
+#### Coverage
+
+You can check the coverage with:
+
+```bash
+pytest --cov=geoengine
+```
+
+### Test examples
+
+You can test the examples with:
+
+```bash
+python3 -m pip install -e .[examples]
+./test_all_notebooks.py
+```
+
+Or you can test a single example with:
+
+```bash
+./test_notebook.py examples/ndvi_ports.ipynb
 ```
 
 ## Dependencies

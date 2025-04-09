@@ -47,14 +47,18 @@ class OperatorsTests(unittest.TestCase):
         workflow = wb.operators.Interpolation(
             source_operator=source_operator,
             interpolation="nearestNeighbor",
+            output_method="fraction",
+            output_x=0.5,
+            output_y=0.5
         )
 
         self.assertEqual(workflow.to_dict(), {
             'type': 'Interpolation',
             'params': {
-                "interpolation": "nearestNeighbor",
-                "inputResolution": {
-                    "type": "source"
+                'interpolation': 'nearestNeighbor',
+                'outputResolution': {
+                    'type': 'fraction',
+                    'x': 0.5, 'y': 0.5
                 }
             },
             'sources': {
