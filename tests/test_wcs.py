@@ -153,7 +153,7 @@ class WcsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            query = ge.QueryRectangle(
+            query = ge.QueryRectangleWithResolution(
                 ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                 ge.TimeInterval(time),
                 resolution=ge.SpatialResolution(360. / 8, 180. / 8),
@@ -317,7 +317,7 @@ class WcsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            query = ge.QueryRectangle(
+            query = ge.QueryRectangleWithResolution(
                 ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                 ge.TimeInterval(time, time),
                 resolution=ge.SpatialResolution(360. / 8, 180. / 8),
@@ -467,7 +467,7 @@ class WcsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            query = ge.QueryRectangle(
+            query = ge.QueryRectangleWithResolution(
                 ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                 ge.TimeInterval(time),
                 resolution=ge.SpatialResolution(360. / 8, 180. / 8),

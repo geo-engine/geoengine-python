@@ -15,6 +15,7 @@ from os import PathLike
 from typing import Any, AsyncIterator, Dict, List, Optional, Union, Type, cast, TypedDict
 from uuid import UUID
 
+import geoengine_openapi_client as geoc
 import geopandas as gpd
 import pandas as pd
 import numpy as np
@@ -30,14 +31,14 @@ import websockets.client
 import xarray as xr
 import pyarrow as pa
 
-import geoengine_openapi_client
+
 from geoengine import api
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
     MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, OGCXMLError
 from geoengine import backports
-from geoengine.types import ProvenanceEntry, QueryRectangle, RasterColorizer, ResultDescriptor, \
-    VectorResultDescriptor, ClassificationMeasurement
+from geoengine.types import ProvenanceEntry, QueryRectangle, QueryRectangleWithResolution, RasterColorizer, \
+    ResultDescriptor, SpatialPartition2D, VectorResultDescriptor, ClassificationMeasurement
 from geoengine.tasks import Task, TaskId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 from geoengine.raster import RasterTile2D
@@ -69,7 +70,7 @@ class WorkflowId:
         self.__workflow_id = workflow_id
 
     @classmethod
-    def from_response(cls, response: geoengine_openapi_client.IdResponse) -> WorkflowId:
+    def from_response(cls, response: geoc.IdResponse) -> WorkflowId:
         '''
         Create a `WorkflowId` from an http response
         '''
@@ -162,8 +163,8 @@ class Workflow:
 
         session = get_session()
 
-        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-            workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
+        with geoc.ApiClient(session.configuration) as api_client:
+            workflows_api = geoc.WorkflowsApi(api_client)
             response = workflows_api.get_workflow_metadata_handler(str(self.__workflow_id), _request_timeout=timeout)
 
         debug(response)
@@ -177,13 +178,13 @@ class Workflow:
 
         return self.__result_descriptor
 
-    def workflow_definition(self, timeout: int = 60) -> geoengine_openapi_client.Workflow:
+    def workflow_definition(self, timeout: int = 60) -> geoc.Workflow:
         '''Return the workflow definition for this workflow'''
 
         session = get_session()
 
-        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-            workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
+        with geoc.ApiClient(session.configuration) as api_client:
+            workflows_api = geoc.WorkflowsApi(api_client)
             response = workflows_api.load_workflow_handler(str(self.__workflow_id), _request_timeout=timeout)
 
         return response
@@ -203,20 +204,24 @@ class Workflow:
 
         session = get_session()
 
-        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-            wfs_api = geoengine_openapi_client.OGCWFSApi(api_client)
+        qres = None
+        if isinstance(bbox, QueryRectangleWithResolution):
+            qres = str(bbox.spatial_resolution)
+
+        with geoc.ApiClient(session.configuration) as api_client:
+            wfs_api = geoc.OGCWFSApi(api_client)
             response = wfs_api.wfs_feature_handler(
                 workflow=str(self.__workflow_id),
-                service=geoengine_openapi_client.WfsService(geoengine_openapi_client.WfsService.WFS),
-                request=geoengine_openapi_client.GetFeatureRequest(
-                    geoengine_openapi_client.GetFeatureRequest.GETFEATURE
+                service=geoc.WfsService(geoc.WfsService.WFS),
+                request=geoc.GetFeatureRequest(
+                    geoc.GetFeatureRequest.GETFEATURE
                 ),
                 type_names=str(self.__workflow_id),
                 bbox=bbox.bbox_str,
-                version=geoengine_openapi_client.WfsVersion(geoengine_openapi_client.WfsVersion.ENUM_2_DOT_0_DOT_0),
+                version=geoc.WfsVersion(geoc.WfsVersion.ENUM_2_DOT_0_DOT_0),
                 time=bbox.time_str,
                 srs_name=bbox.srs,
-                query_resolution=str(bbox.spatial_resolution),
+                query_resolution=qres,
                 _request_timeout=timeout
             )
 
@@ -257,7 +262,9 @@ class Workflow:
 
         return result
 
-    def wms_get_map_as_image(self, bbox: QueryRectangle, raster_colorizer: RasterColorizer) -> Image.Image:
+    def wms_get_map_as_image(
+            self, bbox: QueryRectangleWithResolution, raster_colorizer: RasterColorizer
+    ) -> Image.Image:
         '''Return the result of a WMS request as a PIL Image'''
 
         if not self.__result_descriptor.is_raster_result():
@@ -265,17 +272,17 @@ class Workflow:
 
         session = get_session()
 
-        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-            wms_api = geoengine_openapi_client.OGCWMSApi(api_client)
+        with geoc.ApiClient(session.configuration) as api_client:
+            wms_api = geoc.OGCWMSApi(api_client)
             response = wms_api.wms_map_handler(
                 workflow=str(self),
-                version=geoengine_openapi_client.WmsVersion(geoengine_openapi_client.WmsVersion.ENUM_1_DOT_3_DOT_0),
-                service=geoengine_openapi_client.WmsService(geoengine_openapi_client.WmsService.WMS),
-                request=geoengine_openapi_client.GetMapRequest(geoengine_openapi_client.GetMapRequest.GETMAP),
+                version=geoc.WmsVersion(geoc.WmsVersion.ENUM_1_DOT_3_DOT_0),
+                service=geoc.WmsService(geoc.WmsService.WMS),
+                request=geoc.GetMapRequest(geoc.GetMapRequest.GETMAP),
                 width=int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) / bbox.spatial_resolution.x_resolution),
                 height=int((bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) / bbox.spatial_resolution.y_resolution),  # pylint: disable=line-too-long
                 bbox=bbox.bbox_ogc_str,
-                format=geoengine_openapi_client.GetMapFormat(geoengine_openapi_client.GetMapFormat.IMAGE_SLASH_PNG),
+                format=geoc.GetMapFormat(geoc.GetMapFormat.IMAGE_SLASH_PNG),
                 layers=str(self),
                 styles='custom:' + raster_colorizer.to_api_dict().to_json(),
                 crs=bbox.srs,
@@ -287,7 +294,7 @@ class Workflow:
 
         return Image.open(BytesIO(response))
 
-    def plot_json(self, bbox: QueryRectangle, timeout: int = 3600) -> geoengine_openapi_client.WrappedPlotOutput:
+    def plot_json(self, bbox: QueryRectangleWithResolution, timeout: int = 3600) -> geoc.WrappedPlotOutput:
         '''
         Query a workflow and return the plot chart result as WrappedPlotOutput
         '''
@@ -297,8 +304,8 @@ class Workflow:
 
         session = get_session()
 
-        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-            plots_api = geoengine_openapi_client.PlotsApi(api_client)
+        with geoc.ApiClient(session.configuration) as api_client:
+            plots_api = geoc.PlotsApi(api_client)
             return plots_api.get_plot_handler(
                 bbox.bbox_str,
                 bbox.time_str,
@@ -308,7 +315,7 @@ class Workflow:
                 _request_timeout=timeout
             )
 
-    def plot_chart(self, bbox: QueryRectangle, timeout: int = 3600) -> VegaLite:
+    def plot_chart(self, bbox: QueryRectangleWithResolution, timeout: int = 3600) -> VegaLite:
         '''
         Query a workflow and return the plot chart result as a vega plot
         '''
@@ -352,16 +359,19 @@ class Workflow:
             auth=Authentication(auth_delegate=session.requests_bearer_auth()),
         )
 
-        [resx, resy] = bbox.resolution_ogc
+        resx = None
+        resy = None
+        if isinstance(bbox, QueryRectangleWithResolution):
+            [resx, resy] = bbox.resolution_ogc
 
         kwargs = {}
 
         if force_no_data_value is not None:
             kwargs["nodatavalue"] = str(float(force_no_data_value))
         if resx is not None:
-            kwargs["resx"] = resx
+            kwargs["resx"] = str(resx)
         if resy is not None:
-            kwargs["resy"] = resy
+            kwargs["resy"] = str(resy)
 
         return wcs.getCoverage(
             identifier=f'{self.__workflow_id}',
@@ -495,8 +505,8 @@ class Workflow:
 
         session = get_session()
 
-        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-            workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
+        with geoc.ApiClient(session.configuration) as api_client:
+            workflows_api = geoc.WorkflowsApi(api_client)
             response = workflows_api.get_workflow_provenance_handler(str(self.__workflow_id), _request_timeout=timeout)
 
         return [ProvenanceEntry.from_response(item) for item in response]
@@ -508,8 +518,8 @@ class Workflow:
 
         session = get_session()
 
-        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-            workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
+        with geoc.ApiClient(session.configuration) as api_client:
+            workflows_api = geoc.WorkflowsApi(api_client)
             response = workflows_api.get_workflow_all_metadata_zip_handler(
                 str(self.__workflow_id),
                 _request_timeout=timeout
@@ -524,7 +534,7 @@ class Workflow:
     # pylint: disable=too-many-positional-arguments,too-many-positional-arguments
     def save_as_dataset(
             self,
-            query_rectangle: geoengine_openapi_client.RasterQueryRectangle,
+            query_rectangle: QueryRectangle,
             name: Optional[str],
             display_name: str,
             description: str = '',
@@ -537,15 +547,23 @@ class Workflow:
 
         session = get_session()
 
-        with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-            workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
+        if not isinstance(query_rectangle, QueryRectangle):
+            print("save_as_dataset ignores params other then spatial and tmporal bounds.")
+
+        qrect = geoc.models.raster_to_dataset_query_rectangle.RasterToDatasetQueryRectangle(
+            spatial_bounds=SpatialPartition2D.from_bounding_box(query_rectangle.spatial_bounds).to_api_dict(),
+            time_interval=query_rectangle.time.to_api_dict()
+        )
+
+        with geoc.ApiClient(session.configuration) as api_client:
+            workflows_api = geoc.WorkflowsApi(api_client)
             response = workflows_api.dataset_from_workflow_handler(
                 str(self.__workflow_id),
-                geoengine_openapi_client.RasterDatasetFromWorkflow(
+                geoc.RasterDatasetFromWorkflow(
                     name=name,
                     display_name=display_name,
                     description=description,
-                    query=query_rectangle
+                    query=qrect
                 ),
                 _request_timeout=timeout
             )
@@ -560,8 +578,8 @@ class Workflow:
     ) -> AsyncIterator[RasterTile2D]:
         '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
 
-        if query_rectangle.spatial_resolution is not None:
-            raise ValueError("Stream query can't use a resolution. Set it to 'None'.")
+        if not isinstance(query_rectangle, QueryRectangle):
+            print("raster_stream ignores params other then spatial and tmporal bounds.")
 
         if bands is None:
             bands = [0]
@@ -782,15 +800,19 @@ class Workflow:
 
         session = get_session()
 
+        params = {
+            'resultType': 'arrow',
+            'spatialBounds': query_rectangle.bbox_str,
+            'timeInterval': query_rectangle.time_str
+        }
+
+        if isinstance(query_rectangle, QueryRectangleWithResolution):
+            params['spatialResolution'] = str(query_rectangle.spatial_resolution)
+
         url = req.Request(
             'GET',
             url=f'{session.server_url}/workflow/{self.__workflow_id}/vectorStream',
-            params={
-                'resultType': 'arrow',
-                'spatialBounds': query_rectangle.bbox_str,
-                'timeInterval': query_rectangle.time_str,
-                'spatialResolution': str(query_rectangle.spatial_resolution),
-            },
+            params=params
         ).prepare().url
 
         if url is None:
@@ -918,15 +940,15 @@ def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], 
     if isinstance(workflow, WorkflowBuilderOperator):
         workflow = workflow.to_workflow_dict()
 
-    workflow_model = geoengine_openapi_client.Workflow.from_dict(workflow)
+    workflow_model = geoc.Workflow.from_dict(workflow)
 
     if workflow_model is None:
         raise InputException("Invalid workflow definition")
 
     session = get_session()
 
-    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-        workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
+    with geoc.ApiClient(session.configuration) as api_client:
+        workflows_api = geoc.WorkflowsApi(api_client)
         response = workflows_api.register_workflow_handler(workflow_model, _request_timeout=timeout)
 
     return Workflow(WorkflowId.from_response(response))
@@ -942,15 +964,15 @@ def workflow_by_id(workflow_id: UUID) -> Workflow:
     return Workflow(WorkflowId(workflow_id))
 
 
-def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> geoengine_openapi_client.Quota:
+def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> geoc.Quota:
     '''
     Gets a user's quota. Only admins can get other users' quota.
     '''
 
     session = get_session()
 
-    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-        user_api = geoengine_openapi_client.UserApi(api_client)
+    with geoc.ApiClient(session.configuration) as api_client:
+        user_api = geoc.UserApi(api_client)
 
         if user_id is None:
             return user_api.quota_handler(_request_timeout=timeout)
@@ -965,26 +987,26 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> 
 
     session = get_session()
 
-    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-        user_api = geoengine_openapi_client.UserApi(api_client)
+    with geoc.ApiClient(session.configuration) as api_client:
+        user_api = geoc.UserApi(api_client)
         user_api.update_user_quota_handler(
             str(user_id),
-            geoengine_openapi_client.UpdateQuota(
+            geoc.UpdateQuota(
                 available=new_available_quota
             ),
             _request_timeout=timeout
         )
 
 
-def data_usage(offset: int = 0, limit: int = 10) -> List[geoengine_openapi_client.DataUsage]:
+def data_usage(offset: int = 0, limit: int = 10) -> List[geoc.DataUsage]:
     '''
     Get data usage
     '''
 
     session = get_session()
 
-    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-        user_api = geoengine_openapi_client.UserApi(api_client)
+    with geoc.ApiClient(session.configuration) as api_client:
+        user_api = geoc.UserApi(api_client)
         response = user_api.data_usage_handler(offset=offset, limit=limit)
 
         # create dataframe from response
@@ -996,7 +1018,7 @@ def data_usage(offset: int = 0, limit: int = 10) -> List[geoengine_openapi_clien
     return df
 
 
-def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranularity,
+def data_usage_summary(granularity: geoc.UsageSummaryGranularity,
                        dataset: Optional[str] = None,
                        offset: int = 0, limit: int = 10) -> pd.DataFrame:
     '''
@@ -1005,8 +1027,8 @@ def data_usage_summary(granularity: geoengine_openapi_client.UsageSummaryGranula
 
     session = get_session()
 
-    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
-        user_api = geoengine_openapi_client.UserApi(api_client)
+    with geoc.ApiClient(session.configuration) as api_client:
+        user_api = geoc.UserApi(api_client)
         response = user_api.data_usage_summary_handler(dataset=dataset, granularity=granularity,
                                                        offset=offset, limit=limit)
 

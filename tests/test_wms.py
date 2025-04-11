@@ -108,7 +108,7 @@ class WmsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             img = workflow.wms_get_map_as_image(
-                ge.QueryRectangle(
+                ge.QueryRectangleWithResolution(
                     ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                     ge.TimeInterval(time),
                     resolution=ge.SpatialResolution(1.8, 1.8)
@@ -190,7 +190,7 @@ class WmsTests(unittest.TestCase):
 
             with self.assertRaises(ge.OGCXMLError) as ctx:
                 workflow.wms_get_map_as_image(
-                    ge.QueryRectangle(
+                    ge.QueryRectangleWithResolution(
                         spatial_bounds=ge.BoundingBox2D(-18.0, -9.0, 18.0, 9.0),
                         time_interval=ge.TimeInterval(np.datetime64('2004-04-01T12:00:00')),
                         resolution=ge.SpatialResolution(0.1, 0.1)

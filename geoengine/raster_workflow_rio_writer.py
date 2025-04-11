@@ -4,7 +4,7 @@ from typing import Optional, cast
 from datetime import datetime
 import rasterio as rio
 import numpy as np
-from geoengine.workflow import Workflow, QueryRectangle
+from geoengine.workflow import Workflow, QueryRectangleWithResolution
 from geoengine.types import RasterResultDescriptor, TimeInterval
 from geoengine.raster import ge_type_to_np
 
@@ -65,7 +65,7 @@ class RasterWorkflowRioWriter:
             self.current_dataset = None
 
     # pylint: disable=too-many-locals, too-many-statements
-    def create_tiling_geo_transform_width_height(self, query: QueryRectangle):
+    def create_tiling_geo_transform_width_height(self, query: QueryRectangleWithResolution):
         ''' Create the tiling geo transform, width and height for the current query.'''
 
         ul_x = query.spatial_bounds.xmin
@@ -134,7 +134,7 @@ class RasterWorkflowRioWriter:
         else:
             assert self.dataset_height == height, "The height of the current dataset does not match the new one"
 
-    def __create_new_dataset(self, query: QueryRectangle):
+    def __create_new_dataset(self, query: QueryRectangleWithResolution):
         ''' Create a new dataset for the current query.'''
         assert self.current_time is not None, "The current time must be set"
         time_formated_start = self.current_time.start.astype(datetime).strftime(self.time_format)
@@ -175,7 +175,7 @@ class RasterWorkflowRioWriter:
 
         self.current_dataset = rio_dataset
 
-    async def query_and_write(self, query: QueryRectangle, skip_empty_times=True):
+    async def query_and_write(self, query: QueryRectangleWithResolution, skip_empty_times=True):
         '''
         Query the raster workflow and write the resulting tiles to a GDAL dataset per timeslice.
 

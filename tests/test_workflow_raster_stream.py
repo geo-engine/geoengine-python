@@ -140,7 +140,6 @@ class WorkflowRasterStreamTests(unittest.TestCase):
         query_rect = ge.QueryRectangle(
             spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
             time_interval=ge.TimeInterval(datetime(2014, 1, 1, 0, 0, 0), datetime(2014, 1, 3, 0, 0, 0)),
-            resolution=None,
         )
 
         with unittest.mock.patch("websockets.client.connect", return_value=MockWebsocket()):

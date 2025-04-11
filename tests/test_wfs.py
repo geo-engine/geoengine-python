@@ -295,8 +295,9 @@ class WfsTests(unittest.TestCase):
 
             workflow = ge.register_workflow(workflow_definition)
 
+            # TODO: remove resolution when not mocked
             df = workflow.get_dataframe(
-                ge.QueryRectangle(
+                ge.QueryRectangleWithResolution(
                     ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
                     ge.TimeInterval(time, time),
                     ge.SpatialResolution(0.1, 0.1)
@@ -470,8 +471,9 @@ class WfsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             with self.assertRaises(ge.BadRequestException) as ctx:
+                # TODO: remove resolution when not mocked
                 workflow.get_dataframe(
-                    ge.QueryRectangle(
+                    ge.QueryRectangleWithResolution(
                         ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
                         ge.TimeInterval(time),
                         ge.SpatialResolution(0.1, 0.1)
@@ -854,8 +856,9 @@ class WfsTests(unittest.TestCase):
 
             workflow = ge.register_workflow(workflow_definition)
 
+            # TODO: remove resolution when not mocked
             df = workflow.get_dataframe(
-                ge.QueryRectangle(
+                ge.QueryRectangleWithResolution(
                     ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
                     ge.TimeInterval(time),
                     ge.SpatialResolution(0.1, 0.1)

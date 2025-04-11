@@ -11,8 +11,10 @@ from uuid import UUID
 from enum import Enum
 from typing import Any, Dict, Optional, Tuple, Union, cast, List, Literal
 from attr import dataclass
-import numpy as np
 import geoengine_openapi_client
+import geoengine_openapi_client.models
+import geoengine_openapi_client.models.raster_to_dataset_query_rectangle
+import numpy as np
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, TypeException
 
@@ -128,6 +130,11 @@ class SpatialPartition2D(SpatialBounds):
         '''convert to a `BoundingBox2D`'''
         return BoundingBox2D(self.xmin, self.ymin, self.xmax, self.ymax)
 
+    @staticmethod
+    def from_bounding_box(bbox: BoundingBox2D) -> SpatialPartition2D:
+        ''' Creates a  `SpatialPartition2D` from a `BoundingBox2D` '''
+        return SpatialPartition2D(bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax)
+
     def __repr__(self) -> str:
         return f'SpatialPartition2D(xmin={self.xmin}, ymin={self.ymin}, xmax={self.xmax}, ymax={self.ymax})'
 
@@ -153,7 +160,7 @@ class TimeInterval:
             raise InputException("`start` must be of type `datetime.datetime` or `numpy.datetime64`")
 
         if end is None:
-            self.end = start
+            self.end = self.start
         elif isinstance(end, np.datetime64):
             self.end = end
         elif isinstance(end, datetime):
@@ -276,13 +283,11 @@ class QueryRectangle:
 
     __spatial_bounds: BoundingBox2D
     __time_interval: TimeInterval
-    __resolution: Optional[SpatialResolution]
     __srs: str
 
     def __init__(self,
                  spatial_bounds: Union[BoundingBox2D, SpatialPartition2D, Tuple[float, float, float, float]],
                  time_interval: Union[TimeInterval, Tuple[datetime, Optional[datetime]]],
-                 resolution: Optional[Union[SpatialResolution, Tuple[float, float]]] = None,
                  srs='EPSG:4326') -> None:
         """
         Initialize a new `QueryRectangle` object
@@ -295,9 +300,6 @@ class QueryRectangle:
         time_interval
             The time interval of the query rectangle.
             Either a `TimeInterval` or a tuple of `datetime.datetime` objects (start, end)
-        resolution
-            The spatial resolution of the query rectangle.
-            Either a `SpatialResolution` or a tuple of floats (x_resolution, y_resolution)
         """
 
         if not isinstance(spatial_bounds, BoundingBox2D):
@@ -307,12 +309,9 @@ class QueryRectangle:
                 spatial_bounds = BoundingBox2D(*spatial_bounds)
         if not isinstance(time_interval, TimeInterval):
             time_interval = TimeInterval(*time_interval)
-        if resolution is not None and not isinstance(resolution, SpatialResolution):
-            resolution = SpatialResolution(*resolution)
 
         self.__spatial_bounds = spatial_bounds
         self.__time_interval = time_interval
-        self.__resolution = resolution
         self.__srs = srs
 
     @property
@@ -341,24 +340,6 @@ class QueryRectangle:
         return self.__spatial_bounds.as_bbox_tuple(y_axis_first=y_axis_first)
 
     @property
-    def resolution_ogc(self) -> Tuple[Optional[float], Optional[float]]:
-        '''
-        Return the resolution in OGC style
-        '''
-        # TODO: properly handle axis order
-        res = self.__resolution
-
-        # if no resolution is set use none for both...
-        if res is None:
-            return (None, None)
-
-        # TODO: why is the y resolution in this case negative but not in all other cases?
-        if self.__srs == "EPSG:4326":
-            return (-res.y_resolution, res.x_resolution)
-
-        return res.as_tuple()
-
-    @property
     def time(self) -> TimeInterval:
         '''
         Return the time instance or interval
@@ -371,13 +352,6 @@ class QueryRectangle:
         Return the spatial bounds
         '''
         return self.__spatial_bounds
-
-    @property
-    def spatial_resolution(self) -> Optional[SpatialResolution]:
-        '''
-        Return the spatial resolution
-        '''
-        return self.__resolution
 
     @property
     def time_str(self) -> str:
@@ -398,11 +372,83 @@ class QueryRectangle:
         r = 'QueryRectangle( \n'
         r += '    ' + repr(self.__spatial_bounds) + '\n'
         r += '    ' + repr(self.__time_interval) + '\n'
-        if self.__resolution is not None:
-            r += '    ' + repr(self.__resolution) + '\n'
-        else:
-            r += '    ' + 'No resolution specified!' + '\n'
         r += f'    srs={self.__srs} \n'
+        r += ')'
+        return r
+
+    def with_resolution(self, resolution: SpatialResolution) -> QueryRectangleWithResolution:
+        '''Converts a `QueryRectangle` into a `QueryRectangleWithResolution` '''
+        return QueryRectangleWithResolution(
+            self.spatial_bounds, self.time, resolution, self.srs
+        )
+
+
+class QueryRectangleWithResolution(QueryRectangle):
+    '''
+    A multi-dimensional query rectangle, consisting of spatial and temporal information.
+    '''
+
+    __resolution: SpatialResolution
+
+    def __init__(self,
+                 spatial_bounds: Union[BoundingBox2D, SpatialPartition2D, Tuple[float, float, float, float]],
+                 time_interval: Union[TimeInterval, Tuple[datetime, Optional[datetime]]],
+                 resolution: Union[SpatialResolution, Tuple[float, float]],
+                 srs='EPSG:4326') -> None:
+        """
+        Initialize a new `QueryRectangle` object
+
+        Parameters
+        ----------
+        spatial_bounds
+            The spatial bounds of the query rectangle.
+            Either a `BoundingBox2D` or a tuple of floats (xmin, ymin, xmax, ymax)
+        time_interval
+            The time interval of the query rectangle.
+            Either a `TimeInterval` or a tuple of `datetime.datetime` objects (start, end)
+        resolution
+            The spatial resolution of the query rectangle.
+            Either a `SpatialResolution` or a tuple of floats (x_resolution, y_resolution)
+        """
+
+        super().__init__(spatial_bounds, time_interval, srs)
+        if not isinstance(resolution, SpatialResolution):
+            resolution = SpatialResolution(*resolution)
+
+        self.__resolution = resolution
+
+    @property
+    def resolution_ogc(self) -> Tuple[float, float]:
+        '''
+        Return the resolution in OGC style
+        '''
+        # TODO: properly handle axis order
+        res = self.__resolution
+
+        # if no resolution is set use none for both...
+        if res is None:
+            return (None, None)
+
+        # TODO: why is the y resolution in this case negative but not in all other cases?
+        if self.srs == "EPSG:4326":
+            return (-res.y_resolution, res.x_resolution)
+
+        return res.as_tuple()
+
+    @property
+    def spatial_resolution(self) -> SpatialResolution:
+        '''
+        Return the spatial resolution
+        '''
+        return self.__resolution
+
+    def __repr__(self) -> str:
+        ''' Return a string representation of the query rectangle.'''
+        r = 'QueryRectangleWithResolution( \n'
+        r += '    ' + repr(self.spatial_bounds) + '\n'
+        r += '    ' + repr(self.time) + '\n'
+        r += '    ' + repr(self.__resolution) + '\n'
+        r += f'    srs={self.srs} \n'
         r += ')'
         return r
 

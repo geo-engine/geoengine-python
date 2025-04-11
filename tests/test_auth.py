@@ -6,7 +6,7 @@ import os
 import geoengine_openapi_client
 import geoengine as ge
 from geoengine.error import GeoEngineException
-from geoengine.types import QueryRectangle
+from geoengine.types import QueryRectangleWithResolution
 from tests.ge_test import GeoEngineTestInstance
 from . import UrllibMocker
 
@@ -23,7 +23,7 @@ class AuthTests(unittest.TestCase):
     def test_uninitialized(self):
         with self.assertRaises(ge.UninitializedException) as exception:
             ge.workflow_by_id("foobar").get_dataframe(
-                QueryRectangle(
+                QueryRectangleWithResolution(
                     ge.BoundingBox2D(- 180, -90, 180, 90),
                     ge.TimeInterval(datetime.now()),
                     ge.SpatialResolution(0.1, 0.1)

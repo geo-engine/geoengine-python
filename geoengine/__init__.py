@@ -30,7 +30,7 @@ from .workflow import WorkflowId, Workflow, workflow_by_id, register_workflow, g
 from .util import clamp_datetime_ms_ns
 from .resource_identifier import LAYER_DB_PROVIDER_ID, LAYER_DB_ROOT_COLLECTION_ID, DatasetName, UploadId, \
     LayerId, LayerCollectionId, LayerProviderId, Resource, MlModelName
-from .types import QueryRectangle, GeoTransform, \
+from .types import QueryRectangle, QueryRectangleWithResolution, GeoTransform, \
     RasterResultDescriptor, Provenance, UnitlessMeasurement, ContinuousMeasurement, \
     ClassificationMeasurement, BoundingBox2D, TimeInterval, SpatialResolution, SpatialPartition2D, \
     RasterSymbology, VectorSymbology, VectorDataType, VectorResultDescriptor, VectorColumnInfo, \
