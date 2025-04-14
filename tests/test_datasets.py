@@ -3,6 +3,8 @@
 import unittest
 
 import geoengine_openapi_client
+import geoengine_openapi_client.models
+import geoengine_openapi_client.models.spatial_grid_descriptor_state
 import geoengine as ge
 from geoengine.permissions import REGISTERED_USER_ROLE_ID, Permission, PermissionListing, Role
 from geoengine.resource_identifier import Resource
@@ -52,17 +54,17 @@ class DatasetsTests(unittest.TestCase):
 
             volumes = ge.volumes()
 
-            geo_transform = ge.GeoTransform(
-                x_min=180.0,
-                y_max=90.0,
-                x_pixel_size=0.1,
-                y_pixel_size=-0.1
-            )
-
             gdal_params = geoengine_openapi_client.GdalDatasetParameters.from_dict({
                 "filePath": "raster/landcover/landcover.tif",
                 "rasterbandChannel": 1,
-                "geoTransform": geo_transform.to_api_dict(),
+                "geoTransform": {
+                    "originCoordinate": {
+                        "x": -180.0,
+                        "y": 90.0
+                    },
+                    "xPixelSize": 0.1,
+                    "yPixelSize": -0.1
+                },
                 "width": 3600,
                 "height": 1800,
                 "fileNotFoundHandling": geoengine_openapi_client.FileNotFoundHandling.NODATA,
@@ -99,10 +101,23 @@ class DatasetsTests(unittest.TestCase):
 
             result_descriptor = ge.RasterResultDescriptor(
                 "U8",
-                [RasterBandDescriptor("band", result_descriptor_measurement)],
-                "EPSG:4326",
-                spatial_bounds=ge.SpatialPartition2D(-180.0, -90.0, 180.0, 90.0),
-                spatial_resolution=ge.SpatialResolution(0.1, 0.1)
+                bands=[RasterBandDescriptor("band", result_descriptor_measurement)],
+                spatial_reference="EPSG:4326",
+                spatial_grid=ge.types.SpatialGridDescriptor(
+                    spatial_grid=ge.types.SpatialGridDefinition(
+                        geo_transform=ge.GeoTransform(
+                            x_min=-180.0,
+                            y_max=90.0,
+                            x_pixel_size=0.1,
+                            y_pixel_size=-0.1
+                        ),
+                        grid_bounds=ge.GridBoundingBox2D(
+                            top_left_idx=ge.GridIdx2D(0, 0),
+                            bottom_right_idx=ge.GridIdx2D(1799, 3599)
+                        )
+                    ),
+                    descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE
+                )
             )
 
             meta_data = geoengine_openapi_client.GdalMetaDataStatic.from_dict({
@@ -164,17 +179,17 @@ class DatasetsTests(unittest.TestCase):
 
             volumes = ge.volumes()
 
-            geo_transform = ge.GeoTransform(
-                x_min=180.0,
-                y_max=90.0,
-                x_pixel_size=0.1,
-                y_pixel_size=-0.1
-            )
-
             gdal_params = geoengine_openapi_client.GdalDatasetParameters.from_dict({
                 "filePath": "raster/landcover/landcover.tif",
                 "rasterbandChannel": 1,
-                "geoTransform": geo_transform.to_api_dict(),
+                "geoTransform": {
+                    "originCoordinate": {
+                        "x": -180.0,
+                        "y": 90.0
+                    },
+                    "xPixelSize": 0.1,
+                    "yPixelSize": -0.1
+                },
                 "width": 3600,
                 "height": 1800,
                 "fileNotFoundHandling": geoengine_openapi_client.FileNotFoundHandling.NODATA,
@@ -206,22 +221,34 @@ class DatasetsTests(unittest.TestCase):
                     "15": "Snow and Ice",
                     "16": "Barren or Sparsely Vegetated"
                 }
-
             )
 
             result_descriptor = ge.RasterResultDescriptor(
                 "U8",
                 [RasterBandDescriptor("band", result_descriptor_measurement)],
                 "EPSG:4326",
-                spatial_bounds=ge.SpatialPartition2D(-180.0, -90.0, 180.0, 90.0),
-                spatial_resolution=ge.SpatialResolution(0.1, 0.1)
+                spatial_grid=ge.types.SpatialGridDescriptor(
+                    spatial_grid=ge.types.SpatialGridDefinition(
+                        geo_transform=ge.GeoTransform(
+                            x_min=-180.0,
+                            y_max=90.0,
+                            x_pixel_size=0.1,
+                            y_pixel_size=-0.1
+                        ),
+                        grid_bounds=ge.GridBoundingBox2D(
+                            top_left_idx=ge.GridIdx2D(0, 0),
+                            bottom_right_idx=ge.GridIdx2D(1799, 3599)
+                        )
+                    ),
+                    descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE
+                )
             )
 
             meta_data = geoengine_openapi_client.GdalMetaDataStatic.from_dict({
                 "type": "GdalStatic",
                 "time": None,
                 "params": gdal_params,
-                "resultDescriptor": result_descriptor.to_api_dict().to_dict(),
+                "resultDescriptor": result_descriptor.to_api_dict().to_dict()
             })
 
             add_dataset_properties = ge.AddDatasetProperties(

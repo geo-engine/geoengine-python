@@ -30,6 +30,33 @@ class LayerTests(unittest.TestCase):
             provider_id=LAYER_DB_PROVIDER_ID,
             metadata={},
             properties=[],
+            workflow={
+                'operator': {
+                    'params': {'renameBands': {
+                        'type': 'rename', 'values': ['blue', 'green', 'red']
+                    }
+                    },
+                    'sources':
+                    {'rasters': [
+                        {'type': 'GdalSource', 'params': {
+                            'data': 'ne2_raster_blue',
+                            'overviewLevel': None
+                        }
+                        },
+                        {'type': 'GdalSource', 'params': {
+                            'data': 'ne2_raster_green',
+                            'overviewLevel': None
+                        }
+                        }, {'type': 'GdalSource', 'params': {
+                            'data': 'ne2_raster_red',
+                            'overviewLevel': None
+                        }
+                        }
+                    ]
+                    }, 'type': 'RasterStacker'
+                },
+                'type': 'Raster'
+            },
             symbology=ge.RasterSymbology(
                 raster_colorizer=ge.MultiBandRasterColorizer(
                     red_band=2,
@@ -46,31 +73,7 @@ class LayerTests(unittest.TestCase):
                     blue_scale=1.0
                 ),
                 opacity=1.0
-            ),
-            workflow={
-                'operator': {
-                    'params': {'renameBands': {
-                        'type': 'rename', 'values': ['blue', 'green', 'red']
-                    }
-                    },
-                    'sources':
-                    {'rasters': [
-                        {'type': 'GdalSource', 'params': {
-                            'data': 'ne2_raster_blue'
-                        }
-                        },
-                        {'type': 'GdalSource', 'params': {
-                            'data': 'ne2_raster_green'
-                        }
-                        }, {'type': 'GdalSource', 'params': {
-                            'data': 'ne2_raster_red'
-                        }
-                        }
-                    ]
-                    }, 'type': 'RasterStacker'
-                },
-                'type': 'Raster'
-            }
+            )
 
         )
 
@@ -116,6 +119,12 @@ class LayerTests(unittest.TestCase):
                             provider_id=LAYER_DB_PROVIDER_ID,
                             name='An empty collection',
                             description='There is nothing here'
+                        ),
+                        ge.LayerListing(
+                            listing_id=ge.LayerCollectionId('52ef9e16-acd1-4c61-9a80-7d5b335d0d5a'),
+                            provider_id=LAYER_DB_PROVIDER_ID,
+                            name='Natural Earth II – R',
+                            description='A raster with one band (R from RGB)'
                         ),
                         ge.LayerListing(
                             listing_id=ge.LayerCollectionId('83866f7b-dcee-47b8-9242-e5636ceaf402'),
@@ -213,7 +222,7 @@ class LayerTests(unittest.TestCase):
             ge.initialize(ge_instance.address())
 
             # Success case
-            layer = ge.layer(LayerId('83866f7b-dcee-47b8-9242-e5636ceaf402'), LAYER_DB_PROVIDER_ID)
+            layer = ge.layer(LayerId('52ef9e16-acd1-4c61-9a80-7d5b335d0d5a'), LAYER_DB_PROVIDER_ID)
 
             task = layer.save_as_dataset()
             task_status = task.wait_for_finish()
@@ -231,7 +240,8 @@ class LayerTests(unittest.TestCase):
                 workflow={
                     "operator": {
                         "params": {
-                            "data": "ndvi"
+                            "data": "ndvi",
+                            'overviewLevel': None
                         },
                         "type": "GdalSource"
                     },
@@ -256,7 +266,8 @@ class LayerTests(unittest.TestCase):
             workflow={
                 "operator": {
                     "params": {
-                        "data": "ndvi"
+                        "data": "ndvi",
+                        'overviewLevel': None
                     },
                     "type": "GdalSource"
                 },

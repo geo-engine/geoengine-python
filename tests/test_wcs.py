@@ -40,7 +40,30 @@ class WcsTests(unittest.TestCase):
                                  "measurement": {
                                      "type": "unitless"
                                  }
-                             }]
+                             }],
+                             "spatialGrid": {
+                                 "descriptor": "source",
+                                 "spatialGrid": {
+                                     "geoTransform": {
+                                         "originCoordinate": {
+                                             "x": 0.0,
+                                             "y": 0.0
+                                         },
+                                         "xPixelSize": 1.0,
+                                         "yPixelSize": -1.0
+                                     },
+                                     "gridBounds": {
+                                         "topLeftIdx": {
+                                             "xIdx": 0,
+                                             "yIdx": 0
+                                         },
+                                         "bottomRightIdx": {
+                                             "xIdx": 10,
+                                             "yIdx": 20
+                                         }
+                                     }
+                                 }
+                             }
                          },
                          request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -130,7 +153,7 @@ class WcsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            query = ge.QueryRectangle(
+            query = ge.QueryRectangleWithResolution(
                 ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                 ge.TimeInterval(time),
                 resolution=ge.SpatialResolution(360. / 8, 180. / 8),
@@ -176,7 +199,30 @@ class WcsTests(unittest.TestCase):
                                  "measurement": {
                                      "type": "unitless"
                                  }
-                             }]
+                             }],
+                             "spatialGrid": {
+                                 "descriptor": "source",
+                                 "spatialGrid": {
+                                     "geoTransform": {
+                                         "originCoordinate": {
+                                             "x": 0.0,
+                                             "y": 0.0
+                                         },
+                                         "xPixelSize": 1.0,
+                                         "yPixelSize": -1.0
+                                     },
+                                     "gridBounds": {
+                                         "topLeftIdx": {
+                                             "xIdx": 0,
+                                             "yIdx": 0
+                                         },
+                                         "bottomRightIdx": {
+                                             "xIdx": 10,
+                                             "yIdx": 20
+                                         }
+                                     }
+                                 }
+                             }
                          },
                          request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -271,7 +317,7 @@ class WcsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            query = ge.QueryRectangle(
+            query = ge.QueryRectangleWithResolution(
                 ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                 ge.TimeInterval(time, time),
                 resolution=ge.SpatialResolution(360. / 8, 180. / 8),
@@ -308,7 +354,30 @@ class WcsTests(unittest.TestCase):
                                  "measurement": {
                                      "type": "unitless"
                                  }
-                             }]
+                             }],
+                             "spatialGrid": {
+                                 "descriptor": "source",
+                                 "spatialGrid": {
+                                     "geoTransform": {
+                                         "originCoordinate": {
+                                             "x": 0.0,
+                                             "y": 0.0
+                                         },
+                                         "xPixelSize": 1.0,
+                                         "yPixelSize": -1.0
+                                     },
+                                     "gridBounds": {
+                                         "topLeftIdx": {
+                                             "xIdx": 0,
+                                             "yIdx": 0
+                                         },
+                                         "bottomRightIdx": {
+                                             "xIdx": 10,
+                                             "yIdx": 20
+                                         }
+                                     }
+                                 }
+                             }
                          },
                          request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
 
@@ -398,7 +467,7 @@ class WcsTests(unittest.TestCase):
             time = datetime.strptime(
                 '2014-04-01T12:00:00.000Z', ge.DEFAULT_ISO_TIME_FORMAT)
 
-            query = ge.QueryRectangle(
+            query = ge.QueryRectangleWithResolution(
                 ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                 ge.TimeInterval(time),
                 resolution=ge.SpatialResolution(360. / 8, 180. / 8),

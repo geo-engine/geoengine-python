@@ -1,8 +1,8 @@
 '''Tests for WMS calls'''
 
+from datetime import datetime
 import unittest
 from uuid import UUID
-import geoengine_openapi_client
 from geoengine.datasets import DatasetName, StoredDataset
 from geoengine.resource_identifier import UploadId
 import geoengine as ge
@@ -32,10 +32,6 @@ class WorkflowStorageTests(unittest.TestCase):
                         "y": 90
                     }
                 },
-                "spatialResolution": {
-                    "x": 1.8,
-                    "y": 1.8
-                },
                 "timeInterval": {
                     "end": 1396353600000,
                     "start": 1396353600000
@@ -61,6 +57,30 @@ class WorkflowStorageTests(unittest.TestCase):
                       "type": "raster",
                       "dataType": "U8",
                       "spatialReference": "EPSG:4326",
+
+                      "spatialGrid": {
+                          "descriptor": "source",
+                          "spatialGrid": {
+                              "geoTransform": {
+                                  "originCoordinate": {
+                                      "x": 0.0,
+                                      "y": 0.0
+                                  },
+                                  "xPixelSize": 1.0,
+                                  "yPixelSize": -1.0
+                              },
+                              "gridBounds": {
+                                  "topLeftIdx": {
+                                      "xIdx": 0,
+                                      "yIdx": 0
+                                  },
+                                  "bottomRightIdx": {
+                                      "xIdx": 10,
+                                      "yIdx": 20
+                                  }
+                              }
+                          }
+                      },
                       "bands": [{
                           "name": "band",
                                 "measurement": {
@@ -96,24 +116,16 @@ class WorkflowStorageTests(unittest.TestCase):
                 }
             }
 
-            query = geoengine_openapi_client.RasterQueryRectangle(
-                spatial_bounds=geoengine_openapi_client.SpatialPartition2D(
-                    upper_left_coordinate=geoengine_openapi_client.Coordinate2D(
-                        x=-180.0,
-                        y=90.0
-                    ),
-                    lower_right_coordinate=geoengine_openapi_client.Coordinate2D(
-                        x=180.0,
-                        y=-90.0
-                    )
+            query = ge.QueryRectangle(
+                ge.SpatialPartition2D(
+                    xmin=-180.0,
+                    ymax=90.0,
+                    xmax=180.0,
+                    ymin=-90.0
                 ),
-                time_interval=geoengine_openapi_client.TimeInterval(
-                    start=1396353600000,
-                    end=1396353600000
-                ),
-                spatial_resolution=geoengine_openapi_client.SpatialResolution(
-                    x=1.8,
-                    y=1.8
+                ge.TimeInterval(
+                    start=datetime(2014, 4, 1, 12, 0),
+                    end=None
                 )
             )
 
