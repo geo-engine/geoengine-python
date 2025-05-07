@@ -127,8 +127,10 @@ class ColorizerTests(unittest.TestCase):
         expected_start = "'some_map' is not a valid value for"
         expected_contains = "; supported values are 'Accent',"
 
-        assert result.startswith(expected_start), f"The error should start with `{expected_start}`, but starts with `{result[:len(expected_start)]}`"
-        assert expected_contains in result, f"The error should contain `{expected_contains}`, but does not. Full error: {result}"
+        assert result.startswith(expected_start), \
+            f"The error should start with `{expected_start}`, but starts with `{result[:len(expected_start)]}`"
+        assert expected_contains in result, \
+            f"The error should contain `{expected_contains}`, but does not. Full error: {result}"
 
     def test_defaults(self):
         """Tests the manipulation of the default values."""
