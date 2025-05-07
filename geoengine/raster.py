@@ -86,11 +86,11 @@ class RasterTile2D:
 
     @property
     def time_start_ms(self) -> np.datetime64:
-        return np.datetime64(self.time.start, 'ms')
+        return self.time.start.astype('datetime64[ms]')
 
     @property
-    def time_end_ms(self) -> np.datetime64:
-        return np.datetime64(self.time.end, 'ms')
+    def time_end_ms(self) -> Optional[np.datetime64]:
+        return None if self.time.end is None else self.time.end.astype('datetime64[ms]')
 
     @property
     def pixel_size(self) -> Tuple[float, float]:
@@ -290,7 +290,7 @@ class RasterTileStack2D:
     def to_numpy_masked_array_stack(self) -> np.ma.MaskedArray:
         '''Return the raster stack as a 3D masked numpy array'''
         arrays = [self.single_band(i).to_numpy_masked_array() for i in range(0, len(self.data))]
-        stack = np.stack(arrays, axis=0)
+        stack = np.ma.stack(arrays, axis=0)
         return stack
 
     def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -> xr.DataArray:

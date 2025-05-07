@@ -26,7 +26,6 @@ from owslib.util import Authentication, ResponseWrapper
 from owslib.wcs import WebCoverageService
 from vega import VegaLite
 import websockets
-import websockets.client
 import xarray as xr
 import pyarrow as pa
 
@@ -585,7 +584,7 @@ class Workflow:
         if url is None:
             raise InputException('Invalid websocket url')
 
-        async with websockets.client.connect(
+        async with websockets.asyncio.client.connect(
             uri=self.__replace_http_with_ws(url),
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
@@ -594,7 +593,7 @@ class Workflow:
 
             tile_bytes: Optional[bytes] = None
 
-            while websocket.open:
+            while websocket.state == websockets.protocol.State.OPEN:
                 async def read_new_bytes() -> Optional[bytes]:
                     # already send the next request to speed up the process
                     try:
@@ -792,7 +791,7 @@ class Workflow:
         if url is None:
             raise InputException('Invalid websocket url')
 
-        async with websockets.client.connect(
+        async with websockets.asyncio.client.connect(
             uri=self.__replace_http_with_ws(url),
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
@@ -801,7 +800,7 @@ class Workflow:
 
             batch_bytes: Optional[bytes] = None
 
-            while websocket.open:
+            while websocket.state == websockets.protocol.State.OPEN:
                 async def read_new_bytes() -> Optional[bytes]:
                     # already send the next request to speed up the process
                     try:
