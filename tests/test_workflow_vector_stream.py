@@ -10,8 +10,8 @@ import pyarrow as pa
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-import geoengine as ge
 import websockets.protocol
+import geoengine as ge
 from . import UrllibMocker
 
 
