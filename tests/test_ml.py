@@ -4,7 +4,7 @@ import unittest
 from sklearn.ensemble import RandomForestClassifier
 from skl2onnx import to_onnx
 import numpy as np
-from geoengine_openapi_client.models import MlModelMetadata, RasterDataType, TensorShape3D
+from geoengine_openapi_client.models import MlModelMetadata, RasterDataType, MlTensorShape3D as TensorShape3D
 import geoengine as ge
 from tests.ge_test import GeoEngineTestInstance
 

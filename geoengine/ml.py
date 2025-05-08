@@ -9,7 +9,7 @@ from dataclasses import dataclass
 import geoengine_openapi_client.models
 from onnx import TypeProto, TensorProto, ModelProto
 from onnx.helper import tensor_dtype_to_string
-from geoengine_openapi_client.models import MlModelMetadata, MlModel, RasterDataType, TensorShape3D
+from geoengine_openapi_client.models import MlModelMetadata, MlModel, RasterDataType, MlTensorShape3D
 import geoengine_openapi_client
 from geoengine.auth import get_session
 from geoengine.datasets import UploadId
@@ -98,8 +98,8 @@ def register_ml_model(onnx_model: ModelProto,
 def validate_model_config(onnx_model: ModelProto, *,
                           input_type: RasterDataType,
                           output_type: RasterDataType,
-                          input_shape: TensorShape3D,
-                          out_shape: TensorShape3D):
+                          input_shape: MlTensorShape3D,
+                          out_shape: MlTensorShape3D):
     '''Validates the model config. Raises an exception if the model config is invalid'''
 
     def check_data_type(data_type: TypeProto, expected_type: RasterDataType, prefix: 'str'):
