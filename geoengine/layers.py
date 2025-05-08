@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import auto
 from io import StringIO
 import os
-from typing import Any, Dict, Generic, List, Literal, NewType, Optional, TypeVar, Union, cast
+from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, Union, cast, Tuple
 from uuid import UUID
 import json
 from strenum import LowercaseStrEnum
@@ -16,15 +16,11 @@ from geoengine.auth import get_session
 from geoengine.error import ModificationNotOnLayerDbException, InputException
 from geoengine.tasks import Task, TaskId
 from geoengine.types import Symbology
+from geoengine.permissions import RoleId, Permission, add_permission
 from geoengine.workflow import Workflow, WorkflowId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
-
-LayerId = NewType('LayerId', str)
-LayerCollectionId = NewType('LayerCollectionId', str)
-LayerProviderId = NewType('LayerProviderId', UUID)
-
-LAYER_DB_PROVIDER_ID = LayerProviderId(UUID('ce5e84db-cbf9-48a2-9a32-d4b7cc56ea74'))
-LAYER_DB_ROOT_COLLECTION_ID = LayerCollectionId('05102bb3-a855-4a37-8a8a-30026a91fef1')
+from geoengine.resource_identifier import LayerCollectionId, LayerId, LayerProviderId, \
+    LAYER_DB_PROVIDER_ID, Resource
 
 
 class LayerCollectionListingType(LowercaseStrEnum):
@@ -319,6 +315,26 @@ class LayerCollection:
 
         return layer_id
 
+    def add_layer_with_permissions(self,
+                                   name: str,
+                                   description: str,
+                                   workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
+                                   symbology: Optional[Symbology],
+                                   permission_tuples: Optional[List[Tuple[RoleId, Permission]]] = None,
+                                   timeout: int = 60) -> LayerId:
+        '''
+        Add a layer to this collection and set permissions.
+        '''
+
+        layer_id = self.add_layer(name, description, workflow, symbology, timeout)
+
+        if permission_tuples is not None:
+            res = Resource.from_layer_id(layer_id)
+            for (role, perm) in permission_tuples:
+                add_permission(role, res, perm)
+
+        return layer_id
+
     def add_existing_layer(self,
                            existing_layer: Union[LayerListing, Layer, LayerId],
                            timeout: int = 60):
@@ -455,6 +471,63 @@ class LayerCollection:
                 pass  # ignore, should not happen
 
         return listings
+
+    def get_or_create_unique_collection(
+            self,
+            collection_name: str,
+            create_collection_description: Optional[str] = None,
+            delete_existing_with_same_name: bool = False,
+            create_permissions_tuples: Optional[List[Tuple[RoleId, Permission]]] = None
+    ) -> LayerCollection:
+        '''
+        Get a unique child by name OR if it does not exist create it.
+        Removes existing collections with same name if forced!
+        Sets permissions if the collection is created from a list of tuples
+        '''
+        parent_collection = self.reload()  # reload just to be safe since self's state change on the server
+        existing_collections = parent_collection.get_items_by_name(collection_name)
+
+        if delete_existing_with_same_name and len(existing_collections) > 0:
+            for c in existing_collections:
+                actual = c.load()
+                if isinstance(actual, LayerCollection):
+                    actual.remove()
+            parent_collection = parent_collection.reload()
+            existing_collections = parent_collection.get_items_by_name(collection_name)
+
+        if len(existing_collections) == 0:
+            new_desc = create_collection_description if create_collection_description is not None else collection_name
+            new_collection = parent_collection.add_collection(collection_name, new_desc)
+            new_ressource = Resource.from_layer_collection_id(new_collection)
+
+            if create_permissions_tuples is not None:
+                for (role, perm) in create_permissions_tuples:
+                    add_permission(role, new_ressource, perm)
+            parent_collection = parent_collection.reload()
+            existing_collections = parent_collection.get_items_by_name(collection_name)
+
+        if len(existing_collections) == 0:
+            raise KeyError(
+                f"No collection with name {collection_name} exists in {parent_collection.name} and none was created!"
+            )
+
+        if len(existing_collections) > 1:
+            raise KeyError(f"Multiple collections with name {collection_name} exist in {parent_collection.name}")
+
+        res = existing_collections[0].load()
+        if isinstance(res, Layer):
+            raise TypeError(f"Found a Layer not a Layer collection for {collection_name}")
+
+        return cast(LayerCollection, existing_collections[0].load())  # we know that it is a collection since check that
+
+    def __eq__(self, other):
+        ''' Tests if two layer listings are identical '''
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.name == other.name and self.description == other.description \
+            and self.provider_id == other.provider_id \
+            and self.collection_id == other.collection_id and self.items == other.items
 
 
 @dataclass(repr=False)
@@ -663,7 +736,7 @@ def layer(layer_id: LayerId,
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         layers_api = geoengine_openapi_client.LayersApi(api_client)
-        response = layers_api.layer_handler(str(layer_provider_id), layer_id, _request_timeout=timeout)
+        response = layers_api.layer_handler(str(layer_provider_id), str(layer_id), _request_timeout=timeout)
 
     return Layer.from_response(response)
 

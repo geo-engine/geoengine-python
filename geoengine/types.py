@@ -660,6 +660,29 @@ class RasterBandDescriptor:
         return f'{self.name}: {self.measurement}'
 
 
+def literal_raster_data_type(
+    data_type: geoengine_openapi_client.RasterDataType
+) -> Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']:
+    '''Convert a `RasterDataType` to a literal'''
+
+    data_type_map: dict[
+        geoengine_openapi_client.RasterDataType,
+        Literal['U8', 'U16', 'U32', 'U64', 'I8', 'I16', 'I32', 'I64', 'F32', 'F64']
+    ] = {
+        geoengine_openapi_client.RasterDataType.U8: 'U8',
+        geoengine_openapi_client.RasterDataType.U16: 'U16',
+        geoengine_openapi_client.RasterDataType.U32: 'U32',
+        geoengine_openapi_client.RasterDataType.U64: 'U64',
+        geoengine_openapi_client.RasterDataType.I8: 'I8',
+        geoengine_openapi_client.RasterDataType.I16: 'I16',
+        geoengine_openapi_client.RasterDataType.I32: 'I32',
+        geoengine_openapi_client.RasterDataType.I64: 'I64',
+        geoengine_openapi_client.RasterDataType.F32: 'F32',
+        geoengine_openapi_client.RasterDataType.F64: 'F64',
+    }
+    return data_type_map[data_type]
+
+
 class RasterResultDescriptor(ResultDescriptor):
     '''
     A raster result descriptor
@@ -701,7 +724,7 @@ class RasterResultDescriptor(ResultDescriptor):
             response: geoengine_openapi_client.TypedRasterResultDescriptor) -> RasterResultDescriptor:
         '''Parse a raster result descriptor from an http response'''
         spatial_ref = response.spatial_reference
-        data_type = response.data_type.value
+        data_type = literal_raster_data_type(response.data_type)
         bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
         time_bounds = None
@@ -959,6 +982,9 @@ class Symbology:
 
         raise InputException("Invalid symbology type")
 
+    def __repr__(self):
+        "Symbology"
+
 
 class VectorSymbology(Symbology):
     '''A vector symbology'''
@@ -1065,22 +1091,22 @@ class MultiBandRasterColorizer(RasterColorizer):
 
 class RasterSymbology(Symbology):
     '''A raster symbology'''
-    __opacity: float
-    __raster_colorizer: RasterColorizer
+    opacity: float
+    raster_colorizer: RasterColorizer
 
     def __init__(self, raster_colorizer: RasterColorizer, opacity: float = 1.0) -> None:
         '''Initialize a new `RasterSymbology`'''
 
-        self.__raster_colorizer = raster_colorizer
-        self.__opacity = opacity
+        self.raster_colorizer = raster_colorizer
+        self.opacity = opacity
 
     def to_api_dict(self) -> geoengine_openapi_client.Symbology:
         '''Convert the raster symbology to a dictionary'''
 
         return geoengine_openapi_client.Symbology(geoengine_openapi_client.RasterSymbology(
             type='raster',
-            raster_colorizer=self.__raster_colorizer.to_api_dict(),
-            opacity=self.__opacity,
+            raster_colorizer=self.raster_colorizer.to_api_dict(),
+            opacity=self.opacity,
         ))
 
     @staticmethod
@@ -1092,7 +1118,14 @@ class RasterSymbology(Symbology):
         return RasterSymbology(raster_colorizer, response.opacity)
 
     def __repr__(self) -> str:
-        return super().__repr__() + f"({self.__raster_colorizer}, {self.__opacity})"
+        return str(self.__class__) + f"({self.raster_colorizer}, {self.opacity})"
+
+    def __eq__(self, value):
+        '''Check if two RasterSymbologies are equal'''
+
+        if not isinstance(value, self.__class__):
+            return False
+        return self.opacity == value.opacity and self.raster_colorizer == value.raster_colorizer
 
 
 class DataId:  # pylint: disable=too-few-public-methods

@@ -694,11 +694,12 @@ class Expression(RasterOperator):
 
         output_band = None
         if "outputBand" in operator_dict["params"] and operator_dict["params"]["outputBand"] is not None:
-            output_band = RasterBandDescriptor.from_response(
-                geoengine_openapi_client.RasterBandDescriptor.from_dict(
-                    operator_dict["params"]["outputBand"]
-                )
+            raster_band_descriptor = geoengine_openapi_client.RasterBandDescriptor.from_dict(
+                operator_dict["params"]["outputBand"]
             )
+            if raster_band_descriptor is None:
+                raise ValueError("Invalid output band")
+            output_band = RasterBandDescriptor.from_response(raster_band_descriptor)
 
         return Expression(
             expression=operator_dict["params"]["expression"],
