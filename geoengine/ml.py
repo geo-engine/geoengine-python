@@ -38,6 +38,7 @@ def register_ml_model(onnx_model: ModelProto,
         input_shape=model_config.metadata.input_shape,
         out_shape=model_config.metadata.output_shape
     )
+    check_backend_constraints(model_config.metadata.input_shape, model_config.metadata.output_shape)
 
     session = get_session()
 
@@ -60,6 +61,48 @@ def register_ml_model(onnx_model: ModelProto,
                         display_name=model_config.display_name, description=model_config.description)
         res_name = ml_api.add_ml_model(model, _request_timeout=register_timeout)
         return MlModelName.from_response(res_name)
+
+
+def model_dim_to_tensorshape(model_dims):
+    '''Transform an ONNX dimension into a MlTensorShape3D'''
+    mts = MlTensorShape3D(x=1, y=1, bands=1)
+    if len(model_dims) == 1 and model_dims[0] > 0:
+        mts.bands = model_dims[0]
+    elif len(model_dims) == 2:
+        if model_dims[0] in (-1, 1):
+            mts.bands = model_dims[1]
+        else:
+            mts.y = model_dims[1]
+            mts.x = model_dims[2]
+    elif len(model_dims) == 3:
+        if model_dims[0] in (-1, 1):
+            mts.y = model_dims[1]
+            mts.x = model_dims[2]
+        else:
+            mts.y = model_dims[0]
+            mts.x = model_dims[1]
+            mts.bands = model_dims[2]
+    elif len(model_dims) == 4 and model_dims[0] in (-1, 1):
+        mts.y = model_dims[1]
+        mts.x = model_dims[2]
+        mts.bands = model_dims[3]
+    else:
+        raise InputException('Only 1D and 3D input tensors are supported. Got model dim {model_dims}')
+    return mts
+
+
+def check_backend_constraints(input_shape: MlTensorShape3D, output_shape: MlTensorShape3D, ge_tile_size=(512, 512)):
+    ''' Checks that the shapes match the constraintsof the backend'''
+
+    if not (
+        input_shape.x in [1, ge_tile_size[0]] and input_shape.y in [1, ge_tile_size[1]] and input_shape.bands > 0
+    ):
+        raise InputException('Backend currently supports single pixel and full tile shaped input! Got {input_shape}!')
+
+    if not (
+        output_shape.x in [1, ge_tile_size[0]] and output_shape.y in [1, ge_tile_size[1]] and output_shape.bands > 0
+    ):
+        raise InputException('Backend currently supports single pixel and full tile shaped Output! Got {input_shape}!')
 
 
 # pylint: disable=too-many-branches,too-many-statements
@@ -89,64 +132,18 @@ def validate_model_config(onnx_model: ModelProto, *,
     check_data_type(model_inputs[0].type, input_type, 'input')
 
     dim = model_inputs[0].type.tensor_type.shape.dim
-
-    if len(dim) == 2:
-        if not dim[1].dim_value:
-            raise InputException('Dimension 1 of a 1D input tensor must have a length')
-        if dim[1].dim_value != input_shape.bands:
-            raise InputException(f'Model input has {dim[1].dim_value} bands, but {input_shape.bands} are expected')
-    elif len(dim) == 4:
-        if not dim[1].dim_value:
-            raise InputException('Dimension 1 of the a 3D input tensor must have a length')
-        if not dim[2].dim_value:
-            raise InputException('Dimension 2 of the a 3D input tensor must have a length')
-        if not dim[3].dim_value:
-            raise InputException('Dimension 3 of the a 3D input tensor must have a length')
-        if dim[1].dim_value != input_shape.y:
-            raise InputException(f'Model input has {dim[1].dim_value} y size, but {input_shape.y} are expected')
-        if dim[2].dim_value != input_shape.x:
-            raise InputException(f'Model input has {dim[2].dim_value} x size, but {input_shape.x} are expected')
-        if dim[3].dim_value != input_shape.bands:
-            raise InputException(f'Model input has {dim[3].dim_value} bands, but {input_shape.bands} are expected')
-    else:
-        raise InputException('Only 1D and 3D input tensors are supported')
+    in_ts3d = model_dim_to_tensorshape(dim)
+    if not in_ts3d == input_shape:
+        raise InputException("Input shape {in_ts3d} and metadata {input_shape} not equal!")
 
     if len(model_outputs) < 1:
         raise InputException('Models with no outputs are not supported')
     check_data_type(model_outputs[0].type, output_type, 'output')
 
     dim = model_outputs[0].type.tensor_type.shape.dim
-    if len(dim) == 1:
-        pass  # this is a happens if there is only a single out? so shape would be [-1]
-    elif len(dim) == 2:
-        if not dim[1].dim_value:
-            raise InputException('Dimension 1 of a 1D input tensor must have a length')
-        if dim[1].dim_value != 1:
-            raise InputException(f'Model output has {dim[1].dim_value} bands, but {out_shape.bands} are expected')
-    elif len(dim) == 3:
-        if not dim[1].dim_value:
-            raise InputException('Dimension 1 of a 3D input tensor must have a length')
-        if not dim[2].dim_value:
-            raise InputException('Dimension 2 of a 3D input tensor must have a length')
-        if dim[1].dim_value != out_shape.y:
-            raise InputException(f'Model output has {dim[1].dim_value} y size, but {out_shape.y} are expected')
-        if dim[2].dim_value != out_shape.x:
-            raise InputException(f'Model output has {dim[2].dim_value} x size, but {out_shape.x} are expected')
-    elif len(dim) == 4:
-        if not dim[1].dim_value:
-            raise InputException('Dimension 1 of the a 3D input tensor must have a length')
-        if not dim[2].dim_value:
-            raise InputException('Dimension 2 of the a 3D input tensor must have a length')
-        if not dim[3].dim_value:
-            raise InputException('Dimension 3 of the a 3D input tensor must have a length')
-        if dim[1].dim_value != out_shape.y:
-            raise InputException(f'Model output has {dim[1].dim_value} y size, but {out_shape.y} are expected')
-        if dim[2].dim_value != out_shape.x:
-            raise InputException(f'Model output has {dim[2].dim_value} x size, but {out_shape.x} are expected')
-        if dim[3].dim_value != out_shape.bands:
-            raise InputException(f'Model output has {dim[3].dim_value} bands, but {out_shape.bands} are expected')
-    else:
-        raise InputException('Only 1D and 3D output tensors are supported')
+    out_ts3d = model_dim_to_tensorshape(dim)
+    if not out_ts3d == out_shape:
+        raise InputException("Output shape {out_ts3d} and metadata {out_shape} not equal!")
 
 
 RASTER_TYPE_TO_ONNX_TYPE = {
