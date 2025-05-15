@@ -4,7 +4,7 @@ import unittest
 from sklearn.ensemble import RandomForestClassifier
 from skl2onnx import to_onnx
 import numpy as np
-from geoengine_openapi_client.models import MlModelMetadata, RasterDataType, MlTensorShape3D as TensorShape3D
+from geoengine_openapi_client.models import MlModelMetadata, RasterDataType, MlTensorShape3D
 import geoengine as ge
 from tests.ge_test import GeoEngineTestInstance
 
@@ -41,8 +41,8 @@ class WorkflowStorageTests(unittest.TestCase):
                         file_name="model.onnx",
                         input_type=RasterDataType.F32,
                         output_type=RasterDataType.I64,
-                        input_shape=TensorShape3D(y=1, x=1, bands=2),
-                        output_shape=TensorShape3D(y=1, x=1, bands=1)
+                        input_shape=MlTensorShape3D(y=1, x=1, bands=2),
+                        output_shape=MlTensorShape3D(y=1, x=1, bands=1)
                     ),
                     display_name="Decision Tree",
                     description="A simple decision tree model",
@@ -79,8 +79,8 @@ class WorkflowStorageTests(unittest.TestCase):
                             file_name="model.onnx",
                             input_type=RasterDataType.F32,
                             output_type=RasterDataType.I64,
-                            input_shape=TensorShape3D(y=1, x=1, bands=4),
-                            output_shape=TensorShape3D(y=1, x=1, bands=1)
+                            input_shape=MlTensorShape3D(y=1, x=1, bands=4),
+                            output_shape=MlTensorShape3D(y=1, x=1, bands=1)
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
@@ -88,7 +88,7 @@ class WorkflowStorageTests(unittest.TestCase):
                 )
             self.assertEqual(
                 str(exception.exception),
-                'Model input has 2 bands, but 4 are expected'
+                'Input shape bands=2 x=1 y=1 and metadata bands=4 x=1 y=1 not equal!'
             )
 
             with self.assertRaises(ge.InputException) as exception:
@@ -100,8 +100,8 @@ class WorkflowStorageTests(unittest.TestCase):
                             file_name="model.onnx",
                             input_type=RasterDataType.F64,
                             output_type=RasterDataType.I64,
-                            input_shape=TensorShape3D(y=1, x=1, bands=2),
-                            output_shape=TensorShape3D(y=1, x=1, bands=1)
+                            input_shape=MlTensorShape3D(y=1, x=1, bands=2),
+                            output_shape=MlTensorShape3D(y=1, x=1, bands=1)
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
@@ -121,8 +121,8 @@ class WorkflowStorageTests(unittest.TestCase):
                             file_name="model.onnx",
                             input_type=RasterDataType.F32,
                             output_type=RasterDataType.I32,
-                            input_shape=TensorShape3D(y=1, x=1, bands=2),
-                            output_shape=TensorShape3D(y=1, x=1, bands=1)
+                            input_shape=MlTensorShape3D(y=1, x=1, bands=2),
+                            output_shape=MlTensorShape3D(y=1, x=1, bands=1)
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",

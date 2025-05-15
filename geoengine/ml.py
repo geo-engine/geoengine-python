@@ -65,29 +65,32 @@ def register_ml_model(onnx_model: ModelProto,
 
 def model_dim_to_tensorshape(model_dims):
     '''Transform an ONNX dimension into a MlTensorShape3D'''
+
     mts = MlTensorShape3D(x=1, y=1, bands=1)
-    if len(model_dims) == 1 and model_dims[0] > 0:
-        mts.bands = model_dims[0]
+    if len(model_dims) == 1 and model_dims[0].dim_value in (-1, 0):
+        pass  # in this case, the model will produce as many outs as inputs
+    elif len(model_dims) == 1 and model_dims[0].dim_value > 0:
+        mts.bands = model_dims[0].dim_value
     elif len(model_dims) == 2:
-        if model_dims[0] in (-1, 1):
-            mts.bands = model_dims[1]
+        if model_dims[0].dim_value in (None, -1, 0, 1):
+            mts.bands = model_dims[1].dim_value
         else:
-            mts.y = model_dims[1]
-            mts.x = model_dims[2]
+            mts.y = model_dims[0].dim_value
+            mts.x = model_dims[1].dim_value
     elif len(model_dims) == 3:
-        if model_dims[0] in (-1, 1):
-            mts.y = model_dims[1]
-            mts.x = model_dims[2]
+        if model_dims[0].dim_value in (None, -1, 0, 1):
+            mts.y = model_dims[1].dim_value
+            mts.x = model_dims[2].dim_value
         else:
-            mts.y = model_dims[0]
-            mts.x = model_dims[1]
-            mts.bands = model_dims[2]
-    elif len(model_dims) == 4 and model_dims[0] in (-1, 1):
-        mts.y = model_dims[1]
-        mts.x = model_dims[2]
-        mts.bands = model_dims[3]
+            mts.y = model_dims[0].dim_value
+            mts.x = model_dims[1].dim_value
+            mts.bands = model_dims[2].dim_value
+    elif len(model_dims) == 4 and model_dims[0].dim_value in (None, -1, 0, 1):
+        mts.y = model_dims[1].dim_value
+        mts.x = model_dims[2].dim_value
+        mts.bands = model_dims[3].dim_value
     else:
-        raise InputException('Only 1D and 3D input tensors are supported. Got model dim {model_dims}')
+        raise InputException(f'Only 1D and 3D input tensors are supported. Got model dim {model_dims}')
     return mts
 
 
@@ -97,12 +100,12 @@ def check_backend_constraints(input_shape: MlTensorShape3D, output_shape: MlTens
     if not (
         input_shape.x in [1, ge_tile_size[0]] and input_shape.y in [1, ge_tile_size[1]] and input_shape.bands > 0
     ):
-        raise InputException('Backend currently supports single pixel and full tile shaped input! Got {input_shape}!')
+        raise InputException(f'Backend currently supports single pixel and full tile shaped input! Got {input_shape}!')
 
     if not (
         output_shape.x in [1, ge_tile_size[0]] and output_shape.y in [1, ge_tile_size[1]] and output_shape.bands > 0
     ):
-        raise InputException('Backend currently supports single pixel and full tile shaped Output! Got {input_shape}!')
+        raise InputException(f'Backend currently supports single pixel and full tile shaped Output! Got {input_shape}!')
 
 
 # pylint: disable=too-many-branches,too-many-statements
@@ -132,9 +135,10 @@ def validate_model_config(onnx_model: ModelProto, *,
     check_data_type(model_inputs[0].type, input_type, 'input')
 
     dim = model_inputs[0].type.tensor_type.shape.dim
+
     in_ts3d = model_dim_to_tensorshape(dim)
     if not in_ts3d == input_shape:
-        raise InputException("Input shape {in_ts3d} and metadata {input_shape} not equal!")
+        raise InputException(f"Input shape {in_ts3d} and metadata {input_shape} not equal!")
 
     if len(model_outputs) < 1:
         raise InputException('Models with no outputs are not supported')
@@ -143,7 +147,7 @@ def validate_model_config(onnx_model: ModelProto, *,
     dim = model_outputs[0].type.tensor_type.shape.dim
     out_ts3d = model_dim_to_tensorshape(dim)
     if not out_ts3d == out_shape:
-        raise InputException("Output shape {out_ts3d} and metadata {out_shape} not equal!")
+        raise InputException(f"Output shape {out_ts3d} and metadata {out_shape} not equal!")
 
 
 RASTER_TYPE_TO_ONNX_TYPE = {
