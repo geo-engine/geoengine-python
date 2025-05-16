@@ -1,19 +1,62 @@
 '''Tests ML functionality'''
 
+from typing import List
 import unittest
+from onnx import TensorShapeProto as TSP
 from sklearn.ensemble import RandomForestClassifier
 from skl2onnx import to_onnx
 import numpy as np
 from geoengine_openapi_client.models import MlModelMetadata, RasterDataType, MlTensorShape3D
 import geoengine as ge
+from geoengine.ml import model_dim_to_tensorshape
 from tests.ge_test import GeoEngineTestInstance
 
 
-class WorkflowStorageTests(unittest.TestCase):
-    '''Test methods for storing workflows as datasets'''
+class MlModelTests(unittest.TestCase):
+    '''Test methods for MlModels'''
 
     def setUp(self) -> None:
         ge.reset(False)
+
+    def test_model_dim_to_tensorshape(self):
+        ''' Test model_dim_to_tensorshape '''
+
+        dim_1d: List[TSP.Dimension] = [TSP.Dimension(dim_value=7)]
+        mts_1d = MlTensorShape3D(bands=7, y=1, x=1)
+        self.assertEqual(model_dim_to_tensorshape(dim_1d), mts_1d)
+
+        dim_1d_v: List[TSP.Dimension] = [TSP.Dimension(dim_value=None), TSP.Dimension(dim_value=7)]
+        mts_1d_v = MlTensorShape3D(bands=7, y=1, x=1)
+        self.assertEqual(model_dim_to_tensorshape(dim_1d_v), mts_1d_v)
+
+        dim_2d_t: List[TSP.Dimension] = [TSP.Dimension(dim_value=512), TSP.Dimension(dim_value=512)]
+        mts_2d_t = MlTensorShape3D(bands=1, y=512, x=512)
+        self.assertEqual(model_dim_to_tensorshape(dim_2d_t), mts_2d_t)
+
+        dim_2d_1: List[TSP.Dimension] = [TSP.Dimension(dim_value=1), TSP.Dimension(dim_value=7)]
+        mts_2d_1 = MlTensorShape3D(bands=7, y=1, x=1)
+        self.assertEqual(model_dim_to_tensorshape(dim_2d_1), mts_2d_1)
+
+        dim_3d_t: List[TSP.Dimension] = [
+            TSP.Dimension(dim_value=512), TSP.Dimension(dim_value=512), TSP.Dimension(dim_value=7)
+        ]
+        mts_3d_t = MlTensorShape3D(bands=7, y=512, x=512)
+        self.assertEqual(model_dim_to_tensorshape(dim_3d_t), mts_3d_t)
+
+        dim_3d_v: List[TSP.Dimension] = [
+            TSP.Dimension(dim_value=None), TSP.Dimension(dim_value=512), TSP.Dimension(dim_value=512)
+        ]
+        mts_3d_v = MlTensorShape3D(bands=1, y=512, x=512)
+        self.assertEqual(model_dim_to_tensorshape(dim_3d_v), mts_3d_v)
+
+        dim_4d_v: List[TSP.Dimension] = [
+            TSP.Dimension(dim_value=None),
+            TSP.Dimension(dim_value=512),
+            TSP.Dimension(dim_value=512),
+            TSP.Dimension(dim_value=4)
+        ]
+        mts_4d_v = MlTensorShape3D(bands=4, y=512, x=512)
+        self.assertEqual(model_dim_to_tensorshape(dim_4d_v), mts_4d_v)
 
     def test_uploading_onnx_model(self):
 
