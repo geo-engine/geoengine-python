@@ -7,7 +7,6 @@ import json
 import warnings
 from typing import Dict, List, Tuple, Union, cast
 import numpy as np
-import numpy.typing as npt
 from matplotlib.colors import Colormap
 from matplotlib.cm import ScalarMappable
 import geoengine_openapi_client
@@ -67,8 +66,9 @@ class Colorizer():
             raise ValueError(f"underColor must be a RGBA color specification, got {under_color} instead.")
 
         # get the map, and transform it to a list of (uint8) rgba values
-        list_of_rgba_colors: List[npt.NDArray[np.uint8]] = ScalarMappable(cmap=color_map).to_rgba(
-            np.linspace(min_max[0], min_max[1], n_steps), bytes=True)
+        list_of_rgba_colors = ScalarMappable(cmap=color_map).to_rgba(
+            np.linspace(min_max[0], min_max[1], n_steps), bytes=True
+        )
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
         values_of_breakpoints: List[float] = np.linspace(min_max[0], min_max[1], n_steps).tolist()
@@ -120,8 +120,9 @@ class Colorizer():
             raise ValueError(f"underColor must be a RGBA color specification, got {under_color} instead.")
 
         # get the map, and transform it to a list of (uint8) rgba values
-        list_of_rgba_colors: List[npt.NDArray[np.uint8]] = ScalarMappable(cmap=color_map).to_rgba(
-            np.linspace(min_max[0], min_max[1], n_steps), bytes=True)
+        list_of_rgba_colors = ScalarMappable(cmap=color_map).to_rgba(
+            np.linspace(min_max[0], min_max[1], n_steps), bytes=True
+        )
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
         values_of_breakpoints: List[float] = np.logspace(np.log10(min_max[0]), np.log10(min_max[1]), n_steps).tolist()
@@ -192,8 +193,9 @@ class Colorizer():
                                       f"Number of available colors: {n_colors_of_cmap}"))
 
         # we only need to generate enough different colors for all values specified in the colors parameter
-        list_of_rgba_colors: List[npt.NDArray[np.uint8]] = ScalarMappable(cmap=color_map).to_rgba(
-            np.linspace(0, len(values), len(values)), bytes=True)
+        list_of_rgba_colors = ScalarMappable(cmap=color_map).to_rgba(
+            np.linspace(0, len(values), len(values)), bytes=True
+        )
 
         # generate the dict with value: color mapping
         color_mapping: Dict[float, Rgba] = dict(zip(

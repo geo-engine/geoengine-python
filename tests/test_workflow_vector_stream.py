@@ -10,6 +10,7 @@ import pyarrow as pa
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import websockets.protocol
 import geoengine as ge
 from . import UrllibMocker
 
@@ -51,9 +52,9 @@ class MockWebsocket:
         pass
 
     @property
-    def open(self) -> bool:
+    def state(self) -> websockets.protocol.State:
         '''Mock open impl'''
-        return len(self.__chunks) > 0
+        return websockets.protocol.State.OPEN if len(self.__chunks) > 0 else websockets.protocol.State.CLOSED
 
     async def recv(self):
         return self.__chunks.pop(0)
@@ -152,7 +153,7 @@ class WorkflowVectorStreamTests(unittest.TestCase):
             resolution=ge.SpatialResolution(0.5, 0.5),
         )
 
-        with unittest.mock.patch("websockets.client.connect", return_value=MockWebsocket()):
+        with unittest.mock.patch("websockets.asyncio.client.connect", return_value=MockWebsocket()):
             async def inner1():
                 chunks = []
 
@@ -163,7 +164,7 @@ class WorkflowVectorStreamTests(unittest.TestCase):
 
             asyncio.run(inner1())
 
-        with unittest.mock.patch("websockets.client.connect", return_value=MockWebsocket()):
+        with unittest.mock.patch("websockets.asyncio.client.connect", return_value=MockWebsocket()):
             async def inner2():
                 data_frame = await workflow.vector_stream_into_geopandas(query_rect)
 
