@@ -10,6 +10,7 @@ import json
 import rioxarray
 import pyarrow as pa
 import xarray as xr
+import websockets.protocol
 from geoengine.types import RasterBandDescriptor
 import geoengine as ge
 from . import UrllibMocker
@@ -34,9 +35,9 @@ class MockWebsocket:
         pass
 
     @property
-    def open(self) -> bool:
+    def state(self) -> websockets.protocol.State:
         '''Mock open impl'''
-        return len(self.__tiles) > 0
+        return websockets.protocol.State.OPEN if len(self.__tiles) > 0 else websockets.protocol.State.CLOSED
 
     async def recv(self):
         return self.__tiles.pop()
@@ -130,7 +131,7 @@ class WorkflowRasterStreamTests(unittest.TestCase):
             resolution=ge.SpatialResolution(45.0, 22.5),
         )
 
-        with unittest.mock.patch("websockets.client.connect", return_value=MockWebsocket()):
+        with unittest.mock.patch("websockets.asyncio.client.connect", return_value=MockWebsocket()):
             async def inner1():
                 tiles = []
 
@@ -141,7 +142,7 @@ class WorkflowRasterStreamTests(unittest.TestCase):
 
             asyncio.run(inner1())
 
-        with unittest.mock.patch("websockets.client.connect", return_value=MockWebsocket()):
+        with unittest.mock.patch("websockets.asyncio.client.connect", return_value=MockWebsocket()):
             async def inner2():
                 array = await workflow.raster_stream_into_xarray(query_rect)
                 assert array.shape == (2, 1, 8, 8)  # time, band, y, x
