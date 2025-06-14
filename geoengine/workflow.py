@@ -25,7 +25,7 @@ from PIL import Image
 from owslib.util import Authentication, ResponseWrapper
 from owslib.wcs import WebCoverageService
 from vega import VegaLite
-import websockets
+from websockets.asyncio.client import connect
 import xarray as xr
 import pyarrow as pa
 
@@ -554,7 +554,7 @@ class Workflow:
         query_rectangle: QueryRectangle,
         open_timeout: int = 60,
         bands: Optional[List[int]] = None  # TODO: move into query rectangle?
-    ) -> AsyncIterator[RasterTile2D]:
+    ):
         '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
 
         if bands is None:
@@ -584,7 +584,7 @@ class Workflow:
         if url is None:
             raise InputException('Invalid websocket url')
 
-        async with websockets.asyncio.client.connect(
+        async with connect(
             uri=self.__replace_http_with_ws(url),
             extra_headers=session.auth_header,
             open_timeout=open_timeout,
