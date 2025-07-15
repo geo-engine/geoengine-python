@@ -19,39 +19,36 @@ dependencies = [
     "geoengine-openapi-client == 0.0.25",
     "geopandas >=1.0,<2.0",
     "matplotlib >=3.5,<3.11",
-    "numpy >=1.21,<2.3",
-    "owslib >=0.27,<0.34",
+    "numpy >=1.21,<2.4",
+    "owslib >=0.27,<0.35",
     "pillow >=10.0,<12",
     "pyarrow >=17.0,<21",
     "python-dotenv >=0.19,<1.2",
     "rasterio >=1.3,<2",
     "requests >= 2.26,<3",
     "rioxarray >=0.9.1, <0.20",
-    "StrEnum >=0.4.6,<0.5",                                                                 # TODO: use from stdlib when `python_requires = >=3.11`
+    "StrEnum >=0.4.6,<0.5",               # TODO: use from stdlib when `python_requires = >=3.11`
     "vega >= 3.5,<4.2",
     "websockets >= 14.0,<16",
-    "xarray >=0.19,<2025.5",
-    "urllib3 >= 2.1, < 2.5",
+    "xarray >=0.19,<2025.8",
+    "urllib3 >= 2.1, < 2.6",
     "pydantic >= 2.10.6, < 2.12",
-    'skl2onnx >=1.17,<2 ; python_version<"3.13"',
-    'skl2onnx @ git+https://github.com/onnx/sklearn-onnx@1035fdf ; python_version>="3.13"', # TODO: remove when skl2onnx 1.19 is released
-    'onnx == 1.17 ; python_version<"3.13"',                                                 # TODO: remove when skl2onnx 1.19 is released
-    'onnx == 1.18 ; python_version>="3.13"',                                                # TODO: remove when skl2onnx 1.19 is released
+    'skl2onnx >=1.19,<1.200',
 ]
 
 [project.urls]
 Homepage = "https://www.geoengine.io"
 Repository = "https://github.com/geo-engine/geoengine-python"
 
-[dependency-groups]
+[project.optional-dependencies] # TODO: use [dependency-groups] in the future
 dev = [
     "build >=0.7,<1.3",
     "mypy >=1.14,<2.0",
-    "pdoc3 >=0.10,<0.11",
+    "pdoc3 >=0.10,<0.12",
     "pycodestyle >=2.8,<3",        # formatter
     "pylint >=3.3,<4",             # code linter
     "setuptools >=62,<81",
-    "twine >=3.4,<6",              # PyPI
+    "twine >=3.4,<6.2",            # PyPI
     "types-requests >=2.26,<3",    # mypy type hints
     "types-setuptools >=71.1,<81", # mypy type hints
     "wheel >=0.37,<0.46",
@@ -61,7 +58,7 @@ test = [
     "pytest >=6.3,<9",
     "pytest-cov >=6.0,<7",
     "requests_mock >=1.9,<2",
-    "scikit-learn >=1.5,<1.7",
+    "scikit-learn >=1.5,<1.8",
 ]
 examples = [
     "cartopy >=0.22,<0.25",    # for WMS example
@@ -76,20 +73,3 @@ examples = [
 [build-system]
 requires = ["setuptools>=62"]
 build-backend = "setuptools.build_meta"
-
-[tool.pycodestyle]
-max-line-length = "120"
-ignore = [
-    # line length is check with pylint
-    "E501",
-    # one of W503 or W504 must be ignored
-    "W503",
-]
-exclude = [
-    # build dir
-    "build",
-    # common venv dir
-    "env*",
-    # hidden dirs
-    ".?*",
-]
