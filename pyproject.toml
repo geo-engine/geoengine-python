@@ -79,16 +79,17 @@ build-backend = "setuptools.build_meta"
 
 [tool.pycodestyle]
 max-line-length = "120"
-ignore = """
-# line length is check with pylint
-E501,
-# one of W503 or W504 must be ignored
-W503"""
-exclude = """
-# build dir
-build,
-# common venv dir
-env*,
-# hidden dirs
-.?*
-"""
+ignore = [
+    # line length is check with pylint
+    "E501",
+    # one of W503 or W504 must be ignored
+    "W503",
+]
+exclude = [
+    # build dir
+    "build",
+    # common venv dir
+    "env*",
+    # hidden dirs
+    ".?*",
+]
