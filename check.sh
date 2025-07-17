@@ -13,7 +13,7 @@ function echoerr() {
 
 echoerr "Check code style"
 
-python3 -m pycodestyle
+python3 -m ruff format --check
 
 echoerr "Check code with linter"
 
