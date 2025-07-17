@@ -13,7 +13,7 @@ from collections.abc import AsyncIterator
 from io import BytesIO
 from logging import debug
 from os import PathLike
-from typing import Any, TypedDict, Union, cast
+from typing import Any, TypedDict, cast
 from uuid import UUID
 
 import geoengine_openapi_client
@@ -54,35 +54,54 @@ from geoengine.types import (
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
-JsonType = Union[dict[str, Any], list[Any], int, str, float, bool, type[None]]
+JsonType = dict[str, Any] | list[Any] | int | str | float | bool | type[None]
+
 
 class Axis(TypedDict):
     title: str
+
+
 class Bin(TypedDict):
     binned: bool
     step: float
+
+
 class Field(TypedDict):
     field: str
+
+
 class DatasetIds(TypedDict):
     upload: UUID
     dataset: UUID
+
+
 class Values(TypedDict):
     binStart: float
     binEnd: float
     Frequency: int
+
+
 class X(TypedDict):
     field: Field
     bin: Bin
     axis: Axis
+
+
 class X2(TypedDict):
     field: Field
+
+
 class Y(TypedDict):
     field: Field
     type: str
+
+
 class Encoding(TypedDict):
     x: X
     x2: X2
     y: Y
+
+
 VegaSpec = TypedDict("VegaSpec", {"$schema": str, "data": list[Values], "mark": str, "encoding": Encoding})
 
 
@@ -271,7 +290,7 @@ class Workflow:
                 if isinstance(info.measurement, ClassificationMeasurement):
                     measurement: ClassificationMeasurement = info.measurement
                     classes = measurement.classes
-                    data[column] = data[column].apply(lambda x: classes[x])  # pylint: disable=cell-var-from-loop
+                    data[column] = data[column].apply(lambda x, classes=classes: classes[x])  # pylint: disable=cell-var-from-loop
 
             return data
 
@@ -440,9 +459,7 @@ class Workflow:
 
             return array
 
-    def get_xarray(
-        self, bbox: QueryRectangle, timeout=3600, force_no_data_value: float | None = None
-    ) -> xr.DataArray:
+    def get_xarray(self, bbox: QueryRectangle, timeout=3600, force_no_data_value: float | None = None) -> xr.DataArray:
         """
         Query a workflow and return the raster result as a georeferenced xarray
 
@@ -885,9 +902,7 @@ class Workflow:
             except StopAsyncIteration:
                 return None
 
-        def merge_dataframes(
-            df_a: gpd.GeoDataFrame | None, df_b: gpd.GeoDataFrame | None
-        ) -> gpd.GeoDataFrame | None:
+        def merge_dataframes(df_a: gpd.GeoDataFrame | None, df_b: gpd.GeoDataFrame | None) -> gpd.GeoDataFrame | None:
             if df_a is None:
                 return df_b
 

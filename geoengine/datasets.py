@@ -361,7 +361,7 @@ def upload_dataframe(
     df: gpd.GeoDataFrame,
     display_name: str = "Upload from Python",
     name: str | None = None,
-    time: OgrSourceDatasetTimeType = OgrSourceDatasetTimeType.none(),
+    time: OgrSourceDatasetTimeType | None = None,
     on_error: OgrOnError = OgrOnError.ABORT,
     timeout: int = 3600,
 ) -> DatasetName:
@@ -394,6 +394,9 @@ def upload_dataframe(
         If the dataset could not be uploaded or the name is already taken.
     """
     # pylint: disable=too-many-arguments,too-many-locals,too-many-positional-arguments
+
+    if time is None:
+        time = OgrSourceDatasetTimeType.none()
 
     if len(df) == 0:
         raise InputException("Cannot upload empty dataframe")

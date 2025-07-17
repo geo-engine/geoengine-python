@@ -110,7 +110,7 @@ class WcsTests(unittest.TestCase):
                     <wcs:Identifier>8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</wcs:Identifier>
                 </wcs:CoverageSummary>
             </wcs:Contents>
-    </wcs:Capabilities>""",
+    </wcs:Capabilities>""",  # noqa: E501
                 request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
@@ -239,7 +239,7 @@ class WcsTests(unittest.TestCase):
                     <wcs:Identifier>8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</wcs:Identifier>
                 </wcs:CoverageSummary>
             </wcs:Contents>
-    </wcs:Capabilities>""",
+    </wcs:Capabilities>""",  # noqa: E501
                 request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
@@ -370,7 +370,7 @@ class WcsTests(unittest.TestCase):
                     <wcs:Identifier>8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</wcs:Identifier>
                 </wcs:CoverageSummary>
             </wcs:Contents>
-    </wcs:Capabilities>""",
+    </wcs:Capabilities>""",  # noqa: E501
                 request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 

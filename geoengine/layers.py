@@ -175,7 +175,7 @@ class LayerCollection:
         def parse_listing(response: geoengine_openapi_client.CollectionItem) -> Listing:
             inner = response.actual_instance
             if inner is None:
-                assert False, "Invalid listing type"
+                raise AssertionError("Invalid listing type")
 
             item_type = LayerCollectionListingType(inner.type)
 
@@ -197,7 +197,7 @@ class LayerCollection:
                     description=inner.description,
                 )
 
-            assert False, "Invalid listing type"
+            raise AssertionError("Invalid listing type")
 
         items = []
         for response in response_pages:

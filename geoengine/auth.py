@@ -43,9 +43,7 @@ class Session:
 
     session: ClassVar[Session | None] = None
 
-    def __init__(
-        self, server_url: str, credentials: tuple[str, str] | None = None, token: str | None = None
-    ) -> None:
+    def __init__(self, server_url: str, credentials: tuple[str, str] | None = None, token: str | None = None) -> None:
         """
         Initialize communication between this library and a Geo Engine instance
 

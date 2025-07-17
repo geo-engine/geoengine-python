@@ -100,9 +100,7 @@ class PointLabelingTool(widgets.VBox):
             geometry="geometry",
         )
 
-    def __create_plot(
-        self, background: Callable[[plt.Axes], None], figsize: tuple[int, int] | None
-    ) -> widgets.Output:
+    def __create_plot(self, background: Callable[[plt.Axes], None], figsize: tuple[int, int] | None) -> widgets.Output:
         """
         Creates a plot with a specified background and figure size,
         and sets up an interactive widget for labeling points.

@@ -79,9 +79,7 @@ class TaskStatusInfo:  # pylint: disable=too-few-public-methods
         status = TaskStatus(inner.status)
         time_started = None
         if (
-            isinstance(
-                inner, (geoengine_openapi_client.TaskStatusRunning, geoengine_openapi_client.TaskStatusCompleted)
-            )
+            isinstance(inner, geoengine_openapi_client.TaskStatusRunning | geoengine_openapi_client.TaskStatusCompleted)
             and inner.time_started is not None
         ):
             time_started = datetime.datetime.strptime(inner.time_started, DEFAULT_ISO_TIME_FORMAT)

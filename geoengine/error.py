@@ -26,8 +26,8 @@ class GeoEngineException(Exception):
         else:
             obj = response
 
-        self.error = obj["error"] if "error" in obj else "?"
-        self.message = obj["message"] if "message" in obj else "?"
+        self.error = obj.get("error", "?")
+        self.message = obj.get("message", "?")
 
     def __str__(self) -> str:
         return f"{self.error}: {self.message}"

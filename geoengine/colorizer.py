@@ -185,8 +185,9 @@ class Colorizer:
                     f"Warning!\nYour colormap does not have enough colors "
                     "to display all unique values of the palette!"
                     f"\nNumber of values given: {len(values)} vs. "
-                    f"Number of available colors: {n_colors_of_cmap}"
-                )
+                    f"Number of available colors: {n_colors_of_cmap}",
+                ),
+                stacklevel=2,
             )
 
         # we only need to generate enough different colors for all values specified in the colors parameter
@@ -196,7 +197,11 @@ class Colorizer:
 
         # generate the dict with value: color mapping
         color_mapping: dict[float, Rgba] = dict(
-            zip(values, [(int(color[0]), int(color[1]), int(color[2]), int(color[3])) for color in list_of_rgba_colors], strict=False)
+            zip(
+                values,
+                [(int(color[0]), int(color[1]), int(color[2]), int(color[3])) for color in list_of_rgba_colors],
+                strict=False,
+            )
         )
 
         return PaletteColorizer(

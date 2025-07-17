@@ -1053,8 +1053,11 @@ class RasterStacker(RasterOperator):
     rename: RenameBands
 
     # pylint: disable=too-many-arguments
-    def __init__(self, sources: list[RasterOperator], rename: RenameBands = RenameBandsDefault()):
+    def __init__(self, sources: list[RasterOperator], rename: RenameBands | None = None):
         """Creates a new RasterStacker operator."""
+        if rename is None:
+            rename = RenameBandsDefault()
+
         self.sources = sources
         self.rename = rename
 

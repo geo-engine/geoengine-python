@@ -137,9 +137,7 @@ class TimeInterval:
     start: np.datetime64
     end: np.datetime64 | None
 
-    def __init__(
-        self, start: datetime | np.datetime64, end: datetime | np.datetime64 | None = None
-    ) -> None:
+    def __init__(self, start: datetime | np.datetime64, end: datetime | np.datetime64 | None = None) -> None:
         """Initialize a new `TimeInterval` object"""
 
         if isinstance(start, np.datetime64):
@@ -981,11 +979,9 @@ class Symbology:
 
         if isinstance(
             inner,
-            (
-                geoengine_openapi_client.PointSymbology,
-                geoengine_openapi_client.LineSymbology,
-                geoengine_openapi_client.PolygonSymbology,
-            ),
+            geoengine_openapi_client.PointSymbology
+            | geoengine_openapi_client.LineSymbology
+            | geoengine_openapi_client.PolygonSymbology,
         ):
             # return VectorSymbology.from_response_vector(response)
             return VectorSymbology()  # TODO: implement
