@@ -15,8 +15,9 @@ Rgba = Tuple[int, int, int, int]
 
 
 @dataclass
-class ColorBreakpoint():
+class ColorBreakpoint:
     """This class is used to generate geoengine compatible color breakpoint definitions."""
+
     value: float
     color: Rgba
 
@@ -31,7 +32,7 @@ class ColorBreakpoint():
 
 
 @dataclass
-class Colorizer():
+class Colorizer:
     """This class is used to generate geoengine compatible color map definitions as a json string."""
 
     no_data_color: Rgba
@@ -43,7 +44,7 @@ class Colorizer():
         n_steps: int = 10,
         over_color: Rgba = (0, 0, 0, 0),
         under_color: Rgba = (0, 0, 0, 0),
-        no_data_color: Rgba = (0, 0, 0, 0)
+        no_data_color: Rgba = (0, 0, 0, 0),
     ) -> LinearGradientColorizer:
         """Initialize the colorizer."""
         # pylint: disable=too-many-arguments,too-many-positional-arguments
@@ -75,17 +76,12 @@ class Colorizer():
 
         # generate color map steps for geoengine
         breakpoints: List[ColorBreakpoint] = [
-            ColorBreakpoint(
-                color=(int(color[0]), int(color[1]), int(color[2]), int(color[3])), value=value
-            ) for (value, color) in zip(
-                values_of_breakpoints, list_of_rgba_colors)
+            ColorBreakpoint(color=(int(color[0]), int(color[1]), int(color[2]), int(color[3])), value=value)
+            for (value, color) in zip(values_of_breakpoints, list_of_rgba_colors)
         ]
 
         return LinearGradientColorizer(
-            breakpoints=breakpoints,
-            no_data_color=no_data_color,
-            over_color=over_color,
-            under_color=under_color
+            breakpoints=breakpoints, no_data_color=no_data_color, over_color=over_color, under_color=under_color
         )
 
     @staticmethod
@@ -95,7 +91,7 @@ class Colorizer():
         n_steps: int = 10,
         over_color: Rgba = (0, 0, 0, 0),
         under_color: Rgba = (0, 0, 0, 0),
-        no_data_color: Rgba = (0, 0, 0, 0)
+        no_data_color: Rgba = (0, 0, 0, 0),
     ) -> LogarithmicGradientColorizer:
         """Initialize the colorizer."""
         # pylint: disable=too-many-arguments, too-many-positional-arguments
@@ -129,17 +125,12 @@ class Colorizer():
 
         # generate color map steps for geoengine
         breakpoints: List[ColorBreakpoint] = [
-            ColorBreakpoint(
-                color=(int(color[0]), int(color[1]), int(color[2]), int(color[3])), value=value
-            ) for (value, color) in zip(
-                values_of_breakpoints, list_of_rgba_colors)
+            ColorBreakpoint(color=(int(color[0]), int(color[1]), int(color[2]), int(color[3])), value=value)
+            for (value, color) in zip(values_of_breakpoints, list_of_rgba_colors)
         ]
 
         return LogarithmicGradientColorizer(
-            breakpoints=breakpoints,
-            no_data_color=no_data_color,
-            over_color=over_color,
-            under_color=under_color
+            breakpoints=breakpoints, no_data_color=no_data_color, over_color=over_color, under_color=under_color
         )
 
     @staticmethod
@@ -187,10 +178,14 @@ class Colorizer():
         n_colors_of_cmap: int = ScalarMappable(cmap=color_map).get_cmap().N
 
         if n_colors_of_cmap < len(values):
-            warnings.warn(UserWarning(f"Warning!\nYour colormap does not have enough colors "
-                                      "to display all unique values of the palette!"
-                                      f"\nNumber of values given: {len(values)} vs. "
-                                      f"Number of available colors: {n_colors_of_cmap}"))
+            warnings.warn(
+                UserWarning(
+                    f"Warning!\nYour colormap does not have enough colors "
+                    "to display all unique values of the palette!"
+                    f"\nNumber of values given: {len(values)} vs. "
+                    f"Number of available colors: {n_colors_of_cmap}"
+                )
+            )
 
         # we only need to generate enough different colors for all values specified in the colors parameter
         list_of_rgba_colors = ScalarMappable(cmap=color_map).to_rgba(
@@ -198,9 +193,8 @@ class Colorizer():
         )
 
         # generate the dict with value: color mapping
-        color_mapping: Dict[float, Rgba] = dict(zip(
-            values,
-            [(int(color[0]), int(color[1]), int(color[2]), int(color[3])) for color in list_of_rgba_colors])
+        color_mapping: Dict[float, Rgba] = dict(
+            zip(values, [(int(color[0]), int(color[1]), int(color[2]), int(color[3])) for color in list_of_rgba_colors])
         )
 
         return PaletteColorizer(
@@ -241,7 +235,8 @@ def rgba_from_list(values: list[int]) -> Rgba:
 
 @dataclass
 class LinearGradientColorizer(Colorizer):
-    '''A linear gradient colorizer.'''
+    """A linear gradient colorizer."""
+
     breakpoints: List[ColorBreakpoint]
     over_color: Rgba
     under_color: Rgba
@@ -259,25 +254,29 @@ class LinearGradientColorizer(Colorizer):
 
     def to_api_dict(self) -> geoengine_openapi_client.Colorizer:
         """Return the colorizer as a dictionary."""
-        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.LinearGradient(
-            type='linearGradient',
-            breakpoints=[breakpoint.to_api_dict() for breakpoint in self.breakpoints],
-            no_data_color=self.no_data_color,
-            over_color=self.over_color,
-            under_color=self.under_color
-        ))
+        return geoengine_openapi_client.Colorizer(
+            geoengine_openapi_client.LinearGradient(
+                type="linearGradient",
+                breakpoints=[breakpoint.to_api_dict() for breakpoint in self.breakpoints],
+                no_data_color=self.no_data_color,
+                over_color=self.over_color,
+                under_color=self.under_color,
+            )
+        )
 
 
 @dataclass
 class LogarithmicGradientColorizer(Colorizer):
-    '''A logarithmic gradient colorizer.'''
+    """A logarithmic gradient colorizer."""
+
     breakpoints: List[ColorBreakpoint]
     over_color: Rgba
     under_color: Rgba
 
     @staticmethod
     def from_response_logarithmic(
-            response: geoengine_openapi_client.LogarithmicGradient) -> LogarithmicGradientColorizer:
+        response: geoengine_openapi_client.LogarithmicGradient,
+    ) -> LogarithmicGradientColorizer:
         """Create a colorizer from a response."""
         breakpoints = [ColorBreakpoint.from_response(breakpoint) for breakpoint in response.breakpoints]
         return LogarithmicGradientColorizer(
@@ -289,18 +288,21 @@ class LogarithmicGradientColorizer(Colorizer):
 
     def to_api_dict(self) -> geoengine_openapi_client.Colorizer:
         """Return the colorizer as a dictionary."""
-        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.LogarithmicGradient(
-            type='logarithmicGradient',
-            breakpoints=[breakpoint.to_api_dict() for breakpoint in self.breakpoints],
-            no_data_color=self.no_data_color,
-            over_color=self.over_color,
-            under_color=self.under_color,
-        ))
+        return geoengine_openapi_client.Colorizer(
+            geoengine_openapi_client.LogarithmicGradient(
+                type="logarithmicGradient",
+                breakpoints=[breakpoint.to_api_dict() for breakpoint in self.breakpoints],
+                no_data_color=self.no_data_color,
+                over_color=self.over_color,
+                under_color=self.under_color,
+            )
+        )
 
 
 @dataclass
 class PaletteColorizer(Colorizer):
-    '''A palette colorizer.'''
+    """A palette colorizer."""
+
     colors: Dict[float, Rgba]
     default_color: Rgba
 
@@ -316,9 +318,11 @@ class PaletteColorizer(Colorizer):
 
     def to_api_dict(self) -> geoengine_openapi_client.Colorizer:
         """Return the colorizer as a dictionary."""
-        return geoengine_openapi_client.Colorizer(geoengine_openapi_client.PaletteColorizer(
-            type='palette',
-            colors={str(k): v for k, v in self.colors.items()},
-            default_color=self.default_color,
-            no_data_color=self.no_data_color,
-        ))
+        return geoengine_openapi_client.Colorizer(
+            geoengine_openapi_client.PaletteColorizer(
+                type="palette",
+                colors={str(k): v for k, v in self.colors.items()},
+                default_color=self.default_color,
+                no_data_color=self.no_data_color,
+            )
+        )

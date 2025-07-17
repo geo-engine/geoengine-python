@@ -1,6 +1,6 @@
-'''
+"""
 A wrapper for the GeoEngine permissions API.
-'''
+"""
 
 from __future__ import annotations
 import ast
@@ -19,7 +19,8 @@ from geoengine.auth import get_session
 
 
 class RoleId:
-    '''A wrapper for a role id'''
+    """A wrapper for a role id"""
+
     __role_id: UUID
 
     def __init__(self, role_id: UUID) -> None:
@@ -27,17 +28,17 @@ class RoleId:
 
     @classmethod
     def from_response(cls, response: Dict[str, str]) -> RoleId:
-        '''Parse a http response to an `RoleId`'''
+        """Parse a http response to an `RoleId`"""
 
-        if 'id' not in response:
+        if "id" not in response:
             raise GeoEngineException(response)
 
-        role_id = response['id']
+        role_id = response["id"]
 
         return RoleId(UUID(role_id))
 
     def __eq__(self, other) -> bool:
-        '''Checks if two role ids are equal'''
+        """Checks if two role ids are equal"""
         if not isinstance(other, self.__class__):
             return False
 
@@ -51,12 +52,13 @@ class RoleId:
 
 
 class Role:
-    '''A wrapper for a role'''
+    """A wrapper for a role"""
+
     name: str
     id: RoleId
 
     def __init__(self, role_id: Union[UUID, RoleId, str], role_name: str):
-        ''' Create a role with name and id '''
+        """Create a role with name and id"""
 
         if isinstance(role_id, UUID):
             real_id = RoleId(role_id)
@@ -70,7 +72,7 @@ class Role:
 
     @classmethod
     def from_response(cls, response: geoengine_openapi_client.models.role.Role) -> Role:
-        '''Parse a http response to an `RoleId`'''
+        """Parse a http response to an `RoleId`"""
 
         role_id = response.id
         role_name = response.name
@@ -78,39 +80,39 @@ class Role:
         return Role(role_id, role_name)
 
     def __eq__(self, other) -> bool:
-        '''Checks if two role ids are equal'''
+        """Checks if two role ids are equal"""
         if not isinstance(other, self.__class__):
             return False
 
         return self.id == other.id and self.name == other.name
 
     def role_id(self) -> RoleId:
-        '''get the role id'''
+        """get the role id"""
         return self.id
 
     def __repr__(self) -> str:
-        return 'id: ' + repr(self.id) + ', name: ' + repr(self.name)
+        return "id: " + repr(self.id) + ", name: " + repr(self.name)
 
 
 class UserId:
-    '''A wrapper for a role id'''
+    """A wrapper for a role id"""
 
     def __init__(self, user_id: UUID) -> None:
         self.__user_id = user_id
 
     @classmethod
     def from_response(cls, response: Dict[str, str]) -> UserId:
-        '''Parse a http response to an `UserId`'''
+        """Parse a http response to an `UserId`"""
         print(response)
-        if 'id' not in response:
+        if "id" not in response:
             raise GeoEngineException(response)
 
-        user_id = response['id']
+        user_id = response["id"]
 
         return UserId(UUID(user_id))
 
     def __eq__(self, other) -> bool:
-        '''Checks if two role ids are equal'''
+        """Checks if two role ids are equal"""
         if not isinstance(other, self.__class__):
             return False
 
@@ -127,44 +129,53 @@ class PermissionListing:
     """
     PermissionListing
     """
+
     permission: Permission
     resource: Resource
     role: Role
 
     def __init__(self, permission: Permission, resource: Resource, role: Role):
-        ''' Create  a PermissionListing '''
+        """Create  a PermissionListing"""
         self.permission = permission
         self.resource = resource
         self.role = role
 
     @classmethod
     def from_response(cls, response: geoengine_openapi_client.models.PermissionListing) -> PermissionListing:
-        ''' Transforms a response PermissionListing to a PermissionListing '''
+        """Transforms a response PermissionListing to a PermissionListing"""
         return PermissionListing(
             permission=Permission.from_response(response.permission),
             resource=Resource.from_response(response.resource),
-            role=Role.from_response(response.role)
+            role=Role.from_response(response.role),
         )
 
     def __eq__(self, other) -> bool:
-        '''Checks if two listings are equal'''
+        """Checks if two listings are equal"""
         if not isinstance(other, self.__class__):
             return False
         return self.permission == other.permission and self.resource == other.resource and self.role == other.role
 
     def __repr__(self) -> str:
-        return 'Role: ' + repr(self.role) + ', ' \
-            + 'Resource: ' + repr(self.resource) + ', ' \
-            + 'Permission: ' + repr(self.permission)
+        return (
+            "Role: "
+            + repr(self.role)
+            + ", "
+            + "Resource: "
+            + repr(self.resource)
+            + ", "
+            + "Permission: "
+            + repr(self.permission)
+        )
 
 
 class Permission(str, Enum):
-    '''A permission'''
-    READ = 'Read'
-    OWNER = 'Owner'
+    """A permission"""
+
+    READ = "Read"
+    OWNER = "Owner"
 
     def to_api_dict(self) -> geoengine_openapi_client.Permission:
-        '''Convert to a dict for the API'''
+        """Convert to a dict for the API"""
         return geoengine_openapi_client.Permission(self.value)
 
     @classmethod
@@ -184,12 +195,14 @@ def add_permission(role: RoleId, resource: Resource, permission: Permission, tim
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         permissions_api = geoengine_openapi_client.PermissionsApi(api_client)
-        permissions_api.add_permission_handler(geoengine_openapi_client.PermissionRequest(
-            role_id=str(role),
-            resource=resource.to_api_dict(),
-            permission=permission.to_api_dict(),
-            _request_timeout=timeout
-        ))
+        permissions_api.add_permission_handler(
+            geoengine_openapi_client.PermissionRequest(
+                role_id=str(role),
+                resource=resource.to_api_dict(),
+                permission=permission.to_api_dict(),
+                _request_timeout=timeout,
+            )
+        )
 
 
 def remove_permission(role: RoleId, resource: Resource, permission: Permission, timeout: int = 60):
@@ -199,27 +212,25 @@ def remove_permission(role: RoleId, resource: Resource, permission: Permission, 
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         permissions_api = geoengine_openapi_client.PermissionsApi(api_client)
-        permissions_api.remove_permission_handler(geoengine_openapi_client.PermissionRequest(
-            role_id=str(role),
-            resource=resource.to_api_dict(),
-            permission=permission.to_api_dict(),
-            _request_timeout=timeout
-        ))
+        permissions_api.remove_permission_handler(
+            geoengine_openapi_client.PermissionRequest(
+                role_id=str(role),
+                resource=resource.to_api_dict(),
+                permission=permission.to_api_dict(),
+                _request_timeout=timeout,
+            )
+        )
 
 
 def list_permissions(resource: Resource, timeout: int = 60, offset=0, limit=20) -> List[PermissionListing]:
-    '''Lists the roles and permissions assigned to a ressource'''
+    """Lists the roles and permissions assigned to a ressource"""
 
     session = get_session()
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         permission_api = geoengine_openapi_client.PermissionsApi(api_client)
         res = permission_api.get_resource_permissions_handler(
-            resource_id=resource.id,
-            resource_type=resource.type,
-            offset=offset,
-            limit=limit,
-            _request_timeout=timeout
+            resource_id=resource.id, resource_type=resource.type, offset=offset, limit=limit, _request_timeout=timeout
         )
 
         return [PermissionListing.from_response(r) for r in res]
@@ -232,10 +243,7 @@ def add_role(name: str, timeout: int = 60) -> RoleId:
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         user_api = geoengine_openapi_client.UserApi(api_client)
-        response = user_api.add_role_handler(geoengine_openapi_client.AddRole(
-            name=name,
-            _request_timeout=timeout
-        ))
+        response = user_api.add_role_handler(geoengine_openapi_client.AddRole(name=name, _request_timeout=timeout))
 
     # TODO: find out why JSON string is faulty
     # parsed_response = json.loads(response)

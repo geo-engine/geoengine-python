@@ -1,4 +1,4 @@
-'''Tests for raster streaming workflows'''
+"""Tests for raster streaming workflows"""
 
 import asyncio
 from typing import List
@@ -17,10 +17,10 @@ from . import UrllibMocker
 
 
 class MockWebsocket:
-    '''Mock for websockets.client.connect'''
+    """Mock for websockets.client.connect"""
 
     def __init__(self):
-        '''Create a mock websocket with some data'''
+        """Create a mock websocket with some data"""
 
         self.__tiles = []
 
@@ -36,7 +36,7 @@ class MockWebsocket:
 
     @property
     def state(self) -> websockets.protocol.State:
-        '''Mock open impl'''
+        """Mock open impl"""
         return websockets.protocol.State.OPEN if len(self.__tiles) > 0 else websockets.protocol.State.CLOSED
 
     async def recv(self):
@@ -50,7 +50,7 @@ class MockWebsocket:
 
 
 def read_data() -> List[xr.DataArray]:
-    '''Slice a raster into 4 parts'''
+    """Slice a raster into 4 parts"""
     whole = rioxarray.open_rasterio("tests/responses/ndvi.tiff")
 
     if isinstance(whole, list):
@@ -69,28 +69,34 @@ def read_data() -> List[xr.DataArray]:
 
 
 def arrow_bytes(data: xr.DataArray, time: ge.TimeInterval, band: int) -> bytes:
-    '''Convert a xarray.DataArray into an Arrow record batch within an IPC file'''
+    """Convert a xarray.DataArray into an Arrow record batch within an IPC file"""
 
     array = pa.array(data.to_numpy().reshape(-1))
     batch = pa.RecordBatch.from_arrays([array], ["data"])
-    schema = batch.schema.with_metadata({
-        "geoTransform": json.dumps({
-            "originCoordinate": {
-                "x": data.rio.bounds()[0],
-                "y": data.rio.bounds()[3],
-            },
-            "xPixelSize": 45.0,
-            "yPixelSize": -22.5,
-        }),
-        "xSize": "4",
-        "ySize": "4",
-        "spatialReference": "EPSG:4326",
-        "time": json.dumps({
-            "start": int(time.start.astype('datetime64[ms]').astype(int)),
-            "end": int(time.start.astype('datetime64[ms]').astype(int))
-        }),
-        "band": str(band),
-    })
+    schema = batch.schema.with_metadata(
+        {
+            "geoTransform": json.dumps(
+                {
+                    "originCoordinate": {
+                        "x": data.rio.bounds()[0],
+                        "y": data.rio.bounds()[3],
+                    },
+                    "xPixelSize": 45.0,
+                    "yPixelSize": -22.5,
+                }
+            ),
+            "xSize": "4",
+            "ySize": "4",
+            "spatialReference": "EPSG:4326",
+            "time": json.dumps(
+                {
+                    "start": int(time.start.astype("datetime64[ms]").astype(int)),
+                    "end": int(time.start.astype("datetime64[ms]").astype(int)),
+                }
+            ),
+            "band": str(band),
+        }
+    )
 
     sink = pa.BufferOutputStream()
 
@@ -101,16 +107,19 @@ def arrow_bytes(data: xr.DataArray, time: ge.TimeInterval, band: int) -> bytes:
 
 
 class WorkflowRasterStreamTests(unittest.TestCase):
-    '''Test methods for retrieving raster workflows as data streams'''
+    """Test methods for retrieving raster workflows as data streams"""
 
     def setUp(self) -> None:
         ge.reset(False)
 
     def test_streaming_workflow(self):
         with UrllibMocker() as m:
-            m.get("http://localhost:3030/session", json={
-                "id": "00000000-0000-0000-0000-000000000000",
-            })
+            m.get(
+                "http://localhost:3030/session",
+                json={
+                    "id": "00000000-0000-0000-0000-000000000000",
+                },
+            )
             ge.initialize("http://localhost:3030", token="no_token")
 
         with unittest.mock.patch(
@@ -120,7 +129,7 @@ class WorkflowRasterStreamTests(unittest.TestCase):
                 [RasterBandDescriptor("band", ge.UnitlessMeasurement())],
                 "EPSG:4326",
                 spatial_bounds=ge.SpatialPartition2D(-180.0, -90.0, 180.0, 90.0),
-                spatial_resolution=ge.SpatialResolution(45.0, 22.5)
+                spatial_resolution=ge.SpatialResolution(45.0, 22.5),
             ),
         ):
             workflow = ge.Workflow(UUID("00000000-0000-0000-0000-000000000000"))
@@ -132,6 +141,7 @@ class WorkflowRasterStreamTests(unittest.TestCase):
         )
 
         with unittest.mock.patch("websockets.asyncio.client.connect", return_value=MockWebsocket()):
+
             async def inner1():
                 tiles = []
 
@@ -143,6 +153,7 @@ class WorkflowRasterStreamTests(unittest.TestCase):
             asyncio.run(inner1())
 
         with unittest.mock.patch("websockets.asyncio.client.connect", return_value=MockWebsocket()):
+
             async def inner2():
                 array = await workflow.raster_stream_into_xarray(query_rect)
                 assert array.shape == (2, 1, 8, 8)  # time, band, y, x
@@ -152,6 +163,6 @@ class WorkflowRasterStreamTests(unittest.TestCase):
                 # Let's check that the output is the same as if we would
                 # have read the whole raster with rioxarray
 
-                assert array.isel({'band': 0, 'time': 0}, drop=True).equals(original_array)
+                assert array.isel({"band": 0, "time": 0}, drop=True).equals(original_array)
 
             asyncio.run(inner2())
