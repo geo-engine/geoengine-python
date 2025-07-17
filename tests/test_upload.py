@@ -1,8 +1,10 @@
 """Tests regarding upload functionality"""
 
 import unittest
-import pandas as pd
+
 import geopandas
+import pandas as pd
+
 import geoengine as ge
 from geoengine.datasets import DatasetName, OgrSourceDatasetTimeType, OgrSourceDuration, OgrSourceTimeFormat
 from geoengine.types import TimeStepGranularity

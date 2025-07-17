@@ -5,17 +5,19 @@ Different type mappings of geo engine types
 """
 
 from __future__ import annotations
+
 from abc import abstractmethod
 from datetime import datetime, timezone
-from uuid import UUID
 from enum import Enum
-from typing import Any, Dict, Optional, Tuple, Union, cast, List, Literal
-from attr import dataclass
-import numpy as np
+from typing import Any, Literal, cast
+from uuid import UUID
+
 import geoengine_openapi_client
+import numpy as np
+from attr import dataclass
+
 from geoengine.colorizer import Colorizer
 from geoengine.error import GeoEngineException, InputException, TypeException
-
 
 DEFAULT_ISO_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
 
@@ -45,7 +47,7 @@ class SpatialBounds:
         bbox_tuple = self.as_bbox_tuple(y_axis_first=y_axis_first)
         return f"{bbox_tuple[0]},{bbox_tuple[1]},{bbox_tuple[2]},{bbox_tuple[3]}"
 
-    def as_bbox_tuple(self, y_axis_first=False) -> Tuple[float, float, float, float]:
+    def as_bbox_tuple(self, y_axis_first=False) -> tuple[float, float, float, float]:
         """
         Return the bbox with OGC axis ordering of the srs
         """
@@ -133,10 +135,10 @@ class TimeInterval:
     """'A time interval."""
 
     start: np.datetime64
-    end: Optional[np.datetime64]
+    end: np.datetime64 | None
 
     def __init__(
-        self, start: Union[datetime, np.datetime64], end: Optional[Union[datetime, np.datetime64]] = None
+        self, start: datetime | np.datetime64, end: datetime | np.datetime64 | None = None
     ) -> None:
         """Initialize a new `TimeInterval` object"""
 
@@ -255,7 +257,7 @@ class SpatialResolution:
         """create a `SpatialResolution` from an API response"""
         return SpatialResolution(x_resolution=response.x, y_resolution=response.y)
 
-    def as_tuple(self) -> Tuple[float, float]:
+    def as_tuple(self) -> tuple[float, float]:
         return (self.x_resolution, self.y_resolution)
 
     def __str__(self) -> str:
@@ -277,9 +279,9 @@ class QueryRectangle:
 
     def __init__(
         self,
-        spatial_bounds: Union[BoundingBox2D, Tuple[float, float, float, float]],
-        time_interval: Union[TimeInterval, Tuple[datetime, Optional[datetime]]],
-        resolution: Union[SpatialResolution, Tuple[float, float]],
+        spatial_bounds: BoundingBox2D | tuple[float, float, float, float],
+        time_interval: TimeInterval | tuple[datetime, datetime | None],
+        resolution: SpatialResolution | tuple[float, float],
         srs="EPSG:4326",
     ) -> None:
         """
@@ -326,7 +328,7 @@ class QueryRectangle:
         return self.__spatial_bounds.as_bbox_str(y_axis_first=y_axis_first)
 
     @property
-    def bbox_ogc(self) -> Tuple[float, float, float, float]:
+    def bbox_ogc(self) -> tuple[float, float, float, float]:
         """
         Return the bbox with OGC axis ordering of the srs
         """
@@ -336,7 +338,7 @@ class QueryRectangle:
         return self.__spatial_bounds.as_bbox_tuple(y_axis_first=y_axis_first)
 
     @property
-    def resolution_ogc(self) -> Tuple[float, float]:
+    def resolution_ogc(self) -> tuple[float, float]:
         """
         Return the resolution in OGC style
         """
@@ -414,14 +416,14 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
     """
 
     __spatial_reference: str
-    __time_bounds: Optional[TimeInterval]
-    __spatial_resolution: Optional[SpatialResolution]
+    __time_bounds: TimeInterval | None
+    __spatial_resolution: SpatialResolution | None
 
     def __init__(
         self,
         spatial_reference: str,
-        time_bounds: Optional[TimeInterval] = None,
-        spatial_resolution: Optional[SpatialResolution] = None,
+        time_bounds: TimeInterval | None = None,
+        spatial_resolution: SpatialResolution | None = None,
     ) -> None:
         """Initialize a new `ResultDescriptor` object"""
 
@@ -479,13 +481,13 @@ class ResultDescriptor:  # pylint: disable=too-few-public-methods
         return self.__spatial_reference
 
     @property
-    def time_bounds(self) -> Optional[TimeInterval]:
+    def time_bounds(self) -> TimeInterval | None:
         """Return the time bounds"""
 
         return self.__time_bounds
 
     @property
-    def spatial_resolution(self) -> Optional[SpatialResolution]:
+    def spatial_resolution(self) -> SpatialResolution | None:
         """Return the spatial resolution"""
 
         return self.__spatial_resolution
@@ -503,17 +505,17 @@ class VectorResultDescriptor(ResultDescriptor):
     A vector result descriptor
     """
 
-    __spatial_bounds: Optional[BoundingBox2D]
+    __spatial_bounds: BoundingBox2D | None
     __data_type: VectorDataType
-    __columns: Dict[str, VectorColumnInfo]
+    __columns: dict[str, VectorColumnInfo]
 
     def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         spatial_reference: str,
         data_type: VectorDataType,
-        columns: Dict[str, VectorColumnInfo],
-        time_bounds: Optional[TimeInterval] = None,
-        spatial_bounds: Optional[BoundingBox2D] = None,
+        columns: dict[str, VectorColumnInfo],
+        time_bounds: TimeInterval | None = None,
+        spatial_bounds: BoundingBox2D | None = None,
     ) -> None:
         """Initialize a vector result descriptor"""
         super().__init__(spatial_reference, time_bounds, None)
@@ -552,13 +554,13 @@ class VectorResultDescriptor(ResultDescriptor):
         return super().spatial_reference
 
     @property
-    def columns(self) -> Dict[str, VectorColumnInfo]:
+    def columns(self) -> dict[str, VectorColumnInfo]:
         """Return the columns"""
 
         return self.__columns
 
     @property
-    def spatial_bounds(self) -> Optional[BoundingBox2D]:
+    def spatial_bounds(self) -> BoundingBox2D | None:
         """Return the spatial bounds"""
         return self.__spatial_bounds
 
@@ -691,17 +693,17 @@ class RasterResultDescriptor(ResultDescriptor):
     """
 
     __data_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]
-    __bands: List[RasterBandDescriptor]
-    __spatial_bounds: Optional[SpatialPartition2D]
+    __bands: list[RasterBandDescriptor]
+    __spatial_bounds: SpatialPartition2D | None
 
     def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         data_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"],
-        bands: List[RasterBandDescriptor],
+        bands: list[RasterBandDescriptor],
         spatial_reference: str,
-        time_bounds: Optional[TimeInterval] = None,
-        spatial_bounds: Optional[SpatialPartition2D] = None,
-        spatial_resolution: Optional[SpatialResolution] = None,
+        time_bounds: TimeInterval | None = None,
+        spatial_bounds: SpatialPartition2D | None = None,
+        spatial_resolution: SpatialResolution | None = None,
     ) -> None:
         """Initialize a new `RasterResultDescriptor`"""
         super().__init__(spatial_reference, time_bounds, spatial_resolution)
@@ -759,11 +761,11 @@ class RasterResultDescriptor(ResultDescriptor):
         return self.__data_type
 
     @property
-    def bands(self) -> List[RasterBandDescriptor]:
+    def bands(self) -> list[RasterBandDescriptor]:
         return self.__bands
 
     @property
-    def spatial_bounds(self) -> Optional[SpatialPartition2D]:
+    def spatial_bounds(self) -> SpatialPartition2D | None:
         return self.__spatial_bounds
 
     @property
@@ -790,13 +792,13 @@ class PlotResultDescriptor(ResultDescriptor):
     A plot result descriptor
     """
 
-    __spatial_bounds: Optional[BoundingBox2D]
+    __spatial_bounds: BoundingBox2D | None
 
     def __init__(  # pylint: disable=too-many-arguments]
         self,
         spatial_reference: str,
-        time_bounds: Optional[TimeInterval] = None,
-        spatial_bounds: Optional[BoundingBox2D] = None,
+        time_bounds: TimeInterval | None = None,
+        spatial_bounds: BoundingBox2D | None = None,
     ) -> None:
         """Initialize a new `PlotResultDescriptor`"""
         super().__init__(spatial_reference, time_bounds, None)
@@ -834,7 +836,7 @@ class PlotResultDescriptor(ResultDescriptor):
         return super().spatial_reference
 
     @property
-    def spatial_bounds(self) -> Optional[BoundingBox2D]:
+    def spatial_bounds(self) -> BoundingBox2D | None:
         return self.__spatial_bounds
 
     def to_api_dict(self) -> geoengine_openapi_client.TypedResultDescriptor:
@@ -952,7 +954,7 @@ class Provenance:
 class ProvenanceEntry:
     """Provenance of a dataset"""
 
-    data: List[DataId]
+    data: list[DataId]
     provenance: Provenance
 
     @classmethod
@@ -1053,15 +1055,15 @@ class MultiBandRasterColorizer(RasterColorizer):
     blue_band: int
     blue_max: float
     blue_min: float
-    blue_scale: Optional[float]
+    blue_scale: float | None
     green_band: int
     green_max: float
     green_min: float
-    green_scale: Optional[float]
+    green_scale: float | None
     red_band: int
     red_max: float
     red_min: float
-    red_scale: Optional[float]
+    red_scale: float | None
 
     @staticmethod
     def from_multi_band_response(response: geoengine_openapi_client.MultiBandRasterColorizer) -> RasterColorizer:
@@ -1280,9 +1282,9 @@ class ContinuousMeasurement(Measurement):
     """A measurement that is continuous"""
 
     __measurement: str
-    __unit: Optional[str]
+    __unit: str | None
 
-    def __init__(self, measurement: str, unit: Optional[str]) -> None:
+    def __init__(self, measurement: str, unit: str | None) -> None:
         """Initialize a new `ContiuousMeasurement`"""
 
         super().__init__()
@@ -1320,7 +1322,7 @@ class ContinuousMeasurement(Measurement):
         return self.__measurement
 
     @property
-    def unit(self) -> Optional[str]:
+    def unit(self) -> str | None:
         return self.__unit
 
 
@@ -1328,9 +1330,9 @@ class ClassificationMeasurement(Measurement):
     """A measurement that is a classification"""
 
     __measurement: str
-    __classes: Dict[int, str]
+    __classes: dict[int, str]
 
-    def __init__(self, measurement: str, classes: Dict[int, str]) -> None:
+    def __init__(self, measurement: str, classes: dict[int, str]) -> None:
         """Initialize a new `ClassificationMeasurement`"""
 
         super().__init__()
@@ -1346,13 +1348,13 @@ class ClassificationMeasurement(Measurement):
 
         measurement = response.measurement
 
-        str_classes: Dict[str, str] = response.classes
+        str_classes: dict[str, str] = response.classes
         classes = {int(k): v for k, v in str_classes.items()}
 
         return ClassificationMeasurement(measurement, classes)
 
     def to_api_dict(self) -> geoengine_openapi_client.Measurement:
-        str_classes: Dict[str, str] = {str(k): v for k, v in self.__classes.items()}
+        str_classes: dict[str, str] = {str(k): v for k, v in self.__classes.items()}
 
         return geoengine_openapi_client.Measurement(
             geoengine_openapi_client.ClassificationMeasurement(
@@ -1374,7 +1376,7 @@ class ClassificationMeasurement(Measurement):
         return self.__measurement
 
     @property
-    def classes(self) -> Dict[int, str]:
+    def classes(self) -> dict[int, str]:
         return self.__classes
 
 
@@ -1420,7 +1422,7 @@ class GeoTransform:
             y_pixel_size=self.y_pixel_size,
         )
 
-    def to_gdal(self) -> Tuple[float, float, float, float, float, float]:
+    def to_gdal(self) -> tuple[float, float, float, float, float, float]:
         """Convert to a GDAL geotransform"""
         return (self.x_min, self.x_pixel_size, 0, self.y_max, 0, self.y_pixel_size)
 
@@ -1448,14 +1450,14 @@ class GeoTransform:
     def y_min(self, number_of_pixels: int) -> float:
         return self.y_max + number_of_pixels * self.y_pixel_size
 
-    def coord_to_pixel_ul(self, x_cord: float, y_coord: float) -> Tuple[int, int]:
+    def coord_to_pixel_ul(self, x_cord: float, y_coord: float) -> tuple[int, int]:
         """Convert a coordinate to a pixel index rould towards top left"""
         return (
             int(np.floor((x_cord - self.x_min) / self.x_pixel_size)),
             int(np.ceil((y_coord - self.y_max) / self.y_pixel_size)),
         )
 
-    def coord_to_pixel_lr(self, x_cord: float, y_coord: float) -> Tuple[int, int]:
+    def coord_to_pixel_lr(self, x_cord: float, y_coord: float) -> tuple[int, int]:
         """Convert a coordinate to a pixel index ound towards lower right"""
         return (
             int(np.ceil((x_cord - self.x_min) / self.x_pixel_size)),

@@ -3,23 +3,26 @@ A wrapper around the layer and layerDb API
 """
 
 from __future__ import annotations
+
+import json
+import os
 from dataclasses import dataclass
 from enum import auto
 from io import StringIO
-import os
-from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar, Union, cast, Tuple
+from typing import Any, Generic, Literal, TypeVar, cast
 from uuid import UUID
-import json
-from strenum import LowercaseStrEnum
+
 import geoengine_openapi_client
+from strenum import LowercaseStrEnum
+
 from geoengine.auth import get_session
-from geoengine.error import ModificationNotOnLayerDbException, InputException
+from geoengine.error import InputException, ModificationNotOnLayerDbException
+from geoengine.permissions import Permission, RoleId, add_permission
+from geoengine.resource_identifier import LAYER_DB_PROVIDER_ID, LayerCollectionId, LayerId, LayerProviderId, Resource
 from geoengine.tasks import Task, TaskId
 from geoengine.types import Symbology
-from geoengine.permissions import RoleId, Permission, add_permission
 from geoengine.workflow import Workflow, WorkflowId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
-from geoengine.resource_identifier import LayerCollectionId, LayerId, LayerProviderId, LAYER_DB_PROVIDER_ID, Resource
 
 
 class LayerCollectionListingType(LowercaseStrEnum):
@@ -78,7 +81,7 @@ class Listing(Generic[LISTINGID]):
         """String representation of the listing type"""
         raise NotImplementedError("Please Implement this method")
 
-    def load(self, timeout: int = 60) -> Union[LayerCollection, Layer]:
+    def load(self, timeout: int = 60) -> LayerCollection | Layer:
         """Load the listing item"""
         raise NotImplementedError("Please Implement this method")
 
@@ -96,7 +99,7 @@ class LayerListing(Listing[LayerId]):
 
         return "Layer"
 
-    def load(self, timeout: int = 60) -> Union[LayerCollection, Layer]:
+    def load(self, timeout: int = 60) -> LayerCollection | Layer:
         """Load the listing item"""
 
         return layer(self.listing_id, self.provider_id, timeout)
@@ -121,7 +124,7 @@ class LayerCollectionListing(Listing[LayerCollectionId]):
 
         return "Layer Collection"
 
-    def load(self, timeout: int = 60) -> Union[LayerCollection, Layer]:
+    def load(self, timeout: int = 60) -> LayerCollection | Layer:
         """Load the listing item"""
 
         return layer_collection(self.listing_id, self.provider_id, timeout)
@@ -144,7 +147,7 @@ class LayerCollection:
     description: str
     collection_id: LayerCollectionId
     provider_id: LayerProviderId
-    items: List[Listing]
+    items: list[Listing]
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
@@ -153,7 +156,7 @@ class LayerCollection:
         description: str,
         collection_id: LayerCollectionId,
         provider_id: LayerProviderId,
-        items: List[Listing],
+        items: list[Listing],
     ) -> None:
         """Create a new `LayerCollection`"""
 
@@ -164,7 +167,7 @@ class LayerCollection:
         self.items = items
 
     @classmethod
-    def from_response(cls, response_pages: List[geoengine_openapi_client.LayerCollection]) -> LayerCollection:
+    def from_response(cls, response_pages: list[geoengine_openapi_client.LayerCollection]) -> LayerCollection:
         """Parse an HTTP JSON response to an `LayerCollection`"""
 
         assert len(response_pages) > 0, "No response pages"
@@ -288,8 +291,8 @@ class LayerCollection:
         self,
         name: str,
         description: str,
-        workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
-        symbology: Optional[Symbology],
+        workflow: dict[str, Any] | WorkflowBuilderOperator,  # TODO: improve type
+        symbology: Symbology | None,
         timeout: int = 60,
     ) -> LayerId:
         """Add a layer to this collection"""
@@ -315,9 +318,9 @@ class LayerCollection:
         self,
         name: str,
         description: str,
-        workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
-        symbology: Optional[Symbology],
-        permission_tuples: Optional[List[Tuple[RoleId, Permission]]] = None,
+        workflow: dict[str, Any] | WorkflowBuilderOperator,  # TODO: improve type
+        symbology: Symbology | None,
+        permission_tuples: list[tuple[RoleId, Permission]] | None = None,
         timeout: int = 60,
     ) -> LayerId:
         """
@@ -333,7 +336,7 @@ class LayerCollection:
 
         return layer_id
 
-    def add_existing_layer(self, existing_layer: Union[LayerListing, Layer, LayerId], timeout: int = 60):
+    def add_existing_layer(self, existing_layer: LayerListing | Layer | LayerId, timeout: int = 60):
         """Add an existing layer to this collection"""
 
         if self.provider_id != LAYER_DB_PROVIDER_ID:
@@ -383,7 +386,7 @@ class LayerCollection:
         return collection_id
 
     def add_existing_collection(
-        self, existing_collection: Union[LayerCollectionListing, LayerCollection, LayerCollectionId], timeout: int = 60
+        self, existing_collection: LayerCollectionListing | LayerCollection | LayerCollectionId, timeout: int = 60
     ) -> LayerCollectionId:
         """Add an existing collection to this collection"""
 
@@ -416,7 +419,7 @@ class LayerCollection:
 
         return collection_id
 
-    def get_items_by_name(self, name: str) -> List[Listing]:
+    def get_items_by_name(self, name: str) -> list[Listing]:
         """Get all children with the given name"""
 
         return [item for item in self.items if item.name == name]
@@ -429,7 +432,7 @@ class LayerCollection:
         offset: int = 0,
         limit: int = 20,
         timeout: int = 60,
-    ) -> List[Listing]:
+    ) -> list[Listing]:
         """Search for a string in the layer collection"""
 
         session = get_session()
@@ -452,7 +455,7 @@ class LayerCollection:
                 _request_timeout=timeout,
             )
 
-        listings: List[Listing] = []
+        listings: list[Listing] = []
         for item in layer_collection_response.items:
             inner = item.actual_instance
             if inner is None:
@@ -483,9 +486,9 @@ class LayerCollection:
     def get_or_create_unique_collection(
         self,
         collection_name: str,
-        create_collection_description: Optional[str] = None,
+        create_collection_description: str | None = None,
         delete_existing_with_same_name: bool = False,
-        create_permissions_tuples: Optional[List[Tuple[RoleId, Permission]]] = None,
+        create_permissions_tuples: list[tuple[RoleId, Permission]] | None = None,
     ) -> LayerCollection:
         """
         Get a unique child by name OR if it does not exist create it.
@@ -552,10 +555,10 @@ class Layer:
     description: str
     layer_id: LayerId
     provider_id: LayerProviderId
-    workflow: Dict[str, Any]  # TODO: specify in more detail
-    symbology: Optional[Symbology]
-    properties: List[Any]  # TODO: specify in more detail
-    metadata: Dict[str, Any]  # TODO: specify in more detail
+    workflow: dict[str, Any]  # TODO: specify in more detail
+    symbology: Symbology | None
+    properties: list[Any]  # TODO: specify in more detail
+    metadata: dict[str, Any]  # TODO: specify in more detail
 
     def __init__(
         self,
@@ -563,10 +566,10 @@ class Layer:
         description: str,
         layer_id: LayerId,
         provider_id: LayerProviderId,
-        workflow: Dict[str, Any],
-        symbology: Optional[Symbology],
-        properties: List[Any],
-        metadata: Dict[Any, Any],
+        workflow: dict[str, Any],
+        symbology: Symbology | None,
+        properties: list[Any],
+        metadata: dict[Any, Any],
     ) -> None:
         """Create a new `Layer`"""
         # pylint: disable=too-many-arguments,too-many-positional-arguments
@@ -594,8 +597,8 @@ class Layer:
             provider_id=LayerProviderId(UUID(response.id.provider_id)),
             workflow=response.workflow.to_dict(),
             symbology=symbology,
-            properties=cast(List[Any], response.properties),
-            metadata=cast(Dict[Any, Any], response.metadata),
+            properties=cast(list[Any], response.properties),
+            metadata=cast(dict[Any, Any], response.metadata),
         )
 
     def __repr__(self) -> str:
@@ -696,7 +699,7 @@ class Layer:
 
 
 def layer_collection(
-    layer_collection_id: Optional[LayerCollectionId] = None,
+    layer_collection_id: LayerCollectionId | None = None,
     layer_provider_id: LayerProviderId = LAYER_DB_PROVIDER_ID,
     timeout: int = 60,
 ) -> LayerCollection:
@@ -707,7 +710,7 @@ def layer_collection(
     session = get_session()
 
     page_limit = 20
-    pages: List[geoengine_openapi_client.LayerCollection] = []
+    pages: list[geoengine_openapi_client.LayerCollection] = []
 
     offset = 0
     while True:
@@ -814,8 +817,8 @@ def _add_existing_layer_collection_to_collection(
 def _add_layer_to_collection(
     name: str,
     description: str,
-    workflow: Union[Dict[str, Any], WorkflowBuilderOperator],  # TODO: improve type
-    symbology: Optional[Symbology],
+    workflow: dict[str, Any] | WorkflowBuilderOperator,  # TODO: improve type
+    symbology: Symbology | None,
     collection_id: LayerCollectionId,
     timeout: int = 60,
 ) -> LayerId:

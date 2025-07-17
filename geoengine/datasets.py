@@ -3,34 +3,37 @@ Module for working with datasets and source definitions
 """
 
 from __future__ import annotations
-from abc import abstractmethod
-from pathlib import Path
-from typing import List, NamedTuple, Optional, Union, Literal, Tuple
-from enum import Enum
-from uuid import UUID
+
 import tempfile
-from attr import dataclass
+from abc import abstractmethod
+from enum import Enum
+from pathlib import Path
+from typing import Literal, NamedTuple
+from uuid import UUID
+
 import geoengine_openapi_client
 import geoengine_openapi_client.exceptions
 import geoengine_openapi_client.models
-import numpy as np
 import geopandas as gpd
+import numpy as np
+from attr import dataclass
+
 from geoengine import api
-from geoengine.error import InputException, MissingFieldInResponseException
 from geoengine.auth import get_session
+from geoengine.error import InputException, MissingFieldInResponseException
+from geoengine.permissions import Permission, RoleId, add_permission
+from geoengine.resource_identifier import DatasetName, Resource, UploadId
 from geoengine.types import (
+    FeatureDataType,
     Provenance,
     RasterSymbology,
     TimeStep,
     TimeStepGranularity,
+    UnitlessMeasurement,
+    VectorColumnInfo,
     VectorDataType,
     VectorResultDescriptor,
-    VectorColumnInfo,
-    UnitlessMeasurement,
-    FeatureDataType,
 )
-from geoengine.resource_identifier import Resource, UploadId, DatasetName
-from geoengine.permissions import RoleId, Permission, add_permission
 
 
 class UnixTimeStampType(Enum):
@@ -280,12 +283,12 @@ class OgrOnError(Enum):
 class AddDatasetProperties:
     """The properties for adding a dataset"""
 
-    name: Optional[str]
+    name: str | None
     display_name: str
     description: str
     source_operator: Literal["GdalSource", "OgrSource"]  # TODO: add more operators
-    symbology: Optional[RasterSymbology]  # TODO: add vector symbology if needed
-    provenance: Optional[List[Provenance]]
+    symbology: RasterSymbology | None  # TODO: add vector symbology if needed
+    provenance: list[Provenance] | None
 
     def __init__(
         # pylint: disable=too-many-arguments,too-many-positional-arguments
@@ -293,9 +296,9 @@ class AddDatasetProperties:
         display_name: str,
         description: str,
         source_operator: Literal["GdalSource", "OgrSource"] = "GdalSource",
-        symbology: Optional[RasterSymbology] = None,
-        provenance: Optional[List[Provenance]] = None,
-        name: Optional[str] = None,
+        symbology: RasterSymbology | None = None,
+        provenance: list[Provenance] | None = None,
+        name: str | None = None,
     ):
         """Creates a new `AddDatasetProperties` object"""
         self.name = name
@@ -357,7 +360,7 @@ def pandas_dtype_to_column_type(dtype: np.dtype) -> FeatureDataType:
 def upload_dataframe(
     df: gpd.GeoDataFrame,
     display_name: str = "Upload from Python",
-    name: Optional[str] = None,
+    name: str | None = None,
     time: OgrSourceDatasetTimeType = OgrSourceDatasetTimeType.none(),
     on_error: OgrOnError = OgrOnError.ABORT,
     timeout: int = 3600,
@@ -508,7 +511,7 @@ class Volume:
     """A volume"""
 
     name: str
-    path: Optional[str]
+    path: str | None
 
     @classmethod
     def from_response(cls, response: geoengine_openapi_client.Volume) -> Volume:
@@ -519,7 +522,7 @@ class Volume:
         return geoengine_openapi_client.Volume(name=self.name, path=self.path)
 
 
-def volumes(timeout: int = 60) -> List[Volume]:
+def volumes(timeout: int = 60) -> list[Volume]:
     """Returns a list of all volumes"""
 
     session = get_session()
@@ -532,7 +535,7 @@ def volumes(timeout: int = 60) -> List[Volume]:
 
 
 def add_dataset(
-    data_store: Union[Volume, UploadId],
+    data_store: Volume | UploadId,
     properties: AddDatasetProperties,
     meta_data: geoengine_openapi_client.MetaDataDefinition,
     timeout: int = 60,
@@ -561,10 +564,10 @@ def add_dataset(
 
 
 def add_or_replace_dataset_with_permissions(
-    data_store: Union[Volume, UploadId],
+    data_store: Volume | UploadId,
     properties: AddDatasetProperties,
     meta_data: geoengine_openapi_client.MetaDataDefinition,
-    permission_tuples: Optional[List[Tuple[RoleId, Permission]]] = None,
+    permission_tuples: list[tuple[RoleId, Permission]] | None = None,
     replace_existing=False,
     timeout: int = 60,
 ) -> DatasetName:
@@ -617,9 +620,9 @@ def list_datasets(
     offset: int = 0,
     limit: int = 20,
     order: DatasetListOrder = DatasetListOrder.NAME_ASC,
-    name_filter: Optional[str] = None,
+    name_filter: str | None = None,
     timeout: int = 60,
-) -> List[geoengine_openapi_client.DatasetListing]:
+) -> list[geoengine_openapi_client.DatasetListing]:
     """List datasets"""
 
     session = get_session()
@@ -638,7 +641,7 @@ def list_datasets(
 
 
 def dataset_info_by_name(
-    dataset_name: Union[DatasetName, str], timeout: int = 60
+    dataset_name: DatasetName | str, timeout: int = 60
 ) -> geoengine_openapi_client.models.Dataset | None:
     """Get dataset information."""
 

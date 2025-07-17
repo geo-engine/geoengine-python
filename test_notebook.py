@@ -6,9 +6,10 @@ import argparse
 import ast
 import sys
 import warnings
-from nbconvert import PythonExporter
-import nbformat
+
 import matplotlib
+import nbformat
+from nbconvert import PythonExporter
 
 from tests.ge_test import GeoEngineTestInstance
 

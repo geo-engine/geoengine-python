@@ -1,7 +1,9 @@
 """Test for utility functions"""
 
 import unittest
+
 import numpy as np
+
 import geoengine as ge
 
 

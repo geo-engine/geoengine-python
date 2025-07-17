@@ -1,9 +1,10 @@
 """These types represent Geo Engine's backend API types before/after JSON (de)serialization."""
 
-from typing import Tuple, TypedDict
+from typing import TypedDict
+
 from geoengine_openapi_client.models import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
-Rgba = Tuple[int, int, int, int]
+Rgba = tuple[int, int, int, int]
 
 GEOMETRY_COLUMN_NAME = "__geometry"
 TIME_COLUMN_NAME = "__time"

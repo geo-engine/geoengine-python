@@ -3,6 +3,7 @@
 import unittest
 
 import geoengine_openapi_client
+
 import geoengine as ge
 from geoengine.permissions import REGISTERED_USER_ROLE_ID, Permission, PermissionListing, Role
 from geoengine.resource_identifier import Resource

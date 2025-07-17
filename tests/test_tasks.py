@@ -1,20 +1,22 @@
 """Tests regarding task functionality"""
 
+import datetime
 import unittest
 from uuid import UUID
-import datetime
+
 import geoengine as ge
-from geoengine import BadRequestException, ValidationError, DEFAULT_ISO_TIME_FORMAT
+from geoengine import DEFAULT_ISO_TIME_FORMAT, BadRequestException, ValidationError
 from geoengine.tasks import (
-    CompletedTaskStatusInfo,
-    TaskStatus,
-    RunningTaskStatusInfo,
     AbortedTaskStatusInfo,
+    CompletedTaskStatusInfo,
     FailedTaskStatusInfo,
-    TaskId,
+    RunningTaskStatusInfo,
     Task,
+    TaskId,
+    TaskStatus,
 )
 from tests.ge_test import GeoEngineTestInstance
+
 from . import UrllibMocker
 
 

@@ -1,8 +1,11 @@
 """Tests for WMS calls"""
 
 import unittest
+
 import pandas as pd
+
 import geoengine as ge
+
 from . import UrllibMocker
 
 

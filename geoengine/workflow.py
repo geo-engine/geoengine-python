@@ -7,30 +7,31 @@ A workflow representation and methods on workflows
 from __future__ import annotations
 
 import asyncio
-from collections import defaultdict
 import json
+from collections import defaultdict
+from collections.abc import AsyncIterator
 from io import BytesIO
 from logging import debug
 from os import PathLike
-from typing import Any, AsyncIterator, Dict, List, Optional, Union, Type, cast, TypedDict
+from typing import Any, TypedDict, Union, cast
 from uuid import UUID
 
+import geoengine_openapi_client
 import geopandas as gpd
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pyarrow as pa
 import rasterio.io
 import requests as req
 import rioxarray
-from PIL import Image
-from owslib.util import Authentication, ResponseWrapper
-from owslib.wcs import WebCoverageService
-from vega import VegaLite
 import websockets
 import xarray as xr
-import pyarrow as pa
+from owslib.util import Authentication, ResponseWrapper
+from owslib.wcs import WebCoverageService
+from PIL import Image
+from vega import VegaLite
 
-import geoengine_openapi_client
-from geoengine import api
+from geoengine import api, backports
 from geoengine.auth import get_session
 from geoengine.error import (
     GeoEngineException,
@@ -40,33 +41,49 @@ from geoengine.error import (
     MethodNotCalledOnVectorException,
     OGCXMLError,
 )
-from geoengine import backports
+from geoengine.raster import RasterTile2D
+from geoengine.tasks import Task, TaskId
 from geoengine.types import (
+    ClassificationMeasurement,
     ProvenanceEntry,
     QueryRectangle,
     RasterColorizer,
     ResultDescriptor,
     VectorResultDescriptor,
-    ClassificationMeasurement,
 )
-from geoengine.tasks import Task, TaskId
 from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
-from geoengine.raster import RasterTile2D
-
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
-JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
+JsonType = Union[dict[str, Any], list[Any], int, str, float, bool, type[None]]
 
-Axis = TypedDict("Axis", {"title": str})
-Bin = TypedDict("Bin", {"binned": bool, "step": float})
-Field = TypedDict("Field", {"field": str})
-DatasetIds = TypedDict("DatasetIds", {"upload": UUID, "dataset": UUID})
-Values = TypedDict("Values", {"binStart": float, "binEnd": float, "Frequency": int})
-X = TypedDict("X", {"field": Field, "bin": Bin, "axis": Axis})
-X2 = TypedDict("X2", {"field": Field})
-Y = TypedDict("Y", {"field": Field, "type": str})
-Encoding = TypedDict("Encoding", {"x": X, "x2": X2, "y": Y})
-VegaSpec = TypedDict("VegaSpec", {"$schema": str, "data": List[Values], "mark": str, "encoding": Encoding})
+class Axis(TypedDict):
+    title: str
+class Bin(TypedDict):
+    binned: bool
+    step: float
+class Field(TypedDict):
+    field: str
+class DatasetIds(TypedDict):
+    upload: UUID
+    dataset: UUID
+class Values(TypedDict):
+    binStart: float
+    binEnd: float
+    Frequency: int
+class X(TypedDict):
+    field: Field
+    bin: Bin
+    axis: Axis
+class X2(TypedDict):
+    field: Field
+class Y(TypedDict):
+    field: Field
+    type: str
+class Encoding(TypedDict):
+    x: X
+    x2: X2
+    y: Y
+VegaSpec = TypedDict("VegaSpec", {"$schema": str, "data": list[Values], "mark": str, "encoding": Encoding})
 
 
 class WorkflowId:
@@ -108,7 +125,7 @@ class RasterStreamProcessing:
         return record_batch
 
     @classmethod
-    def process_bytes(cls, tile_bytes: Optional[bytes]) -> Optional[RasterTile2D]:
+    def process_bytes(cls, tile_bytes: bytes | None) -> RasterTile2D | None:
         """Process a tile from a byte array"""
 
         if tile_bytes is None:
@@ -121,14 +138,14 @@ class RasterStreamProcessing:
         return tile
 
     @classmethod
-    def merge_tiles(cls, tiles: List[xr.DataArray]) -> Optional[xr.DataArray]:
+    def merge_tiles(cls, tiles: list[xr.DataArray]) -> xr.DataArray | None:
         """Merge a list of tiles into a single xarray"""
 
         if len(tiles) == 0:
             return None
 
         # group the tiles by band
-        tiles_by_band: Dict[int, List[xr.DataArray]] = defaultdict(list)
+        tiles_by_band: dict[int, list[xr.DataArray]] = defaultdict(list)
         for tile in tiles:
             band = tile.band.item()  # assuming 'band' is a coordinate with a single value
             tiles_by_band[band].append(tile)
@@ -333,7 +350,7 @@ class Workflow:
         bbox: QueryRectangle,
         timeout=3600,
         file_format: str = "image/tiff",
-        force_no_data_value: Optional[float] = None,
+        force_no_data_value: float | None = None,
     ) -> ResponseWrapper:
         """
         Query a workflow and return the coverage
@@ -382,7 +399,7 @@ class Workflow:
         )
 
     def __get_wcs_tiff_as_memory_file(
-        self, bbox: QueryRectangle, timeout=3600, force_no_data_value: Optional[float] = None
+        self, bbox: QueryRectangle, timeout=3600, force_no_data_value: float | None = None
     ) -> rasterio.io.MemoryFile:
         """
         Query a workflow and return the raster result as a memory mapped GeoTiff
@@ -403,7 +420,7 @@ class Workflow:
 
         return memory_file
 
-    def get_array(self, bbox: QueryRectangle, timeout=3600, force_no_data_value: Optional[float] = None) -> np.ndarray:
+    def get_array(self, bbox: QueryRectangle, timeout=3600, force_no_data_value: float | None = None) -> np.ndarray:
         """
         Query a workflow and return the raster result as a numpy array
 
@@ -424,7 +441,7 @@ class Workflow:
             return array
 
     def get_xarray(
-        self, bbox: QueryRectangle, timeout=3600, force_no_data_value: Optional[float] = None
+        self, bbox: QueryRectangle, timeout=3600, force_no_data_value: float | None = None
     ) -> xr.DataArray:
         """
         Query a workflow and return the raster result as a georeferenced xarray
@@ -466,7 +483,7 @@ class Workflow:
         file_path: str,
         timeout=3600,
         file_format: str = "image/tiff",
-        force_no_data_value: Optional[float] = None,
+        force_no_data_value: float | None = None,
     ) -> None:
         """
         Query a workflow and save the raster result as a file on disk
@@ -486,7 +503,7 @@ class Workflow:
         with open(file_path, "wb") as file:
             file.write(response.read())
 
-    def get_provenance(self, timeout: int = 60) -> List[ProvenanceEntry]:
+    def get_provenance(self, timeout: int = 60) -> list[ProvenanceEntry]:
         """
         Query the provenance of the workflow
         """
@@ -499,7 +516,7 @@ class Workflow:
 
         return [ProvenanceEntry.from_response(item) for item in response]
 
-    def metadata_zip(self, path: Union[PathLike, BytesIO], timeout: int = 60) -> None:
+    def metadata_zip(self, path: PathLike | BytesIO, timeout: int = 60) -> None:
         """
         Query workflow metadata and citations and stores it as zip file to `path`
         """
@@ -522,7 +539,7 @@ class Workflow:
     def save_as_dataset(
         self,
         query_rectangle: geoengine_openapi_client.RasterQueryRectangle,
-        name: Optional[str],
+        name: str | None,
         display_name: str,
         description: str = "",
         timeout: int = 3600,
@@ -551,7 +568,7 @@ class Workflow:
         self,
         query_rectangle: QueryRectangle,
         open_timeout: int = 60,
-        bands: Optional[List[int]] = None,  # TODO: move into query rectangle?
+        bands: list[int] | None = None,  # TODO: move into query rectangle?
     ) -> AsyncIterator[RasterTile2D]:
         """Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)"""
 
@@ -592,11 +609,11 @@ class Workflow:
             open_timeout=open_timeout,
             max_size=None,
         ) as websocket:
-            tile_bytes: Optional[bytes] = None
+            tile_bytes: bytes | None = None
 
             while websocket.state == websockets.protocol.State.OPEN:
 
-                async def read_new_bytes() -> Optional[bytes]:
+                async def read_new_bytes() -> bytes | None:
                     # already send the next request to speed up the process
                     try:
                         await websocket.send("NEXT")
@@ -605,7 +622,7 @@ class Workflow:
                         return None
 
                     try:
-                        data: Union[str, bytes] = await websocket.recv()
+                        data: str | bytes = await websocket.recv()
 
                         if isinstance(data, str):
                             # the server sent an error message
@@ -636,7 +653,7 @@ class Workflow:
         query_rectangle: QueryRectangle,
         clip_to_query_rectangle: bool = False,
         open_timeout: int = 60,
-        bands: Optional[List[int]] = None,  # TODO: move into query rectangle?
+        bands: list[int] | None = None,  # TODO: move into query rectangle?
     ) -> xr.DataArray:
         """
         Stream the workflow result into memory and output a single xarray.
@@ -652,14 +669,14 @@ class Workflow:
 
         tile_stream = self.raster_stream(query_rectangle, open_timeout=open_timeout, bands=bands)
 
-        timestep_xarrays: List[xr.DataArray] = []
+        timestep_xarrays: list[xr.DataArray] = []
 
         spatial_clip_bounds = query_rectangle.spatial_bounds if clip_to_query_rectangle else None
 
         async def read_tiles(
-            remainder_tile: Optional[RasterTile2D],
-        ) -> tuple[List[xr.DataArray], Optional[RasterTile2D]]:
-            last_timestep: Optional[np.datetime64] = None
+            remainder_tile: RasterTile2D | None,
+        ) -> tuple[list[xr.DataArray], RasterTile2D | None]:
+            last_timestep: np.datetime64 | None = None
             tiles = []
 
             if remainder_tile is not None:
@@ -701,7 +718,7 @@ class Workflow:
             await backports.to_thread(
                 xr.concat,
                 # TODO: This is a typings error, since the method accepts also a `xr.DataArray` and returns one
-                cast(List[xr.Dataset], timestep_xarrays),
+                cast(list[xr.Dataset], timestep_xarrays),
                 dim="time",
             ),
         )
@@ -756,7 +773,7 @@ class Workflow:
 
             return geo_data_frame
 
-        def process_bytes(batch_bytes: Optional[bytes]) -> Optional[gpd.GeoDataFrame]:
+        def process_bytes(batch_bytes: bytes | None) -> gpd.GeoDataFrame | None:
             if batch_bytes is None:
                 return None
 
@@ -800,11 +817,11 @@ class Workflow:
             open_timeout=open_timeout,
             max_size=None,  # allow arbitrary large messages, since it is capped by the server's chunk size
         ) as websocket:
-            batch_bytes: Optional[bytes] = None
+            batch_bytes: bytes | None = None
 
             while websocket.state == websockets.protocol.State.OPEN:
 
-                async def read_new_bytes() -> Optional[bytes]:
+                async def read_new_bytes() -> bytes | None:
                     # already send the next request to speed up the process
                     try:
                         await websocket.send("NEXT")
@@ -813,7 +830,7 @@ class Workflow:
                         return None
 
                     try:
-                        data: Union[str, bytes] = await websocket.recv()
+                        data: str | bytes = await websocket.recv()
 
                         if isinstance(data, str):
                             # the server sent an error message
@@ -859,18 +876,18 @@ class Workflow:
             open_timeout=open_timeout,
         )
 
-        data_frame: Optional[gpd.GeoDataFrame] = None
-        chunk: Optional[gpd.GeoDataFrame] = None
+        data_frame: gpd.GeoDataFrame | None = None
+        chunk: gpd.GeoDataFrame | None = None
 
-        async def read_dataframe() -> Optional[gpd.GeoDataFrame]:
+        async def read_dataframe() -> gpd.GeoDataFrame | None:
             try:
                 return await chunk_stream.__anext__()
             except StopAsyncIteration:
                 return None
 
         def merge_dataframes(
-            df_a: Optional[gpd.GeoDataFrame], df_b: Optional[gpd.GeoDataFrame]
-        ) -> Optional[gpd.GeoDataFrame]:
+            df_a: gpd.GeoDataFrame | None, df_b: gpd.GeoDataFrame | None
+        ) -> gpd.GeoDataFrame | None:
             if df_a is None:
                 return df_b
 
@@ -908,7 +925,7 @@ class Workflow:
         return f"{ws_prefix}{url_part}"
 
 
-def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], timeout: int = 60) -> Workflow:
+def register_workflow(workflow: dict[str, Any] | WorkflowBuilderOperator, timeout: int = 60) -> Workflow:
     """
     Register a workflow in Geo Engine and receive a `WorkflowId`
     """
@@ -940,7 +957,7 @@ def workflow_by_id(workflow_id: UUID) -> Workflow:
     return Workflow(WorkflowId(workflow_id))
 
 
-def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> geoengine_openapi_client.Quota:
+def get_quota(user_id: UUID | None = None, timeout: int = 60) -> geoengine_openapi_client.Quota:
     """
     Gets a user's quota. Only admins can get other users' quota.
     """
@@ -970,7 +987,7 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> 
         )
 
 
-def data_usage(offset: int = 0, limit: int = 10) -> List[geoengine_openapi_client.DataUsage]:
+def data_usage(offset: int = 0, limit: int = 10) -> list[geoengine_openapi_client.DataUsage]:
     """
     Get data usage
     """
@@ -992,7 +1009,7 @@ def data_usage(offset: int = 0, limit: int = 10) -> List[geoengine_openapi_clien
 
 def data_usage_summary(
     granularity: geoengine_openapi_client.UsageSummaryGranularity,
-    dataset: Optional[str] = None,
+    dataset: str | None = None,
     offset: int = 0,
     limit: int = 10,
 ) -> pd.DataFrame:

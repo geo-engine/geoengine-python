@@ -2,11 +2,12 @@
 Package errors and backend mapped error types
 """
 
-from typing import Any, Dict, Union
 import json
 import xml.etree.ElementTree as ET
-from requests import Response, HTTPError
+from typing import Any
+
 import geoengine_openapi_client
+from requests import HTTPError, Response
 
 
 class GeoEngineException(Exception):
@@ -17,7 +18,7 @@ class GeoEngineException(Exception):
     error: str
     message: str
 
-    def __init__(self, response: Union[geoengine_openapi_client.ApiException, Dict[str, str]]) -> None:
+    def __init__(self, response: geoengine_openapi_client.ApiException | dict[str, str]) -> None:
         super().__init__()
 
         if isinstance(response, geoengine_openapi_client.ApiException):

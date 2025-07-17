@@ -2,12 +2,12 @@
 
 import unittest
 from uuid import UUID
+
 import geoengine as ge
-from geoengine import StoredDataset, BadRequestException
-from geoengine import api
+from geoengine import BadRequestException, StoredDataset, api
+from geoengine.layers import Layer, LayerId, LayerProviderId
 from geoengine.permissions import REGISTERED_USER_ROLE_ID, Permission, PermissionListing, Role
 from geoengine.resource_identifier import LAYER_DB_PROVIDER_ID, Resource
-from geoengine.layers import Layer, LayerId, LayerProviderId
 from geoengine.tasks import TaskStatus
 from geoengine.types import RasterSymbology
 from tests.ge_test import GeoEngineTestInstance

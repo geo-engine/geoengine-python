@@ -3,8 +3,8 @@
 """Run all Jupyter Notebooks and check for errors."""
 
 import os
-import subprocess
 import shutil
+import subprocess
 import sys
 
 

@@ -1,18 +1,20 @@
 """Tests for raster streaming workflows"""
 
 import asyncio
-from typing import List
+import json
 import unittest
 import unittest.mock
-from uuid import UUID
 from datetime import datetime
-import json
-import rioxarray
+from uuid import UUID
+
 import pyarrow as pa
-import xarray as xr
+import rioxarray
 import websockets.protocol
-from geoengine.types import RasterBandDescriptor
+import xarray as xr
+
 import geoengine as ge
+from geoengine.types import RasterBandDescriptor
+
 from . import UrllibMocker
 
 
@@ -49,7 +51,7 @@ class MockWebsocket:
         pass
 
 
-def read_data() -> List[xr.DataArray]:
+def read_data() -> list[xr.DataArray]:
     """Slice a raster into 4 parts"""
     whole = rioxarray.open_rasterio("tests/responses/ndvi.tiff")
 

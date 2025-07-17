@@ -3,19 +3,19 @@ A wrapper for the GeoEngine permissions API.
 """
 
 from __future__ import annotations
+
 import ast
-from uuid import UUID
-from typing import Dict, List, Union
 from enum import Enum
+from uuid import UUID
 
-import geoengine_openapi_client.models.role
-import geoengine_openapi_client.models
-import geoengine_openapi_client.api
 import geoengine_openapi_client
+import geoengine_openapi_client.api
+import geoengine_openapi_client.models
+import geoengine_openapi_client.models.role
 
+from geoengine.auth import get_session
 from geoengine.error import GeoEngineException
 from geoengine.resource_identifier import Resource
-from geoengine.auth import get_session
 
 
 class RoleId:
@@ -27,7 +27,7 @@ class RoleId:
         self.__role_id = role_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> RoleId:
+    def from_response(cls, response: dict[str, str]) -> RoleId:
         """Parse a http response to an `RoleId`"""
 
         if "id" not in response:
@@ -57,7 +57,7 @@ class Role:
     name: str
     id: RoleId
 
-    def __init__(self, role_id: Union[UUID, RoleId, str], role_name: str):
+    def __init__(self, role_id: UUID | RoleId | str, role_name: str):
         """Create a role with name and id"""
 
         if isinstance(role_id, UUID):
@@ -101,7 +101,7 @@ class UserId:
         self.__user_id = user_id
 
     @classmethod
-    def from_response(cls, response: Dict[str, str]) -> UserId:
+    def from_response(cls, response: dict[str, str]) -> UserId:
         """Parse a http response to an `UserId`"""
         print(response)
         if "id" not in response:
@@ -222,7 +222,7 @@ def remove_permission(role: RoleId, resource: Resource, permission: Permission, 
         )
 
 
-def list_permissions(resource: Resource, timeout: int = 60, offset=0, limit=20) -> List[PermissionListing]:
+def list_permissions(resource: Resource, timeout: int = 60, offset=0, limit=20) -> list[PermissionListing]:
     """Lists the roles and permissions assigned to a ressource"""
 
     session = get_session()

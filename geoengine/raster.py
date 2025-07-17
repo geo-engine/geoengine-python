@@ -1,11 +1,15 @@
 """Raster data types"""
 
 from __future__ import annotations
-from typing import AsyncIterator, List, Literal, Optional, Tuple, Union, cast
+
+from collections.abc import AsyncIterator
+from typing import Literal, cast
+
+import geoengine_openapi_client
 import numpy as np
 import pyarrow as pa
 import xarray as xr
-import geoengine_openapi_client
+
 import geoengine.types as gety
 from geoengine.util import clamp_datetime_ms_ns
 
@@ -51,7 +55,7 @@ class RasterTile2D:
     # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
         self,
-        shape: Tuple[int, int],
+        shape: tuple[int, int],
         data: pa.Array,
         geo_transform: gety.GeoTransform,
         crs: str,
@@ -67,7 +71,7 @@ class RasterTile2D:
         self.band = band
 
     @property
-    def shape(self) -> Tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
         """Return the shape of the raster tile in numpy order (y_size, x_size)"""
         return (self.size_y, self.size_x)
 
@@ -91,11 +95,11 @@ class RasterTile2D:
         return self.time.start.astype("datetime64[ms]")
 
     @property
-    def time_end_ms(self) -> Optional[np.datetime64]:
+    def time_end_ms(self) -> np.datetime64 | None:
         return None if self.time.end is None else self.time.end.astype("datetime64[ms]")
 
     @property
-    def pixel_size(self) -> Tuple[float, float]:
+    def pixel_size(self) -> tuple[float, float]:
         return (self.geo_transform.x_pixel_size, self.geo_transform.y_pixel_size)
 
     def to_numpy_data_array(self, fill_null_value=0) -> np.ndarray:
@@ -108,7 +112,7 @@ class RasterTile2D:
             zero_copy_only=True,  # data was already copied when creating the "null filled" array
         ).reshape(self.shape)
 
-    def to_numpy_mask_array(self, nan_is_null=False) -> Optional[np.ndarray]:
+    def to_numpy_mask_array(self, nan_is_null=False) -> np.ndarray | None:
         """
         Return the raster tiles mask as a numpy array.
         True means no data, False means data.
@@ -135,7 +139,7 @@ class RasterTile2D:
 
         assert maybe_numpy_mask is None or maybe_numpy_mask.shape == numpy_data.shape
 
-        numpy_mask: Union[np.ndarray, np.ma.MaskType] = np.ma.nomask if maybe_numpy_mask is None else maybe_numpy_mask
+        numpy_mask: np.ndarray | np.ma.MaskType = np.ma.nomask if maybe_numpy_mask is None else maybe_numpy_mask
 
         numpy_masked_data: np.ma.MaskedArray = np.ma.masked_array(numpy_data, mask=numpy_mask)
 
@@ -175,7 +179,7 @@ class RasterTile2D:
             step=self.geo_transform.y_pixel_size,
         )
 
-    def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -> xr.DataArray:
+    def to_xarray(self, clip_with_bounds: gety.SpatialBounds | None = None) -> xr.DataArray:
         """
         Return the raster tile as an xarray.DataArray.
 
@@ -262,18 +266,18 @@ class RasterTileStack2D:
     geo_transform: gety.GeoTransform
     crs: str
     time: gety.TimeInterval
-    data: List[pa.Array]
-    bands: List[int]
+    data: list[pa.Array]
+    bands: list[int]
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
         self,
-        tile_shape: Tuple[int, int],
-        data: List[pa.Array],
+        tile_shape: tuple[int, int],
+        data: list[pa.Array],
         geo_transform: gety.GeoTransform,
         crs: str,
         time: gety.TimeInterval,
-        bands: List[int],
+        bands: list[int],
     ):
         """Create a RasterTileStack2D object"""
         (self.size_y, self.size_x) = tile_shape
@@ -300,7 +304,7 @@ class RasterTileStack2D:
         stack = np.ma.stack(arrays, axis=0)
         return stack
 
-    def to_xarray(self, clip_with_bounds: Optional[gety.SpatialBounds] = None) -> xr.DataArray:
+    def to_xarray(self, clip_with_bounds: gety.SpatialBounds | None = None) -> xr.DataArray:
         """Return the raster stack as an xarray.DataArray"""
         arrays = [self.single_band(i).to_xarray(clip_with_bounds) for i in range(0, len(self.data))]
         stack = xr.concat(arrays, dim="band")
@@ -309,7 +313,7 @@ class RasterTileStack2D:
 
 async def tile_stream_to_stack_stream(raster_stream: AsyncIterator[RasterTile2D]) -> AsyncIterator[RasterTileStack2D]:
     """Convert a stream of raster tiles to stream of stacked tiles"""
-    store: List[RasterTile2D] = []
+    store: list[RasterTile2D] = []
     first_band: int = -1
 
     async for tile in raster_stream:

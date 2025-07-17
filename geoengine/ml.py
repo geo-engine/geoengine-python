@@ -3,17 +3,20 @@ Util functions for machine learning
 """
 
 from __future__ import annotations
-from pathlib import Path
+
 import tempfile
 from dataclasses import dataclass
-import geoengine_openapi_client.models
-from onnx import TypeProto, TensorProto, ModelProto
-from onnx.helper import tensor_dtype_to_string
-from geoengine_openapi_client.models import MlModelMetadata, MlModel, RasterDataType, MlTensorShape3D
+from pathlib import Path
+
 import geoengine_openapi_client
+import geoengine_openapi_client.models
+from geoengine_openapi_client.models import MlModel, MlModelMetadata, MlTensorShape3D, RasterDataType
+from onnx import ModelProto, TensorProto, TypeProto
+from onnx.helper import tensor_dtype_to_string
+
 from geoengine.auth import get_session
-from geoengine.resource_identifier import UploadId, MlModelName
 from geoengine.error import InputException
+from geoengine.resource_identifier import MlModelName, UploadId
 
 
 @dataclass
@@ -121,7 +124,7 @@ def validate_model_config(
 ):
     """Validates the model config. Raises an exception if the model config is invalid"""
 
-    def check_data_type(data_type: TypeProto, expected_type: RasterDataType, prefix: "str"):
+    def check_data_type(data_type: TypeProto, expected_type: RasterDataType, prefix: str):
         if not data_type.tensor_type:
             raise InputException("Only tensor input types are supported")
         elem_type = data_type.tensor_type.elem_type

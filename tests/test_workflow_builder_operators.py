@@ -1,6 +1,7 @@
 """Tests for the workflow builder operators."""
 
 import unittest
+
 from geoengine import workflow_builder as wb
 from geoengine.types import ContinuousMeasurement, RasterBandDescriptor
 from geoengine.workflow_builder.operators import ColumnNamesNames

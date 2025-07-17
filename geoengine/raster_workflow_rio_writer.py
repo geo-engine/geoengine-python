@@ -1,12 +1,14 @@
 """A module that contains classes to write raster data from a Geo Engine raster workflow."""
 
-from typing import Optional, cast
 from datetime import datetime
-import rasterio as rio
+from typing import cast
+
 import numpy as np
-from geoengine.workflow import Workflow, QueryRectangle
-from geoengine.types import RasterResultDescriptor, TimeInterval
+import rasterio as rio
+
 from geoengine.raster import ge_type_to_np
+from geoengine.types import RasterResultDescriptor, TimeInterval
+from geoengine.workflow import QueryRectangle, Workflow
 
 
 # pylint: disable=too-many-instance-attributes
@@ -17,8 +19,8 @@ class RasterWorkflowRioWriter:
     Multiple bands are supported and the bands are written to the dataset in the order of the result descriptor.
     """
 
-    current_dataset: Optional[rio.io.DatasetWriter] = None
-    current_time: Optional[TimeInterval] = None
+    current_dataset: rio.io.DatasetWriter | None = None
+    current_time: TimeInterval | None = None
     dataset_geo_transform = None
     dataset_width = None
     dataset_height = None
@@ -26,7 +28,7 @@ class RasterWorkflowRioWriter:
     print_info = False
 
     dataset_prefix = None
-    workflow: Optional[Workflow] = None
+    workflow: Workflow | None = None
     bands = None
     no_data_value = 0
     time_format = "%Y-%m-%d_%H-%M-%S"
@@ -94,12 +96,12 @@ class RasterWorkflowRioWriter:
         assert tiling_ul_pixel_x <= ul_pixel_x, "Tiling upper left x pixel must be smaller than upper left x coordinate"
         assert tiling_ul_pixel_y <= ul_pixel_y, "Tiling upper left y pixel must be smaller than upper left y coordinate"
 
-        width = int((lr_pixel_x - tiling_ul_pixel_x))
+        width = int(lr_pixel_x - tiling_ul_pixel_x)
         if width % self.tile_size != 0:
             width = int((width // self.tile_size + 1) * self.tile_size)
         assert width > 0, "The width must be greater than 0"
 
-        height = int((lr_pixel_y - tiling_ul_pixel_y))
+        height = int(lr_pixel_y - tiling_ul_pixel_y)
         if height % self.tile_size != 0:
             height = int((height // self.tile_size + 1) * self.tile_size)
         assert height > 0, "The height must be greater than 0"

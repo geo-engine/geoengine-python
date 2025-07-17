@@ -1,15 +1,18 @@
 """Tests for WMS calls"""
 
-from datetime import datetime
 import textwrap
 import unittest
-from PIL import Image
-import numpy as np
+from datetime import datetime
+
 import geoengine_openapi_client
+import numpy as np
+from PIL import Image
+
 import geoengine as ge
 from geoengine.colorizer import Colorizer
 from geoengine.types import RasterBandDescriptor, SingleBandRasterColorizer
 from tests.ge_test import GeoEngineTestInstance
+
 from . import UrllibMocker
 
 
@@ -50,7 +53,7 @@ class WmsTests(unittest.TestCase):
             m.get("http://epsg.io/4326.gml?download", body=epsg4326_gml)
 
             # Unfortunately, we need a separate library to catch the request from the WMS call
-            with open("tests/responses/wms_capabilities.xml", "r", encoding="utf-8") as wms_capabilities:
+            with open("tests/responses/wms_capabilities.xml", encoding="utf-8") as wms_capabilities:
                 m.get(
                     # pylint: disable=line-too-long
                     "http://mock-instance/wms/5b9508a8-bd34-5a1c-acd6-75bb832d2d38?service=WMS&request=GetCapabilities&version=1.3.0",

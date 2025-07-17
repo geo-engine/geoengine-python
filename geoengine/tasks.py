@@ -4,18 +4,18 @@ Module for encapsulating Geo Engine tasks API
 
 from __future__ import annotations
 
-import time
-from enum import Enum
-from typing import List, Tuple
-from uuid import UUID
 import asyncio
 import datetime
+import time
+from enum import Enum
+from uuid import UUID
 
 import geoengine_openapi_client
-from geoengine.types import DEFAULT_ISO_TIME_FORMAT
+
+from geoengine import backports
 from geoengine.auth import get_session
 from geoengine.error import GeoEngineException, TypeException
-from geoengine import backports
+from geoengine.types import DEFAULT_ISO_TIME_FORMAT
 
 
 class TaskId:
@@ -336,7 +336,7 @@ class Task:
                 await asyncio.sleep(request_interval)
 
 
-def get_task_list(timeout: int = 3600) -> List[Tuple[Task, TaskStatusInfo]]:
+def get_task_list(timeout: int = 3600) -> list[tuple[Task, TaskStatusInfo]]:
     """
     Returns the status of all tasks in a Geo Engine instance
     """

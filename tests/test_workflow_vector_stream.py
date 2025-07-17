@@ -1,27 +1,29 @@
 """Tests for vector streaming workflows"""
 
 import asyncio
-from typing import Dict, List, Tuple
 import unittest
 import unittest.mock
-from uuid import UUID
 from datetime import datetime
-import pyarrow as pa
+from uuid import UUID
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import pyarrow as pa
 import websockets.protocol
+
 import geoengine as ge
+
 from . import UrllibMocker
 
 
 class MockRequestsGet:
     """Mock for requests.get"""
 
-    def __init__(self, json_data: Dict[str, str]):
+    def __init__(self, json_data: dict[str, str]):
         self.__json = json_data
 
-    def json(self) -> Dict[str, str]:
+    def json(self) -> dict[str, str]:
         return self.__json
 
 
@@ -67,7 +69,7 @@ class MockWebsocket:
         pass
 
 
-def read_data() -> Tuple[List[str], List[List[int]], List[int]]:
+def read_data() -> tuple[list[str], list[list[int]], list[int]]:
     """Output vector data than can be subdivided into chunks"""
     geos = [
         "MULTIPOINT (-69.92356 12.43750)",
@@ -109,7 +111,7 @@ def read_data() -> Tuple[List[str], List[List[int]], List[int]]:
     )
 
 
-def arrow_bytes(geo: List[str], time: List[List[int]], data: List[int]) -> bytes:
+def arrow_bytes(geo: list[str], time: list[list[int]], data: list[int]) -> bytes:
     """Convert lists of vector data into an Arrow record batch within an IPC file"""
 
     geo_array = pa.array(geo)

@@ -1,10 +1,11 @@
 """Utility methods for testing"""
 
 import sys
-from unittest.mock import _patch, patch
-from json import dumps, loads
 import unittest
+from json import dumps, loads
+from unittest.mock import _patch, patch
 from urllib.parse import parse_qs
+
 import urllib3
 
 

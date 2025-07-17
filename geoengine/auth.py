@@ -3,15 +3,16 @@ Module for encapsulating Geo Engine authentication
 """
 
 from __future__ import annotations
-from typing import ClassVar, Dict, Optional, Tuple
-from uuid import UUID
 
 import os
-from dotenv import load_dotenv
-from requests.auth import AuthBase
-import urllib3
+from typing import ClassVar
+from uuid import UUID
 
 import geoengine_openapi_client
+import urllib3
+from dotenv import load_dotenv
+from requests.auth import AuthBase
+
 from geoengine.error import GeoEngineException, MethodOnlyAvailableInGeoEnginePro, UninitializedException
 
 
@@ -34,16 +35,16 @@ class Session:
     """
 
     __id: UUID
-    __user_id: Optional[UUID] = None
-    __valid_until: Optional[str] = None
+    __user_id: UUID | None = None
+    __valid_until: str | None = None
     __server_url: str
     __timeout: int = 60
     __configuration: geoengine_openapi_client.Configuration
 
-    session: ClassVar[Optional[Session]] = None
+    session: ClassVar[Session | None] = None
 
     def __init__(
-        self, server_url: str, credentials: Optional[Tuple[str, str]] = None, token: Optional[str] = None
+        self, server_url: str, credentials: tuple[str, str] | None = None, token: str | None = None
     ) -> None:
         """
         Initialize communication between this library and a Geo Engine instance
@@ -142,7 +143,7 @@ class Session:
         return r
 
     @property
-    def auth_header(self) -> Dict[str, str]:
+    def auth_header(self) -> dict[str, str]:
         """
         Create an authentication header for the current session
         """
@@ -205,7 +206,7 @@ def get_session() -> Session:
     return Session.session
 
 
-def initialize(server_url: str, credentials: Optional[Tuple[str, str]] = None, token: Optional[str] = None) -> None:
+def initialize(server_url: str, credentials: tuple[str, str] | None = None, token: str | None = None) -> None:
     """
     Initialize communication between this library and a Geo Engine instance
 

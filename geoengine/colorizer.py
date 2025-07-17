@@ -1,17 +1,19 @@
 """This module is used to generate geoengine compatible color map definitions as a json string."""
 
 from __future__ import annotations
-from abc import abstractmethod
-from dataclasses import dataclass
+
 import json
 import warnings
-from typing import Dict, List, Tuple, Union, cast
-import numpy as np
-from matplotlib.colors import Colormap
-from matplotlib.cm import ScalarMappable
-import geoengine_openapi_client
+from abc import abstractmethod
+from dataclasses import dataclass
+from typing import cast
 
-Rgba = Tuple[int, int, int, int]
+import geoengine_openapi_client
+import numpy as np
+from matplotlib.cm import ScalarMappable
+from matplotlib.colors import Colormap
+
+Rgba = tuple[int, int, int, int]
 
 
 @dataclass
@@ -28,7 +30,7 @@ class ColorBreakpoint:
     @staticmethod
     def from_response(response: geoengine_openapi_client.Breakpoint) -> ColorBreakpoint:
         """Parse a http response to a `ColorBreakpoint`."""
-        return ColorBreakpoint(cast(float, response.value), cast(Rgba, tuple(cast(List[int], response.color))))
+        return ColorBreakpoint(cast(float, response.value), cast(Rgba, tuple(cast(list[int], response.color))))
 
 
 @dataclass
@@ -39,8 +41,8 @@ class Colorizer:
 
     @staticmethod
     def linear_with_mpl_cmap(
-        color_map: Union[str, Colormap],
-        min_max: Tuple[float, float],
+        color_map: str | Colormap,
+        min_max: tuple[float, float],
         n_steps: int = 10,
         over_color: Rgba = (0, 0, 0, 0),
         under_color: Rgba = (0, 0, 0, 0),
@@ -72,12 +74,12 @@ class Colorizer:
         )
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
-        values_of_breakpoints: List[float] = np.linspace(min_max[0], min_max[1], n_steps).tolist()
+        values_of_breakpoints: list[float] = np.linspace(min_max[0], min_max[1], n_steps).tolist()
 
         # generate color map steps for geoengine
-        breakpoints: List[ColorBreakpoint] = [
+        breakpoints: list[ColorBreakpoint] = [
             ColorBreakpoint(color=(int(color[0]), int(color[1]), int(color[2]), int(color[3])), value=value)
-            for (value, color) in zip(values_of_breakpoints, list_of_rgba_colors)
+            for (value, color) in zip(values_of_breakpoints, list_of_rgba_colors, strict=False)
         ]
 
         return LinearGradientColorizer(
@@ -86,8 +88,8 @@ class Colorizer:
 
     @staticmethod
     def logarithmic_with_mpl_cmap(
-        color_map: Union[str, Colormap],
-        min_max: Tuple[float, float],
+        color_map: str | Colormap,
+        min_max: tuple[float, float],
         n_steps: int = 10,
         over_color: Rgba = (0, 0, 0, 0),
         under_color: Rgba = (0, 0, 0, 0),
@@ -121,12 +123,12 @@ class Colorizer:
         )
 
         # if you want to remap the colors, you can do it here (e.g. cutting of the most extreme colors)
-        values_of_breakpoints: List[float] = np.logspace(np.log10(min_max[0]), np.log10(min_max[1]), n_steps).tolist()
+        values_of_breakpoints: list[float] = np.logspace(np.log10(min_max[0]), np.log10(min_max[1]), n_steps).tolist()
 
         # generate color map steps for geoengine
-        breakpoints: List[ColorBreakpoint] = [
+        breakpoints: list[ColorBreakpoint] = [
             ColorBreakpoint(color=(int(color[0]), int(color[1]), int(color[2]), int(color[3])), value=value)
-            for (value, color) in zip(values_of_breakpoints, list_of_rgba_colors)
+            for (value, color) in zip(values_of_breakpoints, list_of_rgba_colors, strict=False)
         ]
 
         return LogarithmicGradientColorizer(
@@ -135,7 +137,7 @@ class Colorizer:
 
     @staticmethod
     def palette(
-        color_mapping: Dict[float, Rgba],
+        color_mapping: dict[float, Rgba],
         default_color: Rgba = (0, 0, 0, 0),
         no_data_color: Rgba = (0, 0, 0, 0),
     ) -> PaletteColorizer:
@@ -158,8 +160,8 @@ class Colorizer:
 
     @staticmethod
     def palette_with_colormap(
-        values: List[float],
-        color_map: Union[str, Colormap],
+        values: list[float],
+        color_map: str | Colormap,
         default_color: Rgba = (0, 0, 0, 0),
         no_data_color: Rgba = (0, 0, 0, 0),
     ) -> PaletteColorizer:
@@ -193,8 +195,8 @@ class Colorizer:
         )
 
         # generate the dict with value: color mapping
-        color_mapping: Dict[float, Rgba] = dict(
-            zip(values, [(int(color[0]), int(color[1]), int(color[2]), int(color[3])) for color in list_of_rgba_colors])
+        color_mapping: dict[float, Rgba] = dict(
+            zip(values, [(int(color[0]), int(color[1]), int(color[2]), int(color[3])) for color in list_of_rgba_colors], strict=False)
         )
 
         return PaletteColorizer(
@@ -237,7 +239,7 @@ def rgba_from_list(values: list[int]) -> Rgba:
 class LinearGradientColorizer(Colorizer):
     """A linear gradient colorizer."""
 
-    breakpoints: List[ColorBreakpoint]
+    breakpoints: list[ColorBreakpoint]
     over_color: Rgba
     under_color: Rgba
 
@@ -269,7 +271,7 @@ class LinearGradientColorizer(Colorizer):
 class LogarithmicGradientColorizer(Colorizer):
     """A logarithmic gradient colorizer."""
 
-    breakpoints: List[ColorBreakpoint]
+    breakpoints: list[ColorBreakpoint]
     over_color: Rgba
     under_color: Rgba
 
@@ -303,7 +305,7 @@ class LogarithmicGradientColorizer(Colorizer):
 class PaletteColorizer(Colorizer):
     """A palette colorizer."""
 
-    colors: Dict[float, Rgba]
+    colors: dict[float, Rgba]
     default_color: Rgba
 
     @staticmethod

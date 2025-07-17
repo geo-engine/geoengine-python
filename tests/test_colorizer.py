@@ -2,9 +2,11 @@
 
 import json
 import unittest
+
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
 import pytest
+from matplotlib.colors import ListedColormap
+
 import geoengine as ge
 from geoengine import colorizer
 

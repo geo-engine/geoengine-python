@@ -1,12 +1,13 @@
 """Tests ML functionality"""
 
-from typing import List
 import unittest
-from onnx import TensorShapeProto as TSP
-from sklearn.ensemble import RandomForestClassifier
-from skl2onnx import to_onnx
+
 import numpy as np
-from geoengine_openapi_client.models import MlModelMetadata, RasterDataType, MlTensorShape3D
+from geoengine_openapi_client.models import MlModelMetadata, MlTensorShape3D, RasterDataType
+from onnx import TensorShapeProto as TSP
+from skl2onnx import to_onnx
+from sklearn.ensemble import RandomForestClassifier
+
 import geoengine as ge
 from geoengine.ml import model_dim_to_tensorshape
 from tests.ge_test import GeoEngineTestInstance
@@ -21,23 +22,23 @@ class MlModelTests(unittest.TestCase):
     def test_model_dim_to_tensorshape(self):
         """Test model_dim_to_tensorshape"""
 
-        dim_1d: List[TSP.Dimension] = [TSP.Dimension(dim_value=7)]
+        dim_1d: list[TSP.Dimension] = [TSP.Dimension(dim_value=7)]
         mts_1d = MlTensorShape3D(bands=7, y=1, x=1)
         self.assertEqual(model_dim_to_tensorshape(dim_1d), mts_1d)
 
-        dim_1d_v: List[TSP.Dimension] = [TSP.Dimension(dim_value=None), TSP.Dimension(dim_value=7)]
+        dim_1d_v: list[TSP.Dimension] = [TSP.Dimension(dim_value=None), TSP.Dimension(dim_value=7)]
         mts_1d_v = MlTensorShape3D(bands=7, y=1, x=1)
         self.assertEqual(model_dim_to_tensorshape(dim_1d_v), mts_1d_v)
 
-        dim_2d_t: List[TSP.Dimension] = [TSP.Dimension(dim_value=512), TSP.Dimension(dim_value=512)]
+        dim_2d_t: list[TSP.Dimension] = [TSP.Dimension(dim_value=512), TSP.Dimension(dim_value=512)]
         mts_2d_t = MlTensorShape3D(bands=1, y=512, x=512)
         self.assertEqual(model_dim_to_tensorshape(dim_2d_t), mts_2d_t)
 
-        dim_2d_1: List[TSP.Dimension] = [TSP.Dimension(dim_value=1), TSP.Dimension(dim_value=7)]
+        dim_2d_1: list[TSP.Dimension] = [TSP.Dimension(dim_value=1), TSP.Dimension(dim_value=7)]
         mts_2d_1 = MlTensorShape3D(bands=7, y=1, x=1)
         self.assertEqual(model_dim_to_tensorshape(dim_2d_1), mts_2d_1)
 
-        dim_3d_t: List[TSP.Dimension] = [
+        dim_3d_t: list[TSP.Dimension] = [
             TSP.Dimension(dim_value=512),
             TSP.Dimension(dim_value=512),
             TSP.Dimension(dim_value=7),
@@ -45,7 +46,7 @@ class MlModelTests(unittest.TestCase):
         mts_3d_t = MlTensorShape3D(bands=7, y=512, x=512)
         self.assertEqual(model_dim_to_tensorshape(dim_3d_t), mts_3d_t)
 
-        dim_3d_v: List[TSP.Dimension] = [
+        dim_3d_v: list[TSP.Dimension] = [
             TSP.Dimension(dim_value=None),
             TSP.Dimension(dim_value=512),
             TSP.Dimension(dim_value=512),
@@ -53,7 +54,7 @@ class MlModelTests(unittest.TestCase):
         mts_3d_v = MlTensorShape3D(bands=1, y=512, x=512)
         self.assertEqual(model_dim_to_tensorshape(dim_3d_v), mts_3d_v)
 
-        dim_4d_v: List[TSP.Dimension] = [
+        dim_4d_v: list[TSP.Dimension] = [
             TSP.Dimension(dim_value=None),
             TSP.Dimension(dim_value=512),
             TSP.Dimension(dim_value=512),

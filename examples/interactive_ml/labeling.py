@@ -3,16 +3,18 @@ Labeling tools for smaller ML use cases.
 """
 
 import os
-from typing import Tuple, Callable, Optional, Mapping, TypedDict, List
+from collections.abc import Callable, Mapping
+from typing import TypedDict
+
+import geopandas as gpd
+import ipywidgets as widgets
 import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import display
 from matplotlib.backend_bases import MouseButton, MouseEvent
 from matplotlib.backend_tools import Cursors
 from matplotlib.patches import Circle
-import ipywidgets as widgets
-from IPython.display import display
-import geopandas as gpd
 from shapely.geometry import Point
-import pandas as pd
 
 
 class ClassValue(TypedDict):
@@ -37,8 +39,8 @@ class PointLabelingTool(widgets.VBox):
 
     fig: plt.Figure
     ax: plt.Axes
-    plt_fg: Optional[pd.plotting.PlotAccessor]
-    legend_handles: List[Circle]
+    plt_fg: pd.plotting.PlotAccessor | None
+    legend_handles: list[Circle]
 
     def __init__(
         self,
@@ -48,7 +50,7 @@ class PointLabelingTool(widgets.VBox):
         classes: Mapping[str, ClassValue],
         crs: str,
         background: Callable[[plt.Axes], None],
-        figsize: Optional[Tuple[int, int]] = None,
+        figsize: tuple[int, int] | None = None,
     ) -> None:
         super().__init__()
 
@@ -79,7 +81,7 @@ class PointLabelingTool(widgets.VBox):
 
         self.__plot_and_save(background)
 
-    def __make_gdf(self, entry: Optional[Tuple[Point, int]]) -> gpd.GeoDataFrame:
+    def __make_gdf(self, entry: tuple[Point, int] | None) -> gpd.GeoDataFrame:
         """
         Create a GeoDataFrame from a given entry.
         If `entry` is None, an empty GeoDataFrame is created.
@@ -99,7 +101,7 @@ class PointLabelingTool(widgets.VBox):
         )
 
     def __create_plot(
-        self, background: Callable[[plt.Axes], None], figsize: Optional[Tuple[int, int]]
+        self, background: Callable[[plt.Axes], None], figsize: tuple[int, int] | None
     ) -> widgets.Output:
         """
         Creates a plot with a specified background and figure size,

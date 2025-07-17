@@ -2,21 +2,22 @@
 Provides a Geo Engine instance for unit testing purposes.
 """
 
+import logging
+import os
+import random
+import shutil
+import socket
+import string
+import subprocess
+import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
-import random
-import string
-import subprocess
-import os
-import logging
-import shutil
-import socket
-import threading
 from typing import Optional
-from dotenv import load_dotenv
+
 import psycopg
+from dotenv import load_dotenv
 
 TEST_CODE_PATH_VAR = "GEOENGINE_TEST_CODE_PATH"
 TEST_BUILD_TYPE_VAR = "GEOENGINE_TEST_BUILD_TYPE"
@@ -31,7 +32,7 @@ GE_LOG_SPEC = "info"
 
 
 @contextmanager
-def GeoEngineTestInstance(port: Optional[int] = None) -> Iterator["GeoEngineProcess"]:  # pylint: disable=invalid-name
+def GeoEngineTestInstance(port: int | None = None) -> Iterator["GeoEngineProcess"]:  # pylint: disable=invalid-name
     """Provides a Geo Engine instance for unit testing purposes."""
 
     load_dotenv()
@@ -169,7 +170,7 @@ class GeoEngineProcess:
 
     timeout_seconds: int
 
-    process: Optional[subprocess.Popen] = None
+    process: subprocess.Popen | None = None
 
     def __init__(
         self, geo_engine_binaries: GeoEngineBinaries, port: int, db_schema: str, timeout_seconds: int = 60
@@ -214,7 +215,7 @@ class GeoEngineProcess:
         if self.process is None:
             raise RuntimeError("Process not started")
 
-        terminate_exception: Optional[Exception] = None
+        terminate_exception: Exception | None = None
 
         try:
             self.process.terminate()

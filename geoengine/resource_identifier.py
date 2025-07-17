@@ -1,8 +1,10 @@
 """Types that identify a ressource in the Geo Engine"""
 
 from __future__ import annotations
-from typing import Any, Literal, NewType, Union
+
+from typing import Any, Literal, NewType
 from uuid import UUID
+
 import geoengine_openapi_client
 
 LayerId = NewType("LayerId", str)
@@ -128,14 +130,14 @@ class Resource:
         return Resource("layerCollection", str(layer_collection_id))
 
     @classmethod
-    def from_dataset_name(cls, dataset_name: Union[DatasetName, str]) -> Resource:
+    def from_dataset_name(cls, dataset_name: DatasetName | str) -> Resource:
         """Create a resource id from a dataset name"""
         if isinstance(dataset_name, DatasetName):
             dataset_name = str(dataset_name)
         return Resource("dataset", dataset_name)
 
     @classmethod
-    def from_ml_model_name(cls, ml_model_name: Union[MlModelName, str]) -> Resource:
+    def from_ml_model_name(cls, ml_model_name: MlModelName | str) -> Resource:
         """Create a resource from an ml model name"""
         if isinstance(ml_model_name, MlModelName):
             ml_model_name = str(ml_model_name)

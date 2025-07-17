@@ -1,15 +1,18 @@
 """Test for WFS calls"""
 
 import json
-from datetime import datetime
 import textwrap
 import unittest
-from numpy import nan
+from datetime import datetime
+
+import geoengine_openapi_client
 import geopandas as gpd
 import geopandas.testing  # pylint: disable=unused-import
+from numpy import nan
 from shapely.geometry import Point
-import geoengine_openapi_client
+
 import geoengine as ge
+
 from . import UrllibMocker
 
 
