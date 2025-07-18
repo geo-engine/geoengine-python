@@ -10,11 +10,11 @@ on:
       use-uv:
         type: boolean
         default: false
-        description: 'Use `uv` for minimum version resolution'
+        description: "Use `uv` for minimum version resolution"
       coverage:
         type: boolean
         default: false
-        description: 'Generate coverage report'
+        description: "Generate coverage report"
 
 jobs:
   check:
@@ -70,11 +70,11 @@ jobs:
       - name: Check Formatting
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
-          python -m pycodestyle
+          python -m ruff format --check
       - name: Lint code
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
-          python -m pylint geoengine
+          python3 -m ruff check
       - name: Type-check code
         # mypy seems buggy with uv
         if: ${{ !inputs.use-uv }}
@@ -89,10 +89,6 @@ jobs:
         run: |
           ${{ steps.vars.outputs.VENV_CALL }}
           ${{ steps.vars.outputs.PIP_INSTALL }} -e .[test]
-      - name: Lint tests
-        run: |
-          ${{ steps.vars.outputs.VENV_CALL }}
-          python -m pylint tests
       - name: Type-check tests
         # mypy seems buggy with uv
         if: ${{ !inputs.use-uv }}

@@ -1,18 +1,20 @@
-'''
+"""
 Labeling tools for smaller ML use cases.
-'''
+"""
 
 import os
-from typing import Tuple, Callable, Optional, Mapping, TypedDict, List
+from collections.abc import Callable, Mapping
+from typing import TypedDict
+
+import geopandas as gpd
+import ipywidgets as widgets
 import matplotlib.pyplot as plt
+import pandas as pd
+from IPython.display import display
 from matplotlib.backend_bases import MouseButton, MouseEvent
 from matplotlib.backend_tools import Cursors
 from matplotlib.patches import Circle
-import ipywidgets as widgets
-from IPython.display import display
-import geopandas as gpd
 from shapely.geometry import Point
-import pandas as pd
 
 
 class ClassValue(TypedDict):
@@ -21,11 +23,11 @@ class ClassValue(TypedDict):
 
 
 class PointLabelingTool(widgets.VBox):
-    '''
+    """
     Create points labels by overlaying them over a background.
 
     Select a class and click to add one.
-    '''
+    """
 
     points: gpd.GeoDataFrame
     crs: str
@@ -37,17 +39,19 @@ class PointLabelingTool(widgets.VBox):
 
     fig: plt.Figure
     ax: plt.Axes
-    plt_fg: Optional[pd.plotting.PlotAccessor]
-    legend_handles: List[Circle]
+    plt_fg: pd.plotting.PlotAccessor | None
+    legend_handles: list[Circle]
 
-    def __init__(self,
-                 *,
-                 filename: str,
-                 class_column: str,
-                 classes: Mapping[str, ClassValue],
-                 crs: str,
-                 background: Callable[[plt.Axes], None],
-                 figsize: Optional[Tuple[int, int]] = None) -> None:
+    def __init__(
+        self,
+        *,
+        filename: str,
+        class_column: str,
+        classes: Mapping[str, ClassValue],
+        crs: str,
+        background: Callable[[plt.Axes], None],
+        figsize: tuple[int, int] | None = None,
+    ) -> None:
         super().__init__()
 
         self.filename = filename
@@ -56,8 +60,8 @@ class PointLabelingTool(widgets.VBox):
         self.class_column = class_column
         self.classes = classes
 
-        self.color_map = {c['value']: c['color'] for c in self.classes.values()}
-        self.selected_class_value = next(iter(self.classes.values()))['value']
+        self.color_map = {c["value"]: c["color"] for c in self.classes.values()}
+        self.selected_class_value = next(iter(self.classes.values()))["value"]
 
         self.points = self.__make_gdf(None)
 
@@ -77,28 +81,26 @@ class PointLabelingTool(widgets.VBox):
 
         self.__plot_and_save(background)
 
-    def __make_gdf(self, entry: Optional[Tuple[Point, int]]) -> gpd.GeoDataFrame:
-        '''
+    def __make_gdf(self, entry: tuple[Point, int] | None) -> gpd.GeoDataFrame:
+        """
         Create a GeoDataFrame from a given entry.
         If `entry` is None, an empty GeoDataFrame is created.
-        '''
+        """
 
-        data: dict[str, list] = {'geometry': [], self.class_column: []}
+        data: dict[str, list] = {"geometry": [], self.class_column: []}
 
         if entry:
             geom, class_value = entry
-            data['geometry'].append(geom)
+            data["geometry"].append(geom)
             data[self.class_column].append(class_value)
 
         return gpd.GeoDataFrame(
             data=data,
             crs=self.crs,
-            geometry='geometry',
+            geometry="geometry",
         )
 
-    def __create_plot(self,
-                      background: Callable[[plt.Axes], None],
-                      figsize: Optional[Tuple[int, int]]) -> widgets.Output:
+    def __create_plot(self, background: Callable[[plt.Axes], None], figsize: tuple[int, int] | None) -> widgets.Output:
         """
         Creates a plot with a specified background and figure size,
         and sets up an interactive widget for labeling points.
@@ -129,14 +131,14 @@ class PointLabelingTool(widgets.VBox):
                 Point(event.xdata, event.ydata),
                 self.selected_class_value,
             ]
-            self.points.set_geometry(col='geometry', inplace=True)
+            self.points.set_geometry(col="geometry", inplace=True)
 
             self.__plot_and_save(background)
 
-        self.fig.canvas.mpl_connect('button_press_event', on_click)
+        self.fig.canvas.mpl_connect("button_press_event", on_click)
 
         self.legend_handles = [
-            Circle((0.5, 0.5), 1, label=name, facecolor=v['color']) for (name, v) in self.classes.items()
+            Circle((0.5, 0.5), 1, label=name, facecolor=v["color"]) for (name, v) in self.classes.items()
         ]
 
         return output
@@ -150,13 +152,13 @@ class PointLabelingTool(widgets.VBox):
         """
 
         class_buttons = widgets.ToggleButtons(
-            options=[(c, v['value']) for (c, v) in self.classes.items()],
-            description='Class:',
-            button_style='info',
+            options=[(c, v["value"]) for (c, v) in self.classes.items()],
+            description="Class:",
+            button_style="info",
         )
 
         undo_button = widgets.Button(
-            icon='undo',
+            icon="undo",
             button_style="warning",
         )
 
@@ -168,14 +170,13 @@ class PointLabelingTool(widgets.VBox):
         undo_button.on_click(on_undo)
 
         def set_selected_class_value(change) -> None:
-            self.selected_class_value = change['new']
+            self.selected_class_value = change["new"]
 
         class_buttons.observe(set_selected_class_value, names=["value"])
 
         return widgets.HBox([class_buttons, undo_button])
 
-    def __plot_and_save(self,
-                        background: Callable[[plt.Axes], None]) -> None:
+    def __plot_and_save(self, background: Callable[[plt.Axes], None]) -> None:
         """
         Plots the points on the given background and saves the plot to a file.
         """
@@ -196,6 +197,6 @@ class PointLabelingTool(widgets.VBox):
 
         self.ax.legend(
             handles=self.legend_handles,
-            loc='center left',
+            loc="center left",
             bbox_to_anchor=(1, 0.5),
         )

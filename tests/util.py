@@ -1,40 +1,39 @@
-'''Utility methods for testing'''
+"""Utility methods for testing"""
 
 import sys
-from unittest.mock import _patch, patch
-from json import dumps, loads
 import unittest
+from json import dumps, loads
+from unittest.mock import _patch, patch
 from urllib.parse import parse_qs
+
 import urllib3
 
 
 def eprint(*args, **kwargs):
-    '''Print to stderr'''
+    """Print to stderr"""
     print(*args, file=sys.stderr, **kwargs)
 
 
 def is_url_match(url1: str, url2: str) -> bool:
-    '''Checks if two urls point to the same resource'''
+    """Checks if two urls point to the same resource"""
     parsed1 = urllib3.util.parse_url(url1)
     parsed2 = urllib3.util.parse_url(url2)
-    return (parsed1.host == parsed2.host
-            and parsed1.port == parsed2.port
-            and parsed1.path == parsed2.path
-            and parse_qs(parsed1.query) == parse_qs(parsed2.query))
+    return (
+        parsed1.host == parsed2.host
+        and parsed1.port == parsed2.port
+        and parsed1.path == parsed2.path
+        and parse_qs(parsed1.query) == parse_qs(parsed2.query)
+    )
 
 
 class UrllibMocker:
-    '''Mock urllib3 requests'''
+    """Mock urllib3 requests"""
 
     _mock_context: _patch
     _matchers: list
     request_history: list
 
-    STATUS_CODE_REASON_MAP = {
-        200: "OK",
-        400: "Bad Request",
-        404: "Not Found"
-    }
+    STATUS_CODE_REASON_MAP = {200: "OK", 400: "Bad Request", 404: "Not Found"}
 
     def __enter__(self):
         """
@@ -68,11 +67,7 @@ class UrllibMocker:
             KeyError: If no handler is found for the given method and URL.
         """
 
-        self.request_history.append({
-            "method": method,
-            "url": url,
-            **kwargs
-        })
+        self.request_history.append({"method": method, "url": url, **kwargs})
         if "json" in kwargs:
             sent_body = kwargs["json"]
         elif kwargs.get("body") is not None:
@@ -95,21 +90,29 @@ class UrllibMocker:
             return urllib3.response.HTTPResponse(
                 status=matcher["statusCode"],
                 reason=UrllibMocker.STATUS_CODE_REASON_MAP[matcher["statusCode"]],
-                body=matcher["body"]
+                body=matcher["body"],
             )
 
         # Note: Use for debgging
         # eprint([matcher["url"] for matcher in self._matchers])
 
-        eprint(f'No handler found for {method} {url} with body {dumps(sent_body, indent=4)}')
+        eprint(f"No handler found for {method} {url} with body {dumps(sent_body, indent=4)}")
 
-        raise KeyError(f'No handler found for {method} {url}')
+        raise KeyError(f"No handler found for {method} {url}")
 
     # follows `requests-mock` API
     # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-    def register_uri(self, method, url,
-                     request_headers=None, expected_request_body=None, status_code=200,
-                     json=None, text=None, body=None):
+    def register_uri(
+        self,
+        method,
+        url,
+        request_headers=None,
+        expected_request_body=None,
+        status_code=200,
+        json=None,
+        text=None,
+        body=None,
+    ):
         """
         Register a URI matcher for HTTP requests.
 
@@ -130,12 +133,12 @@ class UrllibMocker:
             "requestHeaders": request_headers,
             "expectedRequestBody": expected_request_body,
             "statusCode": status_code,
-            "body": b''
+            "body": b"",
         }
         if json is not None:
-            matcher["body"] = dumps(json).encode('utf-8')
+            matcher["body"] = dumps(json).encode("utf-8")
         elif text is not None:
-            matcher["body"] = text.encode('utf-8')
+            matcher["body"] = text.encode("utf-8")
         elif body is not None:
             matcher["body"] = body
 
@@ -158,23 +161,11 @@ class UtilTests(unittest.TestCase):
     """Utilities test runner."""
 
     def test_is_url_match(self):
-        self.assertTrue(is_url_match(
-            "http://example.com?a=1234&b=hello",
-            "http://example.com?b=hello&a=1234"
-        ))
-        self.assertFalse(is_url_match(
-            "http://example.com?a=1234&b=hello",
-            "http://example.de?b=hello&a=1234"
-        ))
-        self.assertFalse(is_url_match(
-            "http://example.com:80?a=1234&b=hello",
-            "http://example.com:443b=hello&a=1234"
-        ))
-        self.assertFalse(is_url_match(
-            "http://example.com/x",
-            "http://example.com/y"
-        ))
+        self.assertTrue(is_url_match("http://example.com?a=1234&b=hello", "http://example.com?b=hello&a=1234"))
+        self.assertFalse(is_url_match("http://example.com?a=1234&b=hello", "http://example.de?b=hello&a=1234"))
+        self.assertFalse(is_url_match("http://example.com:80?a=1234&b=hello", "http://example.com:443b=hello&a=1234"))
+        self.assertFalse(is_url_match("http://example.com/x", "http://example.com/y"))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

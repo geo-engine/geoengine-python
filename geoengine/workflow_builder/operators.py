@@ -1,11 +1,13 @@
-'''This module contains helpers to create workflow operators for the Geo Engine API.'''
+"""This module contains helpers to create workflow operators for the Geo Engine API."""
+
 from __future__ import annotations
 
+import datetime
 from abc import abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union, cast, Literal
-import datetime
+from typing import Any, Literal, cast
+
 import geoengine_openapi_client
 import numpy as np
 
@@ -15,151 +17,148 @@ from geoengine.types import Measurement, RasterBandDescriptor
 # pylint: disable=too-many-lines
 
 
-class Operator():
-    '''Base class for all operators.'''
+class Operator:
+    """Base class for all operators."""
 
     @abstractmethod
     def name(self) -> str:
-        '''Returns the name of the operator.'''
+        """Returns the name of the operator."""
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
-        '''Returns a dictionary representation of the operator that can be used to create a JSON request for the API.'''
+    def to_dict(self) -> dict[str, Any]:
+        """Returns a dictionary representation of the operator that can be used to create a JSON request for the API."""
 
     @abstractmethod
-    def data_type(self) -> Literal['Raster', 'Vector']:
-        '''Returns the type of the operator.'''
+    def data_type(self) -> Literal["Raster", "Vector"]:
+        """Returns the type of the operator."""
 
-    def to_workflow_dict(self) -> Dict[str, Any]:
-        '''Returns a dictionary representation of a workflow that calls the operator" \
-             "that can be used to create a JSON request for the workflow API.'''
+    def to_workflow_dict(self) -> dict[str, Any]:
+        """Returns a dictionary representation of a workflow that calls the operator" \
+             "that can be used to create a JSON request for the workflow API."""
 
         return {
-            'type': self.data_type(),
-            'operator': self.to_dict(),
+            "type": self.data_type(),
+            "operator": self.to_dict(),
         }
 
     @classmethod
     def from_workflow_dict(cls, workflow) -> Operator:
-        '''Returns an operator from a workflow dictionary.'''
-        if workflow['type'] == 'Raster':
-            return RasterOperator.from_operator_dict(workflow['operator'])
-        if workflow['type'] == 'Vector':
-            return VectorOperator.from_operator_dict(workflow['operator'])
+        """Returns an operator from a workflow dictionary."""
+        if workflow["type"] == "Raster":
+            return RasterOperator.from_operator_dict(workflow["operator"])
+        if workflow["type"] == "Vector":
+            return VectorOperator.from_operator_dict(workflow["operator"])
 
         raise NotImplementedError(f"Unknown workflow type {workflow['type']}")
 
 
 class RasterOperator(Operator):
-    '''Base class for all raster operators.'''
+    """Base class for all raster operators."""
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         pass
 
-    def data_type(self) -> Literal['Raster', 'Vector']:
-        return 'Raster'
+    def data_type(self) -> Literal["Raster", "Vector"]:
+        return "Raster"
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> RasterOperator:  # pylint: disable=too-many-return-statements
-        '''Returns an operator from a dictionary.'''
-        if operator_dict['type'] == 'GdalSource':
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> RasterOperator:  # pylint: disable=too-many-return-statements
+        """Returns an operator from a dictionary."""
+        if operator_dict["type"] == "GdalSource":
             return GdalSource.from_operator_dict(operator_dict)
-        if operator_dict['type'] == 'RasterScaling':
+        if operator_dict["type"] == "RasterScaling":
             return RasterScaling.from_operator_dict(operator_dict)
-        if operator_dict['type'] == 'RasterTypeConversion':
+        if operator_dict["type"] == "RasterTypeConversion":
             return RasterTypeConversion.from_operator_dict(operator_dict)
-        if operator_dict['type'] == 'Reprojection':
+        if operator_dict["type"] == "Reprojection":
             return Reprojection.from_operator_dict(operator_dict).as_raster()
-        if operator_dict['type'] == 'Interpolation':
+        if operator_dict["type"] == "Interpolation":
             return Interpolation.from_operator_dict(operator_dict)
-        if operator_dict['type'] == 'Expression':
+        if operator_dict["type"] == "Expression":
             return Expression.from_operator_dict(operator_dict)
-        if operator_dict['type'] == 'BandwiseExpression':
+        if operator_dict["type"] == "BandwiseExpression":
             return BandwiseExpression.from_operator_dict(operator_dict)
-        if operator_dict['type'] == 'TimeShift':
+        if operator_dict["type"] == "TimeShift":
             return TimeShift.from_operator_dict(operator_dict).as_raster()
-        if operator_dict['type'] == 'TemporalRasterAggregation':
+        if operator_dict["type"] == "TemporalRasterAggregation":
             return TemporalRasterAggregation.from_operator_dict(operator_dict)
-        if operator_dict['type'] == 'RasterStacker':
+        if operator_dict["type"] == "RasterStacker":
             return RasterStacker.from_operator_dict(operator_dict)
-        if operator_dict['type'] == 'BandNeighborhoodAggregate':
+        if operator_dict["type"] == "BandNeighborhoodAggregate":
             return BandNeighborhoodAggregate.from_operator_dict(operator_dict)
 
         raise NotImplementedError(f"Unknown operator type {operator_dict['type']}")
 
 
 class VectorOperator(Operator):
-    '''Base class for all vector operators.'''
+    """Base class for all vector operators."""
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         pass
 
-    def data_type(self) -> Literal['Raster', 'Vector']:
-        return 'Vector'
+    def data_type(self) -> Literal["Raster", "Vector"]:
+        return "Vector"
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> VectorOperator:
-        '''Returns an operator from a dictionary.'''
-        if operator_dict['type'] == 'OgrSource':
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> VectorOperator:
+        """Returns an operator from a dictionary."""
+        if operator_dict["type"] == "OgrSource":
             return OgrSource.from_operator_dict(operator_dict)
-        if operator_dict['type'] == 'Reprojection':
+        if operator_dict["type"] == "Reprojection":
             return Reprojection.from_operator_dict(operator_dict).as_vector()
-        if operator_dict['type'] == 'RasterVectorJoin':
+        if operator_dict["type"] == "RasterVectorJoin":
             return RasterVectorJoin.from_operator_dict(operator_dict)
-        if operator_dict['type'] == 'PointInPolygonFilter':
+        if operator_dict["type"] == "PointInPolygonFilter":
             return PointInPolygonFilter.from_operator_dict(operator_dict)
-        if operator_dict['type'] == 'TimeShift':
+        if operator_dict["type"] == "TimeShift":
             return TimeShift.from_operator_dict(operator_dict).as_vector()
-        if operator_dict['type'] == 'VectorExpression':
+        if operator_dict["type"] == "VectorExpression":
             return VectorExpression.from_operator_dict(operator_dict)
         raise NotImplementedError(f"Unknown operator type {operator_dict['type']}")
 
 
 class GdalSource(RasterOperator):
-    '''A GDAL source operator.'''
+    """A GDAL source operator."""
+
     dataset: str
 
-    def __init__(self, dataset: Union[str, DatasetName]):
-        '''Creates a new GDAL source operator.'''
+    def __init__(self, dataset: str | DatasetName):
+        """Creates a new GDAL source operator."""
         if isinstance(dataset, DatasetName):
             dataset = str(dataset)
         self.dataset = dataset
 
     def name(self) -> str:
-        return 'GdalSource'
+        return "GdalSource"
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            'type': self.name(),
-            'params': {
-                "data": self.dataset
-            }
-        }
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": self.name(), "params": {"data": self.dataset}}
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> GdalSource:
-        '''Returns an operator from a dictionary.'''
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> GdalSource:
+        """Returns an operator from a dictionary."""
         if operator_dict["type"] != "GdalSource":
             raise ValueError("Invalid operator type")
 
-        return GdalSource(cast(str, operator_dict['params']['data']))
+        return GdalSource(cast(str, operator_dict["params"]["data"]))
 
 
 class OgrSource(VectorOperator):
-    '''An OGR source operator.'''
+    """An OGR source operator."""
+
     dataset: str
-    attribute_projection: Optional[str] = None
-    attribute_filters: Optional[str] = None
+    attribute_projection: str | None = None
+    attribute_filters: str | None = None
 
     def __init__(
-            self,
-            dataset: Union[str, DatasetName],
-            attribute_projection: Optional[str] = None,
-            attribute_filters: Optional[str] = None
+        self,
+        dataset: str | DatasetName,
+        attribute_projection: str | None = None,
+        attribute_filters: str | None = None,
     ):
-        '''Creates a new OGR source operator.'''
+        """Creates a new OGR source operator."""
         if isinstance(dataset, DatasetName):
             dataset = str(dataset)
         self.dataset = dataset
@@ -167,178 +166,160 @@ class OgrSource(VectorOperator):
         self.attribute_filters = attribute_filters
 
     def name(self) -> str:
-        return 'OgrSource'
+        return "OgrSource"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
-            'type': self.name(),
-            'params': {
+            "type": self.name(),
+            "params": {
                 "data": self.dataset,
-                'attributeProjection': self.attribute_projection,
-                'attributeFilters': self.attribute_filters,
-            }
+                "attributeProjection": self.attribute_projection,
+                "attributeFilters": self.attribute_filters,
+            },
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> OgrSource:
-        '''Returns an operator from a dictionary.'''
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> OgrSource:
+        """Returns an operator from a dictionary."""
         if operator_dict["type"] != "OgrSource":
             raise ValueError("Invalid operator type")
 
-        params = operator_dict['params']
+        params = operator_dict["params"]
         return OgrSource(
-            cast(str, params['data']),
-            attribute_projection=cast(Optional[str], params.get('attributeProjection')),
-            attribute_filters=cast(Optional[str], params.get('attributeFilters')),
+            cast(str, params["data"]),
+            attribute_projection=cast(str | None, params.get("attributeProjection")),
+            attribute_filters=cast(str | None, params.get("attributeFilters")),
         )
 
 
 class Interpolation(RasterOperator):
-    '''An interpolation operator.'''
+    """An interpolation operator."""
+
     source: RasterOperator
     interpolation: Literal["biLinear", "nearestNeighbor"] = "biLinear"
-    input_resolution: Optional[Tuple[float, float]] = None
+    input_resolution: tuple[float, float] | None = None
 
     def __init__(
         self,
-            source_operator: RasterOperator,
-            interpolation: Literal["biLinear", "nearestNeighbor"] = "biLinear",
-            input_resolution: Optional[Tuple[float, float]] = None
+        source_operator: RasterOperator,
+        interpolation: Literal["biLinear", "nearestNeighbor"] = "biLinear",
+        input_resolution: tuple[float, float] | None = None,
     ):
-        '''Creates a new interpolation operator.'''
+        """Creates a new interpolation operator."""
         self.source = source_operator
         self.interpolation = interpolation
         self.input_resolution = input_resolution
 
     def name(self) -> str:
-        return 'Interpolation'
+        return "Interpolation"
 
-    def to_dict(self) -> Dict[str, Any]:
-
-        input_res: Dict[str, Union[str, float]]
+    def to_dict(self) -> dict[str, Any]:
+        input_res: dict[str, str | float]
         if self.input_resolution is None:
-            input_res = {
-                "type": "source"
-            }
+            input_res = {"type": "source"}
         else:
-            input_res = {
-                "type": "value",
-                "x": self.input_resolution[0],
-                "y": self.input_resolution[1]
-            }
+            input_res = {"type": "value", "x": self.input_resolution[0], "y": self.input_resolution[1]}
 
         return {
             "type": self.name(),
-            "params": {
-                "interpolation": self.interpolation,
-                "inputResolution": input_res
-            },
-            "sources": {
-                "raster": self.source.to_dict()
-            }
+            "params": {"interpolation": self.interpolation, "inputResolution": input_res},
+            "sources": {"raster": self.source.to_dict()},
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> Interpolation:
-        '''Returns an operator from a dictionary.'''
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> Interpolation:
+        """Returns an operator from a dictionary."""
         if operator_dict["type"] != "Interpolation":
             raise ValueError("Invalid operator type")
 
-        source = RasterOperator.from_operator_dict(cast(Dict[str, Any], operator_dict['sources']['raster']))
+        source = RasterOperator.from_operator_dict(cast(dict[str, Any], operator_dict["sources"]["raster"]))
 
-        def parse_input_params(params: Dict[str, Any]) -> Optional[Tuple[float, float]]:
-            if 'type' not in params:
+        def parse_input_params(params: dict[str, Any]) -> tuple[float, float] | None:
+            if "type" not in params:
                 return None
-            if params['type'] == 'source':
+            if params["type"] == "source":
                 return None
-            if params['type'] == 'value':
-                return (float(params['x']), float(params['y']))
+            if params["type"] == "value":
+                return (float(params["x"]), float(params["y"]))
             raise ValueError(f"Invalid input resolution type {params['type']}")
 
-        input_resolution = parse_input_params(cast(Dict[str, Any], operator_dict['params']['inputResolution']))
+        input_resolution = parse_input_params(cast(dict[str, Any], operator_dict["params"]["inputResolution"]))
 
         return Interpolation(
             source_operator=source,
-            interpolation=cast(Literal["biLinear", "nearestNeighbor"], operator_dict['params']['interpolation']),
-            input_resolution=input_resolution
+            interpolation=cast(Literal["biLinear", "nearestNeighbor"], operator_dict["params"]["interpolation"]),
+            input_resolution=input_resolution,
         )
 
 
 class ColumnNames:
-    '''Base class for deriving column names from bands of a raster.'''
+    """Base class for deriving column names from bands of a raster."""
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         pass
 
     @classmethod
-    def from_dict(cls, rename_dict: Dict[str, Any]) -> 'ColumnNames':
-        '''Returns a ColumnNames object from a dictionary.'''
+    def from_dict(cls, rename_dict: dict[str, Any]) -> ColumnNames:
+        """Returns a ColumnNames object from a dictionary."""
         if rename_dict["type"] == "default":
             return ColumnNamesDefault()
         if rename_dict["type"] == "suffix":
-            return ColumnNamesSuffix(cast(List[str], rename_dict["values"]))
+            return ColumnNamesSuffix(cast(list[str], rename_dict["values"]))
         if rename_dict["type"] == "names":
-            return ColumnNamesNames(cast(List[str], rename_dict["values"]))
+            return ColumnNamesNames(cast(list[str], rename_dict["values"]))
         raise ValueError("Invalid rename type")
 
     @classmethod
-    def default(cls) -> 'ColumnNames':
+    def default(cls) -> ColumnNames:
         return ColumnNamesDefault()
 
     @classmethod
-    def suffix(cls, values: List[str]) -> 'ColumnNames':
+    def suffix(cls, values: list[str]) -> ColumnNames:
         return ColumnNamesSuffix(values)
 
     @classmethod
-    def rename(cls, values: List[str]) -> 'ColumnNames':
+    def rename(cls, values: list[str]) -> ColumnNames:
         return ColumnNamesNames(values)
 
 
 class ColumnNamesDefault(ColumnNames):
-    '''column names with default suffix.'''
+    """column names with default suffix."""
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": "default"
-        }
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "default"}
 
 
 class ColumnNamesSuffix(ColumnNames):
-    '''Rename bands with custom suffixes.'''
+    """Rename bands with custom suffixes."""
 
-    suffixes: List[str]
+    suffixes: list[str]
 
-    def __init__(self, suffixes: List[str]) -> None:
+    def __init__(self, suffixes: list[str]) -> None:
         self.suffixes = suffixes
         super().__init__()
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": "suffix",
-            "values": self.suffixes
-        }
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "suffix", "values": self.suffixes}
 
 
 class ColumnNamesNames(ColumnNames):
-    '''Rename bands with new names.'''
+    """Rename bands with new names."""
 
-    new_names: List[str]
+    new_names: list[str]
 
-    def __init__(self, new_names: List[str]) -> None:
+    def __init__(self, new_names: list[str]) -> None:
         self.new_names = new_names
         super().__init__()
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": "names",
-            "values": self.new_names
-        }
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "names", "values": self.new_names}
 
 
 class RasterVectorJoin(VectorOperator):
-    '''A RasterVectorJoin operator.'''
-    raster_sources: List[RasterOperator]
+    """A RasterVectorJoin operator."""
+
+    raster_sources: list[RasterOperator]
     vector_source: VectorOperator
     names: ColumnNames
     temporal_aggregation: Literal["none", "first", "mean"] = "none"
@@ -347,16 +328,17 @@ class RasterVectorJoin(VectorOperator):
     feature_aggregation_ignore_nodata: bool = False
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
-    def __init__(self,
-                 raster_sources: List[RasterOperator],
-                 vector_source: VectorOperator,
-                 names: ColumnNames,
-                 temporal_aggregation: Literal["none", "first", "mean"] = "none",
-                 temporal_aggregation_ignore_nodata: bool = False,
-                 feature_aggregation: Literal["first", "mean"] = "mean",
-                 feature_aggregation_ignore_nodata: bool = False,
-                 ):
-        '''Creates a new RasterVectorJoin operator.'''
+    def __init__(
+        self,
+        raster_sources: list[RasterOperator],
+        vector_source: VectorOperator,
+        names: ColumnNames,
+        temporal_aggregation: Literal["none", "first", "mean"] = "none",
+        temporal_aggregation_ignore_nodata: bool = False,
+        feature_aggregation: Literal["first", "mean"] = "mean",
+        feature_aggregation_ignore_nodata: bool = False,
+    ):
+        """Creates a new RasterVectorJoin operator."""
         self.raster_source = raster_sources
         self.vector_source = vector_source
         self.names = names
@@ -366,9 +348,9 @@ class RasterVectorJoin(VectorOperator):
         self.feature_aggregation_ignore_nodata = feature_aggregation_ignore_nodata
 
     def name(self) -> str:
-        return 'RasterVectorJoin'
+        return "RasterVectorJoin"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "type": self.name(),
             "params": {
@@ -380,70 +362,67 @@ class RasterVectorJoin(VectorOperator):
             },
             "sources": {
                 "vector": self.vector_source.to_dict(),
-                "rasters": [raster_source.to_dict() for raster_source in self.raster_source]
-            }
+                "rasters": [raster_source.to_dict() for raster_source in self.raster_source],
+            },
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterVectorJoin':
-        '''Returns an operator from a dictionary.'''
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> RasterVectorJoin:
+        """Returns an operator from a dictionary."""
         if operator_dict["type"] != "RasterVectorJoin":
             raise ValueError("Invalid operator type")
 
-        vector_source = VectorOperator.from_operator_dict(cast(Dict[str, Any], operator_dict['sources']['vector']))
+        vector_source = VectorOperator.from_operator_dict(cast(dict[str, Any], operator_dict["sources"]["vector"]))
         raster_sources = [
-            RasterOperator.from_operator_dict(raster_source) for raster_source in cast(
-                List[Dict[str, Any]], operator_dict['sources']['rasters']
-            )
+            RasterOperator.from_operator_dict(raster_source)
+            for raster_source in cast(list[dict[str, Any]], operator_dict["sources"]["rasters"])
         ]
 
-        params = operator_dict['params']
+        params = operator_dict["params"]
         return RasterVectorJoin(
             raster_sources=raster_sources,
             vector_source=vector_source,
-            names=ColumnNames.from_dict(params['names']),
-            temporal_aggregation=cast(Literal["none", "first", "mean"], params['temporalAggregation']),
-            temporal_aggregation_ignore_nodata=cast(bool, params['temporalAggregationIgnoreNoData']),
-            feature_aggregation=cast(Literal["first", "mean"], params['featureAggregation']),
-            feature_aggregation_ignore_nodata=cast(bool, params['featureAggregationIgnoreNoData']),
+            names=ColumnNames.from_dict(params["names"]),
+            temporal_aggregation=cast(Literal["none", "first", "mean"], params["temporalAggregation"]),
+            temporal_aggregation_ignore_nodata=cast(bool, params["temporalAggregationIgnoreNoData"]),
+            feature_aggregation=cast(Literal["first", "mean"], params["featureAggregation"]),
+            feature_aggregation_ignore_nodata=cast(bool, params["featureAggregationIgnoreNoData"]),
         )
 
 
 class PointInPolygonFilter(VectorOperator):
-    '''A PointInPolygonFilter operator.'''
+    """A PointInPolygonFilter operator."""
 
     point_source: VectorOperator
     polygon_source: VectorOperator
 
-    def __init__(self,
-                 point_source: VectorOperator,
-                 polygon_source: VectorOperator,
-                 ):
-        '''Creates a new PointInPolygonFilter filter operator.'''
+    def __init__(
+        self,
+        point_source: VectorOperator,
+        polygon_source: VectorOperator,
+    ):
+        """Creates a new PointInPolygonFilter filter operator."""
         self.point_source = point_source
         self.polygon_source = polygon_source
 
     def name(self) -> str:
-        return 'PointInPolygonFilter'
+        return "PointInPolygonFilter"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "type": self.name(),
             "params": {},
-            "sources": {
-                "points": self.point_source.to_dict(),
-                "polygons": self.polygon_source.to_dict()
-            }
+            "sources": {"points": self.point_source.to_dict(), "polygons": self.polygon_source.to_dict()},
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> PointInPolygonFilter:
-        '''Returns an operator from a dictionary.'''
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> PointInPolygonFilter:
+        """Returns an operator from a dictionary."""
         if operator_dict["type"] != "PointInPolygonFilter":
             raise ValueError("Invalid operator type")
 
-        point_source = VectorOperator.from_operator_dict(cast(Dict[str, Any], operator_dict['sources']['points']))
-        polygon_source = VectorOperator.from_operator_dict(cast(Dict[str, Any], operator_dict['sources']['polygons']))
+        point_source = VectorOperator.from_operator_dict(cast(dict[str, Any], operator_dict["sources"]["points"]))
+        polygon_source = VectorOperator.from_operator_dict(cast(dict[str, Any], operator_dict["sources"]["polygons"]))
 
         return PointInPolygonFilter(
             point_source=point_source,
@@ -452,7 +431,7 @@ class PointInPolygonFilter(VectorOperator):
 
 
 class RasterScaling(RasterOperator):
-    '''A RasterScaling operator.
+    """A RasterScaling operator.
 
     This operator scales the values of a raster by a given slope and offset.
 
@@ -462,23 +441,24 @@ class RasterScaling(RasterOperator):
     The unscale mode is the inverse of the scale mode:
     x = y * slope + offset
 
-    '''
+    """
 
     source: RasterOperator
-    slope: Optional[Union[float, str]] = None
-    offset: Optional[Union[float, str]] = None
+    slope: float | str | None = None
+    offset: float | str | None = None
     scaling_mode: Literal["mulSlopeAddOffset", "subOffsetDivSlope"] = "mulSlopeAddOffset"
-    output_measurement: Optional[str] = None
+    output_measurement: str | None = None
 
-    def __init__(self,
-                 # pylint: disable=too-many-arguments,too-many-positional-arguments
-                 source: RasterOperator,
-                 slope: Optional[Union[float, str]] = None,
-                 offset: Optional[Union[float, str]] = None,
-                 scaling_mode: Literal["mulSlopeAddOffset", "subOffsetDivSlope"] = "mulSlopeAddOffset",
-                 output_measurement: Optional[str] = None
-                 ):
-        '''Creates a new RasterScaling operator.'''
+    def __init__(
+        self,
+        # pylint: disable=too-many-arguments,too-many-positional-arguments
+        source: RasterOperator,
+        slope: float | str | None = None,
+        offset: float | str | None = None,
+        scaling_mode: Literal["mulSlopeAddOffset", "subOffsetDivSlope"] = "mulSlopeAddOffset",
+        output_measurement: str | None = None,
+    ):
+        """Creates a new RasterScaling operator."""
         self.source = source
         self.slope = slope
         self.offset = offset
@@ -488,10 +468,10 @@ class RasterScaling(RasterOperator):
             raise NotImplementedError("Custom output measurement is not yet implemented")
 
     def name(self) -> str:
-        return 'RasterScaling'
+        return "RasterScaling"
 
-    def to_dict(self) -> Dict[str, Any]:
-        def offset_scale_dict(key_or_value: Optional[Union[float, str]]) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
+        def offset_scale_dict(key_or_value: float | str | None) -> dict[str, Any]:
             if key_or_value is None:
                 return {"type": "auto"}
 
@@ -509,22 +489,20 @@ class RasterScaling(RasterOperator):
             "params": {
                 "offset": offset_scale_dict(self.offset),
                 "slope": offset_scale_dict(self.slope),
-                "scalingMode": self.scaling_mode
+                "scalingMode": self.scaling_mode,
             },
-            "sources": {
-                "raster": self.source.to_dict()
-            }
+            "sources": {"raster": self.source.to_dict()},
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterScaling':
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> RasterScaling:
         if operator_dict["type"] != "RasterScaling":
             raise ValueError("Invalid operator type")
 
         source_operator = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
         params = operator_dict["params"]
 
-        def offset_slope_reverse(key_or_value: Optional[Dict[str, Any]]) -> Optional[Union[float, str]]:
+        def offset_slope_reverse(key_or_value: dict[str, Any] | None) -> float | str | None:
             if key_or_value is None:
                 return None
             if key_or_value["type"] == "constant":
@@ -538,100 +516,88 @@ class RasterScaling(RasterOperator):
             slope=offset_slope_reverse(params["slope"]),
             offset=offset_slope_reverse(params["offset"]),
             scaling_mode=params["scalingMode"],
-            output_measurement=params.get("outputMeasurement", None)
+            output_measurement=params.get("outputMeasurement", None),
         )
 
 
 class RasterTypeConversion(RasterOperator):
-    '''A RasterTypeConversion operator.'''
+    """A RasterTypeConversion operator."""
 
     source: RasterOperator
     output_data_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]
 
-    def __init__(self,
-                 source: RasterOperator,
-                 output_data_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]
-                 ):
-        '''Creates a new RasterTypeConversion operator.'''
+    def __init__(
+        self,
+        source: RasterOperator,
+        output_data_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"],
+    ):
+        """Creates a new RasterTypeConversion operator."""
         self.source = source
         self.output_data_type = output_data_type
 
     def name(self) -> str:
-        return 'RasterTypeConversion'
+        return "RasterTypeConversion"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "type": self.name(),
-            "params": {
-                "outputDataType": self.output_data_type
-            },
-            "sources": {
-                "raster": self.source.to_dict()
-            }
+            "params": {"outputDataType": self.output_data_type},
+            "sources": {"raster": self.source.to_dict()},
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterTypeConversion':
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> RasterTypeConversion:
         if operator_dict["type"] != "RasterTypeConversion":
             raise ValueError("Invalid operator type")
 
         source_operator = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
 
-        return RasterTypeConversion(
-            source_operator,
-            output_data_type=operator_dict["params"]["outputDataType"]
-        )
+        return RasterTypeConversion(source_operator, output_data_type=operator_dict["params"]["outputDataType"])
 
 
 class Reprojection(Operator):
-    '''A Reprojection operator.'''
+    """A Reprojection operator."""
+
     source: Operator
     target_spatial_reference: str
 
-    def __init__(self,
-                 source: Operator,
-                 target_spatial_reference: str
-                 ):
-        '''Creates a new Reprojection operator.'''
+    def __init__(self, source: Operator, target_spatial_reference: str):
+        """Creates a new Reprojection operator."""
         self.source = source
         self.target_spatial_reference = target_spatial_reference
 
-    def data_type(self) -> Literal['Raster', 'Vector']:
+    def data_type(self) -> Literal["Raster", "Vector"]:
         return self.source.data_type()
 
     def name(self) -> str:
-        return 'Reprojection'
+        return "Reprojection"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "type": self.name(),
-            "params": {
-                "targetSpatialReference": self.target_spatial_reference
-            },
-            "sources": {
-                "source": self.source.to_dict()
-            }
+            "params": {"targetSpatialReference": self.target_spatial_reference},
+            "sources": {"source": self.source.to_dict()},
         }
 
     def as_vector(self) -> VectorOperator:
-        '''Casts this operator to a VectorOperator.'''
-        if self.data_type() != 'Vector':
+        """Casts this operator to a VectorOperator."""
+        if self.data_type() != "Vector":
             raise TypeError("Cannot cast to VectorOperator")
         return cast(VectorOperator, self)
 
     def as_raster(self) -> RasterOperator:
-        '''Casts this operator to a RasterOperator.'''
-        if self.data_type() != 'Raster':
+        """Casts this operator to a RasterOperator."""
+        if self.data_type() != "Raster":
             raise TypeError("Cannot cast to RasterOperator")
         return cast(RasterOperator, self)
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'Reprojection':
-        '''Constructs the operator from the given dictionary.'''
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> Reprojection:
+        """Constructs the operator from the given dictionary."""
         if operator_dict["type"] != "Reprojection":
             raise ValueError("Invalid operator type")
 
-        source_operator: Union[RasterOperator, VectorOperator]
+        source_operator: RasterOperator | VectorOperator
         try:
             source_operator = RasterOperator.from_operator_dict(operator_dict["sources"]["source"])
         except ValueError:
@@ -639,28 +605,29 @@ class Reprojection(Operator):
 
         return Reprojection(
             source=cast(Operator, source_operator),
-            target_spatial_reference=operator_dict["params"]["targetSpatialReference"]
+            target_spatial_reference=operator_dict["params"]["targetSpatialReference"],
         )
 
 
 class Expression(RasterOperator):
-    '''An Expression operator.'''
+    """An Expression operator."""
 
     expression: str
     source: RasterOperator
     output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32"
     map_no_data: bool = False
-    output_band: Optional[RasterBandDescriptor] = None
+    output_band: RasterBandDescriptor | None = None
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
-    def __init__(self,
-                 expression: str,
-                 source: RasterOperator,
-                 output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
-                 map_no_data: bool = False,
-                 output_band: Optional[RasterBandDescriptor] = None,
-                 ):
-        '''Creates a new Expression operator.'''
+    def __init__(
+        self,
+        expression: str,
+        source: RasterOperator,
+        output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
+        map_no_data: bool = False,
+        output_band: RasterBandDescriptor | None = None,
+    ):
+        """Creates a new Expression operator."""
         self.expression = expression
         self.source = source
         self.output_type = output_type
@@ -668,9 +635,9 @@ class Expression(RasterOperator):
         self.output_band = output_band
 
     def name(self) -> str:
-        return 'Expression'
+        return "Expression"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         params = {
             "expression": self.expression,
             "outputType": self.output_type,
@@ -679,16 +646,10 @@ class Expression(RasterOperator):
         if self.output_band is not None:
             params["outputBand"] = self.output_band.to_api_dict().to_dict()
 
-        return {
-            "type": self.name(),
-            "params": params,
-            "sources": {
-                "raster": self.source.to_dict()
-            }
-        }
+        return {"type": self.name(), "params": params, "sources": {"raster": self.source.to_dict()}}
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'Expression':
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> Expression:
         if operator_dict["type"] != "Expression":
             raise ValueError("Invalid operator type")
 
@@ -706,12 +667,12 @@ class Expression(RasterOperator):
             source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
             output_type=operator_dict["params"]["outputType"],
             map_no_data=operator_dict["params"]["mapNoData"],
-            output_band=output_band
+            output_band=output_band,
         )
 
 
 class BandwiseExpression(RasterOperator):
-    '''A bandwise Expression operator.'''
+    """A bandwise Expression operator."""
 
     expression: str
     source: RasterOperator
@@ -719,38 +680,33 @@ class BandwiseExpression(RasterOperator):
     map_no_data: bool = False
 
     # pylint: disable=too-many-arguments
-    def __init__(self,
-                 expression: str,
-                 source: RasterOperator,
-                 output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
-                 map_no_data: bool = False,
-                 ):
-        '''Creates a new Expression operator.'''
+    def __init__(
+        self,
+        expression: str,
+        source: RasterOperator,
+        output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
+        map_no_data: bool = False,
+    ):
+        """Creates a new Expression operator."""
         self.expression = expression
         self.source = source
         self.output_type = output_type
         self.map_no_data = map_no_data
 
     def name(self) -> str:
-        return 'BandwiseExpression'
+        return "BandwiseExpression"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         params = {
             "expression": self.expression,
             "outputType": self.output_type,
             "mapNoData": self.map_no_data,
         }
 
-        return {
-            "type": self.name(),
-            "params": params,
-            "sources": {
-                "raster": self.source.to_dict()
-            }
-        }
+        return {"type": self.name(), "params": params, "sources": {"raster": self.source.to_dict()}}
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'BandwiseExpression':
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> BandwiseExpression:
         if operator_dict["type"] != "BandwiseExpression":
             raise ValueError("Invalid operator type")
 
@@ -763,34 +719,36 @@ class BandwiseExpression(RasterOperator):
 
 
 class GeoVectorDataType(Enum):
-    '''The output type of geometry vector data.'''
+    """The output type of geometry vector data."""
+
     MULTI_POINT = "MultiPoint"
     MULTI_LINE_STRING = "MultiLineString"
     MULTI_POLYGON = "MultiPolygon"
 
 
 class VectorExpression(VectorOperator):
-    '''The `VectorExpression` operator.'''
+    """The `VectorExpression` operator."""
 
     source: VectorOperator
 
     expression: str
-    input_columns: List[str]
+    input_columns: list[str]
     output_column: str | GeoVectorDataType
     geometry_column_name = None
-    output_measurement: Optional[Measurement] = None
+    output_measurement: Measurement | None = None
 
     # pylint: disable=too-many-arguments
-    def __init__(self,
-                 source: VectorOperator,
-                 *,
-                 expression: str,
-                 input_columns: List[str],
-                 output_column: str | GeoVectorDataType,
-                 geometry_column_name: Optional[str] = None,
-                 output_measurement: Optional[Measurement] = None,
-                 ):
-        '''Creates a new VectorExpression operator.'''
+    def __init__(
+        self,
+        source: VectorOperator,
+        *,
+        expression: str,
+        input_columns: list[str],
+        output_column: str | GeoVectorDataType,
+        geometry_column_name: str | None = None,
+        output_measurement: Measurement | None = None,
+    ):
+        """Creates a new VectorExpression operator."""
         self.source = source
 
         self.expression = expression
@@ -801,9 +759,9 @@ class VectorExpression(VectorOperator):
         self.output_measurement = output_measurement
 
     def name(self) -> str:
-        return 'VectorExpression'
+        return "VectorExpression"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         output_column_dict = None
         if isinstance(self.output_column, GeoVectorDataType):
             output_column_dict = {
@@ -822,7 +780,7 @@ class VectorExpression(VectorOperator):
             "expression": self.expression,
             "inputColumns": self.input_columns,
             "outputColumn": output_column_dict,
-        }  # type: Dict[str, Any]
+        }  # type: dict[str, Any]
 
         if self.geometry_column_name:
             params["geometryColumnName"] = self.geometry_column_name
@@ -830,16 +788,10 @@ class VectorExpression(VectorOperator):
         if self.output_measurement:
             params["outputMeasurement"] = self.output_measurement.to_api_dict().to_dict()
 
-        return {
-            "type": self.name(),
-            "params": params,
-            "sources": {
-                "vector": self.source.to_dict()
-            }
-        }
+        return {"type": self.name(), "params": params, "sources": {"vector": self.source.to_dict()}}
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> VectorExpression:
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> VectorExpression:
         if operator_dict["type"] != "Expression":
             raise ValueError("Invalid operator type")
 
@@ -862,7 +814,8 @@ class VectorExpression(VectorOperator):
 
 
 class TemporalRasterAggregation(RasterOperator):
-    '''A TemporalRasterAggregation operator.'''
+    """A TemporalRasterAggregation operator."""
+
     # pylint: disable=too-many-instance-attributes
 
     source: RasterOperator
@@ -870,24 +823,25 @@ class TemporalRasterAggregation(RasterOperator):
     ignore_no_data: bool = False
     window_granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days"
     window_size: int = 1
-    output_type: Optional[Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]] = None
-    percentile: Optional[float] = None
-    window_ref: Optional[np.datetime64] = None
+    output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] | None = None
+    percentile: float | None = None
+    window_ref: np.datetime64 | None = None
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
-    def __init__(self,
-                 source: RasterOperator,
-                 aggregation_type:
-                 Literal["mean", "min", "max", "median", "count", "sum", "first", "last", "percentileEstimate"],
-                 ignore_no_data: bool = False,
-                 granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days",
-                 window_size: int = 1,
-                 output_type:
-                 Optional[Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]] = None,
-                 percentile: Optional[float] = None,
-                 window_reference: Optional[Union[datetime.datetime, np.datetime64]] = None
-                 ):
-        '''Creates a new TemporalRasterAggregation operator.'''
+    def __init__(
+        self,
+        source: RasterOperator,
+        aggregation_type: Literal[
+            "mean", "min", "max", "median", "count", "sum", "first", "last", "percentileEstimate"
+        ],
+        ignore_no_data: bool = False,
+        granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days",
+        window_size: int = 1,
+        output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] | None = None,
+        percentile: float | None = None,
+        window_reference: datetime.datetime | np.datetime64 | None = None,
+    ):
+        """Creates a new TemporalRasterAggregation operator."""
         self.source = source
         self.aggregation_type = aggregation_type
         self.ignore_no_data = ignore_no_data
@@ -912,10 +866,10 @@ class TemporalRasterAggregation(RasterOperator):
                 raise ValueError("`window_reference` must be of type `datetime.datetime` or `numpy.datetime64`")
 
     def name(self) -> str:
-        return 'TemporalRasterAggregation'
+        return "TemporalRasterAggregation"
 
-    def to_dict(self) -> Dict[str, Any]:
-        w_ref = self.window_ref.astype('datetime64[ms]').astype(int) if self.window_ref is not None else None
+    def to_dict(self) -> dict[str, Any]:
+        w_ref = self.window_ref.astype("datetime64[ms]").astype(int) if self.window_ref is not None else None
 
         return {
             "type": self.name(),
@@ -923,32 +877,27 @@ class TemporalRasterAggregation(RasterOperator):
                 "aggregation": {
                     "type": self.aggregation_type,
                     "ignoreNoData": self.ignore_no_data,
-                    "percentile": self.percentile
+                    "percentile": self.percentile,
                 },
-                "window": {
-                    "granularity": self.window_granularity,
-                    "step": self.window_size
-                },
+                "window": {"granularity": self.window_granularity, "step": self.window_size},
                 "windowReference": w_ref,
-                "outputType": self.output_type
+                "outputType": self.output_type,
             },
-            "sources": {
-                "raster": self.source.to_dict()
-            }
+            "sources": {"raster": self.source.to_dict()},
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'TemporalRasterAggregation':
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> TemporalRasterAggregation:
         if operator_dict["type"] != "TemporalRasterAggregation":
             raise ValueError("Invalid operator type")
 
-        w_ref: Optional[Union[datetime.datetime, np.datetime64]] = None
+        w_ref: datetime.datetime | np.datetime64 | None = None
         if "windowReference" in operator_dict["params"]:
             t_ref = operator_dict["params"]["windowReference"]
             if isinstance(t_ref, str):
                 w_ref = datetime.datetime.fromisoformat(t_ref)
             if isinstance(t_ref, int):
-                w_ref = np.datetime64(t_ref, 'ms')
+                w_ref = np.datetime64(t_ref, "ms")
 
         percentile = None
         if "percentile" in operator_dict["params"]["aggregation"]:
@@ -962,26 +911,27 @@ class TemporalRasterAggregation(RasterOperator):
             window_size=operator_dict["params"]["window"]["step"],
             output_type=operator_dict["params"]["outputType"],
             window_reference=w_ref,
-            percentile=percentile
+            percentile=percentile,
         )
 
 
 class TimeShift(Operator):
-    '''A RasterTypeConversion operator.'''
+    """A RasterTypeConversion operator."""
 
-    source: Union[RasterOperator, VectorOperator]
+    source: RasterOperator | VectorOperator
     shift_type: Literal["relative", "absolute"]
     granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"]
     value: int
 
-    def __init__(self,
-                 source: Union[RasterOperator, VectorOperator],
-                 shift_type: Literal["relative", "absolute"],
-                 granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"],
-                 value: int,
-                 ):
-        '''Creates a new RasterTypeConversion operator.'''
-        if shift_type == 'absolute':
+    def __init__(
+        self,
+        source: RasterOperator | VectorOperator,
+        shift_type: Literal["relative", "absolute"],
+        granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"],
+        value: int,
+    ):
+        """Creates a new RasterTypeConversion operator."""
+        if shift_type == "absolute":
             raise NotImplementedError("Absolute time shifts are not supported yet")
         self.source = source
         self.shift_type = shift_type
@@ -989,42 +939,36 @@ class TimeShift(Operator):
         self.value = value
 
     def name(self) -> str:
-        return 'TimeShift'
+        return "TimeShift"
 
-    def data_type(self) -> Literal['Vector', 'Raster']:
+    def data_type(self) -> Literal["Vector", "Raster"]:
         return self.source.data_type()
 
     def as_vector(self) -> VectorOperator:
-        '''Casts this operator to a VectorOperator.'''
-        if self.data_type() != 'Vector':
+        """Casts this operator to a VectorOperator."""
+        if self.data_type() != "Vector":
             raise TypeError("Cannot cast to VectorOperator")
         return cast(VectorOperator, self)
 
     def as_raster(self) -> RasterOperator:
-        '''Casts this operator to a RasterOperator.'''
-        if self.data_type() != 'Raster':
+        """Casts this operator to a RasterOperator."""
+        if self.data_type() != "Raster":
             raise TypeError("Cannot cast to RasterOperator")
         return cast(RasterOperator, self)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "type": self.name(),
-            "params": {
-                "type": self.shift_type,
-                "granularity": self.granularity,
-                "value": self.value
-            },
-            "sources": {
-                "source": self.source.to_dict()
-            }
+            "params": {"type": self.shift_type, "granularity": self.granularity, "value": self.value},
+            "sources": {"source": self.source.to_dict()},
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'TimeShift':
-        '''Constructs the operator from the given dictionary.'''
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> TimeShift:
+        """Constructs the operator from the given dictionary."""
         if operator_dict["type"] != "TimeShift":
             raise ValueError("Invalid operator type")
-        source: Union[RasterOperator, VectorOperator]
+        source: RasterOperator | VectorOperator
         try:
             source = VectorOperator.from_operator_dict(operator_dict["sources"]["source"])
         except ValueError:
@@ -1034,178 +978,153 @@ class TimeShift(Operator):
             source=source,
             shift_type=operator_dict["params"]["type"],
             granularity=operator_dict["params"]["granularity"],
-            value=operator_dict["params"]["value"]
+            value=operator_dict["params"]["value"],
         )
 
 
 class RenameBands:
-    '''Base class for renaming bands of a raster.'''
+    """Base class for renaming bands of a raster."""
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         pass
 
     @classmethod
-    def from_dict(cls, rename_dict: Dict[str, Any]) -> 'RenameBands':
-        '''Returns a RenameBands object from a dictionary.'''
+    def from_dict(cls, rename_dict: dict[str, Any]) -> RenameBands:
+        """Returns a RenameBands object from a dictionary."""
         if rename_dict["type"] == "default":
             return RenameBandsDefault()
         if rename_dict["type"] == "suffix":
-            return RenameBandsSuffix(cast(List[str], rename_dict["values"]))
+            return RenameBandsSuffix(cast(list[str], rename_dict["values"]))
         if rename_dict["type"] == "rename":
-            return RenameBandsRename(cast(List[str], rename_dict["values"]))
+            return RenameBandsRename(cast(list[str], rename_dict["values"]))
         raise ValueError("Invalid rename type")
 
     @classmethod
-    def default(cls) -> 'RenameBands':
+    def default(cls) -> RenameBands:
         return RenameBandsDefault()
 
     @classmethod
-    def suffix(cls, values: List[str]) -> 'RenameBands':
+    def suffix(cls, values: list[str]) -> RenameBands:
         return RenameBandsSuffix(values)
 
     @classmethod
-    def rename(cls, values: List[str]) -> 'RenameBands':
+    def rename(cls, values: list[str]) -> RenameBands:
         return RenameBandsRename(values)
 
 
 class RenameBandsDefault(RenameBands):
-    '''Rename bands with default suffix.'''
+    """Rename bands with default suffix."""
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": "default"
-        }
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "default"}
 
 
 class RenameBandsSuffix(RenameBands):
-    '''Rename bands with custom suffixes.'''
+    """Rename bands with custom suffixes."""
 
-    suffixes: List[str]
+    suffixes: list[str]
 
-    def __init__(self, suffixes: List[str]) -> None:
+    def __init__(self, suffixes: list[str]) -> None:
         self.suffixes = suffixes
         super().__init__()
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": "suffix",
-            "values": self.suffixes
-        }
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "suffix", "values": self.suffixes}
 
 
 class RenameBandsRename(RenameBands):
-    '''Rename bands with new names.'''
+    """Rename bands with new names."""
 
-    new_names: List[str]
+    new_names: list[str]
 
-    def __init__(self, new_names: List[str]) -> None:
+    def __init__(self, new_names: list[str]) -> None:
         self.new_names = new_names
         super().__init__()
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": "rename",
-            "values": self.new_names
-        }
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "rename", "values": self.new_names}
 
 
 class RasterStacker(RasterOperator):
-    '''The RasterStacker operator.'''
+    """The RasterStacker operator."""
 
-    sources: List[RasterOperator]
+    sources: list[RasterOperator]
     rename: RenameBands
 
     # pylint: disable=too-many-arguments
-    def __init__(self,
-                 sources: List[RasterOperator],
-                 rename: RenameBands = RenameBandsDefault()
-                 ):
-        '''Creates a new RasterStacker operator.'''
+    def __init__(self, sources: list[RasterOperator], rename: RenameBands | None = None):
+        """Creates a new RasterStacker operator."""
+        if rename is None:
+            rename = RenameBandsDefault()
+
         self.sources = sources
         self.rename = rename
 
     def name(self) -> str:
-        return 'RasterStacker'
+        return "RasterStacker"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "type": self.name(),
-            "params": {
-                "renameBands": self.rename.to_dict()
-            },
-            "sources": {
-                "rasters": [raster_source.to_dict() for raster_source in self.sources]
-            }
+            "params": {"renameBands": self.rename.to_dict()},
+            "sources": {"rasters": [raster_source.to_dict() for raster_source in self.sources]},
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'RasterStacker':
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> RasterStacker:
         if operator_dict["type"] != "RasterStacker":
             raise ValueError("Invalid operator type")
 
         sources = [RasterOperator.from_operator_dict(source) for source in operator_dict["sources"]["rasters"]]
         rename = RenameBands.from_dict(operator_dict["params"]["renameBands"])
 
-        return RasterStacker(
-            sources=sources,
-            rename=rename
-        )
+        return RasterStacker(sources=sources, rename=rename)
 
 
 class BandNeighborhoodAggregate(RasterOperator):
-    '''The BandNeighborhoodAggregate operator.'''
+    """The BandNeighborhoodAggregate operator."""
 
     source: RasterOperator
     aggregate: BandNeighborhoodAggregateParams
 
     # pylint: disable=too-many-arguments
-    def __init__(self,
-                 source: RasterOperator,
-                 aggregate: BandNeighborhoodAggregateParams
-                 ):
-        '''Creates a new BandNeighborhoodAggregate operator.'''
+    def __init__(self, source: RasterOperator, aggregate: BandNeighborhoodAggregateParams):
+        """Creates a new BandNeighborhoodAggregate operator."""
         self.source = source
         self.aggregate = aggregate
 
     def name(self) -> str:
-        return 'BandNeighborhoodAggregate'
+        return "BandNeighborhoodAggregate"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "type": self.name(),
-            "params": {
-                "aggregate": self.aggregate.to_dict()
-            },
-            "sources": {
-                "raster": self.source.to_dict()
-            }
+            "params": {"aggregate": self.aggregate.to_dict()},
+            "sources": {"raster": self.source.to_dict()},
         }
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregate':
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> BandNeighborhoodAggregate:
         if operator_dict["type"] != "BandNeighborhoodAggregate":
             raise ValueError("Invalid operator type")
 
         source = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
         aggregate = BandNeighborhoodAggregateParams.from_dict(operator_dict["params"]["aggregate"])
 
-        return BandNeighborhoodAggregate(
-            source=source,
-            aggregate=aggregate
-        )
+        return BandNeighborhoodAggregate(source=source, aggregate=aggregate)
 
 
 class BandNeighborhoodAggregateParams:
-    '''Abstract base class for band neighborhood aggregate params.'''
+    """Abstract base class for band neighborhood aggregate params."""
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         pass
 
     @classmethod
-    def from_dict(cls, band_neighborhood_aggregate_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregateParams':
-        '''Returns a BandNeighborhoodAggregate object from a dictionary.'''
+    def from_dict(cls, band_neighborhood_aggregate_dict: dict[str, Any]) -> BandNeighborhoodAggregateParams:
+        """Returns a BandNeighborhoodAggregate object from a dictionary."""
         if band_neighborhood_aggregate_dict["type"] == "firstDerivative":
             return BandNeighborhoodAggregateFirstDerivative.from_dict(band_neighborhood_aggregate_dict)
         if band_neighborhood_aggregate_dict["type"] == "average":
@@ -1213,90 +1132,68 @@ class BandNeighborhoodAggregateParams:
         raise ValueError("Invalid neighborhood aggregate type")
 
     @classmethod
-    def first_derivative(cls, equally_spaced_band_distance: float) -> 'BandNeighborhoodAggregateParams':
+    def first_derivative(cls, equally_spaced_band_distance: float) -> BandNeighborhoodAggregateParams:
         return BandNeighborhoodAggregateFirstDerivative(equally_spaced_band_distance)
 
     @classmethod
-    def average(cls, window_size: int) -> 'BandNeighborhoodAggregateParams':
+    def average(cls, window_size: int) -> BandNeighborhoodAggregateParams:
         return BandNeighborhoodAggregateAverage(window_size)
 
 
 @dataclass
 class BandNeighborhoodAggregateFirstDerivative(BandNeighborhoodAggregateParams):
-    '''The first derivative band neighborhood aggregate.'''
+    """The first derivative band neighborhood aggregate."""
 
     equally_spaced_band_distance: float
 
     @classmethod
-    def from_dict(cls, band_neighborhood_aggregate_dict: Dict[str, Any]) -> 'BandNeighborhoodAggregateParams':
+    def from_dict(cls, band_neighborhood_aggregate_dict: dict[str, Any]) -> BandNeighborhoodAggregateParams:
         if band_neighborhood_aggregate_dict["type"] != "firstDerivative":
             raise ValueError("Invalid neighborhood aggregate type")
 
-        return BandNeighborhoodAggregateFirstDerivative(
-            band_neighborhood_aggregate_dict["bandDistance"]["distance"]
-        )
+        return BandNeighborhoodAggregateFirstDerivative(band_neighborhood_aggregate_dict["bandDistance"]["distance"])
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "type": "firstDerivative",
-            "bandDistance": {
-                "type": "equallySpaced",
-                "distance": self.equally_spaced_band_distance
-            }
+            "bandDistance": {"type": "equallySpaced", "distance": self.equally_spaced_band_distance},
         }
 
 
 @dataclass
 class BandNeighborhoodAggregateAverage(BandNeighborhoodAggregateParams):
-    '''The average band neighborhood aggregate.'''
+    """The average band neighborhood aggregate."""
 
     window_size: int
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": "average",
-            "windowSize": self.window_size
-        }
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": "average", "windowSize": self.window_size}
 
 
 class Onnx(RasterOperator):
-    '''Onnx ML operator.'''
+    """Onnx ML operator."""
 
     source: RasterOperator
     model: str
 
     # pylint: disable=too-many-arguments
-    def __init__(self,
-                 source: RasterOperator,
-                 model: str
-                 ):
-        '''Creates a new Onnx operator.'''
+    def __init__(self, source: RasterOperator, model: str):
+        """Creates a new Onnx operator."""
         self.source = source
         self.model = model
 
     def name(self) -> str:
-        return 'Onnx'
+        return "Onnx"
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": self.name(),
-            "params": {
-                "model": self.model
-            },
-            "sources": {
-                "raster": self.source.to_dict()
-            }
-        }
+    def to_dict(self) -> dict[str, Any]:
+        return {"type": self.name(), "params": {"model": self.model}, "sources": {"raster": self.source.to_dict()}}
 
     @classmethod
-    def from_operator_dict(cls, operator_dict: Dict[str, Any]) -> 'Onnx':
+    def from_operator_dict(cls, operator_dict: dict[str, Any]) -> Onnx:
         if operator_dict["type"] != "Onnx":
             raise ValueError("Invalid operator type")
 
         source = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
         model = operator_dict["params"]["model"]
 
-        return Onnx(
-            source=source,
-            model=model
-        )
+        return Onnx(source=source, model=model)
