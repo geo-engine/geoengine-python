@@ -25,6 +25,7 @@ import rasterio.io
 import requests as req
 import rioxarray
 import websockets
+import websockets.asyncio.client
 import xarray as xr
 from owslib.util import Authentication, ResponseWrapper
 from owslib.wcs import WebCoverageService
@@ -622,7 +623,7 @@ class Workflow:
 
         async with websockets.asyncio.client.connect(
             uri=self.__replace_http_with_ws(url),
-            extra_headers=session.auth_header,
+            additional_headers=session.auth_header,
             open_timeout=open_timeout,
             max_size=None,
         ) as websocket:
