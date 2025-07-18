@@ -1,5 +1,4 @@
 """
-"""
 A workflow representation and methods on workflows
 """
 # pylint: disable=too-many-lines
