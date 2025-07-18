@@ -15,6 +15,10 @@ __pycache__
 env
 env-*
 .venv
+.venv-*
+
+# Lock files
+uv.lock
 
 # Private files
 .pypirc
