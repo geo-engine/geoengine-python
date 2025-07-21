@@ -61,10 +61,10 @@ def register_ml_model(
 
         model = MlModel(
             name=model_config.name,
-            fileName=model_config.file_name,
+            file_name=model_config.file_name,
             upload=str(upload_id),
             metadata=model_config.metadata,
-            displayName=model_config.display_name,
+            display_name=model_config.display_name,
             description=model_config.description,
         )
         res_name = ml_api.add_ml_model(model, _request_timeout=register_timeout)
