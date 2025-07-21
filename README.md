@@ -101,27 +101,30 @@ python3 -m build
 
 ## Formatting
 
-This package is formatted according to `pycodestyle`.
+This package is formatted according to `ruff`.
 You can check it by calling:
 
 ```bash
-python3 -m pycodestyle
+python3 -m ruff format --check
 ```
 
-Our tip is to install `autopep8` and use it to format the code.
+Our tip is to install `ruff` and use it to format the code.
+
+### VSCode
+
+If you use VSCode, you can install the [ruff extension](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) and set it as the default formatter.
 
 ## Lints
 
 Our CI automatically checks for lint errors.
-We use `pylint` to check the code.
+We use `ruff` to check the code.
 You can check it by calling:
 
 ```bash
-python3 -m pylint geoengine
-python3 -m pylint tests
+python3 -m ruff check
 ```
 
-Our tip is to activate linting with `pylint` in your IDE.
+Our tip is to activate linting with `ruff` in your IDE.
 
 ## Type Checking
 

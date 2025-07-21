@@ -1,40 +1,38 @@
 #!/usr/bin/env python3
 
-'''Run Jupyter Notebooks and check for errors.'''
+"""Run Jupyter Notebooks and check for errors."""
 
 import argparse
 import ast
 import sys
 import warnings
-from nbconvert import PythonExporter
-import nbformat
+
 import matplotlib
+import nbformat
+from nbconvert import PythonExporter
 
 from tests.ge_test import GeoEngineTestInstance
 
 
 def eprint(*args, **kwargs):
-    '''Print to stderr.'''
+    """Print to stderr."""
     print(*args, file=sys.stderr, **kwargs)
 
 
 def parse_args() -> str:
-    '''Parse command-line arguments.'''
+    """Parse command-line arguments."""
 
     parser = argparse.ArgumentParser(
-        prog='Jupyter Test Utility',
-        description='Runs a Jupyter Notebook to check for errors.',
+        prog="Jupyter Test Utility",
+        description="Runs a Jupyter Notebook to check for errors.",
     )
-    parser.add_argument(
-        'filename',
-        help='The Jupyter Notebook file to run.'
-    )
+    parser.add_argument("filename", help="The Jupyter Notebook file to run.")
     parameters = parser.parse_args()
     return parameters.filename
 
 
 def convert_to_python(input_file: str) -> str:
-    '''Convert the Jupyter Notebook to a Python file.'''
+    """Convert the Jupyter Notebook to a Python file."""
 
     exporter = PythonExporter()
 
@@ -46,13 +44,13 @@ def convert_to_python(input_file: str) -> str:
 
 
 def run_script(script: str) -> bool:
-    '''Run the script.'''
+    """Run the script."""
 
-    code = compile(script, '<string>', 'exec', flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+    code = compile(script, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
 
     try:
         # prevent interactive backend to pop up
-        matplotlib.use('AGG')
+        matplotlib.use("AGG")
 
         with warnings.catch_warnings(record=True):
             # pylint: disable-next=exec-used
@@ -67,13 +65,13 @@ def run_script(script: str) -> bool:
 
 
 def main():
-    '''Main entry point.'''
+    """Main entry point."""
 
     input_file = parse_args()
 
     python_script = convert_to_python(input_file)
 
-    eprint(f"Running script `{input_file}`", end=': ')
+    eprint(f"Running script `{input_file}`", end=": ")
 
     with GeoEngineTestInstance(port=3030) as ge_instance:
         ge_instance.wait_for_ready()
@@ -84,5 +82,5 @@ def main():
             sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

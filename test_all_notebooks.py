@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
 
-'''Run all Jupyter Notebooks and check for errors.'''
+"""Run all Jupyter Notebooks and check for errors."""
 
 import os
-import subprocess
 import shutil
+import subprocess
 import sys
 
 
 def eprint(*args, **kwargs):
-    '''Print to stderr.'''
+    """Print to stderr."""
     print(*args, file=sys.stderr, **kwargs)
 
 
 def run_test_notebook(notebook_path) -> bool:
-    '''Run test_notebook.py for the given notebook.'''
+    """Run test_notebook.py for the given notebook."""
 
-    python_bin = shutil.which('python3')
+    python_bin = shutil.which("python3")
 
     if python_bin is None:
-        raise RuntimeError('Python 3 not found')
+        raise RuntimeError("Python 3 not found")
 
     result = subprocess.run(
-        [python_bin, 'test_notebook.py', notebook_path],
+        [python_bin, "test_notebook.py", notebook_path],
         capture_output=True,
         text=True,
         check=False,
@@ -37,9 +37,9 @@ def run_test_notebook(notebook_path) -> bool:
 
 
 def main() -> int:
-    '''Run all Jupyter Notebooks and check for errors.'''
+    """Run all Jupyter Notebooks and check for errors."""
 
-    example_folder = 'examples'
+    example_folder = "examples"
 
     if not os.path.isdir(example_folder):
         eprint(f"The folder {example_folder} does not exist.")
@@ -47,7 +47,7 @@ def main() -> int:
 
     for root, _dirs, files in os.walk(example_folder):
         for file in files:
-            if not file.endswith('.ipynb'):
+            if not file.endswith(".ipynb"):
                 eprint(f"Skipping non-notebook file {file}")
                 continue
             notebook_path = os.path.join(root, file)
@@ -59,5 +59,5 @@ def main() -> int:
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
