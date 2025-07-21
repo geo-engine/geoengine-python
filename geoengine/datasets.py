@@ -4,6 +4,7 @@ Module for working with datasets and source definitions
 
 from __future__ import annotations
 from abc import abstractmethod
+from collections.abc import Iterator
 from pathlib import Path
 from typing import List, NamedTuple, Optional, Union, Literal, Tuple
 from enum import Enum
@@ -508,6 +509,20 @@ def volumes(timeout: int = 60) -> List[Volume]:
     return [Volume.from_response(v) for v in response]
 
 
+def volume_by_name(volume_name: str, timeout: int = 60) -> Optional[Volume]:
+    ''' Returns a volume with the specified name or None if none exists '''
+    vols = volumes(timeout)
+    vols = [v for v in vols if v.name == volume_name]
+
+    if len(vols) == 0:
+        return None
+
+    if len(vols) > 1:
+        raise KeyError(f"Volume name {volume_name} is not unique")
+
+    return vols[0]
+
+
 def add_dataset(data_store: Union[Volume, UploadId],
                 properties: AddDatasetProperties,
                 meta_data: geoengine_openapi_client.MetaDataDefinition,
@@ -613,6 +628,34 @@ def list_datasets(offset: int = 0,
     return response
 
 
+def list_datasets_gen(
+        limit: int = 200,
+        order: DatasetListOrder = DatasetListOrder.NAME_ASC,
+        name_filter: Optional[str] = None,
+        timeout: int = 60) -> Iterator[geoengine_openapi_client.DatasetListing]:
+    '''List datasets'''
+
+    page_size = 20
+    page_count = 0
+
+    while True:
+        element_num = page_size * page_count
+
+        if element_num >= limit:
+            break
+
+        page = list_datasets(element_num, page_size, order=order, name_filter=name_filter, timeout=timeout)
+        page_count += 1
+
+        if len(page) == 0:
+            break
+
+        for (c, p) in enumerate(page):
+            if element_num + c > limit:
+                break
+            yield p
+
+
 def dataset_info_by_name(
         dataset_name: Union[DatasetName, str], timeout: int = 60
 ) -> geoengine_openapi_client.models.Dataset | None:
@@ -628,6 +671,28 @@ def dataset_info_by_name(
         res = None
         try:
             res = datasets_api.get_dataset_handler(str(dataset_name), _request_timeout=timeout)
+        except geoengine_openapi_client.exceptions.BadRequestException as e:
+            e_body = e.body
+            if isinstance(e_body, str) and 'CannotLoadDataset' not in e_body:
+                raise e
+        return res
+
+
+def dataset_metadata_by_name(
+        dataset_name: Union[DatasetName, str], timeout: int = 60
+) -> geoengine_openapi_client.models.MetaDataDefinition | None:
+    '''Get dataset information.'''
+
+    if not isinstance(dataset_name, DatasetName):
+        dataset_name = DatasetName(dataset_name)
+
+    session = get_session()
+
+    with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
+        datasets_api = geoengine_openapi_client.DatasetsApi(api_client)
+        res = None
+        try:
+            res = datasets_api.get_loading_info_handler(str(dataset_name), _request_timeout=timeout)
         except geoengine_openapi_client.exceptions.BadRequestException as e:
             e_body = e.body
             if isinstance(e_body, str) and 'CannotLoadDataset' not in e_body:
