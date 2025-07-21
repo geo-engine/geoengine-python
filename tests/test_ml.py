@@ -3,7 +3,15 @@
 import unittest
 
 import numpy as np
-from geoengine_openapi_client.models import MlModelMetadata, MlTensorShape3D, RasterDataType
+from geoengine_openapi_client.models import (
+    MlModelInputNoDataHandling,
+    MlModelInputNoDataHandlingVariant,
+    MlModelMetadata,
+    MlModelOutputNoDataHandling,
+    MlModelOutputNoDataHandlingVariant,
+    MlTensorShape3D,
+    RasterDataType,
+)
 from onnx import TensorShapeProto as TSP
 from skl2onnx import to_onnx
 from sklearn.ensemble import RandomForestClassifier
@@ -84,12 +92,18 @@ class MlModelTests(unittest.TestCase):
                 onnx_model=onnx_clf,
                 model_config=ge.ml.MlModelConfig(
                     name=model_name,
+                    file_name="model.onnx",
                     metadata=MlModelMetadata(
-                        file_name="model.onnx",
-                        input_type=RasterDataType.F32,
-                        output_type=RasterDataType.I64,
-                        input_shape=MlTensorShape3D(y=1, x=1, bands=2),
-                        output_shape=MlTensorShape3D(y=1, x=1, bands=1),
+                        inputType=RasterDataType.F32,
+                        outputType=RasterDataType.I64,
+                        inputShape=MlTensorShape3D(y=1, x=1, bands=2),
+                        outputShape=MlTensorShape3D(y=1, x=1, bands=1),
+                        inputNoDataHandling=MlModelInputNoDataHandling(
+                            variant=MlModelInputNoDataHandlingVariant.SKIPIFNODATA
+                        ),
+                        outputNoDataHandling=MlModelOutputNoDataHandling(
+                            variant=MlModelOutputNoDataHandlingVariant.NANISNODATA
+                        ),
                     ),
                     display_name="Decision Tree",
                     description="A simple decision tree model",
@@ -120,12 +134,18 @@ class MlModelTests(unittest.TestCase):
                     onnx_model=onnx_clf,
                     model_config=ge.ml.MlModelConfig(
                         name=model_name,
+                        file_name="model.onnx",
                         metadata=MlModelMetadata(
-                            file_name="model.onnx",
-                            input_type=RasterDataType.F32,
-                            output_type=RasterDataType.I64,
-                            input_shape=MlTensorShape3D(y=1, x=1, bands=4),
-                            output_shape=MlTensorShape3D(y=1, x=1, bands=1),
+                            inputType=RasterDataType.F32,
+                            outputType=RasterDataType.I64,
+                            inputShape=MlTensorShape3D(y=1, x=1, bands=4),
+                            outputShape=MlTensorShape3D(y=1, x=1, bands=1),
+                            inputNoDataHandling=MlModelInputNoDataHandling(
+                                variant=MlModelInputNoDataHandlingVariant.SKIPIFNODATA
+                            ),
+                            outputNoDataHandling=MlModelOutputNoDataHandling(
+                                variant=MlModelOutputNoDataHandlingVariant.NANISNODATA
+                            ),
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
@@ -140,12 +160,18 @@ class MlModelTests(unittest.TestCase):
                     onnx_model=onnx_clf,
                     model_config=ge.ml.MlModelConfig(
                         name=model_name,
+                        file_name="model.onnx",
                         metadata=MlModelMetadata(
-                            file_name="model.onnx",
-                            input_type=RasterDataType.F64,
-                            output_type=RasterDataType.I64,
-                            input_shape=MlTensorShape3D(y=1, x=1, bands=2),
-                            output_shape=MlTensorShape3D(y=1, x=1, bands=1),
+                            inputType=RasterDataType.F64,
+                            outputType=RasterDataType.I64,
+                            inputShape=MlTensorShape3D(y=1, x=1, bands=2),
+                            outputShape=MlTensorShape3D(y=1, x=1, bands=1),
+                            inputNoDataHandling=MlModelInputNoDataHandling(
+                                variant=MlModelInputNoDataHandlingVariant.SKIPIFNODATA
+                            ),
+                            outputNoDataHandling=MlModelOutputNoDataHandling(
+                                variant=MlModelOutputNoDataHandlingVariant.NANISNODATA
+                            ),
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
@@ -161,12 +187,18 @@ class MlModelTests(unittest.TestCase):
                     onnx_model=onnx_clf,
                     model_config=ge.ml.MlModelConfig(
                         name="foo",
+                        file_name="model.onnx",
                         metadata=MlModelMetadata(
-                            file_name="model.onnx",
-                            input_type=RasterDataType.F32,
-                            output_type=RasterDataType.I32,
-                            input_shape=MlTensorShape3D(y=1, x=1, bands=2),
-                            output_shape=MlTensorShape3D(y=1, x=1, bands=1),
+                            inputType=RasterDataType.F32,
+                            outputType=RasterDataType.I32,
+                            inputShape=MlTensorShape3D(y=1, x=1, bands=2),
+                            outputShape=MlTensorShape3D(y=1, x=1, bands=1),
+                            inputNoDataHandling=MlModelInputNoDataHandling(
+                                variant=MlModelInputNoDataHandlingVariant.SKIPIFNODATA
+                            ),
+                            outputNoDataHandling=MlModelOutputNoDataHandling(
+                                variant=MlModelOutputNoDataHandlingVariant.NANISNODATA
+                            ),
                         ),
                         display_name="Decision Tree",
                         description="A simple decision tree model",
