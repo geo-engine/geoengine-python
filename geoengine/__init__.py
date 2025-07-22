@@ -33,12 +33,12 @@ from .datasets import (
     add_dataset,
     add_or_replace_dataset_with_permissions,
     dataset_info_by_name,
+    dataset_metadata_by_name,
     delete_dataset,
     list_datasets,
     upload_dataframe,
-    volumes,
     volume_by_name,
-    dataset_metadata_by_name,
+    volumes,
 )
 from .error import (
     GeoEngineException,
