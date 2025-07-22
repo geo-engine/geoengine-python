@@ -635,7 +635,7 @@ class DatasetListOrder(Enum):
     NAME_DESC = "NameDesc"
 
 
-def list_datasets(
+def list_datasets_page(
     offset: int = 0,
     limit: int = 20,
     order: DatasetListOrder = DatasetListOrder.NAME_ASC,
@@ -659,7 +659,8 @@ def list_datasets(
     return response
 
 
-def list_datasets_gen(
+def list_datasets(
+    offset: int = 0,
     limit: int = 200,
     order: DatasetListOrder = DatasetListOrder.NAME_ASC,
     name_filter: str | None = None,
@@ -676,7 +677,9 @@ def list_datasets_gen(
         if element_num >= limit:
             break
 
-        page = list_datasets(element_num, page_size, order=order, name_filter=name_filter, timeout=timeout)
+        page = list_datasets_page(
+            element_num + offset, page_size, order=order, name_filter=name_filter, timeout=timeout
+        )
         page_count += 1
 
         if len(page) == 0:

@@ -31,6 +31,8 @@ class DatasetsTests(unittest.TestCase):
                 offset=0, limit=10, order=ge.DatasetListOrder.NAME_ASC, name_filter="Natural Earth II"
             )
 
+            datasets = list(datasets)
+
             self.assertEqual(len(datasets), 3)
 
             dataset = datasets[0]
@@ -147,7 +149,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(len(ge.list_datasets(name_filter="Land Cover TEST")), 1)
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
 
     def test_add_dataset_with_permissions(self):
         """Test `add_datset`."""
@@ -253,7 +255,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(len(ge.list_datasets(name_filter="Land Cover TEST")), 1)
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
             dataset_info = ge.dataset_info_by_name(ge.DatasetName("MCD12C1_test"))
             self.assertEqual(dataset_info.name, "MCD12C1_test")
             self.assertEqual(dataset_info.description, "Land Cover")
@@ -301,7 +303,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(len(ge.list_datasets(name_filter="Land Cover TEST")), 1)
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
             dataset_info = ge.dataset_info_by_name(ge.DatasetName("MCD12C1_test"))
             self.assertEqual(dataset_info.name, "MCD12C1_test")
             self.assertEqual(
@@ -344,7 +346,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(len(ge.list_datasets(name_filter="Land Cover TEST")), 1)
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
             dataset_info = ge.dataset_info_by_name(ge.DatasetName("MCD12C1_test"))
             self.assertEqual(dataset_info.name, "MCD12C1_test")
             self.assertEqual(
