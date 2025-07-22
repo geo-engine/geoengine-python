@@ -50,7 +50,7 @@ class DatasetsTests(unittest.TestCase):
 
             ge.initialize(ge_instance.address(), credentials=("admin@localhost", "adminadmin"))
 
-            volumes = ge.volumes()
+            volume = ge.volume_by_name("test_data")
 
             geo_transform = ge.GeoTransform(x_min=180.0, y_max=90.0, x_pixel_size=0.1, y_pixel_size=-0.1)
 
@@ -141,7 +141,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             dataset_name = ge.add_dataset(
-                volumes[0],
+                volume,
                 add_dataset_properties,
                 geoengine_openapi_client.MetaDataDefinition(
                     meta_data,
@@ -160,7 +160,7 @@ class DatasetsTests(unittest.TestCase):
 
             ge.initialize(ge_instance.address(), credentials=("admin@localhost", "adminadmin"))
 
-            volumes = ge.volumes()
+            volume = ge.volume_by_name("test_data")
 
             geo_transform = ge.GeoTransform(x_min=180.0, y_max=90.0, x_pixel_size=0.1, y_pixel_size=-0.1)
 
@@ -246,7 +246,7 @@ class DatasetsTests(unittest.TestCase):
             permisions = [(REGISTERED_USER_ROLE_ID, Permission.READ)]
 
             dataset_name = ge.add_or_replace_dataset_with_permissions(
-                volumes[0],
+                volume,
                 add_dataset_properties,
                 geoengine_openapi_client.MetaDataDefinition(
                     meta_data,
@@ -294,7 +294,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             dataset_name = ge.add_or_replace_dataset_with_permissions(
-                volumes[0],
+                volume,
                 add_dataset_properties,
                 geoengine_openapi_client.MetaDataDefinition(
                     meta_data,
@@ -336,7 +336,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             dataset_name = ge.add_or_replace_dataset_with_permissions(
-                volumes[0],
+                volume,
                 add_dataset_properties,
                 geoengine_openapi_client.MetaDataDefinition(
                     meta_data,

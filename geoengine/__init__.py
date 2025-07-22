@@ -37,6 +37,8 @@ from .datasets import (
     list_datasets,
     upload_dataframe,
     volumes,
+    volume_by_name,
+    dataset_metadata_by_name,
 )
 from .error import (
     GeoEngineException,
