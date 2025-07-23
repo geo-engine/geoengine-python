@@ -31,6 +31,8 @@ class DatasetsTests(unittest.TestCase):
                 offset=0, limit=10, order=ge.DatasetListOrder.NAME_ASC, name_filter="Natural Earth II"
             )
 
+            datasets = list(datasets)
+
             self.assertEqual(len(datasets), 3)
 
             dataset = datasets[0]
@@ -48,7 +50,7 @@ class DatasetsTests(unittest.TestCase):
 
             ge.initialize(ge_instance.address(), credentials=("admin@localhost", "adminadmin"))
 
-            volumes = ge.volumes()
+            volume = ge.volume_by_name("test_data")
 
             geo_transform = ge.GeoTransform(x_min=180.0, y_max=90.0, x_pixel_size=0.1, y_pixel_size=-0.1)
 
@@ -71,23 +73,23 @@ class DatasetsTests(unittest.TestCase):
             result_descriptor_measurement = ge.ClassificationMeasurement(
                 measurement="Land Cover",
                 classes={
-                    "0": "Water Bodies",
-                    "1": "Evergreen Needleleaf Forests",
-                    "2": "Evergreen Broadleaf Forests",
-                    "3": "Deciduous Needleleaf Forests",
-                    "4": "Deciduous Broadleleaf Forests",
-                    "5": "Mixed Forests",
-                    "6": "Closed Shrublands",
-                    "7": "Open Shrublands",
-                    "8": "Woody Savannas",
-                    "9": "Savannas",
-                    "10": "Grasslands",
-                    "11": "Permanent Wtlands",
-                    "12": "Croplands",
-                    "13": "Urban and Built-Up",
-                    "14": "Cropland-Natural Vegetation Mosaics",
-                    "15": "Snow and Ice",
-                    "16": "Barren or Sparsely Vegetated",
+                    0: "Water Bodies",
+                    1: "Evergreen Needleleaf Forests",
+                    2: "Evergreen Broadleaf Forests",
+                    3: "Deciduous Needleleaf Forests",
+                    4: "Deciduous Broadleleaf Forests",
+                    5: "Mixed Forests",
+                    6: "Closed Shrublands",
+                    7: "Open Shrublands",
+                    8: "Woody Savannas",
+                    9: "Savannas",
+                    10: "Grasslands",
+                    11: "Permanent Wtlands",
+                    12: "Croplands",
+                    13: "Urban and Built-Up",
+                    14: "Cropland-Natural Vegetation Mosaics",
+                    15: "Snow and Ice",
+                    16: "Barren or Sparsely Vegetated",
                 },
             )
 
@@ -105,6 +107,7 @@ class DatasetsTests(unittest.TestCase):
                     "time": None,
                     "params": gdal_params,
                     "resultDescriptor": result_descriptor.to_api_dict().to_dict(),
+                    "cacheTtl": 0,
                 }
             )
 
@@ -138,16 +141,28 @@ class DatasetsTests(unittest.TestCase):
                 ],
             )
 
+            metadata_for_api = geoengine_openapi_client.MetaDataDefinition(
+                meta_data,
+            )
+
             dataset_name = ge.add_dataset(
-                volumes[0],
+                volume,
                 add_dataset_properties,
-                geoengine_openapi_client.MetaDataDefinition(
-                    meta_data,
-                ),
+                metadata_for_api,
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(len(ge.list_datasets(name_filter="Land Cover TEST")), 1)
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
+
+            metadata_from_api = ge.dataset_metadata_by_name(dataset_name)
+            self.assertEqual(
+                metadata_from_api.actual_instance.result_descriptor, metadata_for_api.actual_instance.result_descriptor
+            )
+            self.assertTrue(
+                metadata_from_api.actual_instance.params.file_path.endswith(
+                    metadata_for_api.actual_instance.params.file_path
+                )
+            )
 
     def test_add_dataset_with_permissions(self):
         """Test `add_datset`."""
@@ -158,7 +173,7 @@ class DatasetsTests(unittest.TestCase):
 
             ge.initialize(ge_instance.address(), credentials=("admin@localhost", "adminadmin"))
 
-            volumes = ge.volumes()
+            volume = ge.volume_by_name("test_data")
 
             geo_transform = ge.GeoTransform(x_min=180.0, y_max=90.0, x_pixel_size=0.1, y_pixel_size=-0.1)
 
@@ -181,23 +196,23 @@ class DatasetsTests(unittest.TestCase):
             result_descriptor_measurement = ge.ClassificationMeasurement(
                 measurement="Land Cover",
                 classes={
-                    "0": "Water Bodies",
-                    "1": "Evergreen Needleleaf Forests",
-                    "2": "Evergreen Broadleaf Forests",
-                    "3": "Deciduous Needleleaf Forests",
-                    "4": "Deciduous Broadleleaf Forests",
-                    "5": "Mixed Forests",
-                    "6": "Closed Shrublands",
-                    "7": "Open Shrublands",
-                    "8": "Woody Savannas",
-                    "9": "Savannas",
-                    "10": "Grasslands",
-                    "11": "Permanent Wtlands",
-                    "12": "Croplands",
-                    "13": "Urban and Built-Up",
-                    "14": "Cropland-Natural Vegetation Mosaics",
-                    "15": "Snow and Ice",
-                    "16": "Barren or Sparsely Vegetated",
+                    0: "Water Bodies",
+                    1: "Evergreen Needleleaf Forests",
+                    2: "Evergreen Broadleaf Forests",
+                    3: "Deciduous Needleleaf Forests",
+                    4: "Deciduous Broadleleaf Forests",
+                    5: "Mixed Forests",
+                    6: "Closed Shrublands",
+                    7: "Open Shrublands",
+                    8: "Woody Savannas",
+                    9: "Savannas",
+                    10: "Grasslands",
+                    11: "Permanent Wtlands",
+                    12: "Croplands",
+                    13: "Urban and Built-Up",
+                    14: "Cropland-Natural Vegetation Mosaics",
+                    15: "Snow and Ice",
+                    16: "Barren or Sparsely Vegetated",
                 },
             )
 
@@ -244,7 +259,7 @@ class DatasetsTests(unittest.TestCase):
             permisions = [(REGISTERED_USER_ROLE_ID, Permission.READ)]
 
             dataset_name = ge.add_or_replace_dataset_with_permissions(
-                volumes[0],
+                volume,
                 add_dataset_properties,
                 geoengine_openapi_client.MetaDataDefinition(
                     meta_data,
@@ -253,7 +268,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(len(ge.list_datasets(name_filter="Land Cover TEST")), 1)
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
             dataset_info = ge.dataset_info_by_name(ge.DatasetName("MCD12C1_test"))
             self.assertEqual(dataset_info.name, "MCD12C1_test")
             self.assertEqual(dataset_info.description, "Land Cover")
@@ -292,7 +307,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             dataset_name = ge.add_or_replace_dataset_with_permissions(
-                volumes[0],
+                volume,
                 add_dataset_properties,
                 geoengine_openapi_client.MetaDataDefinition(
                     meta_data,
@@ -301,7 +316,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(len(ge.list_datasets(name_filter="Land Cover TEST")), 1)
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
             dataset_info = ge.dataset_info_by_name(ge.DatasetName("MCD12C1_test"))
             self.assertEqual(dataset_info.name, "MCD12C1_test")
             self.assertEqual(
@@ -334,7 +349,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             dataset_name = ge.add_or_replace_dataset_with_permissions(
-                volumes[0],
+                volume,
                 add_dataset_properties,
                 geoengine_openapi_client.MetaDataDefinition(
                     meta_data,
@@ -344,8 +359,8 @@ class DatasetsTests(unittest.TestCase):
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(len(ge.list_datasets(name_filter="Land Cover TEST")), 1)
-            dataset_info = ge.dataset_info_by_name(ge.DatasetName("MCD12C1_test"))
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
+            dataset_info = ge.dataset_info_by_name(dataset_name)
             self.assertEqual(dataset_info.name, "MCD12C1_test")
             self.assertEqual(
                 dataset_info.description,
