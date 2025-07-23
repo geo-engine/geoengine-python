@@ -107,6 +107,7 @@ class DatasetsTests(unittest.TestCase):
                     "time": None,
                     "params": gdal_params,
                     "resultDescriptor": result_descriptor.to_api_dict().to_dict(),
+                    "cacheTtl": 0,
                 }
             )
 
@@ -140,16 +141,28 @@ class DatasetsTests(unittest.TestCase):
                 ],
             )
 
+            metadata_for_api = geoengine_openapi_client.MetaDataDefinition(
+                meta_data,
+            )
+
             dataset_name = ge.add_dataset(
                 volume,
                 add_dataset_properties,
-                geoengine_openapi_client.MetaDataDefinition(
-                    meta_data,
-                ),
+                metadata_for_api,
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
             self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
+
+            metadata_from_api = ge.dataset_metadata_by_name(dataset_name)
+            self.assertEqual(
+                metadata_from_api.actual_instance.result_descriptor, metadata_for_api.actual_instance.result_descriptor
+            )
+            self.assertTrue(
+                metadata_from_api.actual_instance.params.file_path.endswith(
+                    metadata_for_api.actual_instance.params.file_path
+                )
+            )
 
     def test_add_dataset_with_permissions(self):
         """Test `add_datset`."""
@@ -347,7 +360,7 @@ class DatasetsTests(unittest.TestCase):
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
             self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
-            dataset_info = ge.dataset_info_by_name(ge.DatasetName("MCD12C1_test"))
+            dataset_info = ge.dataset_info_by_name(dataset_name)
             self.assertEqual(dataset_info.name, "MCD12C1_test")
             self.assertEqual(
                 dataset_info.description,
