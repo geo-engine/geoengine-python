@@ -60,7 +60,7 @@ test = [
     "scikit-learn >=1.5,<1.8",
 ]
 examples = [
-    "cartopy >=0.22,<0.25",    # for WMS example
+    "cartopy >=0.22,<0.26",    # for WMS example
     "ipympl >=0.9.4,<0.10",    # for ML example
     "ipyvuetify >=1.10,<1.12", # for ML app
     "ipywidgets >=8.1.5,<9",   # for ML example
