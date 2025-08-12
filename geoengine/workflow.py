@@ -1013,7 +1013,7 @@ def workflow_by_id(workflow_id: UUID) -> Workflow:
     return Workflow(WorkflowId(workflow_id))
 
 
-def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> geoc.Quota:
+def get_quota(user_id: UUID | None = None, timeout: int = 60) -> geoc.Quota:
     """
     Gets a user's quota. Only admins can get other users' quota.
     """
@@ -1047,7 +1047,7 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> 
         )
 
 
-def data_usage(offset: int = 0, limit: int = 10) -> List[geoc.DataUsage]:
+def data_usage(offset: int = 0, limit: int = 10) -> list[geoc.DataUsage]:
     """
     Get data usage
     """
@@ -1069,7 +1069,7 @@ def data_usage(offset: int = 0, limit: int = 10) -> List[geoc.DataUsage]:
 
 
 def data_usage_summary(granularity: geoc.UsageSummaryGranularity,
-                       dataset: Optional[str] = None,
+                       dataset: str | None = None,
                        offset: int = 0, limit: int = 10) -> pd.DataFrame:
     """
     Get data usage summary

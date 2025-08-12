@@ -10,7 +10,6 @@ from abc import abstractmethod
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Literal, cast
-
 from uuid import UUID
 
 import geoengine_openapi_client
