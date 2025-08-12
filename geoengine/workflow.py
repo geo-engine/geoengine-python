@@ -1,68 +1,118 @@
-'''
+"""
 A workflow representation and methods on workflows
-'''
+"""
 # pylint: disable=too-many-lines
 # TODO: split into multiple files
 
 from __future__ import annotations
 
 import asyncio
-from collections import defaultdict
 import json
+from collections import defaultdict
+from collections.abc import AsyncIterator
 from io import BytesIO
 from logging import debug
 from os import PathLike
-from typing import Any, AsyncIterator, Dict, List, Optional, Union, Type, cast, TypedDict
+from typing import Any, TypedDict, cast
 from uuid import UUID
 
 import geoengine_openapi_client as geoc
 import geopandas as gpd
-import pandas as pd
 import numpy as np
+import pandas as pd
+import pyarrow as pa
 import rasterio.io
 import requests as req
 import rioxarray
-from PIL import Image
+import websockets
+import websockets.asyncio.client
+import xarray as xr
 from owslib.util import Authentication, ResponseWrapper
 from owslib.wcs import WebCoverageService
+from PIL import Image
 from vega import VegaLite
-import websockets
-import websockets.client
-import xarray as xr
-import pyarrow as pa
 
-
-from geoengine import api
+from geoengine import api, backports
 from geoengine.auth import get_session
-from geoengine.error import GeoEngineException, InputException, MethodNotCalledOnPlotException, \
-    MethodNotCalledOnRasterException, MethodNotCalledOnVectorException, OGCXMLError
-from geoengine import backports
-from geoengine.types import ProvenanceEntry, QueryRectangle, QueryRectangleWithResolution, RasterColorizer, \
-    ResultDescriptor, SpatialPartition2D, VectorResultDescriptor, ClassificationMeasurement
-from geoengine.tasks import Task, TaskId
-from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
+from geoengine.error import (
+    GeoEngineException,
+    InputException,
+    MethodNotCalledOnPlotException,
+    MethodNotCalledOnRasterException,
+    MethodNotCalledOnVectorException,
+    OGCXMLError,
+)
 from geoengine.raster import RasterTile2D
-
+from geoengine.tasks import Task, TaskId
+from geoengine.types import (
+    ClassificationMeasurement,
+    ProvenanceEntry,
+    QueryRectangle,
+    QueryRectangleWithResolution,
+    RasterColorizer,
+    ResultDescriptor,
+    SpatialPartition2D,
+    VectorResultDescriptor,
+)
+from geoengine.workflow_builder.operators import Operator as WorkflowBuilderOperator
 
 # TODO: Define as recursive type when supported in mypy: https://github.com/python/mypy/issues/731
-JsonType = Union[Dict[str, Any], List[Any], int, str, float, bool, Type[None]]
+JsonType = dict[str, Any] | list[Any] | int | str | float | bool | type[None]
 
-Axis = TypedDict('Axis', {'title': str})
-Bin = TypedDict('Bin', {'binned': bool, 'step': float})
-Field = TypedDict('Field', {'field': str})
-DatasetIds = TypedDict('DatasetIds', {'upload': UUID, 'dataset': UUID})
-Values = TypedDict('Values', {'binStart': float, 'binEnd': float, 'Frequency': int})
-X = TypedDict('X', {'field': Field, 'bin': Bin, 'axis': Axis})
-X2 = TypedDict('X2', {'field': Field})
-Y = TypedDict('Y', {'field': Field, 'type': str})
-Encoding = TypedDict('Encoding', {'x': X, 'x2': X2, 'y': Y})
-VegaSpec = TypedDict('VegaSpec', {'$schema': str, 'data': List[Values], 'mark': str, 'encoding': Encoding})
+
+class Axis(TypedDict):
+    title: str
+
+
+class Bin(TypedDict):
+    binned: bool
+    step: float
+
+
+class Field(TypedDict):
+    field: str
+
+
+class DatasetIds(TypedDict):
+    upload: UUID
+    dataset: UUID
+
+
+class Values(TypedDict):
+    binStart: float
+    binEnd: float
+    Frequency: int
+
+
+class X(TypedDict):
+    field: Field
+    bin: Bin
+    axis: Axis
+
+
+class X2(TypedDict):
+    field: Field
+
+
+class Y(TypedDict):
+    field: Field
+    type: str
+
+
+class Encoding(TypedDict):
+    x: X
+    x2: X2
+    y: Y
+
+
+VegaSpec = TypedDict("VegaSpec", {
+                     "$schema": str, "data": list[Values], "mark": str, "encoding": Encoding})
 
 
 class WorkflowId:
-    '''
+    """
     A wrapper around a workflow UUID
-    '''
+    """
 
     __workflow_id: UUID
 
@@ -71,9 +121,9 @@ class WorkflowId:
 
     @classmethod
     def from_response(cls, response: geoc.IdResponse) -> WorkflowId:
-        '''
+        """
         Create a `WorkflowId` from an http response
-        '''
+        """
         return WorkflowId(UUID(response.id))
 
     def __str__(self) -> str:
@@ -84,13 +134,13 @@ class WorkflowId:
 
 
 class RasterStreamProcessing:
-    '''
+    """
     Helper class to process raster stream data
-    '''
+    """
 
     @classmethod
     def read_arrow_ipc(cls, arrow_ipc: bytes) -> pa.RecordBatch:
-        '''Read an Arrow IPC file from a byte array'''
+        """Read an Arrow IPC file from a byte array"""
 
         reader = pa.ipc.open_file(arrow_ipc)
         # We know from the backend that there is only one record batch
@@ -98,8 +148,8 @@ class RasterStreamProcessing:
         return record_batch
 
     @classmethod
-    def process_bytes(cls, tile_bytes: Optional[bytes]) -> Optional[RasterTile2D]:
-        '''Process a tile from a byte array'''
+    def process_bytes(cls, tile_bytes: bytes | None) -> RasterTile2D | None:
+        """Process a tile from a byte array"""
 
         if tile_bytes is None:
             return None
@@ -111,14 +161,14 @@ class RasterStreamProcessing:
         return tile
 
     @classmethod
-    def merge_tiles(cls, tiles: List[xr.DataArray]) -> Optional[xr.DataArray]:
-        '''Merge a list of tiles into a single xarray'''
+    def merge_tiles(cls, tiles: list[xr.DataArray]) -> xr.DataArray | None:
+        """Merge a list of tiles into a single xarray"""
 
         if len(tiles) == 0:
             return None
 
         # group the tiles by band
-        tiles_by_band: Dict[int, List[xr.DataArray]] = defaultdict(list)
+        tiles_by_band: dict[int, list[xr.DataArray]] = defaultdict(list)
         for tile in tiles:
             band = tile.band.item()  # assuming 'band' is a coordinate with a single value
             tiles_by_band[band].append(tile)
@@ -133,15 +183,15 @@ class RasterStreamProcessing:
             combined_by_band.append(combined)
 
         # build one array with all bands and geo coordinates
-        combined_tile = xr.concat(combined_by_band, dim='band')
+        combined_tile = xr.concat(combined_by_band, dim="band")
 
         return combined_tile
 
 
 class Workflow:
-    '''
+    """
     Holds a workflow id and allows querying data
-    '''
+    """
 
     __workflow_id: WorkflowId
     __result_descriptor: ResultDescriptor
@@ -157,24 +207,25 @@ class Workflow:
         return repr(self.__workflow_id)
 
     def __query_result_descriptor(self, timeout: int = 60) -> ResultDescriptor:
-        '''
+        """
         Query the metadata of the workflow result
-        '''
+        """
 
         session = get_session()
 
         with geoc.ApiClient(session.configuration) as api_client:
             workflows_api = geoc.WorkflowsApi(api_client)
-            response = workflows_api.get_workflow_metadata_handler(str(self.__workflow_id), _request_timeout=timeout)
+            response = workflows_api.get_workflow_metadata_handler(
+                str(self.__workflow_id), _request_timeout=timeout)
 
         debug(response)
 
         return ResultDescriptor.from_response(response)
 
     def get_result_descriptor(self) -> ResultDescriptor:
-        '''
+        """
         Return the metadata of the workflow result
-        '''
+        """
 
         return self.__result_descriptor
 
@@ -185,19 +236,17 @@ class Workflow:
 
         with geoc.ApiClient(session.configuration) as api_client:
             workflows_api = geoc.WorkflowsApi(api_client)
-            response = workflows_api.load_workflow_handler(str(self.__workflow_id), _request_timeout=timeout)
+            response = workflows_api.load_workflow_handler(
+                str(self.__workflow_id), _request_timeout=timeout)
 
         return response
 
     def get_dataframe(
-            self,
-            bbox: QueryRectangle,
-            timeout: int = 3600,
-            resolve_classifications: bool = False
+        self, bbox: QueryRectangle, timeout: int = 3600, resolve_classifications: bool = False
     ) -> gpd.GeoDataFrame:
-        '''
+        """
         Query a workflow and return the WFS result as a GeoPandas `GeoDataFrame`
-        '''
+        """
 
         if not self.__result_descriptor.is_vector_result():
             raise MethodNotCalledOnVectorException()
@@ -226,32 +275,33 @@ class Workflow:
             )
 
         def geo_json_with_time_to_geopandas(geo_json):
-            '''
+            """
             GeoJson has no standard for time, so we parse the when field
             separately and attach it to the data frame as columns `start`
             and `end`.
-            '''
+            """
 
             data = gpd.GeoDataFrame.from_features(geo_json)
             data = data.set_crs(bbox.srs, allow_override=True)
 
-            start = [f['when']['start'] for f in geo_json['features']]
-            end = [f['when']['end'] for f in geo_json['features']]
+            start = [f["when"]["start"] for f in geo_json["features"]]
+            end = [f["when"]["end"] for f in geo_json["features"]]
 
             # TODO: find a good way to infer BoT/EoT
 
-            data['start'] = gpd.pd.to_datetime(start, errors='coerce')
-            data['end'] = gpd.pd.to_datetime(end, errors='coerce')
+            data["start"] = gpd.pd.to_datetime(start, errors="coerce")
+            data["end"] = gpd.pd.to_datetime(end, errors="coerce")
 
             return data
 
         def transform_classifications(data: gpd.GeoDataFrame):
             result_descriptor: VectorResultDescriptor = self.__result_descriptor  # type: ignore
-            for (column, info) in result_descriptor.columns.items():
+            for column, info in result_descriptor.columns.items():
                 if isinstance(info.measurement, ClassificationMeasurement):
                     measurement: ClassificationMeasurement = info.measurement
                     classes = measurement.classes
-                    data[column] = data[column].apply(lambda x: classes[x])  # pylint: disable=cell-var-from-loop
+                    data[column] = data[column].apply(
+                        lambda x, classes=classes: classes[x])  # pylint: disable=cell-var-from-loop
 
             return data
 
@@ -279,14 +329,18 @@ class Workflow:
                 version=geoc.WmsVersion(geoc.WmsVersion.ENUM_1_DOT_3_DOT_0),
                 service=geoc.WmsService(geoc.WmsService.WMS),
                 request=geoc.GetMapRequest(geoc.GetMapRequest.GETMAP),
-                width=int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) / bbox.spatial_resolution.x_resolution),
-                height=int((bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) / bbox.spatial_resolution.y_resolution),  # pylint: disable=line-too-long
+                width=int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) /
+                          bbox.spatial_resolution.x_resolution),
+                height=int(
+                    (bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) /
+                    bbox.spatial_resolution.y_resolution
+                ),  # pylint: disable=line-too-long
                 bbox=bbox.bbox_ogc_str,
                 format=geoc.GetMapFormat(geoc.GetMapFormat.IMAGE_SLASH_PNG),
                 layers=str(self),
-                styles='custom:' + raster_colorizer.to_api_dict().to_json(),
+                styles="custom:" + raster_colorizer.to_api_dict().to_json(),
                 crs=bbox.srs,
-                time=bbox.time_str
+                time=bbox.time_str,
             )
 
         if OGCXMLError.is_ogc_error(response):
@@ -295,9 +349,9 @@ class Workflow:
         return Image.open(BytesIO(response))
 
     def plot_json(self, bbox: QueryRectangleWithResolution, timeout: int = 3600) -> geoc.WrappedPlotOutput:
-        '''
+        """
         Query a workflow and return the plot chart result as WrappedPlotOutput
-        '''
+        """
 
         if not self.__result_descriptor.is_plot_result():
             raise MethodNotCalledOnPlotException()
@@ -312,16 +366,16 @@ class Workflow:
                 str(bbox.spatial_resolution),
                 str(self.__workflow_id),
                 bbox.srs,
-                _request_timeout=timeout
+                _request_timeout=timeout,
             )
 
     def plot_chart(self, bbox: QueryRectangleWithResolution, timeout: int = 3600) -> VegaLite:
-        '''
+        """
         Query a workflow and return the plot chart result as a vega plot
-        '''
+        """
 
         response = self.plot_json(bbox, timeout)
-        vega_spec: VegaSpec = json.loads(response.data['vegaString'])
+        vega_spec: VegaSpec = json.loads(response.data["vegaString"])
 
         return VegaLite(vega_spec)
 
@@ -329,10 +383,10 @@ class Workflow:
         self,
         bbox: QueryRectangle,
         timeout=3600,
-        file_format: str = 'image/tiff',
-        force_no_data_value: Optional[float] = None
+        file_format: str = "image/tiff",
+        force_no_data_value: float | None = None,
     ) -> ResponseWrapper:
-        '''
+        """
         Query a workflow and return the coverage
 
         Parameters
@@ -342,7 +396,7 @@ class Workflow:
         file_format : The format of the returned raster
         force_no_data_value: If not None, use this value as no data value for the requested raster data. \
             Otherwise, use the Geo Engine will produce masked rasters.
-        '''
+        """
 
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
@@ -350,12 +404,12 @@ class Workflow:
         session = get_session()
 
         # TODO: properly build CRS string for bbox
-        crs = f'urn:ogc:def:crs:{bbox.srs.replace(":", "::")}'
+        crs = f"urn:ogc:def:crs:{bbox.srs.replace(':', '::')}"
 
-        wcs_url = f'{session.server_url}/wcs/{self.__workflow_id}'
+        wcs_url = f"{session.server_url}/wcs/{self.__workflow_id}"
         wcs = WebCoverageService(
             wcs_url,
-            version='1.1.1',
+            version="1.1.1",
             auth=Authentication(auth_delegate=session.requests_bearer_auth()),
         )
 
@@ -374,22 +428,19 @@ class Workflow:
             kwargs["resy"] = str(resy)
 
         return wcs.getCoverage(
-            identifier=f'{self.__workflow_id}',
+            identifier=f"{self.__workflow_id}",
             bbox=bbox.bbox_ogc,
             time=[bbox.time_str],
             format=file_format,
             crs=crs,
             timeout=timeout,
-            **kwargs
+            **kwargs,
         )
 
     def __get_wcs_tiff_as_memory_file(
-        self,
-        bbox: QueryRectangle,
-        timeout=3600,
-        force_no_data_value: Optional[float] = None
+        self, bbox: QueryRectangle, timeout=3600, force_no_data_value: float | None = None
     ) -> rasterio.io.MemoryFile:
-        '''
+        """
         Query a workflow and return the raster result as a memory mapped GeoTiff
 
         Parameters
@@ -398,9 +449,10 @@ class Workflow:
         timeout : HTTP request timeout in seconds
         force_no_data_value: If not None, use this value as no data value for the requested raster data. \
             Otherwise, use the Geo Engine will produce masked rasters.
-        '''
+        """
 
-        response = self.__request_wcs(bbox, timeout, 'image/tiff', force_no_data_value).read()
+        response = self.__request_wcs(
+            bbox, timeout, "image/tiff", force_no_data_value).read()
 
         # response is checked via `raise_on_error` in `getCoverage` / `openUrl`
 
@@ -408,13 +460,8 @@ class Workflow:
 
         return memory_file
 
-    def get_array(
-        self,
-        bbox: QueryRectangle,
-        timeout=3600,
-        force_no_data_value: Optional[float] = None
-    ) -> np.ndarray:
-        '''
+    def get_array(self, bbox: QueryRectangle, timeout=3600, force_no_data_value: float | None = None) -> np.ndarray:
+        """
         Query a workflow and return the raster result as a numpy array
 
         Parameters
@@ -423,24 +470,18 @@ class Workflow:
         timeout : HTTP request timeout in seconds
         force_no_data_value: If not None, use this value as no data value for the requested raster data. \
             Otherwise, use the Geo Engine will produce masked rasters.
-        '''
+        """
 
-        with self.__get_wcs_tiff_as_memory_file(
-            bbox,
-            timeout,
-            force_no_data_value
-        ) as memfile, memfile.open() as dataset:
+        with (
+            self.__get_wcs_tiff_as_memory_file(bbox, timeout, force_no_data_value) as memfile,
+            memfile.open() as dataset,
+        ):
             array = dataset.read(1)
 
             return array
 
-    def get_xarray(
-        self,
-        bbox: QueryRectangle,
-        timeout=3600,
-        force_no_data_value: Optional[float] = None
-    ) -> xr.DataArray:
-        '''
+    def get_xarray(self, bbox: QueryRectangle, timeout=3600, force_no_data_value: float | None = None) -> xr.DataArray:
+        """
         Query a workflow and return the raster result as a georeferenced xarray
 
         Parameters
@@ -449,24 +490,26 @@ class Workflow:
         timeout : HTTP request timeout in seconds
         force_no_data_value: If not None, use this value as no data value for the requested raster data. \
             Otherwise, use the Geo Engine will produce masked rasters.
-        '''
+        """
 
-        with self.__get_wcs_tiff_as_memory_file(
-            bbox,
-            timeout,
-            force_no_data_value
-        ) as memfile, memfile.open() as dataset:
+        with (
+            self.__get_wcs_tiff_as_memory_file(bbox, timeout, force_no_data_value) as memfile,
+            memfile.open() as dataset,
+        ):
             data_array = rioxarray.open_rasterio(dataset)
 
             # helping mypy with inference
             assert isinstance(data_array, xr.DataArray)
 
             rio: xr.DataArray = data_array.rio
-            rio.update_attrs({
-                'crs': rio.crs,
-                'res': rio.resolution(),
-                'transform': rio.transform(),
-            }, inplace=True)
+            rio.update_attrs(
+                {
+                    "crs": rio.crs,
+                    "res": rio.resolution(),
+                    "transform": rio.transform(),
+                },
+                inplace=True,
+            )
 
             # TODO: add time information to dataset
             return data_array.load()
@@ -477,10 +520,10 @@ class Workflow:
         bbox: QueryRectangle,
         file_path: str,
         timeout=3600,
-        file_format: str = 'image/tiff',
-        force_no_data_value: Optional[float] = None
+        file_format: str = "image/tiff",
+        force_no_data_value: float | None = None,
     ) -> None:
-        '''
+        """
         Query a workflow and save the raster result as a file on disk
 
         Parameters
@@ -491,51 +534,52 @@ class Workflow:
         file_format : The format of the returned raster
         force_no_data_value: If not None, use this value as no data value for the requested raster data. \
             Otherwise, use the Geo Engine will produce masked rasters.
-        '''
+        """
 
-        response = self.__request_wcs(bbox, timeout, file_format, force_no_data_value)
+        response = self.__request_wcs(
+            bbox, timeout, file_format, force_no_data_value)
 
-        with open(file_path, 'wb') as file:
+        with open(file_path, "wb") as file:
             file.write(response.read())
 
-    def get_provenance(self, timeout: int = 60) -> List[ProvenanceEntry]:
-        '''
+    def get_provenance(self, timeout: int = 60) -> list[ProvenanceEntry]:
+        """
         Query the provenance of the workflow
-        '''
+        """
 
         session = get_session()
 
         with geoc.ApiClient(session.configuration) as api_client:
             workflows_api = geoc.WorkflowsApi(api_client)
-            response = workflows_api.get_workflow_provenance_handler(str(self.__workflow_id), _request_timeout=timeout)
+            response = workflows_api.get_workflow_provenance_handler(
+                str(self.__workflow_id), _request_timeout=timeout)
 
         return [ProvenanceEntry.from_response(item) for item in response]
 
-    def metadata_zip(self, path: Union[PathLike, BytesIO], timeout: int = 60) -> None:
-        '''
+    def metadata_zip(self, path: PathLike | BytesIO, timeout: int = 60) -> None:
+        """
         Query workflow metadata and citations and stores it as zip file to `path`
-        '''
+        """
 
         session = get_session()
 
         with geoc.ApiClient(session.configuration) as api_client:
             workflows_api = geoc.WorkflowsApi(api_client)
             response = workflows_api.get_workflow_all_metadata_zip_handler(
-                str(self.__workflow_id),
-                _request_timeout=timeout
+                str(self.__workflow_id), _request_timeout=timeout
             )
 
         if isinstance(path, BytesIO):
             path.write(response)
         else:
-            with open(path, 'wb') as file:
+            with open(path, "wb") as file:
                 file.write(response)
 
     # pylint: disable=too-many-positional-arguments,too-many-positional-arguments
     def save_as_dataset(
             self,
             query_rectangle: QueryRectangle,
-            name: Optional[str],
+            name: None | str,
             display_name: str,
             description: str = '',
             timeout: int = 3600) -> Task:
@@ -551,7 +595,8 @@ class Workflow:
             print("save_as_dataset ignores params other then spatial and tmporal bounds.")
 
         qrect = geoc.models.raster_to_dataset_query_rectangle.RasterToDatasetQueryRectangle(
-            spatial_bounds=SpatialPartition2D.from_bounding_box(query_rectangle.spatial_bounds).to_api_dict(),
+            spatial_bounds=SpatialPartition2D.from_bounding_box(
+                query_rectangle.spatial_bounds).to_api_dict(),
             time_interval=query_rectangle.time.to_api_dict()
         )
 
@@ -565,7 +610,7 @@ class Workflow:
                     description=description,
                     query=qrect
                 ),
-                _request_timeout=timeout
+                _request_timeout=timeout,
             )
 
         return Task(TaskId.from_response(response))
@@ -574,9 +619,9 @@ class Workflow:
         self,
         query_rectangle: QueryRectangle,
         open_timeout: int = 60,
-        bands: Optional[List[int]] = None  # TODO: move into query rectangle?
+        bands: list[int] | None = None,  # TODO: move into query rectangle?
     ) -> AsyncIterator[RasterTile2D]:
-        '''Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)'''
+        """Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)"""
 
         if not isinstance(query_rectangle, QueryRectangle):
             print("raster_stream ignores params other then spatial and tmporal bounds.")
@@ -585,7 +630,7 @@ class Workflow:
             bands = [0]
 
         if len(bands) == 0:
-            raise InputException('At least one band must be specified')
+            raise InputException("At least one band must be specified")
 
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
@@ -605,19 +650,19 @@ class Workflow:
         ).prepare().url
 
         if url is None:
-            raise InputException('Invalid websocket url')
+            raise InputException("Invalid websocket url")
 
-        async with websockets.client.connect(
+        async with websockets.asyncio.client.connect(
             uri=self.__replace_http_with_ws(url),
-            extra_headers=session.auth_header,
+            additional_headers=session.auth_header,
             open_timeout=open_timeout,
             max_size=None,
         ) as websocket:
+            tile_bytes: bytes | None = None
 
-            tile_bytes: Optional[bytes] = None
+            while websocket.state == websockets.protocol.State.OPEN:
 
-            while websocket.open:
-                async def read_new_bytes() -> Optional[bytes]:
+                async def read_new_bytes() -> bytes | None:
                     # already send the next request to speed up the process
                     try:
                         await websocket.send("NEXT")
@@ -626,11 +671,11 @@ class Workflow:
                         return None
 
                     try:
-                        data: Union[str, bytes] = await websocket.recv()
+                        data: str | bytes = await websocket.recv()
 
                         if isinstance(data, str):
                             # the server sent an error message
-                            raise GeoEngineException({'error': data})
+                            raise GeoEngineException({"error": data})
 
                         return data
                     except websockets.exceptions.ConnectionClosedOK:
@@ -640,7 +685,8 @@ class Workflow:
                 (tile_bytes, tile) = await asyncio.gather(
                     read_new_bytes(),
                     # asyncio.to_thread(process_bytes, tile_bytes), # TODO: use this when min Python version is 3.9
-                    backports.to_thread(RasterStreamProcessing.process_bytes, tile_bytes),
+                    backports.to_thread(
+                        RasterStreamProcessing.process_bytes, tile_bytes),
                 )
 
                 if tile is not None:
@@ -657,39 +703,37 @@ class Workflow:
         query_rectangle: QueryRectangle,
         clip_to_query_rectangle: bool = False,
         open_timeout: int = 60,
-        bands: Optional[List[int]] = None  # TODO: move into query rectangle?
+        bands: list[int] | None = None,  # TODO: move into query rectangle?
     ) -> xr.DataArray:
-        '''
+        """
         Stream the workflow result into memory and output a single xarray.
 
         NOTE: You can run out of memory if the query rectangle is too large.
-        '''
+        """
 
         if bands is None:
             bands = [0]
 
         if len(bands) == 0:
-            raise InputException('At least one band must be specified')
+            raise InputException("At least one band must be specified")
 
         tile_stream = self.raster_stream(
-            query_rectangle,
-            open_timeout=open_timeout,
-            bands=bands
-        )
+            query_rectangle, open_timeout=open_timeout, bands=bands)
 
-        timestep_xarrays: List[xr.DataArray] = []
+        timestep_xarrays: list[xr.DataArray] = []
 
         spatial_clip_bounds = query_rectangle.spatial_bounds if clip_to_query_rectangle else None
 
         async def read_tiles(
-            remainder_tile: Optional[RasterTile2D]
-        ) -> tuple[List[xr.DataArray], Optional[RasterTile2D]]:
-            last_timestep: Optional[np.datetime64] = None
+            remainder_tile: RasterTile2D | None,
+        ) -> tuple[list[xr.DataArray], RasterTile2D | None]:
+            last_timestep: np.datetime64 | None = None
             tiles = []
 
             if remainder_tile is not None:
                 last_timestep = remainder_tile.time_start_ms
-                xr_tile = remainder_tile.to_xarray(clip_with_bounds=spatial_clip_bounds)
+                xr_tile = remainder_tile.to_xarray(
+                    clip_with_bounds=spatial_clip_bounds)
                 tiles.append(xr_tile)
 
             async for tile in tile_stream:
@@ -710,7 +754,7 @@ class Workflow:
         while len(tiles):
             ((new_tiles, new_remainder_tile), new_timestep_xarray) = await asyncio.gather(
                 read_tiles(remainder_tile),
-                backports.to_thread(RasterStreamProcessing.merge_tiles, tiles)
+                backports.to_thread(RasterStreamProcessing.merge_tiles, tiles),
                 # asyncio.to_thread(merge_tiles, tiles), # TODO: use this when min Python version is 3.9
             )
 
@@ -726,20 +770,21 @@ class Workflow:
             await backports.to_thread(
                 xr.concat,
                 # TODO: This is a typings error, since the method accepts also a `xr.DataArray` and returns one
-                cast(List[xr.Dataset], timestep_xarrays),
-                dim='time'
-            )
+                cast(list[xr.Dataset], timestep_xarrays),
+                dim="time",
+            ),
         )
 
         return output
 
     async def vector_stream(
-            self,
-            query_rectangle: QueryRectangle,
-            time_start_column: str = 'time_start',
-            time_end_column: str = 'time_end',
-            open_timeout: int = 60) -> AsyncIterator[gpd.GeoDataFrame]:
-        '''Stream the workflow result as series of `GeoDataFrame`s'''
+        self,
+        query_rectangle: QueryRectangle,
+        time_start_column: str = "time_start",
+        time_end_column: str = "time_end",
+        open_timeout: int = 60,
+    ) -> AsyncIterator[gpd.GeoDataFrame]:
+        """Stream the workflow result as series of `GeoDataFrame`s"""
 
         def read_arrow_ipc(arrow_ipc: bytes) -> pa.RecordBatch:
             reader = pa.ipc.open_file(arrow_ipc)
@@ -747,16 +792,18 @@ class Workflow:
             record_batch = reader.get_record_batch(0)
             return record_batch
 
-        def create_geo_data_frame(record_batch: pa.RecordBatch,
-                                  time_start_column: str,
-                                  time_end_column: str) -> gpd.GeoDataFrame:
+        def create_geo_data_frame(
+            record_batch: pa.RecordBatch, time_start_column: str, time_end_column: str
+        ) -> gpd.GeoDataFrame:
             metadata = record_batch.schema.metadata
-            spatial_reference = metadata[b'spatialReference'].decode('utf-8')
+            spatial_reference = metadata[b"spatialReference"].decode("utf-8")
 
             data_frame = record_batch.to_pandas()
 
-            geometry = gpd.GeoSeries.from_wkt(data_frame[api.GEOMETRY_COLUMN_NAME])
-            del data_frame[api.GEOMETRY_COLUMN_NAME]  # delete the duplicated column
+            geometry = gpd.GeoSeries.from_wkt(
+                data_frame[api.GEOMETRY_COLUMN_NAME])
+            # delete the duplicated column
+            del data_frame[api.GEOMETRY_COLUMN_NAME]
 
             geo_data_frame = gpd.GeoDataFrame(
                 data_frame,
@@ -765,22 +812,24 @@ class Workflow:
             )
 
             # split time column
-            geo_data_frame[[time_start_column, time_end_column]] = geo_data_frame[api.TIME_COLUMN_NAME].tolist()
-            del geo_data_frame[api.TIME_COLUMN_NAME]  # delete the duplicated column
+            geo_data_frame[[time_start_column, time_end_column]
+                           ] = geo_data_frame[api.TIME_COLUMN_NAME].tolist()
+            # delete the duplicated column
+            del geo_data_frame[api.TIME_COLUMN_NAME]
 
             # parse time columns
             for time_column in [time_start_column, time_end_column]:
                 geo_data_frame[time_column] = pd.to_datetime(
                     geo_data_frame[time_column],
                     utc=True,
-                    unit='ms',
+                    unit="ms",
                     # TODO: solve time conversion problem from Geo Engine to Python for large (+/-) time instances
-                    errors='coerce',
+                    errors="coerce",
                 )
 
             return geo_data_frame
 
-        def process_bytes(batch_bytes: Optional[bytes]) -> Optional[gpd.GeoDataFrame]:
+        def process_bytes(batch_bytes: bytes | None) -> gpd.GeoDataFrame | None:
             if batch_bytes is None:
                 return None
 
@@ -807,7 +856,8 @@ class Workflow:
         }
 
         if isinstance(query_rectangle, QueryRectangleWithResolution):
-            params['spatialResolution'] = str(query_rectangle.spatial_resolution)
+            params['spatialResolution'] = str(
+                query_rectangle.spatial_resolution)
 
         url = req.Request(
             'GET',
@@ -816,19 +866,19 @@ class Workflow:
         ).prepare().url
 
         if url is None:
-            raise InputException('Invalid websocket url')
+            raise InputException("Invalid websocket url")
 
-        async with websockets.client.connect(
+        async with websockets.asyncio.client.connect(
             uri=self.__replace_http_with_ws(url),
-            extra_headers=session.auth_header,
+            additional_headers=session.auth_header,
             open_timeout=open_timeout,
             max_size=None,  # allow arbitrary large messages, since it is capped by the server's chunk size
         ) as websocket:
+            batch_bytes: bytes | None = None
 
-            batch_bytes: Optional[bytes] = None
+            while websocket.state == websockets.protocol.State.OPEN:
 
-            while websocket.open:
-                async def read_new_bytes() -> Optional[bytes]:
+                async def read_new_bytes() -> bytes | None:
                     # already send the next request to speed up the process
                     try:
                         await websocket.send("NEXT")
@@ -837,11 +887,11 @@ class Workflow:
                         return None
 
                     try:
-                        data: Union[str, bytes] = await websocket.recv()
+                        data: str | bytes = await websocket.recv()
 
                         if isinstance(data, str):
                             # the server sent an error message
-                            raise GeoEngineException({'error': data})
+                            raise GeoEngineException({"error": data})
 
                         return data
                     except websockets.exceptions.ConnectionClosedOK:
@@ -864,16 +914,17 @@ class Workflow:
                 yield batch
 
     async def vector_stream_into_geopandas(
-            self,
-            query_rectangle: QueryRectangle,
-            time_start_column: str = 'time_start',
-            time_end_column: str = 'time_end',
-            open_timeout: int = 60) -> gpd.GeoDataFrame:
-        '''
+        self,
+        query_rectangle: QueryRectangle,
+        time_start_column: str = "time_start",
+        time_end_column: str = "time_end",
+        open_timeout: int = 60,
+    ) -> gpd.GeoDataFrame:
+        """
         Stream the workflow result into memory and output a single geo data frame.
 
         NOTE: You can run out of memory if the query rectangle is too large.
-        '''
+        """
 
         chunk_stream = self.vector_stream(
             query_rectangle,
@@ -882,19 +933,16 @@ class Workflow:
             open_timeout=open_timeout,
         )
 
-        data_frame: Optional[gpd.GeoDataFrame] = None
-        chunk: Optional[gpd.GeoDataFrame] = None
+        data_frame: gpd.GeoDataFrame | None = None
+        chunk: gpd.GeoDataFrame | None = None
 
-        async def read_dataframe() -> Optional[gpd.GeoDataFrame]:
+        async def read_dataframe() -> gpd.GeoDataFrame | None:
             try:
                 return await chunk_stream.__anext__()
             except StopAsyncIteration:
                 return None
 
-        def merge_dataframes(
-            df_a: Optional[gpd.GeoDataFrame],
-            df_b: Optional[gpd.GeoDataFrame]
-        ) -> Optional[gpd.GeoDataFrame]:
+        def merge_dataframes(df_a: gpd.GeoDataFrame | None, df_b: gpd.GeoDataFrame | None) -> gpd.GeoDataFrame | None:
             if df_a is None:
                 return df_b
 
@@ -918,24 +966,24 @@ class Workflow:
         return data_frame
 
     def __replace_http_with_ws(self, url: str) -> str:
-        '''
+        """
         Replace the protocol in the url from `http` to `ws`.
 
         For the websockets library, it is necessary that the url starts with `ws://`.
         For HTTPS, we need to use `wss://` instead.
-        '''
+        """
 
-        [protocol, url_part] = url.split('://', maxsplit=1)
+        [protocol, url_part] = url.split("://", maxsplit=1)
 
-        ws_prefix = 'wss://' if 's' in protocol.lower() else 'ws://'
+        ws_prefix = "wss://" if "s" in protocol.lower() else "ws://"
 
-        return f'{ws_prefix}{url_part}'
+        return f"{ws_prefix}{url_part}"
 
 
-def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], timeout: int = 60) -> Workflow:
-    '''
+def register_workflow(workflow: dict[str, Any] | WorkflowBuilderOperator, timeout: int = 60) -> Workflow:
+    """
     Register a workflow in Geo Engine and receive a `WorkflowId`
-    '''
+    """
 
     if isinstance(workflow, WorkflowBuilderOperator):
         workflow = workflow.to_workflow_dict()
@@ -949,15 +997,16 @@ def register_workflow(workflow: Union[Dict[str, Any], WorkflowBuilderOperator], 
 
     with geoc.ApiClient(session.configuration) as api_client:
         workflows_api = geoc.WorkflowsApi(api_client)
-        response = workflows_api.register_workflow_handler(workflow_model, _request_timeout=timeout)
+        response = workflows_api.register_workflow_handler(
+            workflow_model, _request_timeout=timeout)
 
     return Workflow(WorkflowId.from_response(response))
 
 
 def workflow_by_id(workflow_id: UUID) -> Workflow:
-    '''
+    """
     Create a workflow object from a workflow id
-    '''
+    """
 
     # TODO: check that workflow exists
 
@@ -965,9 +1014,9 @@ def workflow_by_id(workflow_id: UUID) -> Workflow:
 
 
 def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> geoc.Quota:
-    '''
+    """
     Gets a user's quota. Only admins can get other users' quota.
-    '''
+    """
 
     session = get_session()
 
@@ -981,9 +1030,9 @@ def get_quota(user_id: Optional[UUID] = None, timeout: int = 60) -> geoc.Quota:
 
 
 def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> None:
-    '''
+    """
     Update a user's quota. Only admins can perform this operation.
-    '''
+    """
 
     session = get_session()
 
@@ -999,9 +1048,9 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> 
 
 
 def data_usage(offset: int = 0, limit: int = 10) -> List[geoc.DataUsage]:
-    '''
+    """
     Get data usage
-    '''
+    """
 
     session = get_session()
 
@@ -1010,10 +1059,11 @@ def data_usage(offset: int = 0, limit: int = 10) -> List[geoc.DataUsage]:
         response = user_api.data_usage_handler(offset=offset, limit=limit)
 
         # create dataframe from response
-        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(
+            by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
-        if 'timestamp' in df.columns:
-            df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
+        if "timestamp" in df.columns:
+            df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
 
     return df
 
@@ -1021,9 +1071,9 @@ def data_usage(offset: int = 0, limit: int = 10) -> List[geoc.DataUsage]:
 def data_usage_summary(granularity: geoc.UsageSummaryGranularity,
                        dataset: Optional[str] = None,
                        offset: int = 0, limit: int = 10) -> pd.DataFrame:
-    '''
+    """
     Get data usage summary
-    '''
+    """
 
     session = get_session()
 
@@ -1033,9 +1083,10 @@ def data_usage_summary(granularity: geoc.UsageSummaryGranularity,
                                                        offset=offset, limit=limit)
 
         # create dataframe from response
-        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(
+            by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
-        if 'timestamp' in df.columns:
-            df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
+        if "timestamp" in df.columns:
+            df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
 
     return df

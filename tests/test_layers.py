@@ -2,12 +2,12 @@
 
 import unittest
 from uuid import UUID
+
 import geoengine as ge
-from geoengine import StoredDataset, BadRequestException
-from geoengine import api
+from geoengine import BadRequestException, StoredDataset, api
+from geoengine.layers import Layer, LayerId, LayerProviderId
 from geoengine.permissions import REGISTERED_USER_ROLE_ID, Permission, PermissionListing, Role
 from geoengine.resource_identifier import LAYER_DB_PROVIDER_ID, Resource
-from geoengine.layers import Layer, LayerId, LayerProviderId
 from geoengine.tasks import TaskStatus
 from geoengine.types import RasterSymbology
 from tests.ge_test import GeoEngineTestInstance
@@ -24,9 +24,9 @@ class LayerTests(unittest.TestCase):
         """Test `add_layer`."""
 
         expected = ge.Layer(
-            name='Natural Earth II – RGB',
-            description='A raster with three bands for RGB visualization',
-            layer_id=LayerId('83866f7b-dcee-47b8-9242-e5636ceaf402'),
+            name="Natural Earth II – RGB",
+            description="A raster with three bands for RGB visualization",
+            layer_id=LayerId("83866f7b-dcee-47b8-9242-e5636ceaf402"),
             provider_id=LAYER_DB_PROVIDER_ID,
             metadata={},
             properties=[],
@@ -70,7 +70,7 @@ class LayerTests(unittest.TestCase):
                     green_scale=1.0,
                     blue_min=0.0,
                     blue_max=255.0,
-                    blue_scale=1.0
+                    blue_scale=1.0,
                 ),
                 opacity=1.0
             )
@@ -83,12 +83,10 @@ class LayerTests(unittest.TestCase):
 
             ge.initialize(ge_instance.address())
 
-            layer = ge.layer(LayerId('83866f7b-dcee-47b8-9242-e5636ceaf402'), LAYER_DB_PROVIDER_ID)
+            layer = ge.layer(
+                LayerId("83866f7b-dcee-47b8-9242-e5636ceaf402"), LAYER_DB_PROVIDER_ID)
 
-            self.assertEqual(
-                layer,
-                expected
-            )
+            self.assertEqual(layer, expected)
 
     def test_layer_collection(self):
         """Test `add_layer`."""
@@ -100,8 +98,7 @@ class LayerTests(unittest.TestCase):
             ge.initialize(ge_instance.address())
 
             layer_collection = ge.layer_collection(
-                LayerId('272bf675-2e27-4412-824c-287c1e6841ac'),
-                LAYER_DB_PROVIDER_ID
+                LayerId("272bf675-2e27-4412-824c-287c1e6841ac"), LAYER_DB_PROVIDER_ID
             )
 
             print(layer_collection)
@@ -109,43 +106,49 @@ class LayerTests(unittest.TestCase):
             self.assertEqual(
                 layer_collection,
                 ge.LayerCollection(
-                    name='A test collection',
-                    description='Some layers for testing and an empty subcollection',
-                    collection_id=ge.LayerCollectionId('272bf675-2e27-4412-824c-287c1e6841ac'),
+                    name="A test collection",
+                    description="Some layers for testing and an empty subcollection",
+                    collection_id=ge.LayerCollectionId(
+                        "272bf675-2e27-4412-824c-287c1e6841ac"),
                     provider_id=LAYER_DB_PROVIDER_ID,
                     items=[
                         ge.LayerCollectionListing(
-                            listing_id=ge.LayerCollectionId('a29f77cc-51ce-466b-86ef-d0ab2170bc0a'),
+                            listing_id=ge.LayerCollectionId(
+                                "a29f77cc-51ce-466b-86ef-d0ab2170bc0a"),
                             provider_id=LAYER_DB_PROVIDER_ID,
-                            name='An empty collection',
-                            description='There is nothing here'
+                            name="An empty collection",
+                            description="There is nothing here",
                         ),
                         ge.LayerListing(
-                            listing_id=ge.LayerCollectionId('52ef9e16-acd1-4c61-9a80-7d5b335d0d5a'),
+                            listing_id=ge.LayerCollectionId(
+                                '52ef9e16-acd1-4c61-9a80-7d5b335d0d5a'),
                             provider_id=LAYER_DB_PROVIDER_ID,
                             name='Natural Earth II – R',
                             description='A raster with one band (R from RGB)'
                         ),
                         ge.LayerListing(
-                            listing_id=ge.LayerCollectionId('83866f7b-dcee-47b8-9242-e5636ceaf402'),
+                            listing_id=ge.LayerCollectionId(
+                                '83866f7b-dcee-47b8-9242-e5636ceaf402'),
                             provider_id=LAYER_DB_PROVIDER_ID,
-                            name='Natural Earth II – RGB',
-                            description='A raster with three bands for RGB visualization'
+                            name="Natural Earth II – RGB",
+                            description="A raster with three bands for RGB visualization",
                         ),
                         ge.LayerListing(
-                            listing_id=ge.LayerId('b75db46e-2b9a-4a86-b33f-bc06a73cd711'),
+                            listing_id=ge.LayerId(
+                                "b75db46e-2b9a-4a86-b33f-bc06a73cd711"),
                             provider_id=LAYER_DB_PROVIDER_ID,
-                            name='Ports in Germany',
-                            description='Natural Earth Ports point filtered with Germany polygon',
+                            name="Ports in Germany",
+                            description="Natural Earth Ports point filtered with Germany polygon",
                         ),
                         ge.LayerListing(
-                            listing_id=ge.LayerId('c078db52-2dc6-4838-ad75-340cefeab476'),
+                            listing_id=ge.LayerId(
+                                "c078db52-2dc6-4838-ad75-340cefeab476"),
                             provider_id=LAYER_DB_PROVIDER_ID,
-                            name='Stacked Raster',
-                            description='A raster with two bands for testing',
+                            name="Stacked Raster",
+                            description="A raster with two bands for testing",
                         ),
                     ],
-                )
+                ),
             )
 
     def test_layer_collection_modification(self):
@@ -155,15 +158,20 @@ class LayerTests(unittest.TestCase):
         with GeoEngineTestInstance() as ge_instance:
             ge_instance.wait_for_ready()
 
-            ge.initialize(ge_instance.address(), credentials=("admin@localhost", "adminadmin"))
+            ge.initialize(ge_instance.address(), credentials=(
+                "admin@localhost", "adminadmin"))
 
-            root_of_layerdb = ge.layer_collection('05102bb3-a855-4a37-8a8a-30026a91fef1')
+            root_of_layerdb = ge.layer_collection(
+                "05102bb3-a855-4a37-8a8a-30026a91fef1")
 
-            root_of_layerdb.add_collection("my test collection", "test description")
+            root_of_layerdb.add_collection(
+                "my test collection", "test description")
 
-            test_collection = next(filter(lambda item: item.name == 'my test collection', root_of_layerdb.items)).load()
+            test_collection = next(filter(
+                lambda item: item.name == "my test collection", root_of_layerdb.items)).load()
 
-            test_collection.add_collection("sub collection", "another description")
+            test_collection.add_collection(
+                "sub collection", "another description")
 
             test_collection.add_layer(
                 name="ports clone",
@@ -179,19 +187,19 @@ class LayerTests(unittest.TestCase):
                                 "params": {
                                     "data": "ne_10m_ports",
                                     "attributeProjection": None,
-                                    "attributeFilters": None
-                                }
+                                    "attributeFilters": None,
+                                },
                             },
                             "polygons": {
                                 "type": "OgrSource",
                                 "params": {
                                     "data": "germany_outline",
                                     "attributeProjection": None,
-                                    "attributeFilters": None
-                                }
-                            }
-                        }
-                    }
+                                    "attributeFilters": None,
+                                },
+                            },
+                        },
+                    },
                 },
                 symbology=None,
             )
@@ -200,7 +208,8 @@ class LayerTests(unittest.TestCase):
 
             sub_collection.add_existing_layer(test_collection.items[1])
 
-            layer_collection_id = sub_collection.add_collection("sub sub collection", "yet another description")
+            layer_collection_id = sub_collection.add_collection(
+                "sub sub collection", "yet another description")
 
             test_collection.add_existing_collection(layer_collection_id)
 
@@ -222,21 +231,24 @@ class LayerTests(unittest.TestCase):
             ge.initialize(ge_instance.address())
 
             # Success case
-            layer = ge.layer(LayerId('52ef9e16-acd1-4c61-9a80-7d5b335d0d5a'), LAYER_DB_PROVIDER_ID)
+            layer = ge.layer(
+                LayerId('52ef9e16-acd1-4c61-9a80-7d5b335d0d5a'), LAYER_DB_PROVIDER_ID)
 
             task = layer.save_as_dataset()
             task_status = task.wait_for_finish()
             self.assertEqual(task_status.status, TaskStatus.COMPLETED)
             stored_dataset = StoredDataset.from_response(task_status.info)
-            self.assertNotEqual(stored_dataset.dataset_name, '')
-            self.assertNotEqual(stored_dataset.upload_id, '')
+            self.assertNotEqual(stored_dataset.dataset_name, "")
+            self.assertNotEqual(stored_dataset.upload_id, "")
 
             # Some processing error occurred (e.g., layer does not exist)
             layer = ge.Layer(
                 name='Test Error Raster Layer',
                 description='Test Error Raster Layer Description',
-                layer_id=ge.LayerId(UUID('86c81654-e572-42ed-96ee-8b38ebcd84ab')),
-                provider_id=ge.LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
+                layer_id=ge.LayerId(
+                    UUID('86c81654-e572-42ed-96ee-8b38ebcd84ab')),
+                provider_id=ge.LayerProviderId(
+                    UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
                 workflow={
                     "operator": {
                         "params": {
@@ -262,7 +274,8 @@ class LayerTests(unittest.TestCase):
             name='Test Raster Layer',
             description='Test Raster Layer Description',
             layer_id=LayerId(UUID('9ee3619e-d0f9-4ced-9c44-3d407c3aed69')),
-            provider_id=LayerProviderId(UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
+            provider_id=LayerProviderId(
+                UUID('ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b')),
             workflow={
                 "operator": {
                     "params": {
@@ -296,23 +309,31 @@ class LayerTests(unittest.TestCase):
 
         _html = layer._repr_html_()  # pylint: disable=protected-access
 
-        layer.symbology = RasterSymbology.from_response(api.Symbology(api.RasterSymbology(
-            type='raster',
-            opacity=1,
-            raster_colorizer=api.RasterColorizer(api.SingleBandRasterColorizer(
-                type='singleBand',
-                band=0,
-                band_colorizer=api.Colorizer(api.PaletteColorizer(
-                    type='palette',
-                    no_data_color=[0, 0, 0, 0],
-                    colors={
-                        "0": [0, 0, 0, 0],
-                        "1": [0, 0, 0, 0],
-                    },
-                    default_color=[0, 0, 0, 0],
-                )),
-            ))
-        )))
+        layer.symbology = RasterSymbology.from_response(
+            api.Symbology(
+                api.RasterSymbology(
+                    type="raster",
+                    opacity=1,
+                    raster_colorizer=api.RasterColorizer(
+                        api.SingleBandRasterColorizer(
+                            type="singleBand",
+                            band=0,
+                            band_colorizer=api.Colorizer(
+                                api.PaletteColorizer(
+                                    type="palette",
+                                    no_data_color=[0, 0, 0, 0],
+                                    colors={
+                                        "0": [0, 0, 0, 0],
+                                        "1": [0, 0, 0, 0],
+                                    },
+                                    default_color=[0, 0, 0, 0],
+                                )
+                            ),
+                        )
+                    ),
+                )
+            )
+        )
 
         _html = layer._repr_html_()  # pylint: disable=protected-access
 
@@ -325,45 +346,54 @@ class LayerTests(unittest.TestCase):
         with GeoEngineTestInstance() as ge_instance:
             ge_instance.wait_for_ready()
 
-            ge.initialize(ge_instance.address(), credentials=("admin@localhost", "adminadmin"))
+            ge.initialize(ge_instance.address(), credentials=(
+                "admin@localhost", "adminadmin"))
 
-            root_of_layerdb = ge.layer_collection('05102bb3-a855-4a37-8a8a-30026a91fef1')
+            root_of_layerdb = ge.layer_collection(
+                "05102bb3-a855-4a37-8a8a-30026a91fef1")
 
             # create a new collection with permissions
             created_collection = root_of_layerdb.get_or_create_unique_collection(
                 "my test collection",
                 create_collection_description="the first collection description",
-                create_permissions_tuples=permisions)
+                create_permissions_tuples=permisions,
+            )
 
             root_of_layerdb = root_of_layerdb.reload()
 
-            collection_in = root_of_layerdb.get_items_by_name("my test collection")[0].load()
+            collection_in = root_of_layerdb.get_items_by_name("my test collection")[
+                0].load()
 
-            self.assertEqual(created_collection.description, "the first collection description")
+            self.assertEqual(created_collection.description,
+                             "the first collection description")
             self.assertEqual(created_collection, collection_in)
 
             expected_permission = PermissionListing(
                 role=Role(role_name="user", role_id=REGISTERED_USER_ROLE_ID),
-                resource=Resource.from_layer_collection_id(created_collection.collection_id),
-                permission=Permission.READ
+                resource=Resource.from_layer_collection_id(
+                    created_collection.collection_id),
+                permission=Permission.READ,
             )
 
-            self.assertIn(expected_permission,
-                          ge.permissions.list_permissions(
-                              Resource.from_layer_collection_id(created_collection.collection_id)
-                          )
-                          )
+            self.assertIn(
+                expected_permission,
+                ge.permissions.list_permissions(
+                    Resource.from_layer_collection_id(created_collection.collection_id)),
+            )
 
             # get the existing collection (no overwrite)
             existing_collection = root_of_layerdb.get_or_create_unique_collection(
                 "my test collection",
                 create_collection_description="the second collection description",
-                create_permissions_tuples=permisions)
+                create_permissions_tuples=permisions,
+            )
 
             root_of_layerdb = root_of_layerdb.reload()
 
-            collection_in = root_of_layerdb.get_items_by_name("my test collection")[0].load()
-            self.assertEqual(existing_collection.description, "the first collection description")
+            collection_in = root_of_layerdb.get_items_by_name("my test collection")[
+                0].load()
+            self.assertEqual(existing_collection.description,
+                             "the first collection description")
             self.assertEqual(existing_collection, collection_in)
 
             # now overwrite existing collection
@@ -371,13 +401,15 @@ class LayerTests(unittest.TestCase):
                 "my test collection",
                 create_collection_description="the third collection description",
                 create_permissions_tuples=permisions,
-                delete_existing_with_same_name=True
+                delete_existing_with_same_name=True,
             )
 
             root_of_layerdb = root_of_layerdb.reload()
 
-            collection_in = root_of_layerdb.get_items_by_name("my test collection")[0].load()
-            self.assertEqual(overwrite_collection.description, "the third collection description")
+            collection_in = root_of_layerdb.get_items_by_name("my test collection")[
+                0].load()
+            self.assertEqual(overwrite_collection.description,
+                             "the third collection description")
             self.assertEqual(overwrite_collection, collection_in)
 
             new_layer = overwrite_collection.add_layer_with_permissions(
@@ -394,30 +426,32 @@ class LayerTests(unittest.TestCase):
                                 "params": {
                                     "data": "ne_10m_ports",
                                     "attributeProjection": None,
-                                    "attributeFilters": None
-                                }
+                                    "attributeFilters": None,
+                                },
                             },
                             "polygons": {
                                 "type": "OgrSource",
                                 "params": {
                                     "data": "germany_outline",
                                     "attributeProjection": None,
-                                    "attributeFilters": None
-                                }
-                            }
-                        }
-                    }
+                                    "attributeFilters": None,
+                                },
+                            },
+                        },
+                    },
                 },
                 symbology=None,
-                permission_tuples=permisions)
+                permission_tuples=permisions,
+            )
 
             expected_permission = PermissionListing(
                 role=Role(role_name="user", role_id=REGISTERED_USER_ROLE_ID),
                 resource=Resource.from_layer_id(new_layer),
-                permission=Permission.READ
+                permission=Permission.READ,
             )
-            self.assertIn(expected_permission, ge.permissions.list_permissions(Resource.from_layer_id(new_layer)))
+            self.assertIn(expected_permission, ge.permissions.list_permissions(
+                Resource.from_layer_id(new_layer)))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

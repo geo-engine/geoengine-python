@@ -1,12 +1,15 @@
 '''Tests for WCS calls'''
 
-from datetime import datetime
 import unittest
+from datetime import datetime
+
+import numpy as np
 import owslib.util
 import requests_mock
-import numpy as np
 import xarray as xr
+
 import geoengine as ge
+
 from . import UrllibMocker
 
 

@@ -4,7 +4,6 @@ This module contains backports of newer Python features.
 Usually, those can be removed when the minimum required Python version is increased.
 """
 
-
 import asyncio
 import contextvars
 import functools

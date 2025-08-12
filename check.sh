@@ -13,12 +13,11 @@ function echoerr() {
 
 echoerr "Check code style"
 
-python3 -m pycodestyle
+python3 -m ruff format --check
 
 echoerr "Check code with linter"
 
-python3 -m pylint geoengine
-python3 -m pylint tests
+python3 -m ruff check
 
 echoerr "Check code with type checker"
 

@@ -1,6 +1,7 @@
 """Tests for the workflow builder operators."""
 
 import unittest
+
 from geoengine import workflow_builder as wb
 from geoengine.types import ContinuousMeasurement, RasterBandDescriptor
 from geoengine.workflow_builder.operators import ColumnNamesNames
@@ -20,7 +21,8 @@ class OperatorsTests(unittest.TestCase):
         })
 
         self.assertEqual(
-            wb.operators.GdalSource.from_operator_dict(workflow.to_dict()).to_dict(),
+            wb.operators.GdalSource.from_operator_dict(
+                workflow.to_dict()).to_dict(),
             workflow.to_dict()
         )
 
@@ -37,7 +39,8 @@ class OperatorsTests(unittest.TestCase):
         })
 
         self.assertEqual(
-            wb.operators.OgrSource.from_operator_dict(workflow.to_dict()).to_dict(),
+            wb.operators.OgrSource.from_operator_dict(
+                workflow.to_dict()).to_dict(),
             workflow.to_dict()
         )
 
@@ -72,7 +75,8 @@ class OperatorsTests(unittest.TestCase):
         })
 
         self.assertEqual(
-            wb.operators.Interpolation.from_operator_dict(workflow.to_dict()).to_dict(),
+            wb.operators.Interpolation.from_operator_dict(
+                workflow.to_dict()).to_dict(),
             workflow.to_dict()
         )
 
@@ -122,7 +126,8 @@ class OperatorsTests(unittest.TestCase):
         })
 
         self.assertEqual(
-            wb.operators.RasterVectorJoin.from_operator_dict(workflow.to_dict()).to_dict(),
+            wb.operators.RasterVectorJoin.from_operator_dict(
+                workflow.to_dict()).to_dict(),
             workflow.to_dict()
         )
 
@@ -156,7 +161,8 @@ class OperatorsTests(unittest.TestCase):
         })
 
         self.assertEqual(
-            wb.operators.PointInPolygonFilter.from_operator_dict(workflow.to_dict()).to_dict(),
+            wb.operators.PointInPolygonFilter.from_operator_dict(
+                workflow.to_dict()).to_dict(),
             workflow.to_dict()
         )
 
@@ -194,7 +200,8 @@ class OperatorsTests(unittest.TestCase):
         })
 
         self.assertEqual(
-            wb.operators.RasterScaling.from_operator_dict(workflow.to_dict()).to_dict(),
+            wb.operators.RasterScaling.from_operator_dict(
+                workflow.to_dict()).to_dict(),
             workflow.to_dict()
         )
 
@@ -203,13 +210,13 @@ class OperatorsTests(unittest.TestCase):
 
         workflow = wb.operators.RasterTypeConversion(
             source=source_operator,
-            output_data_type="u8"
+            output_data_type="U8"
         )
 
         self.assertEqual(workflow.to_dict(), {
             'type': 'RasterTypeConversion',
             'params': {
-                "outputDataType": "u8",
+                "outputDataType": "U8",
             },
             'sources': {
                 "raster": {
@@ -222,7 +229,8 @@ class OperatorsTests(unittest.TestCase):
         })
 
         self.assertEqual(
-            wb.operators.RasterTypeConversion.from_operator_dict(workflow.to_dict()).to_dict(),
+            wb.operators.RasterTypeConversion.from_operator_dict(
+                workflow.to_dict()).to_dict(),
             workflow.to_dict()
         )
 
@@ -250,7 +258,8 @@ class OperatorsTests(unittest.TestCase):
         })
 
         self.assertEqual(
-            wb.operators.Reprojection.from_operator_dict(workflow.to_dict()).to_dict(),
+            wb.operators.Reprojection.from_operator_dict(
+                workflow.to_dict()).to_dict(),
             workflow.to_dict()
         )
 
@@ -297,7 +306,8 @@ class OperatorsTests(unittest.TestCase):
         })
 
         self.assertEqual(
-            wb.operators.Expression.from_operator_dict(workflow.to_dict()).to_dict(),
+            wb.operators.Expression.from_operator_dict(
+                workflow.to_dict()).to_dict(),
             workflow.to_dict()
         )
 
@@ -310,7 +320,7 @@ class OperatorsTests(unittest.TestCase):
             ignore_no_data=True,
             window_size=1,
             granularity="days",
-            output_type="u8"
+            output_type="U8"
         )
 
         self.assertEqual(workflow.to_dict(), {
@@ -326,7 +336,7 @@ class OperatorsTests(unittest.TestCase):
                     "step": 1
                 },
                 "windowReference": None,
-                "outputType": "u8",
+                "outputType": "U8",
             },
             'sources': {
                 "raster": {
@@ -339,7 +349,8 @@ class OperatorsTests(unittest.TestCase):
         })
 
         self.assertEqual(
-            wb.operators.TemporalRasterAggregation.from_operator_dict(workflow.to_dict()).to_dict(),
+            wb.operators.TemporalRasterAggregation.from_operator_dict(
+                workflow.to_dict()).to_dict(),
             workflow.to_dict()
         )
 
@@ -373,13 +384,15 @@ class OperatorsTests(unittest.TestCase):
 
     def test_workflow_to_operator(self):
         operator = wb.operators.GdalSource("ndvi")
-        operator = wb.operators.RasterTypeConversion(source=operator, output_data_type="u8")
+        operator = wb.operators.RasterTypeConversion(
+            source=operator, output_data_type="U8")
         operator = wb.operators.RasterScaling(
             source=operator, slope=1.0, offset=None, scaling_mode="mulSlopeAddOffset", output_measurement=None
         )
 
         workflow_dict = operator.to_workflow_dict()
-        other_workflow_dict = wb.operators.Operator.from_workflow_dict(operator.to_workflow_dict()).to_workflow_dict()
+        other_workflow_dict = wb.operators.Operator.from_workflow_dict(
+            operator.to_workflow_dict()).to_workflow_dict()
 
         self.assertEqual(workflow_dict, other_workflow_dict)
 

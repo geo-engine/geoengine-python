@@ -1,34 +1,37 @@
-'''Tests for vector streaming workflows'''
+"""Tests for vector streaming workflows"""
 
 import asyncio
-from typing import Dict, List, Tuple
 import unittest
 import unittest.mock
-from uuid import UUID
 from datetime import datetime
-import pyarrow as pa
+from uuid import UUID
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import pyarrow as pa
+import websockets.protocol
+
 import geoengine as ge
+
 from . import UrllibMocker
 
 
 class MockRequestsGet:
-    '''Mock for requests.get'''
+    """Mock for requests.get"""
 
-    def __init__(self, json_data: Dict[str, str]):
+    def __init__(self, json_data: dict[str, str]):
         self.__json = json_data
 
-    def json(self) -> Dict[str, str]:
+    def json(self) -> dict[str, str]:
         return self.__json
 
 
 class MockWebsocket:
-    '''Mock for websockets.client.connect'''
+    """Mock for websockets.client.connect"""
 
     def __init__(self):
-        '''Create a mock websocket with some data'''
+        """Create a mock websocket with some data"""
 
         self.__chunks = []
 
@@ -37,12 +40,13 @@ class MockWebsocket:
         (geos, times, datas) = read_data()
 
         for i in range(len(geos) // chunk_size):
-
-            self.__chunks.append(arrow_bytes(
-                geos[i * chunk_size: (i + 1) * chunk_size],
-                times[i * chunk_size: (i + 1) * chunk_size],
-                datas[i * chunk_size: (i + 1) * chunk_size],
-            ))
+            self.__chunks.append(
+                arrow_bytes(
+                    geos[i * chunk_size : (i + 1) * chunk_size],
+                    times[i * chunk_size : (i + 1) * chunk_size],
+                    datas[i * chunk_size : (i + 1) * chunk_size],
+                )
+            )
 
     async def __aenter__(self):
         return self
@@ -51,9 +55,9 @@ class MockWebsocket:
         pass
 
     @property
-    def open(self) -> bool:
-        '''Mock open impl'''
-        return len(self.__chunks) > 0
+    def state(self) -> websockets.protocol.State:
+        """Mock open impl"""
+        return websockets.protocol.State.OPEN if len(self.__chunks) > 0 else websockets.protocol.State.CLOSED
 
     async def recv(self):
         return self.__chunks.pop(0)
@@ -65,8 +69,8 @@ class MockWebsocket:
         pass
 
 
-def read_data() -> Tuple[List[str], List[List[int]], List[int]]:
-    '''Output vector data than can be subdivided into chunks'''
+def read_data() -> tuple[list[str], list[list[int]], list[int]]:
+    """Output vector data than can be subdivided into chunks"""
     geos = [
         "MULTIPOINT (-69.92356 12.43750)",
         "MULTIPOINT (-58.95141 -34.15333)",
@@ -90,7 +94,14 @@ def read_data() -> Tuple[List[str], List[List[int]], List[int]]:
     ]
 
     datas = [
-        1, 2, 3, 4, 5, 6, 7, 8,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
     ]
 
     return (
@@ -100,16 +111,18 @@ def read_data() -> Tuple[List[str], List[List[int]], List[int]]:
     )
 
 
-def arrow_bytes(geo: List[str], time: List[List[int]], data: List[int]) -> bytes:
-    '''Convert lists of vector data into an Arrow record batch within an IPC file'''
+def arrow_bytes(geo: list[str], time: list[list[int]], data: list[int]) -> bytes:
+    """Convert lists of vector data into an Arrow record batch within an IPC file"""
 
     geo_array = pa.array(geo)
     time_array = pa.array(time)
     data_array = pa.array(data)
     batch = pa.RecordBatch.from_arrays([geo_array, time_array, data_array], ["__geometry", "__time", "data"])
-    schema = batch.schema.with_metadata({
-        "spatialReference": "EPSG:4326",
-    })
+    schema = batch.schema.with_metadata(
+        {
+            "spatialReference": "EPSG:4326",
+        }
+    )
 
     sink = pa.BufferOutputStream()
 
@@ -120,16 +133,19 @@ def arrow_bytes(geo: List[str], time: List[List[int]], data: List[int]) -> bytes
 
 
 class WorkflowVectorStreamTests(unittest.TestCase):
-    '''Test methods for retrieving vector workflows as data streams'''
+    """Test methods for retrieving vector workflows as data streams"""
 
     def setUp(self) -> None:
         ge.reset(False)
 
     def test_streaming_workflow(self):
         with UrllibMocker() as m:
-            m.get("http://localhost:3030/session", json={
-                "id": "00000000-0000-0000-0000-000000000000",
-            })
+            m.get(
+                "http://localhost:3030/session",
+                json={
+                    "id": "00000000-0000-0000-0000-000000000000",
+                },
+            )
             ge.initialize("http://localhost:3030", token="no_token")
 
         with unittest.mock.patch(
@@ -139,9 +155,10 @@ class WorkflowVectorStreamTests(unittest.TestCase):
                 data_type=ge.VectorDataType.MULTI_POINT,
                 columns={
                     "data": ge.VectorColumnInfo(
-                        data_type='int',
+                        data_type="int",
                         measurement=ge.UnitlessMeasurement,
-                    )}
+                    )
+                },
             ),
         ):
             workflow = ge.Workflow(UUID("00000000-0000-0000-0000-000000000000"))
@@ -151,7 +168,8 @@ class WorkflowVectorStreamTests(unittest.TestCase):
             time_interval=ge.TimeInterval(datetime(2014, 4, 1, 0, 0, 0), datetime(2014, 6, 1, 0, 0, 0)),
         )
 
-        with unittest.mock.patch("websockets.client.connect", return_value=MockWebsocket()):
+        with unittest.mock.patch("websockets.asyncio.client.connect", return_value=MockWebsocket()):
+
             async def inner1():
                 chunks = []
 
@@ -162,7 +180,8 @@ class WorkflowVectorStreamTests(unittest.TestCase):
 
             asyncio.run(inner1())
 
-        with unittest.mock.patch("websockets.client.connect", return_value=MockWebsocket()):
+        with unittest.mock.patch("websockets.asyncio.client.connect", return_value=MockWebsocket()):
+
             async def inner2():
                 data_frame = await workflow.vector_stream_into_geopandas(query_rect)
 
