@@ -88,8 +88,7 @@ class RasterOperator(Operator):
         if operator_dict["type"] == "BandNeighborhoodAggregate":
             return BandNeighborhoodAggregate.from_operator_dict(operator_dict)
 
-        raise NotImplementedError(
-            f"Unknown operator type {operator_dict['type']}")
+        raise NotImplementedError(f"Unknown operator type {operator_dict['type']}")
 
 
 class VectorOperator(Operator):
@@ -117,8 +116,7 @@ class VectorOperator(Operator):
             return TimeShift.from_operator_dict(operator_dict).as_vector()
         if operator_dict["type"] == "VectorExpression":
             return VectorExpression.from_operator_dict(operator_dict)
-        raise NotImplementedError(
-            f"Unknown operator type {operator_dict['type']}")
+        raise NotImplementedError(f"Unknown operator type {operator_dict['type']}")
 
 
 class GdalSource(RasterOperator):
@@ -189,8 +187,7 @@ class OgrSource(VectorOperator):
         params = operator_dict["params"]
         return OgrSource(
             cast(str, params["data"]),
-            attribute_projection=cast(
-                str | None, params.get("attributeProjection")),
+            attribute_projection=cast(str | None, params.get("attributeProjection")),
             attribute_filters=cast(str | None, params.get("attributeFilters")),
         )
 
@@ -212,10 +209,9 @@ class Interpolation(RasterOperator):
         output_y: float,
         output_method: Literal["resolution", "fraction"] = "resolution",
         interpolation: Literal["biLinear", "nearestNeighbor"] = "biLinear",
-
     ):
         # pylint: disable=too-many-arguments,too-many-positional-arguments
-        '''Creates a new interpolation operator.'''
+        """Creates a new interpolation operator."""
         self.source = source_operator
         self.interpolation = interpolation
         self.output_method = output_method
@@ -226,29 +222,15 @@ class Interpolation(RasterOperator):
         return "Interpolation"
 
     def to_dict(self) -> dict[str, Any]:
-
-        if self.output_method == 'fraction':
-            input_res = {
-                "type": "fraction",
-                "x": self.output_x,
-                "y": self.output_y
-            }
+        if self.output_method == "fraction":
+            input_res = {"type": "fraction", "x": self.output_x, "y": self.output_y}
         else:
-            input_res = {
-                "type": "resolution",
-                "x": self.output_x,
-                "y": self.output_y
-            }
+            input_res = {"type": "resolution", "x": self.output_x, "y": self.output_y}
 
         return {
             "type": self.name(),
-            "params": {
-                "interpolation": self.interpolation,
-                "outputResolution": input_res
-            },
-            "sources": {
-                "raster": self.source.to_dict()
-            }
+            "params": {"interpolation": self.interpolation, "outputResolution": input_res},
+            "sources": {"raster": self.source.to_dict()},
         }
 
     @classmethod
@@ -257,25 +239,22 @@ class Interpolation(RasterOperator):
         if operator_dict["type"] != "Interpolation":
             raise ValueError("Invalid operator type")
 
-        source = RasterOperator.from_operator_dict(
-            cast(dict[str, Any], operator_dict["sources"]["raster"]))
+        source = RasterOperator.from_operator_dict(cast(dict[str, Any], operator_dict["sources"]["raster"]))
 
         def parse_input_params(params: dict[str, Any]) -> tuple[Literal["resolution", "fraction"], float, float]:
-            output_x = float(params['x'])
-            output_y = float(params['y'])
+            output_x = float(params["x"])
+            output_y = float(params["y"])
 
-            if 'type' not in params:
-                raise KeyError(
-                    "Interpolation outputResolution must contain a type: resolution OR fraction")
-            if params['type'] == 'fraction':
-                return ('fraction', output_x, output_y)
-            if params['type'] == 'fraction':
-                return ('fraction', output_x, output_y)
-            raise ValueError(
-                f"Invalid interpolation outputResolution type {params['type']}")
+            if "type" not in params:
+                raise KeyError("Interpolation outputResolution must contain a type: resolution OR fraction")
+            if params["type"] == "fraction":
+                return ("fraction", output_x, output_y)
+            if params["type"] == "fraction":
+                return ("fraction", output_x, output_y)
+            raise ValueError(f"Invalid interpolation outputResolution type {params['type']}")
 
         (output_method, output_x, output_y) = parse_input_params(
-            cast(dict[str, Any], operator_dict['params']['outputResolution'])
+            cast(dict[str, Any], operator_dict["params"]["outputResolution"])
         )
 
         return Interpolation(
@@ -283,13 +262,13 @@ class Interpolation(RasterOperator):
             output_method=output_method,
             output_x=output_x,
             output_y=output_y,
-            interpolation=cast(
-                Literal["biLinear", "nearestNeighbor"], operator_dict['params']['interpolation'])
+            interpolation=cast(Literal["biLinear", "nearestNeighbor"], operator_dict["params"]["interpolation"]),
         )
 
 
 class Downsampling(RasterOperator):
-    '''A Downsampling operator.'''
+    """A Downsampling operator."""
+
     source: RasterOperator
     sample_method: Literal["nearestNeighbor"] = "nearestNeighbor"
     output_method: Literal["resolution", "fraction"] = "resolution"
@@ -304,10 +283,9 @@ class Downsampling(RasterOperator):
         output_y: float,
         output_method: Literal["resolution", "fraction"] = "resolution",
         sample_method: Literal["nearestNeighbor"] = "nearestNeighbor",
-
     ):
         # pylint: disable=too-many-arguments,too-many-positional-arguments
-        '''Creates a new Downsampling operator.'''
+        """Creates a new Downsampling operator."""
         self.source = source_operator
         self.sample_method = sample_method
         self.output_method = output_method
@@ -315,59 +293,42 @@ class Downsampling(RasterOperator):
         self.output_y = output_y
 
     def name(self) -> str:
-        return 'Downsampling'
+        return "Downsampling"
 
     def to_dict(self) -> dict[str, Any]:
-
-        if self.output_method == 'fraction':
-            input_res = {
-                "type": "fraction",
-                "x": self.output_x,
-                "y": self.output_y
-            }
+        if self.output_method == "fraction":
+            input_res = {"type": "fraction", "x": self.output_x, "y": self.output_y}
         else:
-            input_res = {
-                "type": "resolution",
-                "x": self.output_x,
-                "y": self.output_y
-            }
+            input_res = {"type": "resolution", "x": self.output_x, "y": self.output_y}
 
         return {
             "type": self.name(),
-            "params": {
-                "samplingMethod": self.sample_method,
-                "outputResolution": input_res
-            },
-            "sources": {
-                "raster": self.source.to_dict()
-            }
+            "params": {"samplingMethod": self.sample_method, "outputResolution": input_res},
+            "sources": {"raster": self.source.to_dict()},
         }
 
     @classmethod
     def from_operator_dict(cls, operator_dict: dict[str, Any]) -> Downsampling:
-        '''Returns an operator from a dictionary.'''
+        """Returns an operator from a dictionary."""
         if operator_dict["type"] != "Downsampling":
             raise ValueError("Invalid operator type")
 
-        source = RasterOperator.from_operator_dict(
-            cast(dict[str, Any], operator_dict['sources']['raster']))
+        source = RasterOperator.from_operator_dict(cast(dict[str, Any], operator_dict["sources"]["raster"]))
 
         def parse_input_params(params: dict[str, Any]) -> tuple[Literal["resolution", "fraction"], float, float]:
-            output_x = float(params['x'])
-            output_y = float(params['y'])
+            output_x = float(params["x"])
+            output_y = float(params["y"])
 
-            if 'type' not in params:
-                raise KeyError(
-                    "Downsampling outputResolution must contain a type: resolution OR fraction")
-            if params['type'] == 'fraction':
-                return ('fraction', output_x, output_y)
-            if params['type'] == 'fraction':
-                return ('fraction', output_x, output_y)
-            raise ValueError(
-                f"Invalid Downsampling outputResolution type {params['type']}")
+            if "type" not in params:
+                raise KeyError("Downsampling outputResolution must contain a type: resolution OR fraction")
+            if params["type"] == "fraction":
+                return ("fraction", output_x, output_y)
+            if params["type"] == "fraction":
+                return ("fraction", output_x, output_y)
+            raise ValueError(f"Invalid Downsampling outputResolution type {params['type']}")
 
         (output_method, output_x, output_y) = parse_input_params(
-            cast(dict[str, Any], operator_dict['params']['outputResolution'])
+            cast(dict[str, Any], operator_dict["params"]["outputResolution"])
         )
 
         return Downsampling(
@@ -375,8 +336,7 @@ class Downsampling(RasterOperator):
             output_method=output_method,
             output_x=output_x,
             output_y=output_y,
-            sample_method=cast(
-                Literal["nearestNeighbor"], operator_dict['params']['downsampling'])
+            sample_method=cast(Literal["nearestNeighbor"], operator_dict["params"]["downsampling"]),
         )
 
 
@@ -500,8 +460,7 @@ class RasterVectorJoin(VectorOperator):
         if operator_dict["type"] != "RasterVectorJoin":
             raise ValueError("Invalid operator type")
 
-        vector_source = VectorOperator.from_operator_dict(
-            cast(dict[str, Any], operator_dict["sources"]["vector"]))
+        vector_source = VectorOperator.from_operator_dict(cast(dict[str, Any], operator_dict["sources"]["vector"]))
         raster_sources = [
             RasterOperator.from_operator_dict(raster_source)
             for raster_source in cast(list[dict[str, Any]], operator_dict["sources"]["rasters"])
@@ -512,14 +471,10 @@ class RasterVectorJoin(VectorOperator):
             raster_sources=raster_sources,
             vector_source=vector_source,
             names=ColumnNames.from_dict(params["names"]),
-            temporal_aggregation=cast(
-                Literal["none", "first", "mean"], params["temporalAggregation"]),
-            temporal_aggregation_ignore_nodata=cast(
-                bool, params["temporalAggregationIgnoreNoData"]),
-            feature_aggregation=cast(
-                Literal["first", "mean"], params["featureAggregation"]),
-            feature_aggregation_ignore_nodata=cast(
-                bool, params["featureAggregationIgnoreNoData"]),
+            temporal_aggregation=cast(Literal["none", "first", "mean"], params["temporalAggregation"]),
+            temporal_aggregation_ignore_nodata=cast(bool, params["temporalAggregationIgnoreNoData"]),
+            feature_aggregation=cast(Literal["first", "mean"], params["featureAggregation"]),
+            feature_aggregation_ignore_nodata=cast(bool, params["featureAggregationIgnoreNoData"]),
         )
 
 
@@ -554,10 +509,8 @@ class PointInPolygonFilter(VectorOperator):
         if operator_dict["type"] != "PointInPolygonFilter":
             raise ValueError("Invalid operator type")
 
-        point_source = VectorOperator.from_operator_dict(
-            cast(dict[str, Any], operator_dict["sources"]["points"]))
-        polygon_source = VectorOperator.from_operator_dict(
-            cast(dict[str, Any], operator_dict["sources"]["polygons"]))
+        point_source = VectorOperator.from_operator_dict(cast(dict[str, Any], operator_dict["sources"]["points"]))
+        polygon_source = VectorOperator.from_operator_dict(cast(dict[str, Any], operator_dict["sources"]["polygons"]))
 
         return PointInPolygonFilter(
             point_source=point_source,
@@ -581,8 +534,7 @@ class RasterScaling(RasterOperator):
     source: RasterOperator
     slope: float | str | None = None
     offset: float | str | None = None
-    scaling_mode: Literal["mulSlopeAddOffset",
-                          "subOffsetDivSlope"] = "mulSlopeAddOffset"
+    scaling_mode: Literal["mulSlopeAddOffset", "subOffsetDivSlope"] = "mulSlopeAddOffset"
     output_measurement: str | None = None
 
     def __init__(
@@ -591,8 +543,7 @@ class RasterScaling(RasterOperator):
         source: RasterOperator,
         slope: float | str | None = None,
         offset: float | str | None = None,
-        scaling_mode: Literal["mulSlopeAddOffset",
-                              "subOffsetDivSlope"] = "mulSlopeAddOffset",
+        scaling_mode: Literal["mulSlopeAddOffset", "subOffsetDivSlope"] = "mulSlopeAddOffset",
         output_measurement: str | None = None,
     ):
         """Creates a new RasterScaling operator."""
@@ -602,8 +553,7 @@ class RasterScaling(RasterOperator):
         self.scaling_mode = scaling_mode
         self.output_measurement = output_measurement
         if output_measurement is not None:
-            raise NotImplementedError(
-                "Custom output measurement is not yet implemented")
+            raise NotImplementedError("Custom output measurement is not yet implemented")
 
     def name(self) -> str:
         return "RasterScaling"
@@ -637,8 +587,7 @@ class RasterScaling(RasterOperator):
         if operator_dict["type"] != "RasterScaling":
             raise ValueError("Invalid operator type")
 
-        source_operator = RasterOperator.from_operator_dict(
-            operator_dict["sources"]["raster"])
+        source_operator = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
         params = operator_dict["params"]
 
         def offset_slope_reverse(key_or_value: dict[str, Any] | None) -> float | str | None:
@@ -663,8 +612,7 @@ class RasterTypeConversion(RasterOperator):
     """A RasterTypeConversion operator."""
 
     source: RasterOperator
-    output_data_type: Literal["U8", "U16", "U32",
-                              "U64", "I8", "I16", "I32", "I64", "F32", "F64"]
+    output_data_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]
 
     def __init__(
         self,
@@ -690,8 +638,7 @@ class RasterTypeConversion(RasterOperator):
         if operator_dict["type"] != "RasterTypeConversion":
             raise ValueError("Invalid operator type")
 
-        source_operator = RasterOperator.from_operator_dict(
-            operator_dict["sources"]["raster"])
+        source_operator = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
 
         return RasterTypeConversion(source_operator, output_data_type=operator_dict["params"]["outputDataType"])
 
@@ -740,11 +687,9 @@ class Reprojection(Operator):
 
         source_operator: RasterOperator | VectorOperator
         try:
-            source_operator = RasterOperator.from_operator_dict(
-                operator_dict["sources"]["source"])
+            source_operator = RasterOperator.from_operator_dict(operator_dict["sources"]["source"])
         except ValueError:
-            source_operator = VectorOperator.from_operator_dict(
-                operator_dict["sources"]["source"])
+            source_operator = VectorOperator.from_operator_dict(operator_dict["sources"]["source"])
 
         return Reprojection(
             source=cast(Operator, source_operator),
@@ -757,8 +702,7 @@ class Expression(RasterOperator):
 
     expression: str
     source: RasterOperator
-    output_type: Literal["U8", "U16", "U32", "U64",
-                         "I8", "I16", "I32", "I64", "F32", "F64"] = "F32"
+    output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32"
     map_no_data: bool = False
     output_band: RasterBandDescriptor | None = None
 
@@ -767,8 +711,7 @@ class Expression(RasterOperator):
         self,
         expression: str,
         source: RasterOperator,
-        output_type: Literal["U8", "U16", "U32", "U64",
-                             "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
+        output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
         map_no_data: bool = False,
         output_band: RasterBandDescriptor | None = None,
     ):
@@ -805,13 +748,11 @@ class Expression(RasterOperator):
             )
             if raster_band_descriptor is None:
                 raise ValueError("Invalid output band")
-            output_band = RasterBandDescriptor.from_response(
-                raster_band_descriptor)
+            output_band = RasterBandDescriptor.from_response(raster_band_descriptor)
 
         return Expression(
             expression=operator_dict["params"]["expression"],
-            source=RasterOperator.from_operator_dict(
-                operator_dict["sources"]["raster"]),
+            source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
             output_type=operator_dict["params"]["outputType"],
             map_no_data=operator_dict["params"]["mapNoData"],
             output_band=output_band,
@@ -823,8 +764,7 @@ class BandwiseExpression(RasterOperator):
 
     expression: str
     source: RasterOperator
-    output_type: Literal["U8", "U16", "U32", "U64",
-                         "I8", "I16", "I32", "I64", "F32", "F64"] = "F32"
+    output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32"
     map_no_data: bool = False
 
     # pylint: disable=too-many-arguments
@@ -832,8 +772,7 @@ class BandwiseExpression(RasterOperator):
         self,
         expression: str,
         source: RasterOperator,
-        output_type: Literal["U8", "U16", "U32", "U64",
-                             "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
+        output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] = "F32",
         map_no_data: bool = False,
     ):
         """Creates a new Expression operator."""
@@ -861,8 +800,7 @@ class BandwiseExpression(RasterOperator):
 
         return BandwiseExpression(
             expression=operator_dict["params"]["expression"],
-            source=RasterOperator.from_operator_dict(
-                operator_dict["sources"]["raster"]),
+            source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
             output_type=operator_dict["params"]["outputType"],
             map_no_data=operator_dict["params"]["mapNoData"],
         )
@@ -951,12 +889,10 @@ class VectorExpression(VectorOperator):
 
         output_measurement = None
         if "outputMeasurement" in operator_dict["params"]:
-            output_measurement = Measurement.from_response(
-                operator_dict["params"]["outputMeasurement"])
+            output_measurement = Measurement.from_response(operator_dict["params"]["outputMeasurement"])
 
         return VectorExpression(
-            source=VectorOperator.from_operator_dict(
-                operator_dict["sources"]["vector"]),
+            source=VectorOperator.from_operator_dict(operator_dict["sources"]["vector"]),
             expression=operator_dict["params"]["expression"],
             input_columns=operator_dict["params"]["inputColumns"],
             output_column=operator_dict["params"]["outputColumn"],
@@ -971,14 +907,11 @@ class TemporalRasterAggregation(RasterOperator):
     # pylint: disable=too-many-instance-attributes
 
     source: RasterOperator
-    aggregation_type: Literal["mean", "min", "max", "median",
-                              "count", "sum", "first", "last", "percentileEstimate"]
+    aggregation_type: Literal["mean", "min", "max", "median", "count", "sum", "first", "last", "percentileEstimate"]
     ignore_no_data: bool = False
-    window_granularity: Literal["days", "months", "years",
-                                "hours", "minutes", "seconds", "millis"] = "days"
+    window_granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days"
     window_size: int = 1
-    output_type: Literal["U8", "U16", "U32", "U64", "I8",
-                         "I16", "I32", "I64", "F32", "F64"] | None = None
+    output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] | None = None
     percentile: float | None = None
     window_ref: np.datetime64 | None = None
 
@@ -990,11 +923,9 @@ class TemporalRasterAggregation(RasterOperator):
             "mean", "min", "max", "median", "count", "sum", "first", "last", "percentileEstimate"
         ],
         ignore_no_data: bool = False,
-        granularity: Literal["days", "months", "years",
-                             "hours", "minutes", "seconds", "millis"] = "days",
+        granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"] = "days",
         window_size: int = 1,
-        output_type: Literal["U8", "U16", "U32", "U64", "I8",
-                             "I16", "I32", "I64", "F32", "F64"] | None = None,
+        output_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"] | None = None,
         percentile: float | None = None,
         window_reference: datetime.datetime | np.datetime64 | None = None,
     ):
@@ -1007,8 +938,7 @@ class TemporalRasterAggregation(RasterOperator):
         self.output_type = output_type
         if self.aggregation_type == "percentileEstimate":
             if percentile is None:
-                raise ValueError(
-                    "Percentile must be set for percentileEstimate")
+                raise ValueError("Percentile must be set for percentileEstimate")
             if percentile <= 0.0 or percentile > 1.0:
                 raise ValueError("Percentile must be > 0.0 and <= 1.0")
             self.percentile = percentile
@@ -1018,19 +948,16 @@ class TemporalRasterAggregation(RasterOperator):
             elif isinstance(window_reference, datetime.datetime):
                 # We assume that a datetime without a timezone means UTC
                 if window_reference.tzinfo is not None:
-                    window_reference = window_reference.astimezone(
-                        tz=datetime.timezone.utc).replace(tzinfo=None)
+                    window_reference = window_reference.astimezone(tz=datetime.timezone.utc).replace(tzinfo=None)
                 self.window_ref = np.datetime64(window_reference)
             else:
-                raise ValueError(
-                    "`window_reference` must be of type `datetime.datetime` or `numpy.datetime64`")
+                raise ValueError("`window_reference` must be of type `datetime.datetime` or `numpy.datetime64`")
 
     def name(self) -> str:
         return "TemporalRasterAggregation"
 
     def to_dict(self) -> dict[str, Any]:
-        w_ref = self.window_ref.astype("datetime64[ms]").astype(
-            int) if self.window_ref is not None else None
+        w_ref = self.window_ref.astype("datetime64[ms]").astype(int) if self.window_ref is not None else None
 
         return {
             "type": self.name(),
@@ -1065,8 +992,7 @@ class TemporalRasterAggregation(RasterOperator):
             percentile = operator_dict["params"]["aggregation"]["percentile"]
 
         return TemporalRasterAggregation(
-            source=RasterOperator.from_operator_dict(
-                operator_dict["sources"]["raster"]),
+            source=RasterOperator.from_operator_dict(operator_dict["sources"]["raster"]),
             aggregation_type=operator_dict["params"]["aggregation"]["type"],
             ignore_no_data=operator_dict["params"]["aggregation"]["ignoreNoData"],
             granularity=operator_dict["params"]["window"]["granularity"],
@@ -1082,8 +1008,7 @@ class TimeShift(Operator):
 
     source: RasterOperator | VectorOperator
     shift_type: Literal["relative", "absolute"]
-    granularity: Literal["days", "months", "years",
-                         "hours", "minutes", "seconds", "millis"]
+    granularity: Literal["days", "months", "years", "hours", "minutes", "seconds", "millis"]
     value: int
 
     def __init__(
@@ -1095,8 +1020,7 @@ class TimeShift(Operator):
     ):
         """Creates a new RasterTypeConversion operator."""
         if shift_type == "absolute":
-            raise NotImplementedError(
-                "Absolute time shifts are not supported yet")
+            raise NotImplementedError("Absolute time shifts are not supported yet")
         self.source = source
         self.shift_type = shift_type
         self.granularity = granularity
@@ -1134,11 +1058,9 @@ class TimeShift(Operator):
             raise ValueError("Invalid operator type")
         source: RasterOperator | VectorOperator
         try:
-            source = VectorOperator.from_operator_dict(
-                operator_dict["sources"]["source"])
+            source = VectorOperator.from_operator_dict(operator_dict["sources"]["source"])
         except ValueError:
-            source = RasterOperator.from_operator_dict(
-                operator_dict["sources"]["source"])
+            source = RasterOperator.from_operator_dict(operator_dict["sources"]["source"])
 
         return TimeShift(
             source=source,
@@ -1242,8 +1164,7 @@ class RasterStacker(RasterOperator):
         if operator_dict["type"] != "RasterStacker":
             raise ValueError("Invalid operator type")
 
-        sources = [RasterOperator.from_operator_dict(
-            source) for source in operator_dict["sources"]["rasters"]]
+        sources = [RasterOperator.from_operator_dict(source) for source in operator_dict["sources"]["rasters"]]
         rename = RenameBands.from_dict(operator_dict["params"]["renameBands"])
 
         return RasterStacker(sources=sources, rename=rename)
@@ -1276,10 +1197,8 @@ class BandNeighborhoodAggregate(RasterOperator):
         if operator_dict["type"] != "BandNeighborhoodAggregate":
             raise ValueError("Invalid operator type")
 
-        source = RasterOperator.from_operator_dict(
-            operator_dict["sources"]["raster"])
-        aggregate = BandNeighborhoodAggregateParams.from_dict(
-            operator_dict["params"]["aggregate"])
+        source = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
+        aggregate = BandNeighborhoodAggregateParams.from_dict(operator_dict["params"]["aggregate"])
 
         return BandNeighborhoodAggregate(source=source, aggregate=aggregate)
 
@@ -1362,8 +1281,7 @@ class Onnx(RasterOperator):
         if operator_dict["type"] != "Onnx":
             raise ValueError("Invalid operator type")
 
-        source = RasterOperator.from_operator_dict(
-            operator_dict["sources"]["raster"])
+        source = RasterOperator.from_operator_dict(operator_dict["sources"]["raster"])
         model = operator_dict["params"]["model"]
 
         return Onnx(source=source, model=model)

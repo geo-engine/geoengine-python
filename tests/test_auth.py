@@ -8,7 +8,7 @@ import geoengine_openapi_client
 
 import geoengine as ge
 from geoengine.error import GeoEngineException
-from geoengine.types import QueryRectangleWithResolution
+from geoengine.types import QueryRectangle
 from tests.ge_test import GeoEngineTestInstance
 
 from . import UrllibMocker
@@ -27,16 +27,14 @@ class AuthTests(unittest.TestCase):
 
     def test_uninitialized(self):
         with self.assertRaises(ge.UninitializedException) as exception:
-            ge.workflow_by_id("foobar").get_dataframe(
-                QueryRectangleWithResolution(
-                    ge.BoundingBox2D(- 180, -90, 180, 90),
+            ge.workflow_by_id("e327d9c3-a4f3-4bd7-a5e1-30b26cae8064").get_dataframe(
+                QueryRectangle(
+                    ge.BoundingBox2D(-180, -90, 180, 90),
                     ge.TimeInterval(datetime.now()),
-                    ge.SpatialResolution(0.1, 0.1),
                 )
             )
 
-        self.assertEqual(str(exception.exception),
-                         "You have to call `initialize` before using other functionality")
+        self.assertEqual(str(exception.exception), "You have to call `initialize` before using other functionality")
 
     def test_initialize(self):
         def get_session_id(session: ge.Session) -> str:
@@ -79,8 +77,7 @@ class AuthTests(unittest.TestCase):
         with UrllibMocker() as m:
             m.post(
                 "http://mock-instance/login",
-                expected_request_body={
-                    "email": "foo@bar.de", "password": "secret123"},
+                expected_request_body={"email": "foo@bar.de", "password": "secret123"},
                 json={
                     "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
                     "user": {
@@ -101,8 +98,7 @@ class AuthTests(unittest.TestCase):
         with UrllibMocker() as m:
             m.post(
                 "http://mock-instance/login",
-                expected_request_body={
-                    "email": "foo@bar.de", "password": "secret123"},
+                expected_request_body={"email": "foo@bar.de", "password": "secret123"},
                 json={
                     "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
                     "user": {
@@ -130,8 +126,7 @@ class AuthTests(unittest.TestCase):
         with UrllibMocker() as m:
             m.post(
                 "http://mock-instance/anonymous",
-                request_headers={
-                    "User-Agent": f"geoengine-python/{geoengine_openapi_client.__version__}"},
+                request_headers={"User-Agent": f"geoengine-python/{geoengine_openapi_client.__version__}"},
                 json={
                     "id": "e327d9c3-a4f3-4bd7-a5e1-30b26cae8064",
                     "user": None,
@@ -147,8 +142,7 @@ class AuthTests(unittest.TestCase):
             self.assertEqual(type(ge.get_session()), ge.Session)
 
     def test_initialize_credentials_and_token(self):
-        self.assertRaises(GeoEngineException, ge.initialize,
-                          "http://mock-instance", ("user", "pass"), "token")
+        self.assertRaises(GeoEngineException, ge.initialize, "http://mock-instance", ("user", "pass"), "token")
 
 
 if __name__ == "__main__":

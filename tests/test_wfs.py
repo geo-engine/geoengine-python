@@ -41,8 +41,7 @@ class WfsTests(unittest.TestCase):
             m.post(
                 "http://mock-instance/workflow",
                 json={"id": "956d3656-2d14-5951-96a0-f962b92371cd"},
-                request_headers={
-                    "Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
+                request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
             )
 
             m.get(
@@ -81,13 +80,12 @@ class WfsTests(unittest.TestCase):
                         },
                     },
                 },
-                request_headers={
-                    "Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
+                request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
             )
 
             m.get(
                 # pylint: disable=line-too-long
-                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1",
+                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326",
                 json={
                     "type": "FeatureCollection",
                     "features": [
@@ -212,8 +210,7 @@ class WfsTests(unittest.TestCase):
                         },
                     ],
                 },
-                request_headers={
-                    "Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
+                request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
             )
 
             ge.initialize("http://mock-instance")
@@ -243,28 +240,21 @@ class WfsTests(unittest.TestCase):
                 },
             }
 
-            time = datetime.strptime(
-                "2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
+            time = datetime.strptime("2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
             # TODO: remove resolution when not mocked
             df = workflow.get_dataframe(
-                ge.QueryRectangleWithResolution(
-                    ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
-                    ge.TimeInterval(time, time),
-                    ge.SpatialResolution(0.1, 0.1)
-                )
+                ge.QueryRectangle(ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0), ge.TimeInterval(time, time))
             )
 
             self.assertEqual(len(m.request_history), 4)
 
             workflow_request = m.request_history[1]
             self.assertEqual(workflow_request["method"], "POST")
-            self.assertEqual(
-                workflow_request["url"], "http://mock-instance/workflow")
-            self.assertEqual(json.loads(
-                workflow_request["body"]), workflow_definition)
+            self.assertEqual(workflow_request["url"], "http://mock-instance/workflow")
+            self.assertEqual(json.loads(workflow_request["body"]), workflow_definition)
 
             # note: the result descriptor is retrieved upon workflow registration (constructor),
             # thus the actual WFS request is in the 4th history slot
@@ -274,7 +264,7 @@ class WfsTests(unittest.TestCase):
             self.assertEqual(
                 # pylint: disable=line-too-long
                 wfs_request["url"],
-                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1",
+                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326",
             )
 
             expected_df = gpd.GeoDataFrame(
@@ -335,8 +325,7 @@ class WfsTests(unittest.TestCase):
             m.post(
                 "http://mock-instance/workflow",
                 json={"id": "956d3656-2d14-5951-96a0-f962b92371cd"},
-                request_headers={
-                    "Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
+                request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
             )
 
             m.get(
@@ -375,21 +364,19 @@ class WfsTests(unittest.TestCase):
                         },
                     },
                 },
-                request_headers={
-                    "Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
+                request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
             )
 
             m.get(
                 # pylint: disable=line-too-long
-                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1",
+                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326",
                 json={
                     "error": "Operator",
                     "message": "Operator: Could not open gdal dataset for file path "
                     '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"',
                 },
                 status_code=400,
-                request_headers={
-                    "Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
+                request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
             )
 
             ge.initialize("http://mock-instance")
@@ -419,19 +406,14 @@ class WfsTests(unittest.TestCase):
                 },
             }
 
-            time = datetime.strptime(
-                "2004-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
+            time = datetime.strptime("2004-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
             with self.assertRaises(ge.BadRequestException) as ctx:
                 # TODO: remove resolution when not mocked
                 workflow.get_dataframe(
-                    ge.QueryRectangleWithResolution(
-                        ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
-                        ge.TimeInterval(time),
-                        ge.SpatialResolution(0.1, 0.1)
-                    )
+                    ge.QueryRectangle(ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0), ge.TimeInterval(time))
                 )
 
             self.assertEqual(
@@ -457,7 +439,7 @@ class WfsTests(unittest.TestCase):
             )
 
             m.get(
-                "http://mock-instance/workflow/foobar/metadata",
+                "http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d11/metadata",
                 json={
                     "type": "vector",
                     "dataType": "MultiPoint",
@@ -492,15 +474,14 @@ class WfsTests(unittest.TestCase):
                         },
                     },
                 },
-                request_headers={
-                    "Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
+                request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
             )
 
             ge.initialize("http://mock-instance")
 
-            workflow = ge.workflow_by_id("foobar")
+            workflow = ge.workflow_by_id("5b9508a8-bd34-5a1c-acd6-75bb832d2d11")
 
-            self.assertEqual(repr(workflow), "foobar")
+            self.assertEqual(repr(workflow), "5b9508a8-bd34-5a1c-acd6-75bb832d2d11")
 
     def test_result_descriptor(self):
         with UrllibMocker() as m:
@@ -554,25 +535,22 @@ class WfsTests(unittest.TestCase):
                         },
                     },
                 },
-                request_headers={
-                    "Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
+                request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
             )
 
             m.get(
-                "http://mock-instance/workflow/foo/metadata",
+                "http://mock-instance/workflow/4cdf1ffe-cb67-5de2-a1f3-3357ae0000aa/metadata",
                 status_code=404,
                 json={
                     "error": "NotFound",
                     "message": "Not Found",
                 },
-                request_headers={
-                    "Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
+                request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
             )
 
             ge.initialize("http://mock-instance")
 
-            workflow = ge.workflow_by_id(
-                "4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd")
+            workflow = ge.workflow_by_id("4cdf1ffe-cb67-5de2-a1f3-3357ae0112bd")
 
             result_descriptor = workflow.get_result_descriptor()
 
@@ -600,11 +578,10 @@ class WfsTests(unittest.TestCase):
                     Measurement: unitless
             """
 
-            self.assertEqual(repr(result_descriptor),
-                             textwrap.dedent(expected_repr))
+            self.assertEqual(repr(result_descriptor), textwrap.dedent(expected_repr))
 
             with self.assertRaises(ge.NotFoundException) as exception:
-                workflow = ge.workflow_by_id("foo")
+                workflow = ge.workflow_by_id("4cdf1ffe-cb67-5de2-a1f3-3357ae0000aa")
 
                 result_descriptor = workflow.get_result_descriptor()
 
@@ -639,15 +616,13 @@ class WfsTests(unittest.TestCase):
         with UrllibMocker() as m:
             m.post(
                 "http://mock-instance/anonymous",
-                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
-                      "project": None, "view": None},
+                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081", "project": None, "view": None},
             )
 
             m.post(
                 "http://mock-instance/workflow",
                 json={"id": "4a2cb6e0-a3e3-53e4-9a0f-ed1cf2e4c3b7"},
-                request_headers={
-                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m.get(
@@ -686,23 +661,20 @@ class WfsTests(unittest.TestCase):
                         },
                     },
                 },
-                request_headers={
-                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m.get(
                 "http://mock-instance/workflow/4a2cb6e0-a3e3-53e4-9a0f-ed1cf2e4c3b7",
                 json=workflow_definition,
-                request_headers={
-                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             ge.initialize("http://mock-instance")
 
             workflow = ge.register_workflow(workflow_definition)
 
-            self.assertEqual(
-                workflow.workflow_definition().to_dict(), workflow_definition)
+            self.assertEqual(workflow.workflow_definition().to_dict(), workflow_definition)
 
     def test_owslib_user_agent(self):
         with UrllibMocker() as m:
@@ -723,21 +695,18 @@ class WfsTests(unittest.TestCase):
             m.post(
                 "http://mock-instance/workflow",
                 json={"id": "956d3656-2d14-5951-96a0-f962b92371cd"},
-                request_headers={
-                    "Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
+                request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
             )
 
             m.get(
                 "http://mock-instance/workflow/956d3656-2d14-5951-96a0-f962b92371cd/metadata",
-                json={"type": "vector", "dataType": "MultiPoint",
-                      "spatialReference": "EPSG:4326", "columns": {}},
-                request_headers={
-                    "Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
+                json={"type": "vector", "dataType": "MultiPoint", "spatialReference": "EPSG:4326", "columns": {}},
+                request_headers={"Authorization": "Bearer e327d9c3-a4f3-4bd7-a5e1-30b26cae8064"},
             )
 
             m.get(
                 # pylint: disable=line-too-long
-                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1",
+                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326",
                 json={
                     "type": "FeatureCollection",
                     "features": [
@@ -779,18 +748,12 @@ class WfsTests(unittest.TestCase):
                 },
             }
 
-            time = datetime.strptime(
-                "2004-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
+            time = datetime.strptime("2004-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
-            # TODO: remove resolution when not mocked
             df = workflow.get_dataframe(
-                ge.QueryRectangleWithResolution(
-                    ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0),
-                    ge.TimeInterval(time),
-                    ge.SpatialResolution(0.1, 0.1)
-                )
+                ge.QueryRectangle(ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0), ge.TimeInterval(time))
             )
 
             self.assertTrue(df is not None)

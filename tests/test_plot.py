@@ -40,11 +40,11 @@ class PlotTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             vega_chart = workflow.plot_chart(
-                ge.QueryRectangleWithResolution(
+                ge.QueryRectangle(
                     ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                     ge.TimeInterval(np.datetime64("2014-04-01T12:00:00")),
-                    ge.SpatialResolution(0.1, 0.1),
-                )
+                ),
+                spatial_resolution=ge.SpatialResolution(0.1, 0.1),
             )
 
             self.assertEqual(type(vega_chart), VegaLite)
@@ -68,7 +68,7 @@ class PlotTests(unittest.TestCase):
             )
 
             m.get(
-                "http://mock-instance/workflow/foo/metadata",
+                "http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d11/metadata",
                 status_code=404,
                 json={
                     "error": "NotFound",
@@ -88,7 +88,7 @@ class PlotTests(unittest.TestCase):
             self.assertEqual(repr(result_descriptor), textwrap.dedent(expected_repr))
 
             with self.assertRaises(ge.NotFoundException) as exception:
-                workflow = ge.workflow_by_id("foo")
+                workflow = ge.workflow_by_id("5b9508a8-bd34-5a1c-acd6-75bb832d2d11")
 
                 result_descriptor = workflow.get_result_descriptor()
 
@@ -129,10 +129,9 @@ class PlotTests(unittest.TestCase):
 
             with self.assertRaises(ge.MethodNotCalledOnVectorException):
                 workflow.get_dataframe(
-                    ge.QueryRectangleWithResolution(
+                    ge.QueryRectangle(
                         ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                         ge.TimeInterval(time),
-                        ge.SpatialResolution(0.1, 0.1),
                     )
                 )
 
@@ -194,11 +193,11 @@ class PlotTests(unittest.TestCase):
 
             with self.assertRaises(ge.BadRequestException) as ctx:
                 workflow.plot_chart(
-                    ge.QueryRectangleWithResolution(
+                    ge.QueryRectangle(
                         ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                         ge.TimeInterval(time),
-                        ge.SpatialResolution(0.1, 0.1),
-                    )
+                    ),
+                    spatial_resolution=ge.SpatialResolution(0.1, 0.1),
                 )
 
             self.assertEqual(

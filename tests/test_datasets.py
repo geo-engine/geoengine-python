@@ -41,8 +41,7 @@ class DatasetsTests(unittest.TestCase):
 
             self.assertEqual(dataset.name, "ne2_raster_blue")
             self.assertEqual(dataset.display_name, "Natural Earth II – Blue")
-            self.assertEqual(
-                dataset.result_descriptor.actual_instance.type, "raster")
+            self.assertEqual(dataset.result_descriptor.actual_instance.type, "raster")
 
     def test_add_dataset(self):
         """Test `add_datset`."""
@@ -51,31 +50,29 @@ class DatasetsTests(unittest.TestCase):
         with GeoEngineTestInstance() as ge_instance:
             ge_instance.wait_for_ready()
 
-            ge.initialize(ge_instance.address(), credentials=(
-                "admin@localhost", "adminadmin"))
+            ge.initialize(ge_instance.address(), credentials=("admin@localhost", "adminadmin"))
 
             volume = ge.volume_by_name("test_data")
 
-            gdal_params = geoengine_openapi_client.GdalDatasetParameters.from_dict({
-                "filePath": "raster/landcover/landcover.tif",
-                "rasterbandChannel": 1,
-                "geoTransform": {
-                    "originCoordinate": {
-                        "x": -180.0,
-                        "y": 90.0
+            gdal_params = geoengine_openapi_client.GdalDatasetParameters.from_dict(
+                {
+                    "filePath": "raster/landcover/landcover.tif",
+                    "rasterbandChannel": 1,
+                    "geoTransform": {
+                        "originCoordinate": {"x": -180.0, "y": 90.0},
+                        "xPixelSize": 0.1,
+                        "yPixelSize": -0.1,
                     },
-                    "xPixelSize": 0.1,
-                    "yPixelSize": -0.1
-                },
-                "width": 3600,
-                "height": 1800,
-                "fileNotFoundHandling": geoengine_openapi_client.FileNotFoundHandling.NODATA,
-                "noDataValue": None,
-                "propertiesMapping": None,
-                "gdalOpenOptions": None,
-                "gdalConfigOptions": None,
-                "allowAlphabandAsMask": True
-            })
+                    "width": 3600,
+                    "height": 1800,
+                    "fileNotFoundHandling": geoengine_openapi_client.FileNotFoundHandling.NODATA,
+                    "noDataValue": None,
+                    "propertiesMapping": None,
+                    "gdalOpenOptions": None,
+                    "gdalConfigOptions": None,
+                    "allowAlphabandAsMask": True,
+                }
+            )
 
             result_descriptor_measurement = ge.ClassificationMeasurement(
                 measurement="Land Cover",
@@ -102,24 +99,17 @@ class DatasetsTests(unittest.TestCase):
 
             result_descriptor = ge.RasterResultDescriptor(
                 "U8",
-                bands=[RasterBandDescriptor(
-                    "band", result_descriptor_measurement)],
+                bands=[RasterBandDescriptor("band", result_descriptor_measurement)],
                 spatial_reference="EPSG:4326",
                 spatial_grid=ge.types.SpatialGridDescriptor(
                     spatial_grid=ge.types.SpatialGridDefinition(
-                        geo_transform=ge.GeoTransform(
-                            x_min=-180.0,
-                            y_max=90.0,
-                            x_pixel_size=0.1,
-                            y_pixel_size=-0.1
-                        ),
+                        geo_transform=ge.GeoTransform(x_min=-180.0, y_max=90.0, x_pixel_size=0.1, y_pixel_size=-0.1),
                         grid_bounds=ge.GridBoundingBox2D(
-                            top_left_idx=ge.GridIdx2D(0, 0),
-                            bottom_right_idx=ge.GridIdx2D(1799, 3599)
-                        )
+                            top_left_idx=ge.GridIdx2D(0, 0), bottom_right_idx=ge.GridIdx2D(1799, 3599)
+                        ),
                     ),
-                    descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE
-                )
+                    descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE,
+                ),
             )
 
             meta_data = geoengine_openapi_client.GdalMetaDataStatic.from_dict(
@@ -143,12 +133,9 @@ class DatasetsTests(unittest.TestCase):
                         band=0,
                         band_colorizer=ge.LinearGradientColorizer(
                             breakpoints=[
-                                ge.ColorBreakpoint(
-                                    value=0, color=(0, 0, 255, 255)),
-                                ge.ColorBreakpoint(
-                                    value=8, color=(0, 255, 0, 255)),
-                                ge.ColorBreakpoint(
-                                    value=16, color=(255, 0, 0, 255)),
+                                ge.ColorBreakpoint(value=0, color=(0, 0, 255, 255)),
+                                ge.ColorBreakpoint(value=8, color=(0, 255, 0, 255)),
+                                ge.ColorBreakpoint(value=16, color=(255, 0, 0, 255)),
                             ],
                             no_data_color=(0, 0, 0, 0),
                             over_color=(0, 0, 0, 0),
@@ -176,8 +163,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(
-                len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
 
             metadata_from_api = ge.dataset_metadata_by_name(dataset_name)
             self.assertEqual(
@@ -196,31 +182,29 @@ class DatasetsTests(unittest.TestCase):
         with GeoEngineTestInstance() as ge_instance:
             ge_instance.wait_for_ready()
 
-            ge.initialize(ge_instance.address(), credentials=(
-                "admin@localhost", "adminadmin"))
+            ge.initialize(ge_instance.address(), credentials=("admin@localhost", "adminadmin"))
 
             volume = ge.volume_by_name("test_data")
 
-            gdal_params = geoengine_openapi_client.GdalDatasetParameters.from_dict({
-                "filePath": "raster/landcover/landcover.tif",
-                "rasterbandChannel": 1,
-                "geoTransform": {
-                    "originCoordinate": {
-                        "x": -180.0,
-                        "y": 90.0
+            gdal_params = geoengine_openapi_client.GdalDatasetParameters.from_dict(
+                {
+                    "filePath": "raster/landcover/landcover.tif",
+                    "rasterbandChannel": 1,
+                    "geoTransform": {
+                        "originCoordinate": {"x": -180.0, "y": 90.0},
+                        "xPixelSize": 0.1,
+                        "yPixelSize": -0.1,
                     },
-                    "xPixelSize": 0.1,
-                    "yPixelSize": -0.1
-                },
-                "width": 3600,
-                "height": 1800,
-                "fileNotFoundHandling": geoengine_openapi_client.FileNotFoundHandling.NODATA,
-                "noDataValue": None,
-                "propertiesMapping": None,
-                "gdalOpenOptions": None,
-                "gdalConfigOptions": None,
-                "allowAlphabandAsMask": True
-            })
+                    "width": 3600,
+                    "height": 1800,
+                    "fileNotFoundHandling": geoengine_openapi_client.FileNotFoundHandling.NODATA,
+                    "noDataValue": None,
+                    "propertiesMapping": None,
+                    "gdalOpenOptions": None,
+                    "gdalConfigOptions": None,
+                    "allowAlphabandAsMask": True,
+                }
+            )
 
             result_descriptor_measurement = ge.ClassificationMeasurement(
                 measurement="Land Cover",
@@ -251,27 +235,23 @@ class DatasetsTests(unittest.TestCase):
                 "EPSG:4326",
                 spatial_grid=ge.types.SpatialGridDescriptor(
                     spatial_grid=ge.types.SpatialGridDefinition(
-                        geo_transform=ge.GeoTransform(
-                            x_min=-180.0,
-                            y_max=90.0,
-                            x_pixel_size=0.1,
-                            y_pixel_size=-0.1
-                        ),
+                        geo_transform=ge.GeoTransform(x_min=-180.0, y_max=90.0, x_pixel_size=0.1, y_pixel_size=-0.1),
                         grid_bounds=ge.GridBoundingBox2D(
-                            top_left_idx=ge.GridIdx2D(0, 0),
-                            bottom_right_idx=ge.GridIdx2D(1799, 3599)
-                        )
+                            top_left_idx=ge.GridIdx2D(0, 0), bottom_right_idx=ge.GridIdx2D(1799, 3599)
+                        ),
                     ),
-                    descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE
-                )
+                    descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE,
+                ),
             )
 
-            meta_data = geoengine_openapi_client.GdalMetaDataStatic.from_dict({
-                "type": "GdalStatic",
-                "time": None,
-                "params": gdal_params,
-                "resultDescriptor": result_descriptor.to_api_dict().to_dict()
-            })
+            meta_data = geoengine_openapi_client.GdalMetaDataStatic.from_dict(
+                {
+                    "type": "GdalStatic",
+                    "time": None,
+                    "params": gdal_params,
+                    "resultDescriptor": result_descriptor.to_api_dict().to_dict(),
+                }
+            )
 
             add_dataset_properties = ge.AddDatasetProperties(
                 name="MCD12C1_test",
@@ -284,10 +264,8 @@ class DatasetsTests(unittest.TestCase):
                         band=0,
                         band_colorizer=ge.LinearGradientColorizer(
                             breakpoints=[
-                                ge.ColorBreakpoint(
-                                    value=0, color=(0, 0, 255, 255)),
-                                ge.ColorBreakpoint(
-                                    value=16, color=(255, 0, 0, 255)),
+                                ge.ColorBreakpoint(value=0, color=(0, 0, 255, 255)),
+                                ge.ColorBreakpoint(value=16, color=(255, 0, 0, 255)),
                             ],
                             no_data_color=(0, 0, 0, 0),
                             over_color=(0, 0, 0, 0),
@@ -310,10 +288,8 @@ class DatasetsTests(unittest.TestCase):
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(
-                len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
-            dataset_info = ge.dataset_info_by_name(
-                ge.DatasetName("MCD12C1_test"))
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
+            dataset_info = ge.dataset_info_by_name(ge.DatasetName("MCD12C1_test"))
             self.assertEqual(dataset_info.name, "MCD12C1_test")
             self.assertEqual(dataset_info.description, "Land Cover")
 
@@ -323,8 +299,7 @@ class DatasetsTests(unittest.TestCase):
                 permission=Permission.READ,
             )
             self.assertIn(
-                expected_permission, ge.permissions.list_permissions(
-                    Resource.from_dataset_name(dataset_name))
+                expected_permission, ge.permissions.list_permissions(Resource.from_dataset_name(dataset_name))
             )
 
             # now get without overwrite
@@ -339,10 +314,8 @@ class DatasetsTests(unittest.TestCase):
                         band=0,
                         band_colorizer=ge.LinearGradientColorizer(
                             breakpoints=[
-                                ge.ColorBreakpoint(
-                                    value=0, color=(0, 0, 255, 255)),
-                                ge.ColorBreakpoint(
-                                    value=16, color=(255, 0, 0, 255)),
+                                ge.ColorBreakpoint(value=0, color=(0, 0, 255, 255)),
+                                ge.ColorBreakpoint(value=16, color=(255, 0, 0, 255)),
                             ],
                             no_data_color=(0, 0, 0, 0),
                             over_color=(0, 0, 0, 0),
@@ -363,10 +336,8 @@ class DatasetsTests(unittest.TestCase):
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(
-                len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
-            dataset_info = ge.dataset_info_by_name(
-                ge.DatasetName("MCD12C1_test"))
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
+            dataset_info = ge.dataset_info_by_name(ge.DatasetName("MCD12C1_test"))
             self.assertEqual(dataset_info.name, "MCD12C1_test")
             self.assertEqual(
                 dataset_info.description,
@@ -385,10 +356,8 @@ class DatasetsTests(unittest.TestCase):
                         band=0,
                         band_colorizer=ge.LinearGradientColorizer(
                             breakpoints=[
-                                ge.ColorBreakpoint(
-                                    value=0, color=(0, 0, 255, 255)),
-                                ge.ColorBreakpoint(
-                                    value=16, color=(255, 0, 0, 255)),
+                                ge.ColorBreakpoint(value=0, color=(0, 0, 255, 255)),
+                                ge.ColorBreakpoint(value=16, color=(255, 0, 0, 255)),
                             ],
                             no_data_color=(0, 0, 0, 0),
                             over_color=(0, 0, 0, 0),
@@ -410,8 +379,7 @@ class DatasetsTests(unittest.TestCase):
             )
 
             self.assertEqual(dataset_name, ge.DatasetName("MCD12C1_test"))
-            self.assertEqual(
-                len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
+            self.assertEqual(len(list(ge.list_datasets(name_filter="Land Cover TEST"))), 1)
             dataset_info = ge.dataset_info_by_name(dataset_name)
             self.assertEqual(dataset_info.name, "MCD12C1_test")
             self.assertEqual(

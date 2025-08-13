@@ -61,8 +61,7 @@ class Listing(Generic[LISTINGID]):
         buf = StringIO()
 
         buf.write("<table>")
-        buf.write(
-            f'<thead><tr><th colspan="2">{self._type_str()}</th></tr></thead>')
+        buf.write(f'<thead><tr><th colspan="2">{self._type_str()}</th></tr></thead>')
         buf.write("<tbody>")
         buf.write(f"<tr><th>name</th><td>{self.name}</td></tr>")
         buf.write(f"<tr><th>description</th><td>{self.description}</td></tr>")
@@ -107,8 +106,7 @@ class LayerListing(Listing[LayerId]):
 
     def _remove(self, collection_id: LayerCollectionId, provider_id: LayerProviderId, timeout: int = 60) -> None:
         if provider_id != LAYER_DB_PROVIDER_ID:
-            raise ModificationNotOnLayerDbException(
-                "Layer collection is not stored in the layer database")
+            raise ModificationNotOnLayerDbException("Layer collection is not stored in the layer database")
 
         _delete_layer_from_collection(
             collection_id,
@@ -133,8 +131,7 @@ class LayerCollectionListing(Listing[LayerCollectionId]):
 
     def _remove(self, collection_id: LayerCollectionId, provider_id: LayerProviderId, timeout: int = 60) -> None:
         if provider_id != LAYER_DB_PROVIDER_ID:
-            raise ModificationNotOnLayerDbException(
-                "Layer collection is not stored in the layer database")
+            raise ModificationNotOnLayerDbException("Layer collection is not stored in the layer database")
 
         _delete_layer_collection_from_collection(
             collection_id,
@@ -183,24 +180,19 @@ class LayerCollection:
             item_type = LayerCollectionListingType(inner.type)
 
             if item_type is LayerCollectionListingType.LAYER:
-                layer_id_response = cast(
-                    geoengine_openapi_client.ProviderLayerId, inner.id)
+                layer_id_response = cast(geoengine_openapi_client.ProviderLayerId, inner.id)
                 return LayerListing(
                     listing_id=LayerId(layer_id_response.layer_id),
-                    provider_id=LayerProviderId(
-                        UUID(layer_id_response.provider_id)),
+                    provider_id=LayerProviderId(UUID(layer_id_response.provider_id)),
                     name=inner.name,
                     description=inner.description,
                 )
 
             if item_type is LayerCollectionListingType.COLLECTION:
-                collection_id_response = cast(
-                    geoengine_openapi_client.ProviderLayerCollectionId, inner.id)
+                collection_id_response = cast(geoengine_openapi_client.ProviderLayerCollectionId, inner.id)
                 return LayerCollectionListing(
-                    listing_id=LayerCollectionId(
-                        collection_id_response.collection_id),
-                    provider_id=LayerProviderId(
-                        UUID(collection_id_response.provider_id)),
+                    listing_id=LayerCollectionId(collection_id_response.collection_id),
+                    provider_id=LayerProviderId(UUID(collection_id_response.provider_id)),
                     name=inner.name,
                     description=inner.description,
                 )
@@ -275,8 +267,7 @@ class LayerCollection:
         """Remove the layer collection itself"""
 
         if self.provider_id != LAYER_DB_PROVIDER_ID:
-            raise ModificationNotOnLayerDbException(
-                "Layer collection is not stored in the layer database")
+            raise ModificationNotOnLayerDbException("Layer collection is not stored in the layer database")
 
         _delete_layer_collection(self.collection_id, timeout)
 
@@ -289,8 +280,7 @@ class LayerCollection:
         item = self.items[index]
 
         if self.provider_id != LAYER_DB_PROVIDER_ID:
-            raise ModificationNotOnLayerDbException(
-                "Layer collection is not stored in the layer database")
+            raise ModificationNotOnLayerDbException("Layer collection is not stored in the layer database")
 
         # pylint: disable=protected-access
         item._remove(self.collection_id, self.provider_id, timeout)
@@ -310,11 +300,9 @@ class LayerCollection:
         # pylint: disable=too-many-arguments,too-many-positional-arguments
 
         if self.provider_id != LAYER_DB_PROVIDER_ID:
-            raise ModificationNotOnLayerDbException(
-                "Layer collection is not stored in the layer database")
+            raise ModificationNotOnLayerDbException("Layer collection is not stored in the layer database")
 
-        layer_id = _add_layer_to_collection(
-            name, description, workflow, symbology, self.collection_id, timeout)
+        layer_id = _add_layer_to_collection(name, description, workflow, symbology, self.collection_id, timeout)
 
         self.items.append(
             LayerListing(
@@ -341,8 +329,7 @@ class LayerCollection:
         Add a layer to this collection and set permissions.
         """
 
-        layer_id = self.add_layer(
-            name, description, workflow, symbology, timeout)
+        layer_id = self.add_layer(name, description, workflow, symbology, timeout)
 
         if permission_tuples is not None:
             res = Resource.from_layer_id(layer_id)
@@ -355,8 +342,7 @@ class LayerCollection:
         """Add an existing layer to this collection"""
 
         if self.provider_id != LAYER_DB_PROVIDER_ID:
-            raise ModificationNotOnLayerDbException(
-                "Layer collection is not stored in the layer database")
+            raise ModificationNotOnLayerDbException("Layer collection is not stored in the layer database")
 
         if isinstance(existing_layer, LayerListing):
             layer_id = existing_layer.listing_id
@@ -367,8 +353,7 @@ class LayerCollection:
         else:
             raise InputException("Invalid layer type")
 
-        _add_existing_layer_to_collection(
-            layer_id, self.collection_id, timeout)
+        _add_existing_layer_to_collection(layer_id, self.collection_id, timeout)
 
         child_layer = layer(layer_id, self.provider_id)
 
@@ -387,11 +372,9 @@ class LayerCollection:
         """Add a collection to this collection"""
 
         if self.provider_id != LAYER_DB_PROVIDER_ID:
-            raise ModificationNotOnLayerDbException(
-                "Layer collection is not stored in the layer database")
+            raise ModificationNotOnLayerDbException("Layer collection is not stored in the layer database")
 
-        collection_id = _add_layer_collection_to_collection(
-            name, description, self.collection_id, timeout)
+        collection_id = _add_layer_collection_to_collection(name, description, self.collection_id, timeout)
 
         self.items.append(
             LayerCollectionListing(
@@ -410,8 +393,7 @@ class LayerCollection:
         """Add an existing collection to this collection"""
 
         if self.provider_id != LAYER_DB_PROVIDER_ID:
-            raise ModificationNotOnLayerDbException(
-                "Layer collection is not stored in the layer database")
+            raise ModificationNotOnLayerDbException("Layer collection is not stored in the layer database")
 
         if isinstance(existing_collection, LayerCollectionListing):
             collection_id = existing_collection.listing_id
@@ -495,8 +477,7 @@ class LayerCollection:
                 listings.append(
                     LayerCollectionListing(
                         listing_id=LayerCollectionId(inner.id.collection_id),
-                        provider_id=LayerProviderId(
-                            UUID(inner.id.provider_id)),
+                        provider_id=LayerProviderId(UUID(inner.id.provider_id)),
                         name=inner.name,
                         description=inner.description,
                     )
@@ -505,8 +486,7 @@ class LayerCollection:
                 listings.append(
                     LayerListing(
                         listing_id=LayerId(inner.id.layer_id),
-                        provider_id=LayerProviderId(
-                            UUID(inner.id.provider_id)),
+                        provider_id=LayerProviderId(UUID(inner.id.provider_id)),
                         name=inner.name,
                         description=inner.description,
                     )
@@ -521,18 +501,15 @@ class LayerCollection:
         collection_name: str,
         create_collection_description: str | None = None,
         delete_existing_with_same_name: bool = False,
-        create_permissions_tuples: list[tuple[RoleId,
-                                              Permission]] | None = None,
+        create_permissions_tuples: list[tuple[RoleId, Permission]] | None = None,
     ) -> LayerCollection:
         """
         Get a unique child by name OR if it does not exist create it.
         Removes existing collections with same name if forced!
         Sets permissions if the collection is created from a list of tuples
         """
-        parent_collection = self.reload(
-        )  # reload just to be safe since self's state change on the server
-        existing_collections = parent_collection.get_items_by_name(
-            collection_name)
+        parent_collection = self.reload()  # reload just to be safe since self's state change on the server
+        existing_collections = parent_collection.get_items_by_name(collection_name)
 
         if delete_existing_with_same_name and len(existing_collections) > 0:
             for c in existing_collections:
@@ -540,21 +517,18 @@ class LayerCollection:
                 if isinstance(actual, LayerCollection):
                     actual.remove()
             parent_collection = parent_collection.reload()
-            existing_collections = parent_collection.get_items_by_name(
-                collection_name)
+            existing_collections = parent_collection.get_items_by_name(collection_name)
 
         if len(existing_collections) == 0:
             new_desc = create_collection_description if create_collection_description is not None else collection_name
-            new_collection = parent_collection.add_collection(
-                collection_name, new_desc)
+            new_collection = parent_collection.add_collection(collection_name, new_desc)
             new_ressource = Resource.from_layer_collection_id(new_collection)
 
             if create_permissions_tuples is not None:
                 for role, perm in create_permissions_tuples:
                     add_permission(role, new_ressource, perm)
             parent_collection = parent_collection.reload()
-            existing_collections = parent_collection.get_items_by_name(
-                collection_name)
+            existing_collections = parent_collection.get_items_by_name(collection_name)
 
         if len(existing_collections) == 0:
             raise KeyError(
@@ -562,13 +536,11 @@ class LayerCollection:
             )
 
         if len(existing_collections) > 1:
-            raise KeyError(
-                f"Multiple collections with name {collection_name} exist in {parent_collection.name}")
+            raise KeyError(f"Multiple collections with name {collection_name} exist in {parent_collection.name}")
 
         res = existing_collections[0].load()
         if isinstance(res, Layer):
-            raise TypeError(
-                f"Found a Layer not a Layer collection for {collection_name}")
+            raise TypeError(f"Found a Layer not a Layer collection for {collection_name}")
 
         # we know that it is a collection since check that
         return cast(LayerCollection, existing_collections[0].load())
@@ -676,18 +648,14 @@ class Layer:
 
         # TODO: better representation of workflow, symbology, properties, metadata
         buf.write('<tr><th>workflow</th><td align="left">')
-        buf.write(
-            f"<pre>{json.dumps(self.workflow, indent=4)}{os.linesep}</pre></td></tr>")
+        buf.write(f"<pre>{json.dumps(self.workflow, indent=4)}{os.linesep}</pre></td></tr>")
         buf.write("<tr><th>symbology</th>")
         if self.symbology is None:
             buf.write('<td align="left">None</td></tr>')
         else:
-            buf.write(
-                f'<td align="left"><pre>{self.symbology.to_api_dict().to_json()}{os.linesep}</pre></td></tr>')
-        buf.write(
-            f"<tr><th>properties</th><td>{self.properties}{os.linesep}</td></tr>")
-        buf.write(
-            f"<tr><th>metadata</th><td>{self.metadata}{os.linesep}</td></tr>")
+            buf.write(f'<td align="left"><pre>{self.symbology.to_api_dict().to_json()}{os.linesep}</pre></td></tr>')
+        buf.write(f"<tr><th>properties</th><td>{self.properties}{os.linesep}</td></tr>")
+        buf.write(f"<tr><th>metadata</th><td>{self.metadata}{os.linesep}</td></tr>")
 
         buf.write("</tbody>")
         buf.write("</table>")
@@ -702,8 +670,7 @@ class Layer:
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             layers_api = geoengine_openapi_client.LayersApi(api_client)
-            response = layers_api.layer_to_dataset(
-                str(self.provider_id), str(self.layer_id), _request_timeout=timeout)
+            response = layers_api.layer_to_dataset(str(self.provider_id), str(self.layer_id), _request_timeout=timeout)
 
         return Task(TaskId.from_response(response))
 
@@ -765,8 +732,7 @@ def layer_collection(
             layers_api = geoengine_openapi_client.LayersApi(api_client)
 
             if layer_collection_id is None:
-                page = layers_api.list_root_collections_handler(
-                    offset, page_limit, _request_timeout=timeout)
+                page = layers_api.list_root_collections_handler(offset, page_limit, _request_timeout=timeout)
             else:
                 page = layers_api.list_collection_handler(
                     str(layer_provider_id), layer_collection_id, offset, page_limit, _request_timeout=timeout
@@ -793,8 +759,7 @@ def layer(layer_id: LayerId, layer_provider_id: LayerProviderId = LAYER_DB_PROVI
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         layers_api = geoengine_openapi_client.LayersApi(api_client)
-        response = layers_api.layer_handler(
-            str(layer_provider_id), str(layer_id), _request_timeout=timeout)
+        response = layers_api.layer_handler(str(layer_provider_id), str(layer_id), _request_timeout=timeout)
 
     return Layer.from_response(response)
 
@@ -806,8 +771,7 @@ def _delete_layer_from_collection(collection_id: LayerCollectionId, layer_id: La
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         layers_api = geoengine_openapi_client.LayersApi(api_client)
-        layers_api.remove_layer_from_collection(
-            collection_id, layer_id, _request_timeout=timeout)
+        layers_api.remove_layer_from_collection(collection_id, layer_id, _request_timeout=timeout)
 
 
 def _delete_layer_collection_from_collection(
@@ -819,8 +783,7 @@ def _delete_layer_collection_from_collection(
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         layers_api = geoengine_openapi_client.LayersApi(api_client)
-        layers_api.remove_collection_from_collection(
-            parent_id, collection_id, _request_timeout=timeout)
+        layers_api.remove_collection_from_collection(parent_id, collection_id, _request_timeout=timeout)
 
 
 def _delete_layer_collection(collection_id: LayerCollectionId, timeout: int = 60) -> None:
@@ -863,8 +826,7 @@ def _add_existing_layer_collection_to_collection(
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         layers_api = geoengine_openapi_client.LayersApi(api_client)
-        layers_api.add_existing_collection_to_collection(
-            parent_collection_id, collection_id, _request_timeout=timeout)
+        layers_api.add_existing_collection_to_collection(parent_collection_id, collection_id, _request_timeout=timeout)
 
 
 def _add_layer_to_collection(
@@ -882,8 +844,7 @@ def _add_layer_to_collection(
     if isinstance(workflow, WorkflowBuilderOperator):
         workflow = workflow.to_workflow_dict()
 
-    symbology_dict = symbology.to_api_dict(
-    ) if symbology is not None and isinstance(symbology, Symbology) else None
+    symbology_dict = symbology.to_api_dict() if symbology is not None and isinstance(symbology, Symbology) else None
 
     session = get_session()
 
@@ -907,5 +868,4 @@ def _add_existing_layer_to_collection(layer_id: LayerId, collection_id: LayerCol
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         layers_api = geoengine_openapi_client.LayersApi(api_client)
-        layers_api.add_existing_layer_to_collection(
-            collection_id, layer_id, _request_timeout=timeout)
+        layers_api.add_existing_layer_to_collection(collection_id, layer_id, _request_timeout=timeout)

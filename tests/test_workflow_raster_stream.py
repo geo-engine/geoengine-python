@@ -28,8 +28,7 @@ class MockWebsocket:
 
         for time in [datetime(2014, 1, 1, 0, 0, 0), datetime(2014, 1, 2, 0, 0, 0)]:
             for tiles in read_data():
-                self.__tiles.append(arrow_bytes(
-                    tiles, ge.TimeInterval(start=time), 0))
+                self.__tiles.append(arrow_bytes(tiles, ge.TimeInterval(start=time), 0))
 
     async def __aenter__(self):
         return self
@@ -134,29 +133,19 @@ class WorkflowRasterStreamTests(unittest.TestCase):
                 spatial_grid=ge.SpatialGridDescriptor(
                     descriptor="source",
                     spatial_grid=ge.SpatialGridDefinition(
-                        geo_transform=ge.GeoTransform(
-                            x_min=-180.0,
-                            y_max=90.0,
-                            y_pixel_size=-22.5,
-                            x_pixel_size=45.0
-                        ),
+                        geo_transform=ge.GeoTransform(x_min=-180.0, y_max=90.0, y_pixel_size=-22.5, x_pixel_size=45.0),
                         grid_bounds=ge.GridBoundingBox2D(
-                            top_left_idx=ge.GridIdx2D(x_idx=0, y_idx=0),
-                            bottom_right_idx=(7, 7)
-                        )
-                    )
-                )
-
-
+                            top_left_idx=ge.GridIdx2D(x_idx=0, y_idx=0), bottom_right_idx=(7, 7)
+                        ),
+                    ),
+                ),
             ),
         ):
-            workflow = ge.Workflow(
-                UUID("00000000-0000-0000-0000-000000000000"))
+            workflow = ge.Workflow(UUID("00000000-0000-0000-0000-000000000000"))
 
         query_rect = ge.QueryRectangle(
             spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
-            time_interval=ge.TimeInterval(
-                datetime(2014, 1, 1, 0, 0, 0), datetime(2014, 1, 3, 0, 0, 0)),
+            time_interval=ge.TimeInterval(datetime(2014, 1, 1, 0, 0, 0), datetime(2014, 1, 3, 0, 0, 0)),
         )
 
         with unittest.mock.patch("websockets.asyncio.client.connect", return_value=MockWebsocket()):
@@ -177,13 +166,11 @@ class WorkflowRasterStreamTests(unittest.TestCase):
                 array = await workflow.raster_stream_into_xarray(query_rect)
                 assert array.shape == (2, 1, 8, 8)  # time, band, y, x
 
-                original_array = rioxarray.open_rasterio(
-                    "tests/responses/ndvi.tiff").isel(band=0, drop=True)
+                original_array = rioxarray.open_rasterio("tests/responses/ndvi.tiff").isel(band=0, drop=True)
 
                 # Let's check that the output is the same as if we would
                 # have read the whole raster with rioxarray
 
-                assert array.isel({"band": 0, "time": 0},
-                                  drop=True).equals(original_array)
+                assert array.isel({"band": 0, "time": 0}, drop=True).equals(original_array)
 
             asyncio.run(inner2())

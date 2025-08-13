@@ -7,8 +7,15 @@ import numpy as np
 import rasterio as rio
 
 from geoengine.raster import ge_type_to_np
-from geoengine.types import RasterResultDescriptor, TimeInterval
-from geoengine.workflow import QueryRectangleWithResolution, Workflow
+from geoengine.types import (
+    GeoTransform,
+    QueryRectangle,
+    RasterBandDescriptor,
+    RasterQueryRectangle,
+    RasterResultDescriptor,
+    TimeInterval,
+)
+from geoengine.workflow import Workflow
 
 # pylint: disable=too-many-instance-attributes
 
@@ -22,7 +29,7 @@ class RasterWorkflowRioWriter:
 
     current_dataset: rio.io.DatasetWriter | None = None
     current_time: TimeInterval | None = None
-    dataset_geo_transform = None
+    dataset_geo_transform: GeoTransform | None = None
     dataset_width = None
     dataset_height = None
     dataset_data_type = np.dtype
@@ -30,7 +37,8 @@ class RasterWorkflowRioWriter:
 
     dataset_prefix = None
     workflow: Workflow | None = None
-    bands = None
+    bands: list[RasterBandDescriptor]
+    geo_transform: GeoTransform
     no_data_value = 0
     time_format = "%Y-%m-%d_%H-%M-%S"
 
@@ -50,6 +58,7 @@ class RasterWorkflowRioWriter:
 
         ras_res = cast(RasterResultDescriptor,
                        self.workflow.get_result_descriptor())
+        self.geo_transform = ras_res.spatial_grid.spatial_grid.geo_transform
         dt = ge_type_to_np(ras_res.data_type)
         self.dataset_data_type = dt if data_type is None else data_type
         self.bands = ras_res.bands
@@ -65,63 +74,41 @@ class RasterWorkflowRioWriter:
 
     # pylint: disable=too-many-locals, too-many-statements
 
-    def create_tiling_geo_transform_width_height(self, query: QueryRectangleWithResolution):
+    def create_gdal_geo_transform_width_height(self, query: QueryRectangle):
         """Create the tiling geo transform, width and height for the current query."""
 
-        ul_x = query.spatial_bounds.xmin
-        ul_y = query.spatial_bounds.ymax
-        lr_x = query.spatial_bounds.xmax
-        lr_y = query.spatial_bounds.ymin
-        res_x = query.spatial_resolution.x_resolution
-        res_y = query.spatial_resolution.y_resolution * - \
-            1  # honor the fact that the y axis is flipped
+        query_grid_bounds = self.geo_transform.spatial_to_grid_bounds(
+            query.spatial_bounds)
 
-        assert res_y < 0, "The y resolution must be negative"
+        query_top_left_px = query_grid_bounds.top_left_idx
+        query_bottom_right_px = query_grid_bounds.bottom_right_idx
 
-        assert ul_x < lr_x, "The upper left x coordinate must be smaller than the lower right x coordinate"
-        assert ul_y > lr_y, "The upper left y coordinate must be greater than the lower right y coordinate"
+        x_min = query_top_left_px.x_idx
+        if x_min % self.tile_size != 0:
+            x_min = int((x_min // self.tile_size - 1) * self.tile_size)
+        x_max = query_bottom_right_px.x_idx
+        if x_max % self.tile_size != 0:
+            x_max = int((x_max // self.tile_size + 1) * self.tile_size)
 
-        ul_pixel_x = ul_x / res_x  # we can assume that the global origin is 0,0
-        ul_pixel_y = ul_y / res_y
-        lr_pixel_x = lr_x / res_x
-        lr_pixel_y = lr_y / res_y
+        y_max = query_top_left_px.y_idx
+        if y_max % self.tile_size != 0:
+            y_max = int((y_max // self.tile_size + 1) * self.tile_size)
+        y_min = query_bottom_right_px.y_idx
+        if y_min % self.tile_size != 0:
+            y_min = int((y_min // self.tile_size - 1) * self.tile_size)
 
-        assert ul_pixel_x < lr_pixel_x, "The upper left pixel x must be smaller than the lower right pixel x"
-        assert ul_pixel_y < lr_pixel_y, "The upper left pixel y must be smaller than the lower right pixel y"
-
-        tiling_ul_pixel_x = (ul_pixel_x // self.tile_size) * self.tile_size
-        if ul_pixel_x % self.tile_size != 0:
-            tiling_ul_pixel_x = (
-                (ul_pixel_x // self.tile_size) - 1) * self.tile_size
-
-        tiling_ul_pixel_y = (ul_pixel_y // self.tile_size) * self.tile_size
-        if ul_pixel_y % self.tile_size != 0:
-            tiling_ul_pixel_y = (
-                (ul_pixel_y // self.tile_size) - 1) * self.tile_size
-
-        assert tiling_ul_pixel_x <= ul_pixel_x, "Tiling upper left x pixel must be smaller than upper left x coordinate"
-        assert tiling_ul_pixel_y <= ul_pixel_y, "Tiling upper left y pixel must be smaller than upper left y coordinate"
-
-        width = int(lr_pixel_x - tiling_ul_pixel_x)
-        if width % self.tile_size != 0:
-            width = int((width // self.tile_size + 1) * self.tile_size)
-        assert width > 0, "The width must be greater than 0"
-
-        height = int(lr_pixel_y - tiling_ul_pixel_y)
-        if height % self.tile_size != 0:
-            height = int((height // self.tile_size + 1) * self.tile_size)
-        assert height > 0, "The height must be greater than 0"
+        width = abs(x_max - x_min)
+        height = abs(y_max - y_min)
 
         assert width % self.tile_size == 0, "The width must be a multiple of the tile size"
         assert height % self.tile_size == 0, "The height must be a multiple of the tile size"
 
-        tiling_ul_x_coord = tiling_ul_pixel_x * res_x
-        tiling_ul_y_coord = tiling_ul_pixel_y * res_y
-        assert tiling_ul_x_coord <= ul_x, "Tiling upper left x coordinate must be smaller than upper left x coordinate"
-        assert tiling_ul_y_coord >= ul_y, "Tiling upper left y coordinate must be greater than upper left y coordinate"
+        [dataset_origin_x, dataset_origin_y] = self.geo_transform.pixel_ul_to_coord(
+            x_pixel=x_min, y_pixel=y_max)
 
-        geo_transform = [tiling_ul_x_coord, res_x,
-                         0.0, tiling_ul_y_coord, 0.0, res_y]
+        geo_transform = GeoTransform(
+            dataset_origin_x, dataset_origin_y, self.geo_transform.x_pixel_size, self.geo_transform.y_pixel_size
+        )
 
         if self.dataset_geo_transform is None:
             self.dataset_geo_transform = geo_transform
@@ -138,35 +125,35 @@ class RasterWorkflowRioWriter:
         else:
             assert self.dataset_height == height, "The height of the current dataset does not match the new one"
 
-    def __create_new_dataset(self, query: QueryRectangleWithResolution):
+    def __create_new_dataset(self, query: RasterQueryRectangle):
         """Create a new dataset for the current query."""
 
         assert self.current_time is not None, "The current time must be set"
         time_formated_start = self.current_time.start.astype(
             datetime).strftime(self.time_format)
-        width = self.dataset_width
-        height = self.dataset_height
-        geo_transform = self.dataset_geo_transform
-        assert geo_transform is not None
+        assert self.dataset_geo_transform is not None, "Dataset GeoTransform not set"
         affine_transform = rio.Affine.from_gdal(
-            geo_transform[0], geo_transform[1], geo_transform[2], geo_transform[3], geo_transform[4], geo_transform[5]
-        )
+            *self.dataset_geo_transform.to_gdal())
         if self.print_info:
             print(
                 f"Creating dataset {self.dataset_prefix}{time_formated_start}.tif"
-                f" with width {width}, height {height}, geo_transform {geo_transform}"
+                f" with width {self.dataset_width}, height {self.dataset_height}, \
+                      geo_transform {self.dataset_geo_transform}"
                 f" rio kwargs: {self.rio_kwargs}"
             )
-        assert self.bands is not None, "The bands must be set"
-        number_of_bands = len(self.bands)
+        assert self.bands is not None, "The bands of the ResultDescriptor must be set"
+
+        dataset_bands = [self.bands[db] for db in query.raster_bands]
+
+        number_of_bands = len(dataset_bands)
         dataset_data_type = self.dataset_data_type
         file_path = f"{self.dataset_prefix}{time_formated_start}.tif"
         rio_dataset = rio.open(
             file_path,
             "w",
             driver=self.gdal_driver,
-            width=width,
-            height=height,
+            width=self.dataset_width,
+            height=self.dataset_height,
             count=number_of_bands,
             crs=query.srs,
             transform=affine_transform,
@@ -175,14 +162,14 @@ class RasterWorkflowRioWriter:
             **self.rio_kwargs,
         )
 
-        for i, b in enumerate(self.bands, start=1):
+        for i, b in enumerate(dataset_bands, start=1):
             b_n = b.name
             b_m = str(b.measurement)
             rio_dataset.update_tags(i, band_name=b_n, band_measurement=b_m)
 
         self.current_dataset = rio_dataset
 
-    async def query_and_write(self, query: QueryRectangleWithResolution, skip_empty_times=True):
+    async def query_and_write(self, query: RasterQueryRectangle, skip_empty_times=True):
         """
         Query the raster workflow and write the resulting tiles to a GDAL dataset per timeslice.
 
@@ -190,14 +177,11 @@ class RasterWorkflowRioWriter:
         :param skip_empty_times: Skip timeslices where all pixels are empty/nodata
         """
 
-        self.create_tiling_geo_transform_width_height(query)
-
-        assert self.bands is not None, "The bands must be set"
-        bands = list(range(0, len(self.bands)))
+        self.create_gdal_geo_transform_width_height(query)
 
         assert self.workflow is not None, "The workflow must be set"
         try:
-            async for tile in self.workflow.raster_stream(query, bands=bands):
+            async for tile in self.workflow.raster_stream(query):
                 if self.current_time != tile.time:
                     self.close_current_dataset()
                     self.current_time = tile.time
@@ -211,13 +195,8 @@ class RasterWorkflowRioWriter:
                 assert self.current_time == tile.time, "The time of the current dataset does not match the tile"
                 assert self.dataset_geo_transform is not None, "The geo transform must be set"
 
-                tile_ul_x = int(
-                    (tile.geo_transform.x_min -
-                     self.dataset_geo_transform[0]) / self.dataset_geo_transform[1]
-                )
-                tile_ul_y = int(
-                    (tile.geo_transform.y_max -
-                     self.dataset_geo_transform[3]) / self.dataset_geo_transform[5]
+                tile_px_idx = self.dataset_geo_transform.coord_to_pixel_ul(
+                    tile.geo_transform.x_min, tile.geo_transform.y_max
                 )
 
                 band_index = tile.band + 1
@@ -225,7 +204,7 @@ class RasterWorkflowRioWriter:
 
                 assert self.tile_size == tile.size_x == tile.size_y, "Tile size does not match the expected size"
                 window = rio.windows.Window(
-                    tile_ul_x, tile_ul_y, tile.size_x, tile.size_y)
+                    tile_px_idx.x_idx, tile_px_idx.y_idx, tile.size_x, tile.size_y)
                 assert self.current_dataset is not None, "Dataset must be open."
                 self.current_dataset.write(
                     data, window=window, indexes=band_index)

@@ -34,53 +34,39 @@ class WmsTests(unittest.TestCase):
         ):
             m.post(
                 "http://mock-instance/anonymous",
-                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
-                      "project": None, "view": None},
+                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081", "project": None, "view": None},
             )
 
             m.post(
                 "http://mock-instance/workflow",
                 json={"id": "5b9508a8-bd34-5a1c-acd6-75bb832d2d38"},
-                request_headers={
-                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
-            m.get('http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata',
-                  json={
-                      "type": "raster",
-                      "dataType": "U8",
-                      "spatialReference": "EPSG:4326",
-                      "bands": [{
-                          "name": "band",
-                          "measurement": {
-                                "type": "unitless"
-                                }
-                      }],
-                      "spatialGrid": {
-                          "descriptor": "source",
-                          "spatialGrid": {
-                              "geoTransform": {
-                                  "originCoordinate": {
-                                      "x": 0.0,
-                                      "y": 0.0
-                                  },
-                                  "xPixelSize": 1.0,
-                                  "yPixelSize": -1.0
-                              },
-                              "gridBounds": {
-                                  "topLeftIdx": {
-                                      "xIdx": 0,
-                                      "yIdx": 0
-                                  },
-                                  "bottomRightIdx": {
-                                      "xIdx": 10,
-                                      "yIdx": 20
-                                  }
-                              }
-                          }
-                      }
-                  },
-                  request_headers={'Authorization': 'Bearer c4983c3e-9b53-47ae-bda9-382223bd5081'})
+            m.get(
+                "http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata",
+                json={
+                    "type": "raster",
+                    "dataType": "U8",
+                    "spatialReference": "EPSG:4326",
+                    "bands": [{"name": "band", "measurement": {"type": "unitless"}}],
+                    "spatialGrid": {
+                        "descriptor": "source",
+                        "spatialGrid": {
+                            "geoTransform": {
+                                "originCoordinate": {"x": 0.0, "y": 0.0},
+                                "xPixelSize": 1.0,
+                                "yPixelSize": -1.0,
+                            },
+                            "gridBounds": {
+                                "topLeftIdx": {"xIdx": 0, "yIdx": 0},
+                                "bottomRightIdx": {"xIdx": 10, "yIdx": 20},
+                            },
+                        },
+                    },
+                },
+                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+            )
 
             m.get("http://epsg.io/4326.gml?download", body=epsg4326_gml)
 
@@ -108,22 +94,17 @@ class WmsTests(unittest.TestCase):
                 },
             }
 
-            time = datetime.strptime(
-                "2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
+            time = datetime.strptime("2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
             img = workflow.wms_get_map_as_image(
-                ge.QueryRectangleWithResolution(
-                    ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
-                    ge.TimeInterval(time),
-                    resolution=ge.SpatialResolution(1.8, 1.8),
-                ),
+                ge.QueryRectangle(ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0), ge.TimeInterval(time)),
                 raster_colorizer=SingleBandRasterColorizer(
                     band=0,
-                    band_colorizer=Colorizer.linear_with_mpl_cmap(
-                        color_map="gray", min_max=(0.0, 255.0), n_steps=2),
+                    band_colorizer=Colorizer.linear_with_mpl_cmap(color_map="gray", min_max=(0.0, 255.0), n_steps=2),
                 ),
+                spatial_resolution=ge.SpatialResolution(1.8, 1.8),
             )
 
             self.assertEqual(img, Image.open("tests/responses/wms-ndvi.png"))
@@ -146,66 +127,59 @@ class WmsTests(unittest.TestCase):
                     provenance=None,
                 ),
                 meta_data=geoengine_openapi_client.MetaDataDefinition(
-                    geoengine_openapi_client.GdalMetaDataStatic.from_dict({
-                        "type": "GdalStatic",
-                        "time": None,
-                        "params": geoengine_openapi_client.GdalDatasetParameters.from_dict({
-                            "filePath": "does_not_exist",
-                            "rasterbandChannel": 1,
-                            "geoTransform": {
-                                "originCoordinate": {
-                                    "x": -180.0,
-                                    "y": 90.0
-                                },
-                                "xPixelSize": 0.1,
-                                "yPixelSize": -0.1
-                            },
-                            "width": 3600,
-                            "height": 1800,
-                            "fileNotFoundHandling": geoengine_openapi_client.FileNotFoundHandling.ERROR,  # !!!
-                            "noDataValue": None,
-                            "propertiesMapping": None,
-                            "gdalOpenOptions": None,
-                            "gdalConfigOptions": None,
-                            "allowAlphabandAsMask": True
-                        }),
-                        "resultDescriptor": ge.RasterResultDescriptor(
-                            "U8",
-                            [RasterBandDescriptor(
-                                "band", ge.UnitlessMeasurement())],
-                            "EPSG:4326",
-                            spatial_grid=SpatialGridDescriptor(
-                                spatial_grid=SpatialGridDefinition(
-                                    geo_transform=ge.GeoTransform(
-                                        x_min=-180.0,
-                                        y_max=90.0,
-                                        x_pixel_size=0.1,
-                                        y_pixel_size=-0.1
+                    geoengine_openapi_client.GdalMetaDataStatic.from_dict(
+                        {
+                            "type": "GdalStatic",
+                            "time": None,
+                            "params": geoengine_openapi_client.GdalDatasetParameters.from_dict(
+                                {
+                                    "filePath": "does_not_exist",
+                                    "rasterbandChannel": 1,
+                                    "geoTransform": {
+                                        "originCoordinate": {"x": -180.0, "y": 90.0},
+                                        "xPixelSize": 0.1,
+                                        "yPixelSize": -0.1,
+                                    },
+                                    "width": 3600,
+                                    "height": 1800,
+                                    "fileNotFoundHandling": geoengine_openapi_client.FileNotFoundHandling.ERROR,  # !!!
+                                    "noDataValue": None,
+                                    "propertiesMapping": None,
+                                    "gdalOpenOptions": None,
+                                    "gdalConfigOptions": None,
+                                    "allowAlphabandAsMask": True,
+                                }
+                            ),
+                            "resultDescriptor": ge.RasterResultDescriptor(
+                                "U8",
+                                [RasterBandDescriptor("band", ge.UnitlessMeasurement())],
+                                "EPSG:4326",
+                                spatial_grid=SpatialGridDescriptor(
+                                    spatial_grid=SpatialGridDefinition(
+                                        geo_transform=ge.GeoTransform(
+                                            x_min=-180.0, y_max=90.0, x_pixel_size=0.1, y_pixel_size=-0.1
+                                        ),
+                                        grid_bounds=ge.GridBoundingBox2D(
+                                            top_left_idx=ge.GridIdx2D(0, 0), bottom_right_idx=ge.GridIdx2D(1800, 3600)
+                                        ),
                                     ),
-                                    grid_bounds=ge.GridBoundingBox2D(
-                                        top_left_idx=ge.GridIdx2D(0, 0),
-                                        bottom_right_idx=ge.GridIdx2D(
-                                            1800, 3600)
-                                    )
+                                    descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE,
                                 ),
-                                descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE
                             )
-                        ).to_api_dict().to_dict(),
-                    })
-                )
+                            .to_api_dict()
+                            .to_dict(),
+                        }
+                    )
+                ),
             )
 
-            workflow = ge.register_workflow(
-                ge.workflow_builder.operators.GdalSource(dataset_name))
+            workflow = ge.register_workflow(ge.workflow_builder.operators.GdalSource(dataset_name))
 
             with self.assertRaises(ge.OGCXMLError) as ctx:
                 workflow.wms_get_map_as_image(
-                    ge.QueryRectangleWithResolution(
-                        spatial_bounds=ge.BoundingBox2D(-18.0, -
-                                                        9.0, 18.0, 9.0),
-                        time_interval=ge.TimeInterval(
-                            np.datetime64('2004-04-01T12:00:00')),
-                        resolution=ge.SpatialResolution(0.1, 0.1)
+                    ge.QueryRectangle(
+                        spatial_bounds=ge.BoundingBox2D(-18.0, -9.0, 18.0, 9.0),
+                        time_interval=ge.TimeInterval(np.datetime64("2004-04-01T12:00:00")),
                     ),
                     raster_colorizer=SingleBandRasterColorizer(
                         band=0,
@@ -213,8 +187,11 @@ class WmsTests(unittest.TestCase):
                             color_map="gray", min_max=(0.0, 255.0), n_steps=2
                         ),
                     ),
+                    spatial_resolution=ge.SpatialResolution(0.1, 0.1),
                 )
 
-                self.assertEqual(str(ctx.exception),
-                                 'OGC API error: \n        Could not open gdal dataset for file path '
-                                 '"test_data/does_not_exist"\n    ')
+                self.assertEqual(
+                    str(ctx.exception),
+                    "OGC API error: \n        Could not open gdal dataset for file path "
+                    '"test_data/does_not_exist"\n    ',
+                )
