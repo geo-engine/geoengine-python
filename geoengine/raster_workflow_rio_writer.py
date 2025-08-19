@@ -10,7 +10,6 @@ from geoengine.raster import ge_type_to_np
 from geoengine.types import (
     GeoTransform,
     QueryRectangle,
-    RasterBandDescriptor,
     RasterQueryRectangle,
     RasterResultDescriptor,
     TimeInterval,
