@@ -54,8 +54,7 @@ class RasterWorkflowRioWriter:
         self.no_data_value = no_data_value
         self.print_info = print_info
 
-        ras_res = cast(RasterResultDescriptor,
-                       self.workflow.get_result_descriptor())
+        ras_res = cast(RasterResultDescriptor, self.workflow.get_result_descriptor())
         self.result_descriptor = ras_res
         dt = ge_type_to_np(ras_res.data_type)
         self.dataset_data_type = dt if data_type is None else data_type
@@ -76,10 +75,8 @@ class RasterWorkflowRioWriter:
         """Create the tiling geo transform, width and height for the current query."""
 
         geo_transform = self.result_descriptor.geo_transform
-        valid_bounds = query.spatial_bounds.intersection(
-            self.result_descriptor.spatial_bounds.to_bounding_box())
-        grid_bounds = geo_transform.spatial_to_grid_bounds(
-            valid_bounds)
+        valid_bounds = query.spatial_bounds.intersection(self.result_descriptor.spatial_bounds.to_bounding_box())
+        grid_bounds = geo_transform.spatial_to_grid_bounds(valid_bounds)
 
         width = grid_bounds.width
         height = grid_bounds.height
@@ -107,11 +104,9 @@ class RasterWorkflowRioWriter:
         """Create a new dataset for the current query."""
 
         assert self.current_time is not None, "The current time must be set"
-        time_formated_start = self.current_time.start.astype(
-            datetime).strftime(self.time_format)
+        time_formated_start = self.current_time.start.astype(datetime).strftime(self.time_format)
         assert self.dataset_geo_transform is not None, "Dataset GeoTransform not set"
-        affine_transform = rio.Affine.from_gdal(
-            *self.dataset_geo_transform.to_gdal())
+        affine_transform = rio.Affine.from_gdal(*self.dataset_geo_transform.to_gdal())
         if self.print_info:
             print(
                 f"Creating dataset {self.dataset_prefix}{time_formated_start}.tif"
@@ -199,19 +194,18 @@ class RasterWorkflowRioWriter:
                 band_index = tile.band + 1
                 data = tile.to_numpy_data_array(self.no_data_value)
 
-                data_crop = data[crop_ul_y:self.tile_size +
-                                 crop_lr_y, crop_ul_x:self.tile_size + crop_lr_x]
+                data_crop = data[crop_ul_y : self.tile_size + crop_lr_y, crop_ul_x : self.tile_size + crop_lr_x]
 
                 assert self.tile_size == tile.size_x == tile.size_y, "Tile size does not match the expected size"
                 window = rio.windows.Window(
                     ul_tile_px_idx.x_idx + crop_ul_x,
                     ul_tile_px_idx.y_idx + crop_ul_y,
                     data_crop.shape[1],
-                    data_crop.shape[0])
+                    data_crop.shape[0],
+                )
 
                 assert self.current_dataset is not None, "Dataset must be open."
-                self.current_dataset.write(
-                    data_crop, window=window, indexes=band_index)
+                self.current_dataset.write(data_crop, window=window, indexes=band_index)
         except Exception as inner_e:
             raise RuntimeError("Exception when waiting for tiles") from inner_e
 
