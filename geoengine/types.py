@@ -83,6 +83,14 @@ class BoundingBox2D(SpatialBounds):
             ),
         )
 
+    def intersection(self, other: BoundingBox2D) -> BoundingBox2D:
+        return BoundingBox2D(
+            min(self.xmin, other.xmin),
+            min(self.ymin, other.ymin),
+            max(self.xmax, other.xmax),
+            max(self.ymax, other.ymax)
+        )
+
     @staticmethod
     def from_response(response: geoengine_openapi_client.BoundingBox2D) -> BoundingBox2D:
         """create a `BoundingBox2D` from an API response"""
@@ -731,6 +739,14 @@ class GridBoundingBox2D:
             bottom_right_idx=self.bottom_right_idx.to_api_dict(),
         )
 
+    @property
+    def width(self) -> int:
+        return abs(self.bottom_right_idx.x_idx - self.top_left_idx.x_idx)
+
+    @property
+    def height(self) -> int:
+        return abs(self.top_left_idx.y_idx - self.bottom_right_idx.y_idx)
+
     def contains_idx(self, idx: GridIdx2D) -> bool:
         """Test if a `GridIdx2D` is contained by this"""
         contains_x = self.top_left_idx.x_idx <= idx.x_idx <= self.bottom_right_idx.x_idx
@@ -926,6 +942,10 @@ class RasterResultDescriptor(ResultDescriptor):
     @property
     def spatial_bounds(self) -> SpatialPartition2D:
         return self.spatial_grid.spatial_bounds()
+
+    @property
+    def geo_transform(self) -> GeoTransform:
+        return self.spatial_grid.spatial_grid.geo_transform
 
     @property
     def spatial_reference(self) -> str:

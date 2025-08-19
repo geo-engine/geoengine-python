@@ -37,8 +37,7 @@ class RasterWorkflowRioWriter:
 
     dataset_prefix = None
     workflow: Workflow | None = None
-    bands: list[RasterBandDescriptor]
-    geo_transform: GeoTransform
+    result_descriptor: RasterResultDescriptor
     no_data_value = 0
     time_format = "%Y-%m-%d_%H-%M-%S"
 
@@ -58,7 +57,7 @@ class RasterWorkflowRioWriter:
 
         ras_res = cast(RasterResultDescriptor,
                        self.workflow.get_result_descriptor())
-        self.geo_transform = ras_res.spatial_grid.spatial_grid.geo_transform
+        self.result_descriptor = ras_res
         dt = ge_type_to_np(ras_res.data_type)
         self.dataset_data_type = dt if data_type is None else data_type
         self.bands = ras_res.bands
@@ -77,37 +76,17 @@ class RasterWorkflowRioWriter:
     def create_gdal_geo_transform_width_height(self, query: QueryRectangle):
         """Create the tiling geo transform, width and height for the current query."""
 
-        query_grid_bounds = self.geo_transform.spatial_to_grid_bounds(
-            query.spatial_bounds)
+        geo_transform = self.result_descriptor.geo_transform
+        valid_bounds = query.spatial_bounds.intersection(
+            self.result_descriptor.spatial_bounds.to_bounding_box())
+        grid_bounds = geo_transform.spatial_to_grid_bounds(
+            valid_bounds)
 
-        query_top_left_px = query_grid_bounds.top_left_idx
-        query_bottom_right_px = query_grid_bounds.bottom_right_idx
-
-        x_min = query_top_left_px.x_idx
-        if x_min % self.tile_size != 0:
-            x_min = int((x_min // self.tile_size - 1) * self.tile_size)
-        x_max = query_bottom_right_px.x_idx
-        if x_max % self.tile_size != 0:
-            x_max = int((x_max // self.tile_size + 1) * self.tile_size)
-
-        y_max = query_top_left_px.y_idx
-        if y_max % self.tile_size != 0:
-            y_max = int((y_max // self.tile_size + 1) * self.tile_size)
-        y_min = query_bottom_right_px.y_idx
-        if y_min % self.tile_size != 0:
-            y_min = int((y_min // self.tile_size - 1) * self.tile_size)
-
-        width = abs(x_max - x_min)
-        height = abs(y_max - y_min)
-
-        assert width % self.tile_size == 0, "The width must be a multiple of the tile size"
-        assert height % self.tile_size == 0, "The height must be a multiple of the tile size"
-
-        [dataset_origin_x, dataset_origin_y] = self.geo_transform.pixel_ul_to_coord(
-            x_pixel=x_min, y_pixel=y_max)
+        width = grid_bounds.width
+        height = grid_bounds.height
 
         geo_transform = GeoTransform(
-            dataset_origin_x, dataset_origin_y, self.geo_transform.x_pixel_size, self.geo_transform.y_pixel_size
+            valid_bounds.xmin, valid_bounds.ymax, geo_transform.x_pixel_size, geo_transform.y_pixel_size
         )
 
         if self.dataset_geo_transform is None:
@@ -125,7 +104,7 @@ class RasterWorkflowRioWriter:
         else:
             assert self.dataset_height == height, "The height of the current dataset does not match the new one"
 
-    def __create_new_dataset(self, query: RasterQueryRectangle):
+    def __create_new_dataset(self, query: RasterQueryRectangle | QueryRectangle):
         """Create a new dataset for the current query."""
 
         assert self.current_time is not None, "The current time must be set"
@@ -143,7 +122,11 @@ class RasterWorkflowRioWriter:
             )
         assert self.bands is not None, "The bands of the ResultDescriptor must be set"
 
-        dataset_bands = [self.bands[db] for db in query.raster_bands]
+        raster_band_idxs = list(range(0, len(self.bands)))
+        if isinstance(query, RasterQueryRectangle):
+            raster_band_idxs = query.raster_bands
+
+        dataset_bands = [self.bands[db] for db in raster_band_idxs]
 
         number_of_bands = len(dataset_bands)
         dataset_data_type = self.dataset_data_type
@@ -194,20 +177,42 @@ class RasterWorkflowRioWriter:
 
                 assert self.current_time == tile.time, "The time of the current dataset does not match the tile"
                 assert self.dataset_geo_transform is not None, "The geo transform must be set"
+                assert self.dataset_height is not None
+                assert self.dataset_width is not None
 
-                tile_px_idx = self.dataset_geo_transform.coord_to_pixel_ul(
+                ul_tile_px_idx = self.dataset_geo_transform.coord_to_pixel_ul(
                     tile.geo_transform.x_min, tile.geo_transform.y_max
                 )
+
+                lr_tile_px_x = ul_tile_px_idx.x_idx + self.tile_size
+                lr_tile_px_y = ul_tile_px_idx.y_idx + self.tile_size
+
+                assert ul_tile_px_idx.x_idx < self.dataset_width, "The tile must intersect the dataset (a)"
+                assert ul_tile_px_idx.y_idx < self.dataset_height, "The tile must intersect the dataset (b)"
+                assert lr_tile_px_x > 0, "The tile must intersect the dataset (c)"
+                assert lr_tile_px_y > 0, "The tile must intersect the dataset (d)"
+
+                crop_ul_x = 0 if ul_tile_px_idx.x_idx > 0 else -ul_tile_px_idx.x_idx
+                crop_ul_y = 0 if ul_tile_px_idx.y_idx > 0 else -ul_tile_px_idx.y_idx
+                crop_lr_x = 0 if lr_tile_px_x < self.dataset_width else self.dataset_width - lr_tile_px_x
+                crop_lr_y = 0 if lr_tile_px_y < self.dataset_height else self.dataset_height - lr_tile_px_y
 
                 band_index = tile.band + 1
                 data = tile.to_numpy_data_array(self.no_data_value)
 
+                data_crop = data[crop_ul_y:self.tile_size +
+                                 crop_lr_y, crop_ul_x:self.tile_size + crop_lr_x]
+
                 assert self.tile_size == tile.size_x == tile.size_y, "Tile size does not match the expected size"
                 window = rio.windows.Window(
-                    tile_px_idx.x_idx, tile_px_idx.y_idx, tile.size_x, tile.size_y)
+                    ul_tile_px_idx.x_idx + crop_ul_x,
+                    ul_tile_px_idx.y_idx + crop_ul_y,
+                    data_crop.shape[1],
+                    data_crop.shape[0])
+
                 assert self.current_dataset is not None, "Dataset must be open."
                 self.current_dataset.write(
-                    data, window=window, indexes=band_index)
+                    data_crop, window=window, indexes=band_index)
         except Exception as inner_e:
             raise RuntimeError("Exception when waiting for tiles") from inner_e
 

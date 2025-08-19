@@ -50,6 +50,7 @@ from geoengine.types import (
     QueryRectangle,
     RasterColorizer,
     RasterQueryRectangle,
+    RasterResultDescriptor,
     ResultDescriptor,
     SpatialPartition2D,
     SpatialResolution,
@@ -641,7 +642,7 @@ class Workflow:
 
     async def raster_stream(
         self,
-        query_rectangle: RasterQueryRectangle,
+        query_rectangle: QueryRectangle | RasterQueryRectangle,
         open_timeout: int = 60,
     ) -> AsyncIterator[RasterTile2D]:
         """Stream the workflow result as series of RasterTile2D (transformable to numpy and xarray)"""
@@ -649,6 +650,15 @@ class Workflow:
         # Currently, it only works for raster results
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
+
+        result_descriptor = cast(
+            RasterResultDescriptor, self.__result_descriptor)
+
+        if not isinstance(query_rectangle, RasterQueryRectangle):
+            query_rectangle = query_rectangle.with_raster_bands(
+                # TODO: all bands or first band?
+                list(range(0, len(result_descriptor.bands)))
+            )
 
         session = get_session()
 
