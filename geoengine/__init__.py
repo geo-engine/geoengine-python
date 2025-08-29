@@ -36,7 +36,7 @@ from .colorizer import Colorizer, ColorBreakpoint, LinearGradientColorizer, Pale
     LogarithmicGradientColorizer
 from .datasets import upload_dataframe, StoredDataset, add_dataset, volumes, AddDatasetProperties, \
     delete_dataset, list_datasets, DatasetListOrder, OgrSourceDatasetTimeType, OgrOnError, \
-    add_or_replace_dataset_with_permissions, dataset_info_by_name
+    add_or_replace_dataset_with_permissions, dataset_info_by_name, OgrSourceTimeFormat
 
 
 DEFAULT_USER_AGENT = f'geoengine-python/{geoengine_openapi_client.__version__}'

@@ -223,7 +223,7 @@ class StartEndOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceDatasetTimeType:
         return geoengine_openapi_client.OgrSourceDatasetTimeType(
             geoengine_openapi_client.OgrSourceDatasetTimeTypeStartEnd(
-                type="startEnd",
+                type="start+end",
                 start_field=self.start_field,
                 start_format=self.start_format.to_api_dict(),
                 end_field=self.end_field,
@@ -243,7 +243,7 @@ class StartDurationOgrSourceDatasetTimeType(OgrSourceDatasetTimeType):
     def to_api_dict(self) -> geoengine_openapi_client.OgrSourceDatasetTimeType:
         return geoengine_openapi_client.OgrSourceDatasetTimeType(
             geoengine_openapi_client.OgrSourceDatasetTimeTypeStartDuration(
-                type="startDuration",
+                type="start+duration",
                 start_field=self.start_field,
                 start_format=self.start_format.to_api_dict(),
                 duration_field=self.duration_field
