@@ -586,7 +586,7 @@ class Workflow:
 
         async with websockets.connect(
             uri=self.__replace_http_with_ws(url),
-            extra_headers=session.auth_header,
+            additional_headers=session.auth_header,
             open_timeout=open_timeout,
             max_size=None,
         ) as websocket:
@@ -793,7 +793,7 @@ class Workflow:
 
         async with websockets.connect(
             uri=self.__replace_http_with_ws(url),
-            extra_headers=session.auth_header,
+            additional_headers=session.auth_header,
             open_timeout=open_timeout,
             max_size=None,  # allow arbitrary large messages, since it is capped by the server's chunk size
         ) as websocket:
