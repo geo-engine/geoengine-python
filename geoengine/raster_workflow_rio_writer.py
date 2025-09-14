@@ -11,7 +11,7 @@ from geoengine.raster import ge_type_to_np
 from geoengine.types import RasterResultDescriptor, TimeInterval
 from geoengine.workflow import QueryRectangle, Workflow
 
-logger = logging.getLogger("geoengine")
+logger = logging.getLogger("__name__")
 
 
 # pylint: disable=too-many-instance-attributes
@@ -238,6 +238,9 @@ class RasterWorkflowRioWriter:
 
                 logger.debug("tile with #pixels = %d, #empty_pixels = %d", tile.num_pixels(), tile.num_no_data_pixels())
                 data = tile.to_numpy_data_array(self.no_data_value)
+                data_no_data = np.count_nonzero(data == self.no_data_value)
+                data_zero = np.count_nonzero(data == self.no_data_value)
+                logger.debug("ndarray with #no_data = %d, #zero = %d", data_no_data, data_zero)
 
                 assert self.tile_size == tile.size_x == tile.size_y, "Tile size does not match the expected size"
                 window = rio.windows.Window(tile_ul_x, tile_ul_y, tile.size_x, tile.size_y)
