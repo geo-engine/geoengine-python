@@ -10,6 +10,7 @@ import rasterio as rio
 from geoengine.raster import ge_type_to_np
 from geoengine.types import RasterResultDescriptor, TimeInterval
 from geoengine.workflow import QueryRectangle, Workflow
+from buffered_async_iterators import buffered
 
 logger = logging.getLogger(__name__)
 
@@ -203,7 +204,7 @@ class RasterWorkflowRioWriter:
         ts_count = 0
         ts_empty_count = 0
         try:
-            async for tile in self.workflow.raster_stream(query, bands=bands):
+            async for tile in buffered(self.workflow.raster_stream(query, bands=bands), 2):
                 tile_count += 1
                 ts_count += 1
                 logger.debug("next tile. #ts_count_count %d, #total %d ", ts_count, tile_count)
