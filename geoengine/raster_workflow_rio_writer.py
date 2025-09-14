@@ -11,7 +11,7 @@ from geoengine.raster import ge_type_to_np
 from geoengine.types import RasterResultDescriptor, TimeInterval
 from geoengine.workflow import QueryRectangle, Workflow
 
-logger = logging.getLogger("__name__")
+logger = logging.getLogger(__name__)
 
 
 # pylint: disable=too-many-instance-attributes
