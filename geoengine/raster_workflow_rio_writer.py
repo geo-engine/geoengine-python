@@ -1,5 +1,6 @@
 """A module that contains classes to write raster data from a Geo Engine raster workflow."""
 
+import logging
 from datetime import datetime
 from typing import cast
 
@@ -9,6 +10,8 @@ import rasterio as rio
 from geoengine.raster import ge_type_to_np
 from geoengine.types import RasterResultDescriptor, TimeInterval
 from geoengine.workflow import QueryRectangle, Workflow
+
+logger = logging.getLogger(__name__)
 
 
 # pylint: disable=too-many-instance-attributes
@@ -25,7 +28,6 @@ class RasterWorkflowRioWriter:
     dataset_width = None
     dataset_height = None
     dataset_data_type = np.dtype
-    print_info = False
 
     dataset_prefix = None
     workflow: Workflow | None = None
@@ -36,21 +38,28 @@ class RasterWorkflowRioWriter:
     gdal_driver = "GTiff"
     rio_kwargs = {"tiled": True, "compress": "DEFLATE", "zlevel": 6}
     tile_size = 512
+    gdal_cache_max = 32000000
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
-        self, dataset_prefix, workflow: Workflow, no_data_value=0, data_type=None, print_info=False, rio_kwargs=None
+        self,
+        dataset_prefix,
+        workflow: Workflow,
+        no_data_value=0,
+        data_type=None,
+        rio_kwargs=None,
+        gdal_cache_max=32000000,
     ):
         """Create a new RasterWorkflowGdalWriter instance."""
         self.dataset_prefix = dataset_prefix
         self.workflow = workflow
         self.no_data_value = no_data_value
-        self.print_info = print_info
 
         ras_res = cast(RasterResultDescriptor, self.workflow.get_result_descriptor())
         dt = ge_type_to_np(ras_res.data_type)
         self.dataset_data_type = dt if data_type is None else data_type
         self.bands = ras_res.bands
+        self.gdal_cache_max = gdal_cache_max
         if rio_kwargs:
             for key, value in rio_kwargs.items():
                 self.rio_kwargs[key] = value
@@ -58,6 +67,8 @@ class RasterWorkflowRioWriter:
     def close_current_dataset(self):
         """Close the current dataset"""
         if self.current_dataset:
+            if self.current_time:
+                logger.debug("closing dataset for %s", self.current_time.time_str)
             del self.current_dataset
             self.current_dataset = None
 
@@ -131,7 +142,7 @@ class RasterWorkflowRioWriter:
         else:
             assert self.dataset_height == height, "The height of the current dataset does not match the new one"
 
-    def __create_new_dataset(self, query: QueryRectangle):
+    def __create_new_dataset(self, query: QueryRectangle, gdal_cache_max=32000000):
         """Create a new dataset for the current query."""
         assert self.current_time is not None, "The current time must be set"
         time_formated_start = self.current_time.start.astype(datetime).strftime(self.time_format)
@@ -142,29 +153,30 @@ class RasterWorkflowRioWriter:
         affine_transform = rio.Affine.from_gdal(
             geo_transform[0], geo_transform[1], geo_transform[2], geo_transform[3], geo_transform[4], geo_transform[5]
         )
-        if self.print_info:
-            print(
-                f"Creating dataset {self.dataset_prefix}{time_formated_start}.tif"
-                f" with width {width}, height {height}, geo_transform {geo_transform}"
-                f" rio kwargs: {self.rio_kwargs}"
-            )
+        logger.debug(
+            f"Creating dataset {self.dataset_prefix}{time_formated_start}.tif"
+            f" with width {width}, height {height}, geo_transform {geo_transform}"
+            f" rio kwargs: {self.rio_kwargs}"
+        )
         assert self.bands is not None, "The bands must be set"
         number_of_bands = len(self.bands)
         dataset_data_type = self.dataset_data_type
         file_path = f"{self.dataset_prefix}{time_formated_start}.tif"
-        rio_dataset = rio.open(
-            file_path,
-            "w",
-            driver=self.gdal_driver,
-            width=width,
-            height=height,
-            count=number_of_bands,
-            crs=query.srs,
-            transform=affine_transform,
-            dtype=dataset_data_type,
-            nodata=self.no_data_value,
-            **self.rio_kwargs,
-        )
+
+        with rio.Env(CPL_DEBUG=True, GDAL_CACHEMAX=gdal_cache_max):
+            rio_dataset = rio.open(
+                file_path,
+                "w",
+                driver=self.gdal_driver,
+                width=width,
+                height=height,
+                count=number_of_bands,
+                crs=query.srs,
+                transform=affine_transform,
+                dtype=dataset_data_type,
+                nodata=self.no_data_value,
+                **self.rio_kwargs,
+            )
 
         for i, b in enumerate(self.bands, start=1):
             b_n = b.name
@@ -180,20 +192,33 @@ class RasterWorkflowRioWriter:
         :param query: The QueryRectangle to write to GDAL dataset(s)
         :param skip_empty_times: Skip timeslices where all pixels are empty/nodata
         """
-
         self.create_tiling_geo_transform_width_height(query)
 
         assert self.bands is not None, "The bands must be set"
         bands = list(range(0, len(self.bands)))
 
         assert self.workflow is not None, "The workflow must be set"
+        tile_count = 0
+        empty_count = 0
+        ts_count = 0
+        ts_empty_count = 0
         try:
             async for tile in self.workflow.raster_stream(query, bands=bands):
+                tile_count += 1
+                ts_count += 1
+                logger.debug("next tile. #ts_count_count %d, #total %d ", ts_count, tile_count)
+
                 if self.current_time != tile.time:
+                    logger.debug("next time step: %s", tile.time.time_str)
+                    ts_count = 1
+                    ts_empty_count = 1
                     self.close_current_dataset()
                     self.current_time = tile.time
 
                 if tile.is_empty() and skip_empty_times:
+                    ts_empty_count += 1
+                    empty_count += 1
+                    logger.debug("_empty_ tile. #ts_empty %d, #total_empty %d", ts_empty_count, empty_count)
                     continue
 
                 if self.current_dataset is None:
@@ -210,12 +235,15 @@ class RasterWorkflowRioWriter:
                 )
 
                 band_index = tile.band + 1
+
+                logger.debug("tile with #pixels = %d, #empty_pixels = %d", tile.num_pixels(), tile.num_no_data_pixels())
                 data = tile.to_numpy_data_array(self.no_data_value)
 
                 assert self.tile_size == tile.size_x == tile.size_y, "Tile size does not match the expected size"
                 window = rio.windows.Window(tile_ul_x, tile_ul_y, tile.size_x, tile.size_y)
                 assert self.current_dataset is not None, "Dataset must be open."
                 self.current_dataset.write(data, window=window, indexes=band_index)
+
         except Exception as inner_e:
             raise RuntimeError(f"Tile at {tile.spatial_partition().as_bbox_str()} with {tile.time}") from inner_e
 

@@ -225,9 +225,17 @@ class RasterTile2D:
 
     def is_empty(self) -> bool:
         """Returns true if the tile is empty"""
-        num_pixels = self.size_x * self.size_y
-        num_nulls = self.data.null_count
+        num_pixels = self.num_pixels()
+        num_nulls = self.num_no_data_pixels()
         return num_pixels == num_nulls
+
+    def num_pixels(self) -> int:
+        """returns number of pixels"""
+        return self.size_x * self.size_y
+
+    def num_no_data_pixels(self) -> int:
+        """returns number of empty pixels"""
+        return self.data.null_count
 
     @staticmethod
     def from_ge_record_batch(record_batch: pa.RecordBatch) -> RasterTile2D:
