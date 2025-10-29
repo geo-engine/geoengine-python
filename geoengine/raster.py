@@ -158,7 +158,7 @@ class RasterTile2D:
 
         return np.arange(
             start=start,
-            stop=self.geo_transform.x_max(self.size_x),
+            stop=self.geo_transform.pixel_x_to_coord_x(self.size_x),
             step=self.geo_transform.x_pixel_size,
         )
 
@@ -175,7 +175,7 @@ class RasterTile2D:
 
         return np.arange(
             start=start,
-            stop=self.geo_transform.y_min(self.size_y),
+            stop=self.geo_transform.pixel_y_to_coord_y(self.size_y),
             step=self.geo_transform.y_pixel_size,
         )
 
@@ -215,8 +215,8 @@ class RasterTile2D:
         """Return the spatial partition of the raster tile"""
         return gety.SpatialPartition2D(
             self.geo_transform.x_min,
-            self.geo_transform.y_min(self.size_y),
-            self.geo_transform.x_max(self.size_x),
+            self.geo_transform.pixel_y_to_coord_y(self.size_y),
+            self.geo_transform.pixel_x_to_coord_x(self.size_x),
             self.geo_transform.y_max,
         )
 
@@ -233,7 +233,7 @@ class RasterTile2D:
     def from_ge_record_batch(record_batch: pa.RecordBatch) -> RasterTile2D:
         """Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine"""
         metadata = record_batch.schema.metadata
-        inner = geoengine_openapi_client.GdalDatasetGeoTransform.from_json(metadata[b"geoTransform"])
+        inner = geoengine_openapi_client.GeoTransform.from_json(metadata[b"geoTransform"])
         assert inner is not None, "Failed to parse geoTransform"
         geo_transform = gety.GeoTransform.from_response(inner)
         x_size = int(metadata[b"xSize"])

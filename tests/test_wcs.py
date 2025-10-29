@@ -23,13 +23,15 @@ class WcsTests(unittest.TestCase):
         with UrllibMocker() as m_urllib:
             m_urllib.post(
                 "http://mock-instance/anonymous",
-                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081", "project": None, "view": None},
+                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                      "project": None, "view": None},
             )
 
             m_urllib.post(
                 "http://mock-instance/workflow",
                 json={"id": "8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62"},
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m_urllib.get(
@@ -39,8 +41,27 @@ class WcsTests(unittest.TestCase):
                     "dataType": "U8",
                     "spatialReference": "EPSG:4326",
                     "bands": [{"name": "band", "measurement": {"type": "unitless"}}],
+                    "spatialGrid": {
+                        "descriptor": "source",
+                        "spatialGrid": {
+                            "geoTransform": {
+                                "originCoordinate": {"x": 0.0, "y": 0.0},
+                                "xPixelSize": 1.0,
+                                "yPixelSize": -1.0,
+                            },
+                            "gridBounds": {
+                                "topLeftIdx": {"xIdx": 0, "yIdx": 0},
+                                "bottomRightIdx": {"xIdx": 10, "yIdx": 20},
+                            },
+                        },
+                    },
+                    "time": {
+                        "bounds": {"start": 0, "end": 100000},
+                        "dimension": None,
+                    }
                 },
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             ge.initialize("http://mock-instance")
@@ -66,7 +87,9 @@ class WcsTests(unittest.TestCase):
             xmlns:ogc="http://www.opengis.net/ogc"
             xmlns:ows="http://www.opengis.net/ows/1.1"
             xmlns:gml="http://www.opengis.net/gml"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcs/1.1.1 http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/schemas/wcs/1.1.1/wcsGetCapabilities.xsd" updateSequence="152">
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcs/1.1.1 
+                http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/schemas/wcs/1.1.1/wcsGetCapabilities.xsd"
+                updateSequence="152">
             <ows:ServiceIdentification>
                 <ows:Title>Web Coverage Service</ows:Title>
                 <ows:ServiceType>WCS</ows:ServiceType>
@@ -110,26 +133,31 @@ class WcsTests(unittest.TestCase):
                     <wcs:Identifier>8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</wcs:Identifier>
                 </wcs:CoverageSummary>
             </wcs:Contents>
-    </wcs:Capabilities>""",  # noqa: E501
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+    </wcs:Capabilities>""",
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m_requests.get(
                 # pylint: disable=line-too-long
-                "http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0",
+                "http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage"
+                "&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0"
+                "&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0",
                 body=ndvi_tiff,
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
-            time = datetime.strptime("2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
+            time = datetime.strptime(
+                "2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
 
             query = ge.QueryRectangle(
-                ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
-                ge.TimeInterval(time),
-                resolution=ge.SpatialResolution(360.0 / 8, 180.0 / 8),
-            )
+                ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0), ge.TimeInterval(time))
 
-            array = workflow.get_array(query)
+            array = workflow.get_array(
+                query,
+                spatial_resolution=ge.SpatialResolution(360.0 / 8, 180.0 / 8),
+            )
 
             self.assertEqual(array.shape, (8, 8))
 
@@ -152,13 +180,15 @@ class WcsTests(unittest.TestCase):
         with UrllibMocker() as m_urllib:
             m_urllib.post(
                 "http://mock-instance/anonymous",
-                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081", "project": None, "view": None},
+                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                      "project": None, "view": None},
             )
 
             m_urllib.post(
                 "http://mock-instance/workflow",
                 json={"id": "8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62"},
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m_urllib.get(
@@ -168,8 +198,27 @@ class WcsTests(unittest.TestCase):
                     "dataType": "U8",
                     "spatialReference": "EPSG:4326",
                     "bands": [{"name": "band", "measurement": {"type": "unitless"}}],
+                    "spatialGrid": {
+                        "descriptor": "source",
+                        "spatialGrid": {
+                            "geoTransform": {
+                                "originCoordinate": {"x": 0.0, "y": 0.0},
+                                "xPixelSize": 1.0,
+                                "yPixelSize": -1.0,
+                            },
+                            "gridBounds": {
+                                "topLeftIdx": {"xIdx": 0, "yIdx": 0},
+                                "bottomRightIdx": {"xIdx": 10, "yIdx": 20},
+                            },
+                        },
+                    },
+                    "time": {
+                        "bounds": {"start": 0, "end": 100000},
+                        "dimension": None,
+                    }
                 },
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             ge.initialize("http://mock-instance")
@@ -195,7 +244,9 @@ class WcsTests(unittest.TestCase):
             xmlns:ogc="http://www.opengis.net/ogc"
             xmlns:ows="http://www.opengis.net/ows/1.1"
             xmlns:gml="http://www.opengis.net/gml"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcs/1.1.1 http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/schemas/wcs/1.1.1/wcsGetCapabilities.xsd" updateSequence="152">
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcs/1.1.1
+                http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/schemas/wcs/1.1.1/wcsGetCapabilities.xsd"
+                updateSequence="152">
             <ows:ServiceIdentification>
                 <ows:Title>Web Coverage Service</ows:Title>
                 <ows:ServiceType>WCS</ows:ServiceType>
@@ -239,32 +290,40 @@ class WcsTests(unittest.TestCase):
                     <wcs:Identifier>8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</wcs:Identifier>
                 </wcs:CoverageSummary>
             </wcs:Contents>
-    </wcs:Capabilities>""",  # noqa: E501
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+    </wcs:Capabilities>""",
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m_requests.get(
                 # pylint: disable=line-too-long
-                "http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0",
+                "http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS"
+                "&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0"
+                "&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0",
                 json={
                     "error": "Operator",
                     "message": "Operator: Could not open gdal dataset for file path "
                     '"test_data/raster/modis_ndvi/MOD13A2_M_NDVI_2004-04-01.TIFF"',
                 },
                 status_code=400,
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
-            time = datetime.strptime("2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
+            time = datetime.strptime(
+                "2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
 
             query = ge.QueryRectangle(
                 ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                 ge.TimeInterval(time, time),
-                resolution=ge.SpatialResolution(360.0 / 8, 180.0 / 8),
             )
 
             with self.assertRaises(owslib.util.ServiceException) as ctx:
-                workflow.get_array(query)
+                workflow.get_array(
+                    query,
+                    spatial_resolution=ge.SpatialResolution(
+                        360.0 / 8, 180.0 / 8),
+                )
 
             self.assertEqual(
                 str(ctx.exception),
@@ -276,13 +335,15 @@ class WcsTests(unittest.TestCase):
         with UrllibMocker() as m_urllib:
             m_urllib.post(
                 "http://mock-instance/anonymous",
-                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081", "project": None, "view": None},
+                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                      "project": None, "view": None},
             )
 
             m_urllib.post(
                 "http://mock-instance/workflow",
                 json={"id": "8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62"},
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m_urllib.get(
@@ -292,8 +353,27 @@ class WcsTests(unittest.TestCase):
                     "dataType": "U8",
                     "spatialReference": "EPSG:4326",
                     "bands": [{"name": "band", "measurement": {"type": "unitless"}}],
+                    "spatialGrid": {
+                        "descriptor": "source",
+                        "spatialGrid": {
+                            "geoTransform": {
+                                "originCoordinate": {"x": 0.0, "y": 0.0},
+                                "xPixelSize": 1.0,
+                                "yPixelSize": -1.0,
+                            },
+                            "gridBounds": {
+                                "topLeftIdx": {"xIdx": 0, "yIdx": 0},
+                                "bottomRightIdx": {"xIdx": 10, "yIdx": 20},
+                            },
+                        },
+                    },
+                    "time": {
+                        "bounds": {"start": 0, "end": 100000},
+                        "dimension": None,
+                    }
                 },
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             ge.initialize("http://mock-instance")
@@ -311,9 +391,13 @@ class WcsTests(unittest.TestCase):
         with requests_mock.Mocker() as m_requests, open("tests/responses/ndvi.tiff", "rb") as ndvi_tiff:
             m_requests.get(
                 # pylint: disable=line-too-long
-                "http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0",
+                "http://mock-instance/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62?version=1.1.1&request=GetCoverage"
+                "&service=WCS&identifier=8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62&boundingbox=-90.0,-180.0,90.0,180.0"
+                "&timesequence=2014-04-01T12%3A00%3A00.000%2B00%3A00&format=image/tiff&store=False"
+                "&crs=urn:ogc:def:crs:EPSG::4326&resx=-22.5&resy=45.0",
                 body=ndvi_tiff,
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m_requests.get(
@@ -326,7 +410,9 @@ class WcsTests(unittest.TestCase):
             xmlns:ogc="http://www.opengis.net/ogc"
             xmlns:ows="http://www.opengis.net/ows/1.1"
             xmlns:gml="http://www.opengis.net/gml"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcs/1.1.1 http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/schemas/wcs/1.1.1/wcsGetCapabilities.xsd" updateSequence="152">
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wcs/1.1.1
+                http://localhost:3030/wcs/8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62/schemas/wcs/1.1.1/wcsGetCapabilities.xsd"
+                updateSequence="152">
             <ows:ServiceIdentification>
                 <ows:Title>Web Coverage Service</ows:Title>
                 <ows:ServiceType>WCS</ows:ServiceType>
@@ -370,19 +456,21 @@ class WcsTests(unittest.TestCase):
                     <wcs:Identifier>8df9b0e6-e4b4-586e-90a3-6cf0f08c4e62</wcs:Identifier>
                 </wcs:CoverageSummary>
             </wcs:Contents>
-    </wcs:Capabilities>""",  # noqa: E501
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+    </wcs:Capabilities>""",
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
-            time = datetime.strptime("2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
+            time = datetime.strptime(
+                "2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
 
             query = ge.QueryRectangle(
                 ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                 ge.TimeInterval(time),
-                resolution=ge.SpatialResolution(360.0 / 8, 180.0 / 8),
             )
 
-            array = workflow.get_xarray(query)
+            array = workflow.get_xarray(
+                query, spatial_resolution=ge.SpatialResolution(360.0 / 8, 180.0 / 8))
 
             self.assertEqual(array.shape, (1, 8, 8))
 
@@ -421,10 +509,12 @@ class WcsTests(unittest.TestCase):
             )
 
             # test actual array data
-            self.assertTrue(np.array_equal(array.data, expected.data), msg=f"{array.data} \n!=\n {expected.data}")
+            self.assertTrue(np.array_equal(array.data, expected.data),
+                            msg=f"{array.data} \n!=\n {expected.data}")
 
             # test dims
-            self.assertEqual(array.dims, expected.dims, msg=f"{array.dims} \n!=\n {expected.dims}")
+            self.assertEqual(array.dims, expected.dims,
+                             msg=f"{array.dims} \n!=\n {expected.dims}")
 
             # test coords
             self.assertTrue(
@@ -438,7 +528,8 @@ class WcsTests(unittest.TestCase):
             #   "AREA_OR_POINT":    This is not available with OWSLib min_version.
             #   "transform":        This used to be a tuple but in newer versions it is an instance of "Affine".
             #   "crs":              OWS "CRS.from_wkt(..." or "CRS.from_epsg(..." depending on the OWSLib version.
-            self.assertEqual(array.attrs, array.attrs | expected.attrs, msg=f"{array.attrs} \n!=\n {expected.attrs}")
+            self.assertEqual(array.attrs, array.attrs | expected.attrs,
+                             msg=f"{array.attrs} \n!=\n {expected.attrs}")
 
 
 if __name__ == "__main__":

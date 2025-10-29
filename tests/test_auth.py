@@ -27,11 +27,10 @@ class AuthTests(unittest.TestCase):
 
     def test_uninitialized(self):
         with self.assertRaises(ge.UninitializedException) as exception:
-            ge.workflow_by_id("foobar").get_dataframe(
+            ge.workflow_by_id("e327d9c3-a4f3-4bd7-a5e1-30b26cae8064").get_dataframe(
                 QueryRectangle(
                     ge.BoundingBox2D(-180, -90, 180, 90),
                     ge.TimeInterval(datetime.now()),
-                    ge.SpatialResolution(0.1, 0.1),
                 )
             )
 

@@ -291,7 +291,8 @@ class LayerCollection:
         self,
         name: str,
         description: str,
-        workflow: dict[str, Any] | WorkflowBuilderOperator,  # TODO: improve type
+        # TODO: improve type
+        workflow: dict[str, Any] | WorkflowBuilderOperator,
         symbology: Symbology | None,
         timeout: int = 60,
     ) -> LayerId:
@@ -318,7 +319,8 @@ class LayerCollection:
         self,
         name: str,
         description: str,
-        workflow: dict[str, Any] | WorkflowBuilderOperator,  # TODO: improve type
+        # TODO: improve type
+        workflow: dict[str, Any] | WorkflowBuilderOperator,
         symbology: Symbology | None,
         permission_tuples: list[tuple[RoleId, Permission]] | None = None,
         timeout: int = 60,
@@ -397,7 +399,8 @@ class LayerCollection:
             collection_id = existing_collection.listing_id
         elif isinstance(existing_collection, LayerCollection):
             collection_id = existing_collection.collection_id
-        elif isinstance(existing_collection, str):  # TODO: check for LayerId in Python 3.11+
+        # TODO: check for LayerId in Python 3.11+
+        elif isinstance(existing_collection, str):
             collection_id = existing_collection
         else:
             raise InputException("Invalid collection type")
@@ -423,6 +426,16 @@ class LayerCollection:
         """Get all children with the given name"""
 
         return [item for item in self.items if item.name == name]
+
+    def get_items_by_name_unique(self, name: str) -> Listing | None:
+        """Get all children with the given name"""
+
+        items = self.get_items_by_name(name=name)
+        if len(items) == 0:
+            return None
+        if len(items) > 1:
+            raise KeyError("{name} is not unique")
+        return items[0]
 
     def search(
         self,
@@ -529,7 +542,8 @@ class LayerCollection:
         if isinstance(res, Layer):
             raise TypeError(f"Found a Layer not a Layer collection for {collection_name}")
 
-        return cast(LayerCollection, existing_collections[0].load())  # we know that it is a collection since check that
+        # we know that it is a collection since check that
+        return cast(LayerCollection, existing_collections[0].load())
 
     def __eq__(self, other):
         """Tests if two layer listings are identical"""
@@ -725,7 +739,8 @@ def layer_collection(
                 )
 
         if len(page.items) < page_limit:
-            if len(pages) == 0 or len(page.items) > 0:  # we need at least one page before breaking
+            # we need at least one page before breaking
+            if len(pages) == 0 or len(page.items) > 0:
                 pages.append(page)
             break
 
