@@ -850,6 +850,75 @@ def literal_raster_data_type(
     return data_type_map[data_type]
 
 
+class RegularTimeDimension:
+    """
+    A regular time dimension
+    """
+
+    origin: np.datetime64
+    step: TimeStep
+
+    def __init__(self, step: TimeStep, origin: np.datetime64 | datetime | None = None) -> None:
+        """Initialize a new `RegularTimeDimension`"""
+
+        time_origin = None
+        if isinstance(origin, datetime):
+            # We assume that a datetime without a timezone means UTC
+            if origin.tzinfo is not None:
+                origin = origin.astimezone(tz=timezone.utc).replace(tzinfo=None)
+            time_origin = np.datetime64(origin)
+        elif isinstance(origin, np.datetime64):
+            time_origin = origin
+
+        self.origin = time_origin if time_origin is not None else np.datetime64("1970-01-01T00:00:00Z")
+        self.step = step
+
+    def to_api_dict(self) -> geoengine_openapi_client.RegularTimeDimension:
+        """Convert the regular time dimension to a dictionary"""
+        time_origin = self.origin.astype("datetime64[ms]").astype(int)
+        return geoengine_openapi_client.RegularTimeDimension(origin=int(time_origin), step=self.step.to_api_dict())
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.RegularTimeDimension) -> RegularTimeDimension:
+        """Parse a regular time dimension from an http response"""
+        origin = np.datetime64(response.origin, "ms")
+        step = TimeStep.from_response(response.step)
+        return RegularTimeDimension(step=step, origin=origin)
+
+
+class TimeDescriptor:
+    """A time descriptor"""
+
+    bounds: TimeInterval | None
+    dimension: RegularTimeDimension | None
+
+    def __init__(self, bounds: TimeInterval | None = None, dimension: RegularTimeDimension | None = None) -> None:
+        """Initialize a new `TimeDescriptor`"""
+        self.dimension = dimension
+        self.bounds = bounds
+
+    def to_api_dict(self) -> geoengine_openapi_client.TimeDescriptor:
+        """Convert the time descriptor to a dictionary"""
+        return geoengine_openapi_client.TimeDescriptor(
+            dimension=self.dimension.to_api_dict() if self.dimension is not None else None,
+            bounds=self.bounds.to_api_dict() if self.bounds is not None else None,
+        )
+
+    @staticmethod
+    def from_response(response: geoengine_openapi_client.TimeDescriptor) -> TimeDescriptor:
+        """Parse a time descriptor from an http response"""
+        bounds = None
+        dimension = None
+
+        if response.bounds is not None:
+            bounds = TimeInterval.from_response(response.bounds)
+
+        if response.dimension is not None:
+            dimension = RegularTimeDimension.from_response(response.dimension)
+
+        return TimeDescriptor(bounds=bounds, dimension=dimension)
+
+
 class RasterResultDescriptor(ResultDescriptor):
     """
     A raster result descriptor
@@ -858,6 +927,7 @@ class RasterResultDescriptor(ResultDescriptor):
     __data_type: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]
     __bands: list[RasterBandDescriptor]
     __spatial_grid: SpatialGridDescriptor
+    __time: TimeDescriptor
 
     def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
@@ -865,13 +935,22 @@ class RasterResultDescriptor(ResultDescriptor):
         bands: list[RasterBandDescriptor],
         spatial_reference: str,
         spatial_grid: SpatialGridDescriptor,
-        time_bounds: TimeInterval | None = None,
+        time: TimeDescriptor | TimeInterval | RegularTimeDimension | None = None,
     ) -> None:
         """Initialize a new `RasterResultDescriptor`"""
-        super().__init__(spatial_reference, time_bounds)
+        time_descriptor = TimeDescriptor()
+        if isinstance(time, TimeDescriptor):
+            time_descriptor = time
+        elif isinstance(time, TimeInterval):
+            time_descriptor = TimeDescriptor(bounds=time)
+        elif isinstance(time, RegularTimeDimension):
+            time_descriptor = TimeDescriptor(dimension=time)
+
+        super().__init__(spatial_reference, time_descriptor.bounds)
         self.__data_type = data_type
         self.__bands = bands
         self.__spatial_grid = spatial_grid
+        self.__time = time_descriptor
 
     def to_api_dict(self) -> geoengine_openapi_client.TypedResultDescriptor:
         """Convert the raster result descriptor to a dictionary"""
@@ -882,7 +961,7 @@ class RasterResultDescriptor(ResultDescriptor):
                 data_type=self.data_type,
                 bands=[band.to_api_dict() for band in self.__bands],
                 spatial_reference=self.spatial_reference,
-                time=self.time_bounds.time_str if self.time_bounds is not None else None,
+                time=self.__time.to_api_dict(),
                 spatial_grid=self.__spatial_grid.to_api_dict(),
             )
         )
@@ -902,13 +981,13 @@ class RasterResultDescriptor(ResultDescriptor):
         spatial_grid = SpatialGridDescriptor.from_response(response.spatial_grid)
 
         if response.time is not None:
-            time_bounds = TimeInterval.from_response(response.time)
+            time_bounds = TimeDescriptor.from_response(response.time)
 
         return RasterResultDescriptor(
             data_type=data_type,
             bands=bands,
             spatial_reference=spatial_ref,
-            time_bounds=time_bounds,
+            time=time_bounds,
             spatial_grid=spatial_grid,
         )
 
@@ -1092,11 +1171,25 @@ class TimeStep:
     step: int
     granularity: TimeStepGranularity
 
+    def __init__(self, step: int, granularity: TimeStepGranularity | str) -> None:
+        """Initialize a new `TimeStep` object"""
+        self.step = step
+        if isinstance(granularity, str):
+            self.granularity = TimeStepGranularity(granularity)
+        else:
+            self.granularity = granularity
+
     def to_api_dict(self) -> geoengine_openapi_client.TimeStep:
         return geoengine_openapi_client.TimeStep(
             step=self.step,
             granularity=self.granularity.to_api_enum(),
         )
+
+    @classmethod
+    def from_response(cls, response: geoengine_openapi_client.TimeStep) -> TimeStep:
+        """Parse an http response to a `TimeStep` object"""
+        granularity = TimeStepGranularity(response.granularity.value)
+        return TimeStep(step=response.step, granularity=granularity)
 
 
 @dataclass
