@@ -34,18 +34,15 @@ class MlModelTests(unittest.TestCase):
         mts_1d = MlTensorShape3D(bands=7, y=1, x=1)
         self.assertEqual(model_dim_to_tensorshape(dim_1d), mts_1d)
 
-        dim_1d_v: list[TSP.Dimension] = [TSP.Dimension(
-            dim_value=None), TSP.Dimension(dim_value=7)]
+        dim_1d_v: list[TSP.Dimension] = [TSP.Dimension(dim_value=None), TSP.Dimension(dim_value=7)]
         mts_1d_v = MlTensorShape3D(bands=7, y=1, x=1)
         self.assertEqual(model_dim_to_tensorshape(dim_1d_v), mts_1d_v)
 
-        dim_2d_t: list[TSP.Dimension] = [TSP.Dimension(
-            dim_value=512), TSP.Dimension(dim_value=512)]
+        dim_2d_t: list[TSP.Dimension] = [TSP.Dimension(dim_value=512), TSP.Dimension(dim_value=512)]
         mts_2d_t = MlTensorShape3D(bands=1, y=512, x=512)
         self.assertEqual(model_dim_to_tensorshape(dim_2d_t), mts_2d_t)
 
-        dim_2d_1: list[TSP.Dimension] = [TSP.Dimension(
-            dim_value=1), TSP.Dimension(dim_value=7)]
+        dim_2d_1: list[TSP.Dimension] = [TSP.Dimension(dim_value=1), TSP.Dimension(dim_value=7)]
         mts_2d_1 = MlTensorShape3D(bands=7, y=1, x=1)
         self.assertEqual(model_dim_to_tensorshape(dim_2d_1), mts_2d_1)
 
@@ -80,8 +77,7 @@ class MlModelTests(unittest.TestCase):
         training_y = np.array([0, 1], dtype=np.int64)
         clf.fit(training_x, training_y)
 
-        onnx_clf = to_onnx(clf, training_x[:1], options={
-                           "zipmap": False}, target_opset=9)
+        onnx_clf = to_onnx(clf, training_x[:1], options={"zipmap": False}, target_opset=9)
 
         # TODO: use `enterContext(cm)` instead of `with cm:` in Python 3.11
         with GeoEngineTestInstance() as ge_instance:
@@ -116,8 +112,7 @@ class MlModelTests(unittest.TestCase):
             self.assertEqual(str(res_name), model_name)
 
             # Now test permission setting and removal
-            ge.add_permission(ge.REGISTERED_USER_ROLE_ID, ge.Resource.from_ml_model_name(
-                res_name), ge.Permission.READ)
+            ge.add_permission(ge.REGISTERED_USER_ROLE_ID, ge.Resource.from_ml_model_name(res_name), ge.Permission.READ)
 
             expected = ge.permissions.PermissionListing(
                 permission=ge.Permission.READ,
@@ -125,16 +120,13 @@ class MlModelTests(unittest.TestCase):
                 role=ge.permissions.Role(ge.REGISTERED_USER_ROLE_ID, "user"),
             )
 
-            self.assertIn(expected, ge.permissions.list_permissions(
-                ge.Resource.from_ml_model_name(res_name)))
+            self.assertIn(expected, ge.permissions.list_permissions(ge.Resource.from_ml_model_name(res_name)))
 
             ge.remove_permission(
-                ge.REGISTERED_USER_ROLE_ID, ge.Resource.from_ml_model_name(
-                    res_name), ge.Permission.READ
+                ge.REGISTERED_USER_ROLE_ID, ge.Resource.from_ml_model_name(res_name), ge.Permission.READ
             )
 
-            self.assertNotIn(expected, ge.permissions.list_permissions(
-                ge.Resource.from_ml_model_name(res_name)))
+            self.assertNotIn(expected, ge.permissions.list_permissions(ge.Resource.from_ml_model_name(res_name)))
 
             # failing tests
             with self.assertRaises(ge.InputException) as exception:
