@@ -47,8 +47,7 @@ def convert_to_python(input_file: str) -> str:
 def run_script(script: str) -> bool:
     """Run the script."""
 
-    code = compile(script, "<string>", "exec",
-                   flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+    code = compile(script, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
 
     try:
         # prevent interactive backend to pop up
