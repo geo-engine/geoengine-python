@@ -47,7 +47,8 @@ def convert_to_python(input_file: str) -> str:
 def run_script(script: str) -> bool:
     """Run the script."""
 
-    code = compile(script, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+    code = compile(script, "<string>", "exec",
+                   flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
 
     try:
         # prevent interactive backend to pop up
@@ -95,12 +96,12 @@ def test_main():
     input_file = os.getenv("INPUT_FILE")
 
     if not input_file:
-        assert False, "INPUT_FILE environment variable not set"
+        raise AssertionError("INPUT_FILE environment variable not set")
 
     if setup_geoengine_and_run_script(input_file):
         assert True, "Notebook ran successfully"
     else:
-        assert False, "Notebook failed"
+        raise AssertionError("Notebook failed")
 
 
 if __name__ == "__main__":
