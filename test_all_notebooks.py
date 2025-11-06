@@ -16,13 +16,17 @@ def eprint(*args, **kwargs):
 def run_test_notebook(notebook_path) -> bool:
     """Run test_notebook.py for the given notebook."""
 
-    python_bin = shutil.which("python3")
+    pytest_bin = shutil.which("pytest")
 
-    if python_bin is None:
+    if pytest_bin is None:
         raise RuntimeError("Python 3 not found")
 
     result = subprocess.run(
-        [python_bin, "test_notebook.py", notebook_path],
+        [pytest_bin, "--ignore=test", "--cov", "--cov-append", "test_notebook.py"],
+        env={
+            **os.environ,
+            "INPUT_FILE": notebook_path,
+        },
         capture_output=True,
         text=True,
         check=False,
