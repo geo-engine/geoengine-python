@@ -56,8 +56,6 @@ def run_script(script: str) -> bool:
         with warnings.catch_warnings(record=True):
             # pylint: disable-next=exec-used
             exec(code, {})
-            # pytest.main(["-p", "no:warnings", "-c", "pytest.ini",
-            #              "--tb=short", "-"], plugins=[], args=[], obj=code)
 
         eprint("SUCCESS")
         return True
