@@ -27,7 +27,7 @@ class MlModelTests(unittest.TestCase):
     def setUp(self) -> None:
         ge.reset(False)
 
-    def test_model_dim_to_tensorshape(self):
+    def test_model_dim_to_tensorshape(self) -> None:
         """Test model_dim_to_tensorshape"""
 
         dim_1d: list[TSP.Dimension] = [TSP.Dimension(dim_value=7)]
