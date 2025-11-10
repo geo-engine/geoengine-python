@@ -12,7 +12,7 @@ on:
 
 jobs:
   check:
-    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@notebooks-in-coverage
+    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@main
 
     strategy:
       fail-fast: false
@@ -28,7 +28,7 @@ jobs:
   # Checks the library using minimum version resolution
   # `uv` has this feature built-in, c.f. https://github.com/astral-sh/uv
   check-min-version:
-    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@notebooks-in-coverage
+    uses: geo-engine/geoengine-python/.github/workflows/test-python.yml@main
 
     with:
       python-version: "3.10"
