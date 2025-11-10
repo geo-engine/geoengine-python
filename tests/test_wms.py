@@ -12,6 +12,7 @@ import geoengine as ge
 from geoengine.colorizer import Colorizer
 from geoengine.types import RasterBandDescriptor, SingleBandRasterColorizer
 from tests.ge_test import GeoEngineTestInstance
+from tests.util import NOT_FOUND_UUID
 
 from . import UrllibMocker
 
@@ -191,7 +192,7 @@ class WmsTests(unittest.TestCase):
             )
 
             m.get(
-                "http://mock-instance/workflow/foo/metadata",
+                f"http://mock-instance/workflow/{NOT_FOUND_UUID}/metadata",
                 status_code=404,
                 json={
                     "error": "NotFound",
@@ -216,7 +217,7 @@ class WmsTests(unittest.TestCase):
             self.assertEqual(repr(result_descriptor), textwrap.dedent(expected_repr))
 
             with self.assertRaises(ge.NotFoundException) as exception:
-                workflow = ge.workflow_by_id("foo")
+                workflow = ge.workflow_by_id(NOT_FOUND_UUID)
 
                 result_descriptor = workflow.get_result_descriptor()
 

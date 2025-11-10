@@ -86,7 +86,7 @@ class UploadId:
     @classmethod
     def from_response(cls, response: geoengine_openapi_client.IdResponse) -> UploadId:
         """Parse a http response to an `UploadId`"""
-        return UploadId(UUID(response.id))
+        return UploadId(response.id)
 
     def __str__(self) -> str:
         return str(self.__upload_id)
@@ -109,11 +109,13 @@ class UploadId:
 class Resource:
     """A wrapper for a resource id"""
 
-    id: str
+    id: str | UUID
     type: Literal["dataset", "layer", "layerCollection", "mlModel", "project"]
 
     def __init__(
-        self, resource_type: Literal["dataset", "layer", "layerCollection", "mlModel", "project"], resource_id: str
+        self,
+        resource_type: Literal["dataset", "layer", "layerCollection", "mlModel", "project"],
+        resource_id: str | UUID,
     ) -> None:
         """Create a resource id"""
         self.type = resource_type

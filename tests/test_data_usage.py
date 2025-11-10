@@ -1,6 +1,7 @@
 """Tests for WMS calls"""
 
 import unittest
+from uuid import UUID
 
 import pandas as pd
 
@@ -58,14 +59,20 @@ class DataUsageTests(unittest.TestCase):
 
             expected = pd.DataFrame(
                 {
-                    "computationId": ["7b08af4a-8793-4299-83c1-39d0c20560f5", "57fba95f-d693-432b-a65b-58ac225a384a"],
+                    "computationId": [
+                        UUID("7b08af4a-8793-4299-83c1-39d0c20560f5"),
+                        UUID("57fba95f-d693-432b-a65b-58ac225a384a"),
+                    ],
                     "count": [4, 4],
                     "data": ["land_cover", "land_cover"],
                     "timestamp": [
                         pd.Timestamp("2025-01-09 16:40:22.933000+0000", tz="UTC"),
                         pd.Timestamp("2025-01-09 16:40:10.970000+0000", tz="UTC"),
                     ],
-                    "userId": ["e440bffc-d899-4304-aace-b23fc56828b2", "e440bffc-d899-4304-aace-b23fc56828b2"],
+                    "userId": [
+                        UUID("e440bffc-d899-4304-aace-b23fc56828b2"),
+                        UUID("e440bffc-d899-4304-aace-b23fc56828b2"),
+                    ],
                 }
             )
 

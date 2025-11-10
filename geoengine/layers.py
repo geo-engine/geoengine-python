@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from enum import auto
 from io import StringIO
 from typing import Any, Generic, Literal, TypeVar, cast
-from uuid import UUID
 
 import geoengine_openapi_client
 from strenum import LowercaseStrEnum
@@ -183,7 +182,7 @@ class LayerCollection:
                 layer_id_response = cast(geoengine_openapi_client.ProviderLayerId, inner.id)
                 return LayerListing(
                     listing_id=LayerId(layer_id_response.layer_id),
-                    provider_id=LayerProviderId(UUID(layer_id_response.provider_id)),
+                    provider_id=LayerProviderId(layer_id_response.provider_id),
                     name=inner.name,
                     description=inner.description,
                 )
@@ -192,7 +191,7 @@ class LayerCollection:
                 collection_id_response = cast(geoengine_openapi_client.ProviderLayerCollectionId, inner.id)
                 return LayerCollectionListing(
                     listing_id=LayerCollectionId(collection_id_response.collection_id),
-                    provider_id=LayerProviderId(UUID(collection_id_response.provider_id)),
+                    provider_id=LayerProviderId(collection_id_response.provider_id),
                     name=inner.name,
                     description=inner.description,
                 )
@@ -210,7 +209,7 @@ class LayerCollection:
             name=response.name,
             description=response.description,
             collection_id=LayerCollectionId(response.id.collection_id),
-            provider_id=LayerProviderId(UUID(response.id.provider_id)),
+            provider_id=LayerProviderId(response.id.provider_id),
             items=items,
         )
 
@@ -291,7 +290,8 @@ class LayerCollection:
         self,
         name: str,
         description: str,
-        workflow: dict[str, Any] | WorkflowBuilderOperator,  # TODO: improve type
+        # TODO: improve type
+        workflow: dict[str, Any] | WorkflowBuilderOperator,
         symbology: Symbology | None,
         timeout: int = 60,
     ) -> LayerId:
@@ -318,7 +318,8 @@ class LayerCollection:
         self,
         name: str,
         description: str,
-        workflow: dict[str, Any] | WorkflowBuilderOperator,  # TODO: improve type
+        # TODO: improve type
+        workflow: dict[str, Any] | WorkflowBuilderOperator,
         symbology: Symbology | None,
         permission_tuples: list[tuple[RoleId, Permission]] | None = None,
         timeout: int = 60,
@@ -397,7 +398,8 @@ class LayerCollection:
             collection_id = existing_collection.listing_id
         elif isinstance(existing_collection, LayerCollection):
             collection_id = existing_collection.collection_id
-        elif isinstance(existing_collection, str):  # TODO: check for LayerId in Python 3.11+
+        # TODO: check for LayerId in Python 3.11+
+        elif isinstance(existing_collection, str):
             collection_id = existing_collection
         else:
             raise InputException("Invalid collection type")
@@ -446,7 +448,7 @@ class LayerCollection:
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             layers_api = geoengine_openapi_client.LayersApi(api_client)
             layer_collection_response = layers_api.search_handler(
-                provider=str(self.provider_id),
+                provider=self.provider_id,
                 collection=str(self.collection_id),
                 search_string=search_string,
                 search_type=geoengine_openapi_client.SearchType(search_type),
@@ -464,7 +466,7 @@ class LayerCollection:
                 listings.append(
                     LayerCollectionListing(
                         listing_id=LayerCollectionId(inner.id.collection_id),
-                        provider_id=LayerProviderId(UUID(inner.id.provider_id)),
+                        provider_id=LayerProviderId(inner.id.provider_id),
                         name=inner.name,
                         description=inner.description,
                     )
@@ -473,7 +475,7 @@ class LayerCollection:
                 listings.append(
                     LayerListing(
                         listing_id=LayerId(inner.id.layer_id),
-                        provider_id=LayerProviderId(UUID(inner.id.provider_id)),
+                        provider_id=LayerProviderId(inner.id.provider_id),
                         name=inner.name,
                         description=inner.description,
                     )
@@ -529,7 +531,8 @@ class LayerCollection:
         if isinstance(res, Layer):
             raise TypeError(f"Found a Layer not a Layer collection for {collection_name}")
 
-        return cast(LayerCollection, existing_collections[0].load())  # we know that it is a collection since check that
+        # we know that it is a collection since check that
+        return cast(LayerCollection, existing_collections[0].load())
 
     def __eq__(self, other):
         """Tests if two layer listings are identical"""
@@ -594,7 +597,7 @@ class Layer:
             name=response.name,
             description=response.description,
             layer_id=LayerId(response.id.layer_id),
-            provider_id=LayerProviderId(UUID(response.id.provider_id)),
+            provider_id=LayerProviderId(response.id.provider_id),
             workflow=response.workflow.to_dict(),
             symbology=symbology,
             properties=cast(list[Any], response.properties),
@@ -656,7 +659,7 @@ class Layer:
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             layers_api = geoengine_openapi_client.LayersApi(api_client)
-            response = layers_api.layer_to_dataset(str(self.provider_id), str(self.layer_id), _request_timeout=timeout)
+            response = layers_api.layer_to_dataset(self.provider_id, str(self.layer_id), _request_timeout=timeout)
 
         return Task(TaskId.from_response(response))
 
@@ -684,7 +687,7 @@ class Layer:
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             layers_api = geoengine_openapi_client.LayersApi(api_client)
             response = layers_api.layer_to_workflow_id_handler(
-                str(self.provider_id), self.layer_id, _request_timeout=timeout
+                self.provider_id, self.layer_id, _request_timeout=timeout
             )
 
         return WorkflowId.from_response(response)
@@ -721,11 +724,12 @@ def layer_collection(
                 page = layers_api.list_root_collections_handler(offset, page_limit, _request_timeout=timeout)
             else:
                 page = layers_api.list_collection_handler(
-                    str(layer_provider_id), layer_collection_id, offset, page_limit, _request_timeout=timeout
+                    layer_provider_id, layer_collection_id, offset, page_limit, _request_timeout=timeout
                 )
 
         if len(page.items) < page_limit:
-            if len(pages) == 0 or len(page.items) > 0:  # we need at least one page before breaking
+            # we need at least one page before breaking
+            if len(pages) == 0 or len(page.items) > 0:
                 pages.append(page)
             break
 
@@ -744,7 +748,7 @@ def layer(layer_id: LayerId, layer_provider_id: LayerProviderId = LAYER_DB_PROVI
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         layers_api = geoengine_openapi_client.LayersApi(api_client)
-        response = layers_api.layer_handler(str(layer_provider_id), str(layer_id), _request_timeout=timeout)
+        response = layers_api.layer_handler(layer_provider_id, str(layer_id), _request_timeout=timeout)
 
     return Layer.from_response(response)
 
@@ -799,7 +803,7 @@ def _add_layer_collection_to_collection(
             _request_timeout=timeout,
         )
 
-    return LayerCollectionId(response.id)
+    return LayerCollectionId(str(response.id))
 
 
 def _add_existing_layer_collection_to_collection(
@@ -843,7 +847,7 @@ def _add_layer_to_collection(
             _request_timeout=timeout,
         )
 
-    return LayerId(response.id)
+    return LayerId(str(response.id))
 
 
 def _add_existing_layer_to_collection(layer_id: LayerId, collection_id: LayerCollectionId, timeout: int = 60) -> None:
