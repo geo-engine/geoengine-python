@@ -96,3 +96,8 @@ select = [
 "tests/__init__.py" = [
     "F401", # module imported but unused
 ]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]

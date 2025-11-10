@@ -4,6 +4,7 @@
 
 import argparse
 import ast
+import os
 import sys
 import warnings
 
@@ -64,11 +65,8 @@ def run_script(script: str) -> bool:
         return False
 
 
-def main():
-    """Main entry point."""
-
-    input_file = parse_args()
-
+def setup_geoengine_and_run_script(input_file: str) -> bool:
+    """Setup Geo Engine test instance and run the script."""
     python_script = convert_to_python(input_file)
 
     eprint(f"Running script `{input_file}`", end=": ")
@@ -76,10 +74,31 @@ def main():
     with GeoEngineTestInstance(port=3030) as ge_instance:
         ge_instance.wait_for_ready()
 
-        if run_script(python_script):
-            sys.exit(0)
-        else:
-            sys.exit(1)
+        return run_script(python_script)
+
+
+def main():
+    """Main entry point."""
+
+    input_file = parse_args()
+
+    if setup_geoengine_and_run_script(input_file):
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+
+def test_main():
+    """Run main function with pytest"""
+    input_file = os.getenv("INPUT_FILE")
+
+    if not input_file:
+        raise AssertionError("INPUT_FILE environment variable not set")
+
+    if setup_geoengine_and_run_script(input_file):
+        assert True, "Notebook ran successfully"
+    else:
+        raise AssertionError("Notebook failed")
 
 
 if __name__ == "__main__":
