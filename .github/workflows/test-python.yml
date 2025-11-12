@@ -103,6 +103,15 @@ jobs:
         env:
           GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
           GEOENGINE_TEST_BUILD_TYPE: "release"
+      - name: Examples
+        run: |
+          ${{ steps.vars.outputs.VENV_CALL }}
+          ${{ steps.vars.outputs.PIP_INSTALL }} -e .[examples]
+          python test_all_notebooks.py
+        env:
+          GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
+          GEOENGINE_TEST_BUILD_TYPE: "release"
+          COVERAGE_COMMAND: ${{ steps.vars.outputs.COVERAGE_COMMAND }}
       - name: Report coverage to Coveralls
         if: ${{ inputs.coverage }}
         # 1. We need to adjust the paths in the lcov file to match the repository structure.
@@ -114,11 +123,3 @@ jobs:
         working-directory: library/geoengine
         env:
           COVERALLS_REPO_TOKEN: ${{ github.token }}
-      - name: Examples
-        run: |
-          ${{ steps.vars.outputs.VENV_CALL }}
-          ${{ steps.vars.outputs.PIP_INSTALL }} -e .[examples]
-          python test_all_notebooks.py
-        env:
-          GEOENGINE_TEST_CODE_PATH: ${{ github.workspace }}/backend
-          GEOENGINE_TEST_BUILD_TYPE: "release"
