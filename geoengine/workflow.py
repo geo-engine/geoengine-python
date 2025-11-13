@@ -121,13 +121,16 @@ class WorkflowId:
         """
         Create a `WorkflowId` from an http response
         """
-        return WorkflowId(UUID(response.id))
+        return WorkflowId(response.id)
 
     def __str__(self) -> str:
         return str(self.__workflow_id)
 
     def __repr__(self) -> str:
         return str(self)
+
+    def to_dict(self) -> UUID:
+        return self.__workflow_id
 
 
 class RasterStreamProcessing:
@@ -212,7 +215,9 @@ class Workflow:
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
-            response = workflows_api.get_workflow_metadata_handler(str(self.__workflow_id), _request_timeout=timeout)
+            response = workflows_api.get_workflow_metadata_handler(
+                self.__workflow_id.to_dict(), _request_timeout=timeout
+            )
 
         debug(response)
 
@@ -232,7 +237,7 @@ class Workflow:
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
-            response = workflows_api.load_workflow_handler(str(self.__workflow_id), _request_timeout=timeout)
+            response = workflows_api.load_workflow_handler(self.__workflow_id.to_dict(), _request_timeout=timeout)
 
         return response
 
@@ -251,7 +256,7 @@ class Workflow:
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             wfs_api = geoengine_openapi_client.OGCWFSApi(api_client)
             response = wfs_api.wfs_feature_handler(
-                workflow=str(self.__workflow_id),
+                workflow=self.__workflow_id.to_dict(),
                 service=geoengine_openapi_client.WfsService(geoengine_openapi_client.WfsService.WFS),
                 request=geoengine_openapi_client.GetFeatureRequest(
                     geoengine_openapi_client.GetFeatureRequest.GETFEATURE
@@ -313,7 +318,7 @@ class Workflow:
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             wms_api = geoengine_openapi_client.OGCWMSApi(api_client)
             response = wms_api.wms_map_handler(
-                workflow=str(self),
+                workflow=self.__workflow_id.to_dict(),
                 version=geoengine_openapi_client.WmsVersion(geoengine_openapi_client.WmsVersion.ENUM_1_DOT_3_DOT_0),
                 service=geoengine_openapi_client.WmsService(geoengine_openapi_client.WmsService.WMS),
                 request=geoengine_openapi_client.GetMapRequest(geoengine_openapi_client.GetMapRequest.GETMAP),
@@ -350,7 +355,7 @@ class Workflow:
                 bbox.bbox_str,
                 bbox.time_str,
                 str(bbox.spatial_resolution),
-                str(self.__workflow_id),
+                self.__workflow_id.to_dict(),
                 bbox.srs,
                 _request_timeout=timeout,
             )
@@ -530,7 +535,9 @@ class Workflow:
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
-            response = workflows_api.get_workflow_provenance_handler(str(self.__workflow_id), _request_timeout=timeout)
+            response = workflows_api.get_workflow_provenance_handler(
+                self.__workflow_id.to_dict(), _request_timeout=timeout
+            )
 
         return [ProvenanceEntry.from_response(item) for item in response]
 
@@ -544,7 +551,7 @@ class Workflow:
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
             response = workflows_api.get_workflow_all_metadata_zip_handler(
-                str(self.__workflow_id), _request_timeout=timeout
+                self.__workflow_id.to_dict(), _request_timeout=timeout
             )
 
         if isinstance(path, BytesIO):
@@ -573,7 +580,7 @@ class Workflow:
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             workflows_api = geoengine_openapi_client.WorkflowsApi(api_client)
             response = workflows_api.dataset_from_workflow_handler(
-                str(self.__workflow_id),
+                self.__workflow_id.to_dict(),
                 geoengine_openapi_client.RasterDatasetFromWorkflow(
                     name=name, display_name=display_name, description=description, query=query_rectangle
                 ),
@@ -767,7 +774,8 @@ class Workflow:
             data_frame = record_batch.to_pandas()
 
             geometry = gpd.GeoSeries.from_wkt(data_frame[api.GEOMETRY_COLUMN_NAME])
-            del data_frame[api.GEOMETRY_COLUMN_NAME]  # delete the duplicated column
+            # delete the duplicated column
+            del data_frame[api.GEOMETRY_COLUMN_NAME]
 
             geo_data_frame = gpd.GeoDataFrame(
                 data_frame,
@@ -777,7 +785,8 @@ class Workflow:
 
             # split time column
             geo_data_frame[[time_start_column, time_end_column]] = geo_data_frame[api.TIME_COLUMN_NAME].tolist()
-            del geo_data_frame[api.TIME_COLUMN_NAME]  # delete the duplicated column
+            # delete the duplicated column
+            del geo_data_frame[api.TIME_COLUMN_NAME]
 
             # parse time columns
             for time_column in [time_start_column, time_end_column]:
@@ -986,7 +995,7 @@ def get_quota(user_id: UUID | None = None, timeout: int = 60) -> geoengine_opena
         if user_id is None:
             return user_api.quota_handler(_request_timeout=timeout)
 
-        return user_api.get_user_quota_handler(str(user_id), _request_timeout=timeout)
+        return user_api.get_user_quota_handler(user_id, _request_timeout=timeout)
 
 
 def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> None:
@@ -999,7 +1008,7 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         user_api = geoengine_openapi_client.UserApi(api_client)
         user_api.update_user_quota_handler(
-            str(user_id), geoengine_openapi_client.UpdateQuota(available=new_available_quota), _request_timeout=timeout
+            user_id, geoengine_openapi_client.UpdateQuota(available=new_available_quota), _request_timeout=timeout
         )
 
 

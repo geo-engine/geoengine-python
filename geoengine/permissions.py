@@ -50,6 +50,9 @@ class RoleId:
     def __repr__(self) -> str:
         return repr(self.__role_id)
 
+    def to_dict(self) -> UUID:
+        return self.__role_id
+
 
 class Role:
     """A wrapper for a role"""
@@ -123,6 +126,9 @@ class UserId:
 
     def __repr__(self) -> str:
         return repr(self.__user_id)
+
+    def to_dict(self) -> UUID:
+        return self.__user_id
 
 
 class PermissionListing:
@@ -230,7 +236,11 @@ def list_permissions(resource: Resource, timeout: int = 60, offset=0, limit=20) 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         permission_api = geoengine_openapi_client.PermissionsApi(api_client)
         res = permission_api.get_resource_permissions_handler(
-            resource_id=resource.id, resource_type=resource.type, offset=offset, limit=limit, _request_timeout=timeout
+            resource_id=str(resource.id),
+            resource_type=resource.type,
+            offset=offset,
+            limit=limit,
+            _request_timeout=timeout,
         )
 
         return [PermissionListing.from_response(r) for r in res]
@@ -259,7 +269,7 @@ def remove_role(role: RoleId, timeout: int = 60):
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         user_api = geoengine_openapi_client.UserApi(api_client)
-        user_api.remove_role_handler(str(role), _request_timeout=timeout)
+        user_api.remove_role_handler(role.to_dict(), _request_timeout=timeout)
 
 
 def assign_role(role: RoleId, user: UserId, timeout: int = 60):
@@ -269,7 +279,7 @@ def assign_role(role: RoleId, user: UserId, timeout: int = 60):
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         user_api = geoengine_openapi_client.UserApi(api_client)
-        user_api.assign_role_handler(str(user), str(role), _request_timeout=timeout)
+        user_api.assign_role_handler(user.to_dict(), role.to_dict(), _request_timeout=timeout)
 
 
 def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
@@ -279,4 +289,4 @@ def revoke_role(role: RoleId, user: UserId, timeout: int = 60):
 
     with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
         user_api = geoengine_openapi_client.UserApi(api_client)
-        user_api.revoke_role_handler(str(user), str(role), _request_timeout=timeout)
+        user_api.revoke_role_handler(user.to_dict(), role.to_dict(), _request_timeout=timeout)
