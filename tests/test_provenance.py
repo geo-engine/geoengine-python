@@ -19,15 +19,13 @@ class ProvenanceTests(unittest.TestCase):
         with UrllibMocker() as m:
             m.post(
                 "http://mock-instance/anonymous",
-                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
-                      "project": None, "view": None},
+                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081", "project": None, "view": None},
             )
 
             m.post(
                 "http://mock-instance/workflow",
                 json={"id": "5b9508a8-bd34-5a1c-acd6-75bb832d2d38"},
-                request_headers={
-                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m.get(
@@ -54,10 +52,9 @@ class ProvenanceTests(unittest.TestCase):
                     "time": {
                         "bounds": {"start": 0, "end": 100000},
                         "dimension": None,
-                    }
+                    },
                 },
-                request_headers={
-                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m.get(
@@ -73,8 +70,7 @@ class ProvenanceTests(unittest.TestCase):
                         },
                     }
                 ],
-                request_headers={
-                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             ge.initialize("http://mock-instance")
@@ -96,8 +92,7 @@ class ProvenanceTests(unittest.TestCase):
                 [
                     ProvenanceEntry(
                         # pylint: disable=line-too-long
-                        [InternalDataId(
-                            UUID("36574dc3-560a-4b09-9d22-d5945f2b8093"))],
+                        [InternalDataId(UUID("36574dc3-560a-4b09-9d22-d5945f2b8093"))],
                         Provenance(
                             "Nasa Earth Observations, MODIS Vegetation Index Products",
                             "https://earthdata.nasa.gov/collaborate/open-data-services-and-software/data-information-policy",

@@ -16,7 +16,6 @@ from geoengine.types import (
     SpatialGridDescriptor,
 )
 from tests.ge_test import GeoEngineTestInstance
-from tests.util import NOT_FOUND_UUID
 
 from . import UrllibMocker
 
@@ -35,15 +34,13 @@ class WmsTests(unittest.TestCase):
         ):
             m.post(
                 "http://mock-instance/anonymous",
-                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
-                      "project": None, "view": None},
+                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081", "project": None, "view": None},
             )
 
             m.post(
                 "http://mock-instance/workflow",
                 json={"id": "5b9508a8-bd34-5a1c-acd6-75bb832d2d38"},
-                request_headers={
-                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m.get(
@@ -70,10 +67,9 @@ class WmsTests(unittest.TestCase):
                     "time": {
                         "bounds": {"start": 0, "end": 100000},
                         "dimension": None,
-                    }
+                    },
                 },
-                request_headers={
-                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m.get("http://epsg.io/4326.gml?download", body=epsg4326_gml)
@@ -102,18 +98,15 @@ class WmsTests(unittest.TestCase):
                 },
             }
 
-            time = datetime.strptime(
-                "2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
+            time = datetime.strptime("2014-04-01T12:00:00.000Z", ge.DEFAULT_ISO_TIME_FORMAT)
 
             workflow = ge.register_workflow(workflow_definition)
 
             img = workflow.wms_get_map_as_image(
-                ge.QueryRectangle(
-                    ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0), ge.TimeInterval(time)),
+                ge.QueryRectangle(ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0), ge.TimeInterval(time)),
                 raster_colorizer=SingleBandRasterColorizer(
                     band=0,
-                    band_colorizer=Colorizer.linear_with_mpl_cmap(
-                        color_map="gray", min_max=(0.0, 255.0), n_steps=2),
+                    band_colorizer=Colorizer.linear_with_mpl_cmap(color_map="gray", min_max=(0.0, 255.0), n_steps=2),
                 ),
                 spatial_resolution=ge.SpatialResolution(1.8, 1.8),
             )
@@ -163,8 +156,7 @@ class WmsTests(unittest.TestCase):
                             ),
                             "resultDescriptor": ge.RasterResultDescriptor(
                                 "U8",
-                                [RasterBandDescriptor(
-                                    "band", ge.UnitlessMeasurement())],
+                                [RasterBandDescriptor("band", ge.UnitlessMeasurement())],
                                 "EPSG:4326",
                                 spatial_grid=SpatialGridDescriptor(
                                     spatial_grid=SpatialGridDefinition(
@@ -185,16 +177,13 @@ class WmsTests(unittest.TestCase):
                 ),
             )
 
-            workflow = ge.register_workflow(
-                ge.workflow_builder.operators.GdalSource(dataset_name))
+            workflow = ge.register_workflow(ge.workflow_builder.operators.GdalSource(dataset_name))
 
             with self.assertRaises(ge.OGCXMLError) as ctx:
                 workflow.wms_get_map_as_image(
                     ge.QueryRectangle(
-                        spatial_bounds=ge.BoundingBox2D(-18.0, -
-                                                        9.0, 18.0, 9.0),
-                        time_interval=ge.TimeInterval(
-                            np.datetime64("2004-04-01T12:00:00")),
+                        spatial_bounds=ge.BoundingBox2D(-18.0, -9.0, 18.0, 9.0),
+                        time_interval=ge.TimeInterval(np.datetime64("2004-04-01T12:00:00")),
                     ),
                     raster_colorizer=SingleBandRasterColorizer(
                         band=0,
