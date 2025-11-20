@@ -28,7 +28,7 @@ class TaskId:
     def from_response(cls, response: geoengine_openapi_client.TaskResponse) -> TaskId:
         """Parse a http response to an `TaskId`"""
 
-        return TaskId(UUID(response.task_id))
+        return TaskId(response.task_id)
 
     def __eq__(self, other) -> bool:
         """Checks if two dataset ids are equal"""
@@ -42,6 +42,9 @@ class TaskId:
 
     def __repr__(self) -> str:
         return repr(self.__task_id)
+
+    def to_dict(self) -> UUID:
+        return self.__task_id
 
 
 class TaskStatus(Enum):
@@ -260,12 +263,12 @@ class Task:
         """
         session = get_session()
 
-        task_id_str = str(self.__task_id)
+        task_id = self.__task_id.to_dict()
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             tasks_api = geoengine_openapi_client.TasksApi(api_client)
-            print(task_id_str)
-            response = tasks_api.status_handler(task_id_str, _request_timeout=timeout)
+            print(task_id)
+            response = tasks_api.status_handler(task_id, _request_timeout=timeout)
 
         return TaskStatusInfo.from_response(response)
 
@@ -275,11 +278,11 @@ class Task:
         """
         session = get_session()
 
-        task_id_str = str(self.__task_id)
+        task_id = self.__task_id.to_dict()
 
         with geoengine_openapi_client.ApiClient(session.configuration) as api_client:
             tasks_api = geoengine_openapi_client.TasksApi(api_client)
-            tasks_api.abort_handler(task_id_str, None if force is False else True, _request_timeout=timeout)
+            tasks_api.abort_handler(task_id, None if force is False else True, _request_timeout=timeout)
 
     def wait_for_finish(
         self, check_interval_seconds: float = 5, request_timeout: int = 3600, print_status: bool = True
@@ -311,8 +314,8 @@ class Task:
         Returns a future that will be resolved when the task is finished in the backend.
         """
 
-        def get_status_inner(tasks_api: geoengine_openapi_client.TasksApi, task_id_str: str, timeout: int = 3600):
-            return tasks_api.status_handler(task_id_str, _request_timeout=timeout)
+        def get_status_inner(tasks_api: geoengine_openapi_client.TasksApi, task_id: UUID, timeout: int = 3600):
+            return tasks_api.status_handler(task_id, _request_timeout=timeout)
 
         session = get_session()
         task_id_str = str(self.__task_id)
@@ -346,6 +349,6 @@ def get_task_list(timeout: int = 3600) -> list[tuple[Task, TaskStatusInfo]]:
 
     result = []
     for item in response:
-        result.append((Task(TaskId(UUID(item.task_id))), TaskStatusInfo.from_response(item)))
+        result.append((Task(TaskId(item.task_id)), TaskStatusInfo.from_response(item)))
 
     return result

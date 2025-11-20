@@ -27,7 +27,7 @@ class MlModelTests(unittest.TestCase):
     def setUp(self) -> None:
         ge.reset(False)
 
-    def test_model_dim_to_tensorshape(self):
+    def test_model_dim_to_tensorshape(self) -> None:
         """Test model_dim_to_tensorshape"""
 
         dim_1d: list[TSP.Dimension] = [TSP.Dimension(dim_value=7)]
@@ -71,7 +71,7 @@ class MlModelTests(unittest.TestCase):
         mts_4d_v = MlTensorShape3D(bands=4, y=512, x=512)
         self.assertEqual(model_dim_to_tensorshape(dim_4d_v), mts_4d_v)
 
-    def test_uploading_onnx_model(self):
+    def test_uploading_onnx_model(self) -> None:
         clf = RandomForestClassifier(random_state=42)
         training_x = np.array([[1, 2], [3, 4]], dtype=np.float32)
         training_y = np.array([0, 1], dtype=np.int64)
@@ -94,14 +94,14 @@ class MlModelTests(unittest.TestCase):
                     name=model_name,
                     file_name="model.onnx",
                     metadata=MlModelMetadata(
-                        inputType=RasterDataType.F32,
-                        outputType=RasterDataType.I64,
-                        inputShape=MlTensorShape3D(y=1, x=1, bands=2),
-                        outputShape=MlTensorShape3D(y=1, x=1, bands=1),
-                        inputNoDataHandling=MlModelInputNoDataHandling(
+                        input_type=RasterDataType.F32,
+                        output_type=RasterDataType.I64,
+                        input_shape=MlTensorShape3D(y=1, x=1, bands=2),
+                        output_shape=MlTensorShape3D(y=1, x=1, bands=1),
+                        input_no_data_handling=MlModelInputNoDataHandling(
                             variant=MlModelInputNoDataHandlingVariant.SKIPIFNODATA
                         ),
-                        outputNoDataHandling=MlModelOutputNoDataHandling(
+                        output_no_data_handling=MlModelOutputNoDataHandling(
                             variant=MlModelOutputNoDataHandlingVariant.NANISNODATA
                         ),
                     ),
@@ -136,14 +136,14 @@ class MlModelTests(unittest.TestCase):
                         name=model_name,
                         file_name="model.onnx",
                         metadata=MlModelMetadata(
-                            inputType=RasterDataType.F32,
-                            outputType=RasterDataType.I64,
-                            inputShape=MlTensorShape3D(y=1, x=1, bands=4),
-                            outputShape=MlTensorShape3D(y=1, x=1, bands=1),
-                            inputNoDataHandling=MlModelInputNoDataHandling(
+                            input_type=RasterDataType.F32,
+                            output_type=RasterDataType.I64,
+                            input_shape=MlTensorShape3D(y=1, x=1, bands=4),
+                            output_shape=MlTensorShape3D(y=1, x=1, bands=1),
+                            input_no_data_handling=MlModelInputNoDataHandling(
                                 variant=MlModelInputNoDataHandlingVariant.SKIPIFNODATA
                             ),
-                            outputNoDataHandling=MlModelOutputNoDataHandling(
+                            output_no_data_handling=MlModelOutputNoDataHandling(
                                 variant=MlModelOutputNoDataHandlingVariant.NANISNODATA
                             ),
                         ),
@@ -162,14 +162,14 @@ class MlModelTests(unittest.TestCase):
                         name=model_name,
                         file_name="model.onnx",
                         metadata=MlModelMetadata(
-                            inputType=RasterDataType.F64,
-                            outputType=RasterDataType.I64,
-                            inputShape=MlTensorShape3D(y=1, x=1, bands=2),
-                            outputShape=MlTensorShape3D(y=1, x=1, bands=1),
-                            inputNoDataHandling=MlModelInputNoDataHandling(
+                            input_type=RasterDataType.F64,
+                            output_type=RasterDataType.I64,
+                            input_shape=MlTensorShape3D(y=1, x=1, bands=2),
+                            output_shape=MlTensorShape3D(y=1, x=1, bands=1),
+                            input_no_data_handling=MlModelInputNoDataHandling(
                                 variant=MlModelInputNoDataHandlingVariant.SKIPIFNODATA
                             ),
-                            outputNoDataHandling=MlModelOutputNoDataHandling(
+                            output_no_data_handling=MlModelOutputNoDataHandling(
                                 variant=MlModelOutputNoDataHandlingVariant.NANISNODATA
                             ),
                         ),
@@ -189,14 +189,14 @@ class MlModelTests(unittest.TestCase):
                         name="foo",
                         file_name="model.onnx",
                         metadata=MlModelMetadata(
-                            inputType=RasterDataType.F32,
-                            outputType=RasterDataType.I32,
-                            inputShape=MlTensorShape3D(y=1, x=1, bands=2),
-                            outputShape=MlTensorShape3D(y=1, x=1, bands=1),
-                            inputNoDataHandling=MlModelInputNoDataHandling(
+                            input_type=RasterDataType.F32,
+                            output_type=RasterDataType.I32,
+                            input_shape=MlTensorShape3D(y=1, x=1, bands=2),
+                            output_shape=MlTensorShape3D(y=1, x=1, bands=1),
+                            input_no_data_handling=MlModelInputNoDataHandling(
                                 variant=MlModelInputNoDataHandlingVariant.SKIPIFNODATA
                             ),
-                            outputNoDataHandling=MlModelOutputNoDataHandling(
+                            output_no_data_handling=MlModelOutputNoDataHandling(
                                 variant=MlModelOutputNoDataHandlingVariant.NANISNODATA
                             ),
                         ),

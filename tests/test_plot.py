@@ -9,6 +9,7 @@ from vega import VegaLite
 
 import geoengine as ge
 from tests.ge_test import GeoEngineTestInstance
+from tests.util import NOT_FOUND_UUID
 
 from . import UrllibMocker
 
@@ -68,7 +69,7 @@ class PlotTests(unittest.TestCase):
             )
 
             m.get(
-                "http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d11/metadata",
+                f"http://mock-instance/workflow/{NOT_FOUND_UUID}/metadata",
                 status_code=404,
                 json={
                     "error": "NotFound",
@@ -88,7 +89,7 @@ class PlotTests(unittest.TestCase):
             self.assertEqual(repr(result_descriptor), textwrap.dedent(expected_repr))
 
             with self.assertRaises(ge.NotFoundException) as exception:
-                workflow = ge.workflow_by_id("5b9508a8-bd34-5a1c-acd6-75bb832d2d11")
+                workflow = ge.workflow_by_id(NOT_FOUND_UUID)
 
                 result_descriptor = workflow.get_result_descriptor()
 

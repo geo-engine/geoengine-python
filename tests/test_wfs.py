@@ -4,6 +4,7 @@ import json
 import textwrap
 import unittest
 from datetime import datetime
+from uuid import UUID
 
 import geoengine_openapi_client
 import geopandas as gpd
@@ -12,6 +13,7 @@ from numpy import nan
 from shapely.geometry import Point
 
 import geoengine as ge
+from tests.util import NOT_FOUND_UUID
 
 from . import UrllibMocker
 
@@ -423,6 +425,8 @@ class WfsTests(unittest.TestCase):
             )
 
     def test_repr(self):
+        uuid = UUID("5fdf8020-d8d9-4f93-81f5-6554ebe6e216")
+
         with UrllibMocker() as m:
             m.post(
                 "http://mock-instance/anonymous",
@@ -439,7 +443,7 @@ class WfsTests(unittest.TestCase):
             )
 
             m.get(
-                "http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d11/metadata",
+                f"http://mock-instance/workflow/{uuid}/metadata",
                 json={
                     "type": "vector",
                     "dataType": "MultiPoint",
@@ -479,9 +483,9 @@ class WfsTests(unittest.TestCase):
 
             ge.initialize("http://mock-instance")
 
-            workflow = ge.workflow_by_id("5b9508a8-bd34-5a1c-acd6-75bb832d2d11")
+            workflow = ge.workflow_by_id(uuid)
 
-            self.assertEqual(repr(workflow), "5b9508a8-bd34-5a1c-acd6-75bb832d2d11")
+            self.assertEqual(repr(workflow), str(uuid))
 
     def test_result_descriptor(self):
         with UrllibMocker() as m:
@@ -539,7 +543,7 @@ class WfsTests(unittest.TestCase):
             )
 
             m.get(
-                "http://mock-instance/workflow/4cdf1ffe-cb67-5de2-a1f3-3357ae0000aa/metadata",
+                f"http://mock-instance/workflow/{NOT_FOUND_UUID}/metadata",
                 status_code=404,
                 json={
                     "error": "NotFound",
@@ -581,7 +585,7 @@ class WfsTests(unittest.TestCase):
             self.assertEqual(repr(result_descriptor), textwrap.dedent(expected_repr))
 
             with self.assertRaises(ge.NotFoundException) as exception:
-                workflow = ge.workflow_by_id("4cdf1ffe-cb67-5de2-a1f3-3357ae0000aa")
+                workflow = ge.workflow_by_id(NOT_FOUND_UUID)
 
                 result_descriptor = workflow.get_result_descriptor()
 

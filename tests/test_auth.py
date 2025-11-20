@@ -10,6 +10,7 @@ import geoengine as ge
 from geoengine.error import GeoEngineException
 from geoengine.types import QueryRectangle
 from tests.ge_test import GeoEngineTestInstance
+from tests.util import NOT_FOUND_UUID
 
 from . import UrllibMocker
 
@@ -27,7 +28,7 @@ class AuthTests(unittest.TestCase):
 
     def test_uninitialized(self):
         with self.assertRaises(ge.UninitializedException) as exception:
-            ge.workflow_by_id("e327d9c3-a4f3-4bd7-a5e1-30b26cae8064").get_dataframe(
+            ge.workflow_by_id(NOT_FOUND_UUID).get_dataframe(
                 QueryRectangle(
                     ge.BoundingBox2D(-180, -90, 180, 90),
                     ge.TimeInterval(datetime.now()),

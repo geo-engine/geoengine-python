@@ -1436,7 +1436,7 @@ class InternalDataId(DataId):
     @classmethod
     def from_response_internal(cls, response: geoengine_openapi_client.InternalDataId) -> InternalDataId:
         """Parse an http response to a `InternalDataId` object"""
-        return InternalDataId(UUID(response.dataset_id))
+        return InternalDataId(response.dataset_id)
 
     def to_api_dict(self) -> geoengine_openapi_client.DataId:
         return geoengine_openapi_client.DataId(
@@ -1472,7 +1472,7 @@ class ExternalDataId(DataId):
     def from_response_external(cls, response: geoengine_openapi_client.ExternalDataId) -> ExternalDataId:
         """Parse an http response to a `ExternalDataId` object"""
 
-        return ExternalDataId(UUID(response.provider_id), response.layer_id)
+        return ExternalDataId(response.provider_id, response.layer_id)
 
     def to_api_dict(self) -> geoengine_openapi_client.DataId:
         return geoengine_openapi_client.DataId(

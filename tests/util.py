@@ -5,6 +5,7 @@ import unittest
 from json import dumps, loads
 from unittest.mock import _patch, patch
 from urllib.parse import parse_qs
+from uuid import UUID
 
 import urllib3
 
@@ -24,6 +25,9 @@ def is_url_match(url1: str, url2: str) -> bool:
         and parsed1.path == parsed2.path
         and parse_qs(parsed1.query) == parse_qs(parsed2.query)
     )
+
+
+NOT_FOUND_UUID: UUID = UUID("9d70d443-0f9f-4455-87a7-9ce2d406af07")
 
 
 class UrllibMocker:

@@ -25,11 +25,11 @@ source env/bin/activate
 # go out of old venv
 deactivate
 # delete old venv
-rm -r env
+rm -r .venv
 # create new venv
-python3 -m venv env
+python3 -m venv .venv
 # activate new venv
-source env/bin/activate
+source .venv/bin/activate
 ```
 
 ### Install dependencies

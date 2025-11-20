@@ -107,7 +107,8 @@ class Encoding(TypedDict):
     y: Y
 
 
-VegaSpec = TypedDict("VegaSpec", {"$schema": str, "data": list[Values], "mark": str, "encoding": Encoding})
+VegaSpec = TypedDict("VegaSpec", {
+                     "$schema": str, "data": list[Values], "mark": str, "encoding": Encoding})
 
 
 class WorkflowId:
@@ -130,13 +131,16 @@ class WorkflowId:
         """
         Create a `WorkflowId` from an http response
         """
-        return WorkflowId(UUID(response.id))
+        return WorkflowId(response.id)
 
     def __str__(self) -> str:
         return str(self.__workflow_id)
 
     def __repr__(self) -> str:
         return str(self)
+
+    def to_dict(self) -> UUID:
+        return self.__workflow_id
 
 
 class RasterStreamProcessing:
@@ -221,7 +225,9 @@ class Workflow:
 
         with geoc.ApiClient(session.configuration) as api_client:
             workflows_api = geoc.WorkflowsApi(api_client)
-            response = workflows_api.get_workflow_metadata_handler(str(self.__workflow_id), _request_timeout=timeout)
+            response = workflows_api.get_workflow_metadata_handler(
+                self.__workflow_id.to_dict(), _request_timeout=timeout
+            )
 
         debug(response)
 
@@ -241,7 +247,8 @@ class Workflow:
 
         with geoc.ApiClient(session.configuration) as api_client:
             workflows_api = geoc.WorkflowsApi(api_client)
-            response = workflows_api.load_workflow_handler(str(self.__workflow_id), _request_timeout=timeout)
+            response = workflows_api.load_workflow_handler(
+                self.__workflow_id.to_dict(), _request_timeout=timeout)
 
         return response
 
@@ -260,9 +267,11 @@ class Workflow:
         with geoc.ApiClient(session.configuration) as api_client:
             wfs_api = geoc.OGCWFSApi(api_client)
             response = wfs_api.wfs_feature_handler(
-                workflow=str(self.__workflow_id),
+                workflow=self.__workflow_id.to_dict(),
                 service=geoc.WfsService(geoc.WfsService.WFS),
-                request=geoc.GetFeatureRequest(geoc.GetFeatureRequest.GETFEATURE),
+                request=geoc.GetFeatureRequest(
+                    geoc.GetFeatureRequest.GETFEATURE
+                ),
                 type_names=str(self.__workflow_id),
                 bbox=bbox.bbox_str,
                 version=geoc.WfsVersion(geoc.WfsVersion.ENUM_2_DOT_0_DOT_0),
@@ -297,7 +306,8 @@ class Workflow:
                 if isinstance(info.measurement, ClassificationMeasurement):
                     measurement: ClassificationMeasurement = info.measurement
                     classes = measurement.classes
-                    data[column] = data[column].apply(lambda x, classes=classes: classes[x])  # pylint: disable=cell-var-from-loop
+                    data[column] = data[column].apply(
+                        lambda x, classes=classes: classes[x])  # pylint: disable=cell-var-from-loop
 
             return data
 
@@ -325,12 +335,16 @@ class Workflow:
         with geoc.ApiClient(session.configuration) as api_client:
             wms_api = geoc.OGCWMSApi(api_client)
             response = wms_api.wms_map_handler(
-                workflow=str(self),
+                workflow=self.__workflow_id.to_dict(),
                 version=geoc.WmsVersion(geoc.WmsVersion.ENUM_1_DOT_3_DOT_0),
                 service=geoc.WmsService(geoc.WmsService.WMS),
                 request=geoc.GetMapRequest(geoc.GetMapRequest.GETMAP),
-                width=int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) / spatial_resolution.x_resolution),
-                height=int((bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) / spatial_resolution.y_resolution),  # pylint: disable=line-too-long
+                width=int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) /
+                          spatial_resolution.x_resolution),
+                height=int(
+                    (bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) /
+                    spatial_resolution.y_resolution
+                ),  # pylint: disable=line-too-long
                 bbox=bbox.bbox_ogc_str,
                 format=geoc.GetMapFormat(geoc.GetMapFormat.IMAGE_SLASH_PNG),
                 layers=str(self),
@@ -361,9 +375,8 @@ class Workflow:
             return plots_api.get_plot_handler(
                 bbox.bbox_str,
                 bbox.time_str,
-                # TODO: why does it need a resolution?
                 str(spatial_resolution),
-                str(self.__workflow_id),
+                self.__workflow_id.to_dict(),
                 bbox.srs,
                 _request_timeout=timeout,
             )
@@ -458,7 +471,8 @@ class Workflow:
             Otherwise, use the Geo Engine will produce masked rasters.
         """
 
-        response = self.__request_wcs(bbox, timeout, "image/tiff", force_no_data_value, spatial_resolution).read()
+        response = self.__request_wcs(
+            bbox, timeout, "image/tiff", force_no_data_value, spatial_resolution).read()
 
         # response is checked via `raise_on_error` in `getCoverage` / `openUrl`
 
@@ -555,7 +569,8 @@ class Workflow:
             Otherwise, use the Geo Engine will produce masked rasters.
         """
 
-        response = self.__request_wcs(bbox, timeout, file_format, force_no_data_value, spatial_resolution)
+        response = self.__request_wcs(
+            bbox, timeout, file_format, force_no_data_value, spatial_resolution)
 
         with open(file_path, "wb") as file:
             file.write(response.read())
@@ -569,7 +584,9 @@ class Workflow:
 
         with geoc.ApiClient(session.configuration) as api_client:
             workflows_api = geoc.WorkflowsApi(api_client)
-            response = workflows_api.get_workflow_provenance_handler(str(self.__workflow_id), _request_timeout=timeout)
+            response = workflows_api.get_workflow_provenance_handler(
+                self.__workflow_id.to_dict(), _request_timeout=timeout
+            )
 
         return [ProvenanceEntry.from_response(item) for item in response]
 
@@ -583,7 +600,7 @@ class Workflow:
         with geoc.ApiClient(session.configuration) as api_client:
             workflows_api = geoc.WorkflowsApi(api_client)
             response = workflows_api.get_workflow_all_metadata_zip_handler(
-                str(self.__workflow_id), _request_timeout=timeout
+                self.__workflow_id.to_dict(), _request_timeout=timeout
             )
 
         if isinstance(path, BytesIO):
@@ -613,14 +630,15 @@ class Workflow:
             print("save_as_dataset ignores params other then spatial and tmporal bounds.")
 
         qrect = geoc.models.raster_to_dataset_query_rectangle.RasterToDatasetQueryRectangle(
-            spatial_bounds=SpatialPartition2D.from_bounding_box(query_rectangle.spatial_bounds).to_api_dict(),
+            spatial_bounds=SpatialPartition2D.from_bounding_box(
+                query_rectangle.spatial_bounds).to_api_dict(),
             time_interval=query_rectangle.time.to_api_dict(),
         )
 
         with geoc.ApiClient(session.configuration) as api_client:
             workflows_api = geoc.WorkflowsApi(api_client)
             response = workflows_api.dataset_from_workflow_handler(
-                str(self.__workflow_id),
+                self.__workflow_id.to_dict(),
                 geoc.RasterDatasetFromWorkflow(
                     name=name, display_name=display_name, description=description, query=qrect
                 ),
@@ -640,7 +658,8 @@ class Workflow:
         if not self.__result_descriptor.is_raster_result():
             raise MethodNotCalledOnRasterException()
 
-        result_descriptor = cast(RasterResultDescriptor, self.__result_descriptor)
+        result_descriptor = cast(
+            RasterResultDescriptor, self.__result_descriptor)
 
         if not isinstance(query_rectangle, RasterQueryRectangle):
             query_rectangle = query_rectangle.with_raster_bands(
@@ -701,7 +720,8 @@ class Workflow:
                 (tile_bytes, tile) = await asyncio.gather(
                     read_new_bytes(),
                     # asyncio.to_thread(process_bytes, tile_bytes), # TODO: use this when min Python version is 3.9
-                    backports.to_thread(RasterStreamProcessing.process_bytes, tile_bytes),
+                    backports.to_thread(
+                        RasterStreamProcessing.process_bytes, tile_bytes),
                 )
 
                 if tile is not None:
@@ -725,7 +745,8 @@ class Workflow:
         NOTE: You can run out of memory if the query rectangle is too large.
         """
 
-        tile_stream = self.raster_stream(query_rectangle, open_timeout=open_timeout)
+        tile_stream = self.raster_stream(
+            query_rectangle, open_timeout=open_timeout)
 
         timestep_xarrays: list[xr.DataArray] = []
 
@@ -739,7 +760,8 @@ class Workflow:
 
             if remainder_tile is not None:
                 last_timestep = remainder_tile.time_start_ms
-                xr_tile = remainder_tile.to_xarray(clip_with_bounds=spatial_clip_bounds)
+                xr_tile = remainder_tile.to_xarray(
+                    clip_with_bounds=spatial_clip_bounds)
                 tiles.append(xr_tile)
 
             async for tile in tile_stream:
@@ -806,7 +828,8 @@ class Workflow:
 
             data_frame = record_batch.to_pandas()
 
-            geometry = gpd.GeoSeries.from_wkt(data_frame[api.GEOMETRY_COLUMN_NAME])
+            geometry = gpd.GeoSeries.from_wkt(
+                data_frame[api.GEOMETRY_COLUMN_NAME])
             # delete the duplicated column
             del data_frame[api.GEOMETRY_COLUMN_NAME]
 
@@ -817,7 +840,8 @@ class Workflow:
             )
 
             # split time column
-            geo_data_frame[[time_start_column, time_end_column]] = geo_data_frame[api.TIME_COLUMN_NAME].tolist()
+            geo_data_frame[[time_start_column, time_end_column]
+                           ] = geo_data_frame[api.TIME_COLUMN_NAME].tolist()
             # delete the duplicated column
             del geo_data_frame[api.TIME_COLUMN_NAME]
 
@@ -860,7 +884,8 @@ class Workflow:
         }
 
         url = (
-            req.Request("GET", url=f"{session.server_url}/workflow/{self.__workflow_id}/vectorStream", params=params)
+            req.Request(
+                "GET", url=f"{session.server_url}/workflow/{self.__workflow_id}/vectorStream", params=params)
             .prepare()
             .url
         )
@@ -997,7 +1022,8 @@ def register_workflow(workflow: dict[str, Any] | WorkflowBuilderOperator, timeou
 
     with geoc.ApiClient(session.configuration) as api_client:
         workflows_api = geoc.WorkflowsApi(api_client)
-        response = workflows_api.register_workflow_handler(workflow_model, _request_timeout=timeout)
+        response = workflows_api.register_workflow_handler(
+            workflow_model, _request_timeout=timeout)
 
     return Workflow(WorkflowId.from_response(response))
 
@@ -1025,7 +1051,7 @@ def get_quota(user_id: UUID | None = None, timeout: int = 60) -> geoc.Quota:
         if user_id is None:
             return user_api.quota_handler(_request_timeout=timeout)
 
-        return user_api.get_user_quota_handler(str(user_id), _request_timeout=timeout)
+        return user_api.get_user_quota_handler(user_id, _request_timeout=timeout)
 
 
 def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> None:
@@ -1038,7 +1064,7 @@ def update_quota(user_id: UUID, new_available_quota: int, timeout: int = 60) -> 
     with geoc.ApiClient(session.configuration) as api_client:
         user_api = geoc.UserApi(api_client)
         user_api.update_user_quota_handler(
-            str(user_id), geoc.UpdateQuota(available=new_available_quota), _request_timeout=timeout
+            user_id, geoc.UpdateQuota(available=new_available_quota), _request_timeout=timeout
         )
 
 
@@ -1054,7 +1080,8 @@ def data_usage(offset: int = 0, limit: int = 10) -> list[geoc.DataUsage]:
         response = user_api.data_usage_handler(offset=offset, limit=limit)
 
         # create dataframe from response
-        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(
+            by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
         if "timestamp" in df.columns:
             df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
@@ -1078,7 +1105,8 @@ def data_usage_summary(
         )
 
         # create dataframe from response
-        usage_dicts = [data_usage.model_dump(by_alias=True) for data_usage in response]
+        usage_dicts = [data_usage.model_dump(
+            by_alias=True) for data_usage in response]
         df = pd.DataFrame(usage_dicts)
         if "timestamp" in df.columns:
             df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)

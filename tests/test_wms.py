@@ -16,6 +16,7 @@ from geoengine.types import (
     SpatialGridDescriptor,
 )
 from tests.ge_test import GeoEngineTestInstance
+from tests.util import NOT_FOUND_UUID
 
 from . import UrllibMocker
 
