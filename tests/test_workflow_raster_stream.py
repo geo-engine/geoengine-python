@@ -139,6 +139,7 @@ class WorkflowRasterStreamTests(unittest.TestCase):
                         ),
                     ),
                 ),
+                time=ge.TimeDescriptor(dimension=ge.IrregularTimeDimension(), bounds=None),
             ),
         ):
             workflow = ge.Workflow(UUID("00000000-0000-0000-0000-000000000000"))

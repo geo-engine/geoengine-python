@@ -850,7 +850,29 @@ def literal_raster_data_type(
     return data_type_map[data_type]
 
 
-class RegularTimeDimension:
+class TimeDimension:
+    @classmethod
+    def from_response(
+        cls, response: geoengine_openapi_client.TimeDimension
+    ) -> RegularTimeDimension | IrregularTimeDimension:
+        actual = response.actual_instance
+
+        if actual.type == "regular":
+            if not isinstance(actual, geoengine_openapi_client.RegularTimeDimension):
+                raise ValueError("Type should be regular!")
+            return RegularTimeDimension.from_response(actual)
+
+        if actual.type == "irregular":
+            return IrregularTimeDimension.from_response(actual)
+
+        raise ValueError("unknown input type")
+
+    @abstractmethod
+    def to_api_dict(self) -> geoengine_openapi_client.TimeDimension:
+        pass
+
+
+class RegularTimeDimension(TimeDimension):
     """
     A regular time dimension
     """
@@ -873,10 +895,12 @@ class RegularTimeDimension:
         self.origin = time_origin if time_origin is not None else np.datetime64("1970-01-01T00:00:00Z")
         self.step = step
 
-    def to_api_dict(self) -> geoengine_openapi_client.RegularTimeDimension:
+    def to_api_dict(self) -> geoengine_openapi_client.TimeDimension:
         """Convert the regular time dimension to a dictionary"""
         time_origin = self.origin.astype("datetime64[ms]").astype(int)
-        return geoengine_openapi_client.RegularTimeDimension(origin=int(time_origin), step=self.step.to_api_dict())
+        return geoengine_openapi_client.TimeDimension(
+            {"type": "regular", "origin": int(time_origin), "step": self.step.to_api_dict()}
+        )
 
     @classmethod
     def from_response(cls, response: geoengine_openapi_client.RegularTimeDimension) -> RegularTimeDimension:
@@ -886,13 +910,27 @@ class RegularTimeDimension:
         return RegularTimeDimension(step=step, origin=origin)
 
 
+class IrregularTimeDimension(TimeDimension):
+    """The irregular time dimension"""
+
+    def to_api_dict(self) -> geoengine_openapi_client.TimeDimension:
+        """Convert the irregular time dimension to a dictionary"""
+
+        return geoengine_openapi_client.TimeDimension({"type": "irregular"})
+
+    @classmethod
+    def from_response(cls, _response: Any) -> IrregularTimeDimension:
+        """Parse an irregular time dimension from an http response"""
+        return IrregularTimeDimension()
+
+
 class TimeDescriptor:
     """A time descriptor"""
 
     bounds: TimeInterval | None
-    dimension: RegularTimeDimension | None
+    dimension: TimeDimension
 
-    def __init__(self, bounds: TimeInterval | None = None, dimension: RegularTimeDimension | None = None) -> None:
+    def __init__(self, dimension: TimeDimension, bounds: TimeInterval | None = None) -> None:
         """Initialize a new `TimeDescriptor`"""
         self.dimension = dimension
         self.bounds = bounds
@@ -913,8 +951,7 @@ class TimeDescriptor:
         if response.bounds is not None:
             bounds = TimeInterval.from_response(response.bounds)
 
-        if response.dimension is not None:
-            dimension = RegularTimeDimension.from_response(response.dimension)
+        dimension = TimeDimension.from_response(response.dimension)
 
         return TimeDescriptor(bounds=bounds, dimension=dimension)
 
@@ -935,15 +972,14 @@ class RasterResultDescriptor(ResultDescriptor):
         bands: list[RasterBandDescriptor],
         spatial_reference: str,
         spatial_grid: SpatialGridDescriptor,
-        time: TimeDescriptor | TimeInterval | RegularTimeDimension | None = None,
+        time: TimeDescriptor | TimeInterval | TimeDimension | None = None,
     ) -> None:
         """Initialize a new `RasterResultDescriptor`"""
-        time_descriptor = TimeDescriptor()
-        if isinstance(time, TimeDescriptor):
-            time_descriptor = time
-        elif isinstance(time, TimeInterval):
+
+        time_descriptor = time
+        if isinstance(time, TimeInterval):
             time_descriptor = TimeDescriptor(bounds=time)
-        elif isinstance(time, RegularTimeDimension):
+        if isinstance(time, TimeDimension):
             time_descriptor = TimeDescriptor(dimension=time)
 
         super().__init__(spatial_reference, time_descriptor.bounds)
@@ -973,15 +1009,9 @@ class RasterResultDescriptor(ResultDescriptor):
         data_type = literal_raster_data_type(response.data_type)
         bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
-        time_bounds = None
-
-        # FIXME: datetime can not represent our min max range
-        # if 'time' in response and response['time'] is not None:
-        #    time_bounds = TimeInterval.from_response(response['time'])
         spatial_grid = SpatialGridDescriptor.from_response(response.spatial_grid)
 
-        if response.time is not None:
-            time_bounds = TimeDescriptor.from_response(response.time)
+        time_bounds = TimeDescriptor.from_response(response.time)
 
         return RasterResultDescriptor(
             data_type=data_type,

@@ -110,6 +110,7 @@ class DatasetsTests(unittest.TestCase):
                     ),
                     descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE,
                 ),
+                time=ge.TimeDescriptor(dimension=ge.IrregularTimeDimension(), bounds=None),
             )
 
             meta_data = geoengine_openapi_client.GdalMetaDataStatic.from_dict(
@@ -242,6 +243,7 @@ class DatasetsTests(unittest.TestCase):
                     ),
                     descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE,
                 ),
+                time=ge.TimeDescriptor(dimension=ge.IrregularTimeDimension(), bounds=None),
             )
 
             meta_data = geoengine_openapi_client.GdalMetaDataStatic.from_dict(

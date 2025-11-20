@@ -66,7 +66,7 @@ class WmsTests(unittest.TestCase):
                     },
                     "time": {
                         "bounds": {"start": 0, "end": 100000},
-                        "dimension": None,
+                        "dimension": {"type": "irregular"},
                     },
                 },
                 request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
@@ -169,6 +169,7 @@ class WmsTests(unittest.TestCase):
                                     ),
                                     descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE,
                                 ),
+                                time=ge.TimeDescriptor(dimension=ge.IrregularTimeDimension(), bounds=None),
                             )
                             .to_api_dict()
                             .to_dict(),
