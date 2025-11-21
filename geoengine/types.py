@@ -857,6 +857,9 @@ class TimeDimension:
     ) -> RegularTimeDimension | IrregularTimeDimension:
         actual = response.actual_instance
 
+        if actual is None:
+            raise ValueError("input is None")
+
         if actual.type == "regular":
             if not isinstance(actual, geoengine_openapi_client.RegularTimeDimension):
                 raise ValueError("Type should be regular!")
@@ -903,12 +906,19 @@ class RegularTimeDimension(TimeDimension):
         )
 
     @classmethod
-    def from_response(cls, response: geoengine_openapi_client.RegularTimeDimension) -> RegularTimeDimension:
+    def from_response(cls, response: geoengine_openapi_client.TimeDimension | geoengine_openapi_client.RegularTimeDimension) -> RegularTimeDimension:
         """Parse a regular time dimension from an http response"""
+
+        if isinstance(response, geoengine_openapi_client.TimeDimension):
+            if response.actual_instance is not None and response.actual_instance.type == 'regular':
+                response = response.actual_instance
+
+        if response.type != 'regular':
+            raise ValueError("type must be regular")
+
         origin = np.datetime64(response.origin, "ms")
         step = TimeStep.from_response(response.step)
         return RegularTimeDimension(step=step, origin=origin)
-
 
 class IrregularTimeDimension(TimeDimension):
     """The irregular time dimension"""
