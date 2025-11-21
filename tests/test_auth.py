@@ -32,7 +32,6 @@ class AuthTests(unittest.TestCase):
                 QueryRectangle(
                     ge.BoundingBox2D(-180, -90, 180, 90),
                     ge.TimeInterval(datetime.now()),
-                    ge.SpatialResolution(0.1, 0.1),
                 )
             )
 

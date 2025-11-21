@@ -36,13 +36,19 @@ class OperatorsTests(unittest.TestCase):
         workflow = wb.operators.Interpolation(
             source_operator=source_operator,
             interpolation="nearestNeighbor",
+            output_method="fraction",
+            output_x=0.5,
+            output_y=0.5,
         )
 
         self.assertEqual(
             workflow.to_dict(),
             {
                 "type": "Interpolation",
-                "params": {"interpolation": "nearestNeighbor", "inputResolution": {"type": "source"}},
+                "params": {
+                    "interpolation": "nearestNeighbor",
+                    "outputResolution": {"type": "fraction", "x": 0.5, "y": 0.5},
+                },
                 "sources": {
                     "raster": {"type": "GdalSource", "params": {"data": "ndvi"}},
                 },
@@ -148,14 +154,14 @@ class OperatorsTests(unittest.TestCase):
     def test_raster_type_conversion(self):
         source_operator = wb.operators.GdalSource("ndvi")
 
-        workflow = wb.operators.RasterTypeConversion(source=source_operator, output_data_type="u8")
+        workflow = wb.operators.RasterTypeConversion(source=source_operator, output_data_type="U8")
 
         self.assertEqual(
             workflow.to_dict(),
             {
                 "type": "RasterTypeConversion",
                 "params": {
-                    "outputDataType": "u8",
+                    "outputDataType": "U8",
                 },
                 "sources": {"raster": {"type": "GdalSource", "params": {"data": "ndvi"}}},
             },
@@ -231,7 +237,7 @@ class OperatorsTests(unittest.TestCase):
             ignore_no_data=True,
             window_size=1,
             granularity="days",
-            output_type="u8",
+            output_type="U8",
         )
 
         self.assertEqual(
@@ -242,7 +248,7 @@ class OperatorsTests(unittest.TestCase):
                     "aggregation": {"type": "mean", "ignoreNoData": True, "percentile": None},
                     "window": {"granularity": "days", "step": 1},
                     "windowReference": None,
-                    "outputType": "u8",
+                    "outputType": "U8",
                 },
                 "sources": {"raster": {"type": "GdalSource", "params": {"data": "ndvi"}}},
             },
@@ -268,7 +274,7 @@ class OperatorsTests(unittest.TestCase):
 
     def test_workflow_to_operator(self):
         operator = wb.operators.GdalSource("ndvi")
-        operator = wb.operators.RasterTypeConversion(source=operator, output_data_type="u8")
+        operator = wb.operators.RasterTypeConversion(source=operator, output_data_type="U8")
         operator = wb.operators.RasterScaling(
             source=operator, slope=1.0, offset=None, scaling_mode="mulSlopeAddOffset", output_measurement=None
         )
