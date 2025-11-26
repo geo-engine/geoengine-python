@@ -267,7 +267,7 @@ class Workflow:
             response = wfs_api.wfs_handler(
                 workflow=self.__workflow_id.to_dict(),
                 service=geoc.WfsService(geoc.WfsService.WFS),
-                request=geoc.GetFeatureRequest(geoc.GetFeatureRequest.GETFEATURE),
+                request=geoc.WfsRequest(geoc.WfsRequest.GETFEATURE),
                 type_names=str(self.__workflow_id),
                 bbox=bbox.bbox_str,
                 version=geoc.WfsVersion(geoc.WfsVersion.ENUM_2_DOT_0_DOT_0),
