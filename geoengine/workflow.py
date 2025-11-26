@@ -340,7 +340,7 @@ class Workflow:
                 format=geoc.WmsResponseFormat(geoc.WmsResponseFormat.IMAGE_SLASH_PNG),
                 layers=str(self),
                 styles="custom:" + raster_colorizer.to_api_dict().to_json(),
-                crs=bbox.srs, 
+                crs=bbox.srs,
                 time=bbox.time_str,
             )
 
