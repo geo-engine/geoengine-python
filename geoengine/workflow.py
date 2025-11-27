@@ -264,10 +264,10 @@ class Workflow:
 
         with geoc.ApiClient(session.configuration) as api_client:
             wfs_api = geoc.OGCWFSApi(api_client)
-            response = wfs_api.wfs_feature_handler(
+            response = wfs_api.wfs_handler(
                 workflow=self.__workflow_id.to_dict(),
                 service=geoc.WfsService(geoc.WfsService.WFS),
-                request=geoc.GetFeatureRequest(geoc.GetFeatureRequest.GETFEATURE),
+                request=geoc.WfsRequest(geoc.WfsRequest.GETFEATURE),
                 type_names=str(self.__workflow_id),
                 bbox=bbox.bbox_str,
                 version=geoc.WfsVersion(geoc.WfsVersion.ENUM_2_DOT_0_DOT_0),
@@ -329,15 +329,15 @@ class Workflow:
 
         with geoc.ApiClient(session.configuration) as api_client:
             wms_api = geoc.OGCWMSApi(api_client)
-            response = wms_api.wms_map_handler(
+            response = wms_api.wms_handler(
                 workflow=self.__workflow_id.to_dict(),
                 version=geoc.WmsVersion(geoc.WmsVersion.ENUM_1_DOT_3_DOT_0),
                 service=geoc.WmsService(geoc.WmsService.WMS),
-                request=geoc.GetMapRequest(geoc.GetMapRequest.GETMAP),
+                request=geoc.WmsRequest(geoc.WmsRequest.GETMAP),
                 width=int((bbox.spatial_bounds.xmax - bbox.spatial_bounds.xmin) / spatial_resolution.x_resolution),
                 height=int((bbox.spatial_bounds.ymax - bbox.spatial_bounds.ymin) / spatial_resolution.y_resolution),  # pylint: disable=line-too-long
                 bbox=bbox.bbox_ogc_str,
-                format=geoc.GetMapFormat(geoc.GetMapFormat.IMAGE_SLASH_PNG),
+                format=geoc.WmsResponseFormat(geoc.WmsResponseFormat.IMAGE_SLASH_PNG),
                 layers=str(self),
                 styles="custom:" + raster_colorizer.to_api_dict().to_json(),
                 crs=bbox.srs,

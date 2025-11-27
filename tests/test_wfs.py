@@ -266,7 +266,7 @@ class WfsTests(unittest.TestCase):
             self.assertEqual(
                 # pylint: disable=line-too-long
                 wfs_request["url"],
-                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326",
+                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?bbox=-60.0%2C5.0%2C61.0%2C6.0&request=GetFeature&service=WFS&srsName=EPSG%3A4326&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&version=2.0.0",
             )
 
             expected_df = gpd.GeoDataFrame(
