@@ -426,6 +426,16 @@ class LayerCollection:
 
         return [item for item in self.items if item.name == name]
 
+    def get_items_by_name_unique(self, name: str) -> Listing | None:
+        """Get all children with the given name"""
+
+        items = self.get_items_by_name(name=name)
+        if len(items) == 0:
+            return None
+        if len(items) > 1:
+            raise KeyError("{name} is not unique")
+        return items[0]
+
     def search(
         self,
         search_string: str,

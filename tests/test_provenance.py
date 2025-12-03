@@ -34,7 +34,25 @@ class ProvenanceTests(unittest.TestCase):
                     "type": "raster",
                     "dataType": "U8",
                     "spatialReference": "EPSG:4326",
+                    "spatialGrid": {
+                        "descriptor": "source",
+                        "spatialGrid": {
+                            "geoTransform": {
+                                "originCoordinate": {"x": 0.0, "y": 0.0},
+                                "xPixelSize": 1.0,
+                                "yPixelSize": -1.0,
+                            },
+                            "gridBounds": {
+                                "topLeftIdx": {"xIdx": 0, "yIdx": 0},
+                                "bottomRightIdx": {"xIdx": 10, "yIdx": 20},
+                            },
+                        },
+                    },
                     "bands": [{"name": "band", "measurement": {"type": "unitless"}}],
+                    "time": {
+                        "bounds": {"start": 0, "end": 100000},
+                        "dimension": {"type": "irregular"},
+                    },
                 },
                 request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )

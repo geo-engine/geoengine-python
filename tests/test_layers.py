@@ -30,6 +30,20 @@ class LayerTests(unittest.TestCase):
             provider_id=LAYER_DB_PROVIDER_ID,
             metadata={},
             properties=[],
+            workflow={
+                "operator": {
+                    "params": {"renameBands": {"type": "rename", "values": ["blue", "green", "red"]}},
+                    "sources": {
+                        "rasters": [
+                            {"type": "GdalSource", "params": {"data": "ne2_raster_blue", "overviewLevel": None}},
+                            {"type": "GdalSource", "params": {"data": "ne2_raster_green", "overviewLevel": None}},
+                            {"type": "GdalSource", "params": {"data": "ne2_raster_red", "overviewLevel": None}},
+                        ]
+                    },
+                    "type": "RasterStacker",
+                },
+                "type": "Raster",
+            },
             symbology=ge.RasterSymbology(
                 raster_colorizer=ge.MultiBandRasterColorizer(
                     red_band=2,
@@ -47,20 +61,6 @@ class LayerTests(unittest.TestCase):
                 ),
                 opacity=1.0,
             ),
-            workflow={
-                "operator": {
-                    "params": {"renameBands": {"type": "rename", "values": ["blue", "green", "red"]}},
-                    "sources": {
-                        "rasters": [
-                            {"type": "GdalSource", "params": {"data": "ne2_raster_blue"}},
-                            {"type": "GdalSource", "params": {"data": "ne2_raster_green"}},
-                            {"type": "GdalSource", "params": {"data": "ne2_raster_red"}},
-                        ]
-                    },
-                    "type": "RasterStacker",
-                },
-                "type": "Raster",
-            },
         )
 
         # TODO: use `enterContext(cm)` instead of `with cm:` in Python 3.11
@@ -101,6 +101,12 @@ class LayerTests(unittest.TestCase):
                             provider_id=LAYER_DB_PROVIDER_ID,
                             name="An empty collection",
                             description="There is nothing here",
+                        ),
+                        ge.LayerListing(
+                            listing_id=ge.LayerCollectionId("52ef9e16-acd1-4c61-9a80-7d5b335d0d5a"),
+                            provider_id=LAYER_DB_PROVIDER_ID,
+                            name="Natural Earth II – R",
+                            description="A raster with one band (R from RGB)",
                         ),
                         ge.LayerListing(
                             listing_id=ge.LayerCollectionId("83866f7b-dcee-47b8-9242-e5636ceaf402"),
@@ -198,7 +204,7 @@ class LayerTests(unittest.TestCase):
             ge.initialize(ge_instance.address())
 
             # Success case
-            layer = ge.layer(LayerId("83866f7b-dcee-47b8-9242-e5636ceaf402"), LAYER_DB_PROVIDER_ID)
+            layer = ge.layer(LayerId("52ef9e16-acd1-4c61-9a80-7d5b335d0d5a"), LAYER_DB_PROVIDER_ID)
 
             task = layer.save_as_dataset()
             task_status = task.wait_for_finish()
@@ -213,7 +219,10 @@ class LayerTests(unittest.TestCase):
                 description="Test Error Raster Layer Description",
                 layer_id=ge.LayerId(UUID("86c81654-e572-42ed-96ee-8b38ebcd84ab")),
                 provider_id=ge.LayerProviderId(UUID("ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b")),
-                workflow={"operator": {"params": {"data": "ndvi"}, "type": "GdalSource"}, "type": "Raster"},
+                workflow={
+                    "operator": {"params": {"data": "ndvi", "overviewLevel": None}, "type": "GdalSource"},
+                    "type": "Raster",
+                },
                 symbology=None,
                 properties=[],
                 metadata={},
@@ -230,7 +239,10 @@ class LayerTests(unittest.TestCase):
             description="Test Raster Layer Description",
             layer_id=LayerId(UUID("9ee3619e-d0f9-4ced-9c44-3d407c3aed69")),
             provider_id=LayerProviderId(UUID("ac50ed0d-c9a0-41f8-9ce8-35fc9e38299b")),
-            workflow={"operator": {"params": {"data": "ndvi"}, "type": "GdalSource"}, "type": "Raster"},
+            workflow={
+                "operator": {"params": {"data": "ndvi", "overviewLevel": None}, "type": "GdalSource"},
+                "type": "Raster",
+            },
             symbology=RasterSymbology.from_response(
                 api.Symbology(
                     api.RasterSymbology(

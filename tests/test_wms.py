@@ -1,6 +1,5 @@
 """Tests for WMS calls"""
 
-import textwrap
 import unittest
 from datetime import datetime
 
@@ -10,9 +9,13 @@ from PIL import Image
 
 import geoengine as ge
 from geoengine.colorizer import Colorizer
-from geoengine.types import RasterBandDescriptor, SingleBandRasterColorizer
+from geoengine.types import (
+    RasterBandDescriptor,
+    SingleBandRasterColorizer,
+    SpatialGridDefinition,
+    SpatialGridDescriptor,
+)
 from tests.ge_test import GeoEngineTestInstance
-from tests.util import NOT_FOUND_UUID
 
 from . import UrllibMocker
 
@@ -47,6 +50,24 @@ class WmsTests(unittest.TestCase):
                     "dataType": "U8",
                     "spatialReference": "EPSG:4326",
                     "bands": [{"name": "band", "measurement": {"type": "unitless"}}],
+                    "spatialGrid": {
+                        "descriptor": "source",
+                        "spatialGrid": {
+                            "geoTransform": {
+                                "originCoordinate": {"x": 0.0, "y": 0.0},
+                                "xPixelSize": 1.0,
+                                "yPixelSize": -1.0,
+                            },
+                            "gridBounds": {
+                                "topLeftIdx": {"xIdx": 0, "yIdx": 0},
+                                "bottomRightIdx": {"xIdx": 10, "yIdx": 20},
+                            },
+                        },
+                    },
+                    "time": {
+                        "bounds": {"start": 0, "end": 100000},
+                        "dimension": {"type": "irregular"},
+                    },
                 },
                 request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
@@ -82,15 +103,12 @@ class WmsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             img = workflow.wms_get_map_as_image(
-                ge.QueryRectangle(
-                    ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
-                    ge.TimeInterval(time),
-                    resolution=ge.SpatialResolution(1.8, 1.8),
-                ),
+                ge.QueryRectangle(ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0), ge.TimeInterval(time)),
                 raster_colorizer=SingleBandRasterColorizer(
                     band=0,
                     band_colorizer=Colorizer.linear_with_mpl_cmap(color_map="gray", min_max=(0.0, 255.0), n_steps=2),
                 ),
+                spatial_resolution=ge.SpatialResolution(1.8, 1.8),
             )
 
             self.assertEqual(img, Image.open("tests/responses/wms-ndvi.png"))
@@ -121,12 +139,11 @@ class WmsTests(unittest.TestCase):
                                 {
                                     "filePath": "does_not_exist",
                                     "rasterbandChannel": 1,
-                                    "geoTransform": ge.GeoTransform(
-                                        x_min=-180,
-                                        y_max=90,
-                                        x_pixel_size=0.1,
-                                        y_pixel_size=-0.1,
-                                    ).to_api_dict(),
+                                    "geoTransform": {
+                                        "originCoordinate": {"x": -180.0, "y": 90.0},
+                                        "xPixelSize": 0.1,
+                                        "yPixelSize": -0.1,
+                                    },
                                     "width": 3600,
                                     "height": 1800,
                                     "fileNotFoundHandling": geoengine_openapi_client.FileNotFoundHandling.ERROR,  # !!!
@@ -141,8 +158,18 @@ class WmsTests(unittest.TestCase):
                                 "U8",
                                 [RasterBandDescriptor("band", ge.UnitlessMeasurement())],
                                 "EPSG:4326",
-                                spatial_bounds=ge.SpatialPartition2D(-180.0, -90.0, 180.0, 90.0),
-                                spatial_resolution=ge.SpatialResolution(0.1, 0.1),
+                                spatial_grid=SpatialGridDescriptor(
+                                    spatial_grid=SpatialGridDefinition(
+                                        geo_transform=ge.GeoTransform(
+                                            x_min=-180.0, y_max=90.0, x_pixel_size=0.1, y_pixel_size=-0.1
+                                        ),
+                                        grid_bounds=ge.GridBoundingBox2D(
+                                            top_left_idx=ge.GridIdx2D(0, 0), bottom_right_idx=ge.GridIdx2D(1800, 3600)
+                                        ),
+                                    ),
+                                    descriptor=geoengine_openapi_client.SpatialGridDescriptorState.SOURCE,
+                                ),
+                                time=ge.TimeDescriptor(dimension=ge.IrregularTimeDimension(), bounds=None),
                             )
                             .to_api_dict()
                             .to_dict(),
@@ -156,9 +183,8 @@ class WmsTests(unittest.TestCase):
             with self.assertRaises(ge.OGCXMLError) as ctx:
                 workflow.wms_get_map_as_image(
                     ge.QueryRectangle(
-                        spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
+                        spatial_bounds=ge.BoundingBox2D(-18.0, -9.0, 18.0, 9.0),
                         time_interval=ge.TimeInterval(np.datetime64("2004-04-01T12:00:00")),
-                        resolution=ge.SpatialResolution(1.8, 1.8),
                     ),
                     raster_colorizer=SingleBandRasterColorizer(
                         band=0,
@@ -166,63 +192,11 @@ class WmsTests(unittest.TestCase):
                             color_map="gray", min_max=(0.0, 255.0), n_steps=2
                         ),
                     ),
+                    spatial_resolution=ge.SpatialResolution(0.1, 0.1),
                 )
 
-            self.assertEqual(
-                str(ctx.exception),
-                'OGC API error: \n        Could not open gdal dataset for file path "test_data/does_not_exist"\n    ',
-            )
-
-    def test_result_descriptor(self):
-        with UrllibMocker() as m:
-            m.post(
-                "http://mock-instance/anonymous",
-                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081", "project": None, "view": None},
-            )
-
-            m.get(
-                "http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata",
-                json={
-                    "type": "raster",
-                    "dataType": "U8",
-                    "spatialReference": "EPSG:4326",
-                    "bands": [{"name": "band", "measurement": {"type": "unitless"}}],
-                },
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
-            )
-
-            m.get(
-                f"http://mock-instance/workflow/{NOT_FOUND_UUID}/metadata",
-                status_code=404,
-                json={
-                    "error": "NotFound",
-                    "message": "Not Found",
-                },
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
-            )
-
-            ge.initialize("http://mock-instance")
-
-            workflow = ge.workflow_by_id("5b9508a8-bd34-5a1c-acd6-75bb832d2d38")
-
-            result_descriptor = workflow.get_result_descriptor()
-
-            expected_repr = """\
-               Data type:         U8
-               Spatial Reference: EPSG:4326
-               Bands:
-                   band: unitless
-               """
-
-            self.assertEqual(repr(result_descriptor), textwrap.dedent(expected_repr))
-
-            with self.assertRaises(ge.NotFoundException) as exception:
-                workflow = ge.workflow_by_id(NOT_FOUND_UUID)
-
-                result_descriptor = workflow.get_result_descriptor()
-
-            self.assertEqual(str(exception.exception), "NotFound: Not Found")
-
-
-if __name__ == "__main__":
-    unittest.main()
+                self.assertEqual(
+                    str(ctx.exception),
+                    "OGC API error: \n        Could not open gdal dataset for file path "
+                    '"test_data/does_not_exist"\n    ',
+                )

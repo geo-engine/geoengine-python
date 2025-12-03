@@ -87,7 +87,7 @@ class WfsTests(unittest.TestCase):
 
             m.get(
                 # pylint: disable=line-too-long
-                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1",
+                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326",
                 json={
                     "type": "FeatureCollection",
                     "features": [
@@ -246,10 +246,9 @@ class WfsTests(unittest.TestCase):
 
             workflow = ge.register_workflow(workflow_definition)
 
+            # TODO: remove resolution when not mocked
             df = workflow.get_dataframe(
-                ge.QueryRectangle(
-                    ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0), ge.TimeInterval(time, time), ge.SpatialResolution(0.1, 0.1)
-                )
+                ge.QueryRectangle(ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0), ge.TimeInterval(time, time))
             )
 
             self.assertEqual(len(m.request_history), 4)
@@ -267,7 +266,7 @@ class WfsTests(unittest.TestCase):
             self.assertEqual(
                 # pylint: disable=line-too-long
                 wfs_request["url"],
-                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1",
+                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?bbox=-60.0%2C5.0%2C61.0%2C6.0&request=GetFeature&service=WFS&srsName=EPSG%3A4326&time=2014-04-01T12%3A00%3A00.000%2B00%3A00&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&version=2.0.0",
             )
 
             expected_df = gpd.GeoDataFrame(
@@ -372,7 +371,7 @@ class WfsTests(unittest.TestCase):
 
             m.get(
                 # pylint: disable=line-too-long
-                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1",
+                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326",
                 json={
                     "error": "Operator",
                     "message": "Operator: Could not open gdal dataset for file path "
@@ -414,10 +413,9 @@ class WfsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             with self.assertRaises(ge.BadRequestException) as ctx:
+                # TODO: remove resolution when not mocked
                 workflow.get_dataframe(
-                    ge.QueryRectangle(
-                        ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0), ge.TimeInterval(time), ge.SpatialResolution(0.1, 0.1)
-                    )
+                    ge.QueryRectangle(ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0), ge.TimeInterval(time))
                 )
 
             self.assertEqual(
@@ -712,7 +710,7 @@ class WfsTests(unittest.TestCase):
 
             m.get(
                 # pylint: disable=line-too-long
-                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326&queryResolution=0.1%2C0.1",
+                "http://mock-instance/wfs/956d3656-2d14-5951-96a0-f962b92371cd?version=2.0.0&service=WFS&request=GetFeature&typeNames=956d3656-2d14-5951-96a0-f962b92371cd&bbox=-60.0%2C5.0%2C61.0%2C6.0&time=2004-04-01T12%3A00%3A00.000%2B00%3A00&srsName=EPSG%3A4326",
                 json={
                     "type": "FeatureCollection",
                     "features": [
@@ -759,9 +757,7 @@ class WfsTests(unittest.TestCase):
             workflow = ge.register_workflow(workflow_definition)
 
             df = workflow.get_dataframe(
-                ge.QueryRectangle(
-                    ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0), ge.TimeInterval(time), ge.SpatialResolution(0.1, 0.1)
-                )
+                ge.QueryRectangle(ge.BoundingBox2D(-60.0, 5.0, 61.0, 6.0), ge.TimeInterval(time))
             )
 
             self.assertTrue(df is not None)
