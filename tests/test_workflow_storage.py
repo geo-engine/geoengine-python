@@ -1,15 +1,13 @@
 """Tests for WMS calls"""
 
 import unittest
-from uuid import UUID
 
 import geoengine_openapi_client
 
 import geoengine as ge
 from geoengine.datasets import DatasetName, StoredDataset
-from geoengine.resource_identifier import UploadId
-
-from . import UrllibMocker
+from geoengine.tasks import TaskStatus
+from tests.ge_test import GeoEngineTestInstance
 
 
 class WorkflowStorageTests(unittest.TestCase):
@@ -19,63 +17,11 @@ class WorkflowStorageTests(unittest.TestCase):
         ge.reset(False)
 
     def test_storing_workflow(self):
-        expected_request_text = {
-            "asCog": True,
-            "description": "Bar",
-            "displayName": "Foo",
-            "query": {
-                "spatialBounds": {
-                    "lowerRightCoordinate": {"x": 180, "y": -90},
-                    "upperLeftCoordinate": {"x": -180, "y": 90},
-                },
-                "spatialResolution": {"x": 1.8, "y": 1.8},
-                "timeInterval": {"end": 1396353600000, "start": 1396353600000},
-            },
-        }
+        # TODO: use `enterContext(cm)` instead of `with cm: ` in Python 3.11
+        with GeoEngineTestInstance() as ge_instance:
+            ge_instance.wait_for_ready()
 
-        with UrllibMocker() as m:
-            m.post(
-                "http://mock-instance/anonymous",
-                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081", "project": None, "view": None},
-            )
-
-            m.post(
-                "http://mock-instance/workflow",
-                json={"id": "5b9508a8-bd34-5a1c-acd6-75bb832d2d38"},
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
-            )
-
-            m.get(
-                "http://mock-instance/workflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38/metadata",
-                json={
-                    "type": "raster",
-                    "dataType": "U8",
-                    "spatialReference": "EPSG:4326",
-                    "bands": [{"name": "band", "measurement": {"type": "unitless"}}],
-                },
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
-            )
-
-            m.post(
-                "http://mock-instance/datasetFromWorkflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38",
-                expected_request_body=expected_request_text,
-                json={"taskId": "9ec828ef-c3da-4016-8cc7-79e5556267fc"},
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
-            )
-
-            m.get(
-                "http://mock-instance/tasks/9ec828ef-c3da-4016-8cc7-79e5556267fc/status",
-                json={
-                    "status": "completed",
-                    "info": {"dataset": "my_new_dataset", "upload": "3086f494-d5a4-4b51-a14b-3b29f8bf7bb0"},
-                    "timeTotal": "00:00:00",
-                    "taskType": "create-dataset",
-                    "description": "Creating dataset Foo from workflow 5b9508a8-bd34-5a1c-acd6-75bb832d2d38",
-                    "timeStarted": "2023-02-16T15:25:45.390Z",
-                },
-            )
-
-            ge.initialize("http://mock-instance")
+            ge.initialize(ge_instance.address())
 
             workflow_definition = {"type": "Raster", "operator": {"type": "GdalSource", "params": {"data": "ndvi"}}}
 
@@ -89,14 +35,17 @@ class WorkflowStorageTests(unittest.TestCase):
             )
 
             workflow = ge.register_workflow(workflow_definition)
+
+            dataset_name = f"{ge.get_session().user_id}:my_new_dataset"
             task = workflow.save_as_dataset(
                 query,
-                None,
-                "Foo",
-                "Bar",
+                name=dataset_name,
+                display_name="Foo",
+                description="Bar",
             )
+            task.wait_for_finish()
             task_status = task.get_status()
-            stored_dataset = StoredDataset.from_response(task_status.info)
+            self.assertEqual(task_status.status, TaskStatus.COMPLETED)
 
-            self.assertEqual(stored_dataset.dataset_name, DatasetName("my_new_dataset"))
-            self.assertEqual(stored_dataset.upload_id, UploadId(UUID("3086f494-d5a4-4b51-a14b-3b29f8bf7bb0")))
+            stored_dataset = StoredDataset.from_response(task_status.info)
+            self.assertEqual(stored_dataset.dataset_name, DatasetName(dataset_name))
