@@ -157,7 +157,7 @@ class RasterTile2D:
             start += self.geo_transform.x_half_pixel_size
 
         return np.arange(
-            start=start,
+            start,
             stop=self.geo_transform.x_max(self.size_x),
             step=self.geo_transform.x_pixel_size,
         )
@@ -174,7 +174,7 @@ class RasterTile2D:
             start += self.geo_transform.y_half_pixel_size
 
         return np.arange(
-            start=start,
+            start,
             stop=self.geo_transform.y_min(self.size_y),
             step=self.geo_transform.y_pixel_size,
         )
