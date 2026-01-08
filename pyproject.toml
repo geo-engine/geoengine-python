@@ -16,10 +16,10 @@ readme = { file = "README.md", content-type = "text/markdown" }
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
-    "geoengine-openapi-client == 0.0.28",
+    "geoengine-openapi-client == 0.0.29",
     "geopandas >=1.0,<2.0",
     "matplotlib >=3.5,<3.11",
-    "numpy >=1.21,<2.4",
+    "numpy >=1.21,<2.5",
     "owslib >=0.27,<0.36",
     "pillow >=10.0,<13",
     "pyarrow >=17.0,<23",
@@ -30,8 +30,8 @@ dependencies = [
     "StrEnum >=0.4.6,<0.5",               # TODO: use from stdlib when `python_requires = >=3.11`
     "vega >= 3.5,<4.2",
     "websockets >= 14.2,<16",
-    "xarray >=0.19,<2025.10",
-    "urllib3 >= 2.1, < 2.6",
+    "xarray >=0.19,<2026.1",
+    "urllib3 >= 2.1, < 2.7",
     "pydantic >= 2.10.6, < 2.13",
     'skl2onnx >=1.19.1,<1.20',
 ]
@@ -54,10 +54,10 @@ dev = [
 ]
 test = [
     "psycopg >=3.2,<4",
-    "pytest >=6.3,<9",
+    "pytest >=6.3,<10",
     "pytest-cov >=6.0,<7.1",
     "requests_mock >=1.9,<2",
-    "scikit-learn >=1.5,<1.8",
+    "scikit-learn >=1.5,<1.9",
 ]
 examples = [
     "cartopy >=0.22,<0.26",    # for WMS example
