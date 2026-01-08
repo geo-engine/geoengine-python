@@ -16,7 +16,7 @@ readme = { file = "README.md", content-type = "text/markdown" }
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
-    "geoengine-openapi-client == 0.0.29",
+    "geoengine-openapi-client == 0.0.30",
     "geopandas >=1.0,<2.0",
     "matplotlib >=3.5,<3.11",
     "numpy >=1.21,<2.5",
