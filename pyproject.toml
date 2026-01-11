@@ -29,7 +29,7 @@ dependencies = [
     "rioxarray >=0.9.1, <0.21",
     "StrEnum >=0.4.6,<0.5",               # TODO: use from stdlib when `python_requires = >=3.11`
     "vega >= 3.5,<4.2",
-    "websockets >= 14.2,<16",
+    "websockets >= 14.2,< 17",
     "xarray >=0.19,<2026.1",
     "urllib3 >= 2.1, < 2.7",
     "pydantic >= 2.10.6, < 2.13",
