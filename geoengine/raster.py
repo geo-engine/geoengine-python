@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from typing import Literal, cast
+from typing import cast
 
 import geoengine_openapi_client
 import numpy as np
@@ -12,33 +12,6 @@ import xarray as xr
 
 import geoengine.types as gety
 from geoengine.util import clamp_datetime_ms_ns
-
-
-# pylint: disable=too-many-return-statements
-def ge_type_to_np(res_dt: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]):
-    """Convert a Geo Engine data type to a numpy data type"""
-
-    if res_dt == "U8":
-        return np.uint8
-    if res_dt == "U16":
-        return np.uint16
-    if res_dt == "U32":
-        return np.uint32
-    if res_dt == "U64":
-        return np.uint64
-    if res_dt == "I8":
-        return np.int8
-    if res_dt == "I16":
-        return np.int16
-    if res_dt == "I32":
-        return np.int32
-    if res_dt == "I64":
-        return np.int64
-    if res_dt == "F32":
-        return np.float32
-    if res_dt == "F64":
-        return np.float64
-    raise TypeError("Unknown type literal")
 
 
 class RasterTile2D:
@@ -141,8 +114,7 @@ class RasterTile2D:
 
         numpy_mask: np.ndarray | np.ma.MaskType = np.ma.nomask if maybe_numpy_mask is None else maybe_numpy_mask
 
-        numpy_masked_data: np.ma.MaskedArray = np.ma.masked_array(
-            numpy_data, mask=numpy_mask)
+        numpy_masked_data: np.ma.MaskedArray = np.ma.masked_array(numpy_data, mask=numpy_mask)
 
         return numpy_masked_data
 
@@ -207,8 +179,7 @@ class RasterTile2D:
         array.rio.write_crs(self.crs, inplace=True)
 
         if clip_with_bounds is not None:
-            array = array.rio.clip_box(
-                *clip_with_bounds.as_bbox_tuple(), auto_expand=True)
+            array = array.rio.clip_box(*clip_with_bounds.as_bbox_tuple(), auto_expand=True)
             array = cast(xr.DataArray, array)
 
         return array
@@ -235,8 +206,7 @@ class RasterTile2D:
     def from_ge_record_batch(record_batch: pa.RecordBatch) -> RasterTile2D:
         """Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine"""
         metadata = record_batch.schema.metadata
-        inner = geoengine_openapi_client.GeoTransform.from_json(
-            metadata[b"geoTransform"])
+        inner = geoengine_openapi_client.GeoTransform.from_json(metadata[b"geoTransform"])
         assert inner is not None, "Failed to parse geoTransform"
         geo_transform = gety.GeoTransform.from_response(inner)
         x_size = int(metadata[b"xSize"])
@@ -245,8 +215,7 @@ class RasterTile2D:
         # We know from the backend that there is only one array a.k.a. one column
         arrow_array = record_batch.column(0)
 
-        inner_time = geoengine_openapi_client.TimeInterval.from_json(
-            metadata[b"time"])
+        inner_time = geoengine_openapi_client.TimeInterval.from_json(metadata[b"time"])
         assert inner_time is not None, "Failed to parse time"
         time = gety.TimeInterval.from_response(inner_time)
 
@@ -304,15 +273,13 @@ class RasterTileStack2D:
 
     def to_numpy_masked_array_stack(self) -> np.ma.MaskedArray:
         """Return the raster stack as a 3D masked numpy array"""
-        arrays = [self.single_band(i).to_numpy_masked_array()
-                  for i in range(0, len(self.data))]
+        arrays = [self.single_band(i).to_numpy_masked_array() for i in range(0, len(self.data))]
         stack = np.ma.stack(arrays, axis=0)
         return stack
 
     def to_xarray(self, clip_with_bounds: gety.SpatialBounds | None = None) -> xr.DataArray:
         """Return the raster stack as an xarray.DataArray"""
-        arrays = [self.single_band(i).to_xarray(clip_with_bounds)
-                  for i in range(0, len(self.data))]
+        arrays = [self.single_band(i).to_xarray(clip_with_bounds) for i in range(0, len(self.data))]
         stack = xr.concat(arrays, dim="band")
         return stack
 
@@ -350,8 +317,7 @@ async def tile_stream_to_stack_stream(raster_stream: AsyncIterator[RasterTile2D]
                 yield RasterTileStack2D(tile_shape, stack, geo_transforms, crs, time, bands)
 
             else:
-                assert tile.time == store[0].time, "Time missmatch. " + \
-                    str(store[0].time) + " != " + str(tile.time)
+                assert tile.time == store[0].time, "Time missmatch. " + str(store[0].time) + " != " + str(tile.time)
                 store.append(tile)
 
     if len(store) > 0:

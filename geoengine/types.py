@@ -166,8 +166,7 @@ class TimeInterval:
                 start = start.astimezone(tz=timezone.utc).replace(tzinfo=None)
             self.start = np.datetime64(start)
         else:
-            raise InputException(
-                "`start` must be of type `datetime.datetime` or `numpy.datetime64`")
+            raise InputException("`start` must be of type `datetime.datetime` or `numpy.datetime64`")
 
         if end is None:
             self.end = self.start
@@ -179,8 +178,7 @@ class TimeInterval:
                 end = end.astimezone(tz=timezone.utc).replace(tzinfo=None)
             self.end = np.datetime64(end)
         else:
-            raise InputException(
-                "`end` must be of type `datetime.datetime` or `numpy.datetime64`")
+            raise InputException("`end` must be of type `datetime.datetime` or `numpy.datetime64`")
 
         # Check validity of time interval if an `end` exists
         if end is not None and start > end:
@@ -230,8 +228,7 @@ class TimeInterval:
     def to_api_dict(self) -> geoengine_openapi_client.TimeInterval:
         """create a openapi `TimeInterval` from self"""
         start = self.start.astype("datetime64[ms]").astype(int)
-        end = self.end.astype("datetime64[ms]").astype(
-            int) if self.end is not None else None
+        end = self.end.astype("datetime64[ms]").astype(int) if self.end is not None else None
 
         # The openapi Timeinterval does not accept end: None. So we set it to start IF self is an instant.
         end = end if end is not None else start
@@ -562,8 +559,7 @@ class VectorResultDescriptor(ResultDescriptor):
         """Parse a vector result descriptor from an http response"""
         sref = response.spatial_reference
         data_type = VectorDataType.from_string(response.data_type)
-        columns = {name: VectorColumnInfo.from_response(
-            info) for name, info in response.columns.items()}
+        columns = {name: VectorColumnInfo.from_response(info) for name, info in response.columns.items()}
 
         time_bounds = None
         if response.time is not None:
@@ -622,8 +618,7 @@ class VectorResultDescriptor(ResultDescriptor):
                 type="vector",
                 dataType=self.data_type.to_api_enum(),
                 spatialReference=self.spatial_reference,
-                columns={name: column_info.to_api_dict()
-                         for name, column_info in self.columns.items()},
+                columns={name: column_info.to_api_dict() for name, column_info in self.columns.items()},
                 time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
                 bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             )
@@ -664,8 +659,7 @@ class VectorColumnInfo:
         """Create a new `VectorColumnInfo` from a JSON response"""
 
         return VectorColumnInfo(
-            FeatureDataType.from_string(
-                data_type=response.data_type), Measurement.from_response(response.measurement)
+            FeatureDataType.from_string(data_type=response.data_type), Measurement.from_response(response.measurement)
         )
 
     def to_api_dict(self) -> geoengine_openapi_client.VectorColumnInfo:
@@ -798,8 +792,7 @@ class SpatialGridDescriptor:
     @classmethod
     def from_response(cls, response: geoengine_openapi_client.SpatialGridDescriptor) -> SpatialGridDescriptor:
         """Parse an http response to a `SpatialGridDefinition` object"""
-        spatial_grid = SpatialGridDefinition.from_response(
-            response.spatial_grid)
+        spatial_grid = SpatialGridDefinition.from_response(response.spatial_grid)
         return SpatialGridDescriptor(spatial_grid=spatial_grid, descriptor=response.descriptor)
 
     def to_api_dict(self) -> geoengine_openapi_client.SpatialGridDescriptor:
@@ -868,8 +861,7 @@ class RasterDataType(str, Enum):
         """Convert to a literal"""
 
         return cast(
-            Literal["U8", "U16", "U32", "U64", "I8",
-                    "I16", "I32", "I64", "F32", "F64"],
+            Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"],
             self.value,
         )
 
@@ -883,6 +875,22 @@ class RasterDataType(str, Enum):
         """Convert to an API enum"""
 
         return geoengine_openapi_client.RasterDataType(self.value)
+
+    def to_np_dtype(self) -> np.dtype:
+        """Convert to a numpy dtype"""
+        mapping = {
+            RasterDataType.U8: np.uint8,
+            RasterDataType.U16: np.uint16,
+            RasterDataType.U32: np.uint32,
+            RasterDataType.U64: np.uint64,
+            RasterDataType.I8: np.int8,
+            RasterDataType.I16: np.int16,
+            RasterDataType.I32: np.int32,
+            RasterDataType.I64: np.int64,
+            RasterDataType.F32: np.float32,
+            RasterDataType.F64: np.float64,
+        }
+        return mapping[self]
 
 
 class TimeDimension:
@@ -924,16 +932,14 @@ class RegularTimeDimension(TimeDimension):
     def __init__(self, step: TimeStep, origin: np.datetime64 | None = None) -> None:
         """Initialize a new `RegularTimeDimension`"""
 
-        self.origin = origin if origin is not None else np.datetime64(
-            "1970-01-01T00:00:00Z")
+        self.origin = origin if origin is not None else np.datetime64("1970-01-01T00:00:00Z")
         self.step = step
 
     def to_api_dict(self) -> geoengine_openapi_client.TimeDimension:
         """Convert the regular time dimension to a dictionary"""
         time_origin = self.origin.astype("datetime64[ms]").astype(int)
         return geoengine_openapi_client.TimeDimension(
-            {"type": "regular", "origin": int(
-                time_origin), "step": self.step.to_api_dict()}
+            {"type": "regular", "origin": int(time_origin), "step": self.step.to_api_dict()}
         )
 
     @classmethod
@@ -1060,11 +1066,9 @@ class RasterResultDescriptor(ResultDescriptor):
         """Parse a raster result descriptor from an http response"""
         spatial_ref = response.spatial_reference
         data_type = RasterDataType.from_api_enum(response.data_type)
-        bands = [RasterBandDescriptor.from_response(
-            band) for band in response.bands]
+        bands = [RasterBandDescriptor.from_response(band) for band in response.bands]
 
-        spatial_grid = SpatialGridDescriptor.from_response(
-            response.spatial_grid)
+        spatial_grid = SpatialGridDescriptor.from_response(response.spatial_grid)
 
         time_bounds = TimeDescriptor.from_response(response.time)
 
@@ -1263,8 +1267,7 @@ class TimeStep:
         elif isinstance(granularity, TimeStepGranularity):
             self.granularity = granularity
         else:
-            raise InputException(
-                "Invalid granularity type. Got: " + str(type(granularity)))
+            raise InputException("Invalid granularity type. Got: " + str(type(granularity)))
 
     def to_api_dict(self) -> geoengine_openapi_client.TimeStep:
         return geoengine_openapi_client.TimeStep(
@@ -1477,8 +1480,7 @@ class RasterSymbology(Symbology):
     def from_response_raster(response: geoengine_openapi_client.RasterSymbology) -> RasterSymbology:
         """Parse an http response to a `RasterSymbology` object"""
 
-        raster_colorizer = RasterColorizer.from_response(
-            response.raster_colorizer)
+        raster_colorizer = RasterColorizer.from_response(response.raster_colorizer)
 
         return RasterSymbology(raster_colorizer, response.opacity)
 
@@ -1528,8 +1530,7 @@ class InternalDataId(DataId):
 
     def to_api_dict(self) -> geoengine_openapi_client.DataId:
         return geoengine_openapi_client.DataId(
-            geoengine_openapi_client.InternalDataId(
-                type="internal", dataset_id=str(self.__dataset_id))
+            geoengine_openapi_client.InternalDataId(type="internal", dataset_id=str(self.__dataset_id))
         )
 
     def __str__(self) -> str:
@@ -1704,8 +1705,7 @@ class ClassificationMeasurement(Measurement):
         return ClassificationMeasurement(measurement, classes)
 
     def to_api_dict(self) -> geoengine_openapi_client.Measurement:
-        str_classes: dict[str, str] = {
-            str(k): v for k, v in self.__classes.items()}
+        str_classes: dict[str, str] = {str(k): v for k, v in self.__classes.items()}
 
         return geoengine_openapi_client.Measurement(
             geoengine_openapi_client.ClassificationMeasurement(
@@ -1862,10 +1862,8 @@ class GeoTransform:
 
     def grid_bounds_to_spatial_bounds(self, bounds: GridBoundingBox2D) -> SpatialPartition2D:
         """Converts a GridBoundingBox2D into a SpatialPartition2D"""
-        xmin, ymax = self.pixel_ul_to_coord(
-            bounds.top_left_idx.x_idx, bounds.top_left_idx.y_idx)
-        xmax, ymin = self.pixel_lr_to_coord(
-            bounds.bottom_right_idx.x_idx, bounds.bottom_right_idx.y_idx)
+        xmin, ymax = self.pixel_ul_to_coord(bounds.top_left_idx.x_idx, bounds.top_left_idx.y_idx)
+        xmax, ymin = self.pixel_lr_to_coord(bounds.bottom_right_idx.x_idx, bounds.bottom_right_idx.y_idx)
         return SpatialPartition2D(xmin, ymin, xmax, ymax)
 
     def __eq__(self, other) -> bool:

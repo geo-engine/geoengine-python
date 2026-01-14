@@ -6,7 +6,6 @@ from typing import cast
 import numpy as np
 import rasterio as rio
 
-from geoengine.raster import ge_type_to_np
 from geoengine.types import (
     GeoTransform,
     QueryRectangle,
@@ -56,7 +55,7 @@ class RasterWorkflowRioWriter:
 
         ras_res = cast(RasterResultDescriptor, self.workflow.get_result_descriptor())
         self.result_descriptor = ras_res
-        dt = ge_type_to_np(ras_res.data_type)
+        dt = ras_res.data_type.to_np_dtype()
         self.dataset_data_type = dt if data_type is None else data_type
         self.bands = ras_res.bands
         if rio_kwargs:
