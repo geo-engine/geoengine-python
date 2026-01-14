@@ -29,18 +29,21 @@ class WorkflowStorageTests(unittest.TestCase):
                 },
                 "timeInterval": {"end": 1396353600000, "start": 1396353600000},
             },
+            "name": None
         }
 
         with UrllibMocker() as m:
             m.post(
                 "http://mock-instance/anonymous",
-                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081", "project": None, "view": None},
+                json={"id": "c4983c3e-9b53-47ae-bda9-382223bd5081",
+                      "project": None, "view": None},
             )
 
             m.post(
                 "http://mock-instance/workflow",
                 json={"id": "5b9508a8-bd34-5a1c-acd6-75bb832d2d38"},
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m.get(
@@ -69,14 +72,16 @@ class WorkflowStorageTests(unittest.TestCase):
                         "dimension": {"type": "irregular"},
                     },
                 },
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m.post(
                 "http://mock-instance/datasetFromWorkflow/5b9508a8-bd34-5a1c-acd6-75bb832d2d38",
                 expected_request_body=expected_request_text,
                 json={"taskId": "9ec828ef-c3da-4016-8cc7-79e5556267fc"},
-                request_headers={"Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
+                request_headers={
+                    "Authorization": "Bearer c4983c3e-9b53-47ae-bda9-382223bd5081"},
             )
 
             m.get(
@@ -93,10 +98,12 @@ class WorkflowStorageTests(unittest.TestCase):
 
             ge.initialize("http://mock-instance")
 
-            workflow_definition = {"type": "Raster", "operator": {"type": "GdalSource", "params": {"data": "ndvi"}}}
+            workflow_definition = {"type": "Raster", "operator": {
+                "type": "GdalSource", "params": {"data": "ndvi"}}}
 
             query = ge.QueryRectangle(
-                ge.SpatialPartition2D(xmin=-180.0, ymax=90.0, xmax=180.0, ymin=-90.0),
+                ge.SpatialPartition2D(
+                    xmin=-180.0, ymax=90.0, xmax=180.0, ymin=-90.0),
                 ge.TimeInterval(start=datetime(2014, 4, 1, 12, 0), end=None),
             )
 
@@ -110,5 +117,7 @@ class WorkflowStorageTests(unittest.TestCase):
             task_status = task.get_status()
             stored_dataset = StoredDataset.from_response(task_status.info)
 
-            self.assertEqual(stored_dataset.dataset_name, DatasetName("my_new_dataset"))
-            self.assertEqual(stored_dataset.upload_id, UploadId(UUID("3086f494-d5a4-4b51-a14b-3b29f8bf7bb0")))
+            self.assertEqual(stored_dataset.dataset_name,
+                             DatasetName("my_new_dataset"))
+            self.assertEqual(stored_dataset.upload_id, UploadId(
+                UUID("3086f494-d5a4-4b51-a14b-3b29f8bf7bb0")))
