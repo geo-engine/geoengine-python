@@ -4,7 +4,6 @@ A wrapper for the GeoEngine permissions API.
 
 from __future__ import annotations
 
-import ast
 from enum import Enum
 from uuid import UUID
 
@@ -255,11 +254,7 @@ def add_role(name: str, timeout: int = 60) -> RoleId:
         user_api = geoengine_openapi_client.UserApi(api_client)
         response = user_api.add_role_handler(geoengine_openapi_client.AddRole(name=name, _request_timeout=timeout))
 
-    # TODO: find out why JSON string is faulty
-    # parsed_response = json.loads(response)
-    parsed_response: dict[str, str] = ast.literal_eval(response)
-
-    return RoleId.from_response(parsed_response)
+    return RoleId(response.id)
 
 
 def remove_role(role: RoleId, timeout: int = 60):
