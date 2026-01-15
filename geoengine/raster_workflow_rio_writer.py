@@ -45,7 +45,13 @@ class RasterWorkflowRioWriter:
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
     def __init__(
-        self, dataset_prefix, workflow: Workflow, no_data_value=0, data_type=None, print_info=False, rio_kwargs=None
+        self,
+        dataset_prefix,
+        workflow: Workflow,
+        no_data_value=0,
+        data_type: np.dtype | None = None,
+        print_info=False,
+        rio_kwargs=None,
     ):
         """Create a new RasterWorkflowGdalWriter instance."""
         self.dataset_prefix = dataset_prefix
