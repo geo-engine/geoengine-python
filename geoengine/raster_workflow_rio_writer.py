@@ -30,7 +30,7 @@ class RasterWorkflowRioWriter:
     dataset_geo_transform: GeoTransform | None = None
     dataset_width = None
     dataset_height = None
-    dataset_data_type = np.dtype
+    dataset_data_type: np.dtype
     print_info = False
 
     dataset_prefix = None

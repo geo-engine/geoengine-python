@@ -890,7 +890,7 @@ class RasterDataType(str, Enum):
             RasterDataType.F32: np.float32,
             RasterDataType.F64: np.float64,
         }
-        return mapping[self]  # type: ignore
+        return np.dtype(mapping[self])
 
 
 class TimeDimension:
