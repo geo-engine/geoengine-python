@@ -73,11 +73,11 @@ class BoundingBox2D(SpatialBounds):
 
     def to_api_dict(self) -> geoengine_openapi_client.BoundingBox2D:
         return geoengine_openapi_client.BoundingBox2D(
-            lowerLeftCoordinate=geoengine_openapi_client.Coordinate2D(
+            lower_left_coordinate=geoengine_openapi_client.Coordinate2D(
                 x=self.xmin,
                 y=self.ymin,
             ),
-            upperRightCoordinate=geoengine_openapi_client.Coordinate2D(
+            upper_right_coordinate=geoengine_openapi_client.Coordinate2D(
                 x=self.xmax,
                 y=self.ymax,
             ),
@@ -126,11 +126,11 @@ class SpatialPartition2D(SpatialBounds):
 
     def to_api_dict(self) -> geoengine_openapi_client.SpatialPartition2D:
         return geoengine_openapi_client.SpatialPartition2D(
-            upperLeftCoordinate=geoengine_openapi_client.Coordinate2D(
+            upper_left_coordinate=geoengine_openapi_client.Coordinate2D(
                 x=self.xmin,
                 y=self.ymax,
             ),
-            lowerRightCoordinate=geoengine_openapi_client.Coordinate2D(
+            lower_right_coordinate=geoengine_openapi_client.Coordinate2D(
                 x=self.xmax,
                 y=self.ymin,
             ),
@@ -616,8 +616,8 @@ class VectorResultDescriptor(ResultDescriptor):
         return geoengine_openapi_client.TypedResultDescriptor(
             geoengine_openapi_client.TypedVectorResultDescriptor(
                 type="vector",
-                dataType=self.data_type.to_api_enum(),
-                spatialReference=self.spatial_reference,
+                data_type=self.data_type.to_api_enum(),
+                spatial_reference=self.spatial_reference,
                 columns={name: column_info.to_api_dict() for name, column_info in self.columns.items()},
                 time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
                 bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
@@ -666,7 +666,7 @@ class VectorColumnInfo:
         """Convert to a dictionary"""
 
         return geoengine_openapi_client.VectorColumnInfo(
-            dataType=self.data_type.to_api_enum(),
+            data_type=self.data_type.to_api_enum(),
             measurement=self.measurement.to_api_dict(),
         )
 
@@ -707,7 +707,7 @@ class GridIdx2D:
         return GridIdx2D(x_idx=response.x_idx, y_idx=response.y_idx)
 
     def to_api_dict(self) -> geoengine_openapi_client.GridIdx2D:
-        return geoengine_openapi_client.GridIdx2D(yIdx=self.y_idx, xIdx=self.x_idx)
+        return geoengine_openapi_client.GridIdx2D(y_idx=self.y_idx, x_idx=self.x_idx)
 
 
 @dataclass
@@ -726,8 +726,8 @@ class GridBoundingBox2D:
 
     def to_api_dict(self) -> geoengine_openapi_client.GridBoundingBox2D:
         return geoengine_openapi_client.GridBoundingBox2D(
-            topLeftIdx=self.top_left_idx.to_api_dict(),
-            bottomRightIdx=self.bottom_right_idx.to_api_dict(),
+            top_left_idx=self.top_left_idx.to_api_dict(),
+            bottom_right_idx=self.bottom_right_idx.to_api_dict(),
         )
 
     @property
@@ -761,8 +761,8 @@ class SpatialGridDefinition:
 
     def to_api_dict(self) -> geoengine_openapi_client.SpatialGridDefinition:
         return geoengine_openapi_client.SpatialGridDefinition(
-            geoTransform=self.geo_transform.to_api_dict(),
-            gridBounds=self.grid_bounds.to_api_dict(),
+            geo_transform=self.geo_transform.to_api_dict(),
+            grid_bounds=self.grid_bounds.to_api_dict(),
         )
 
     def contains_idx(self, idx: GridIdx2D) -> bool:
@@ -797,7 +797,7 @@ class SpatialGridDescriptor:
 
     def to_api_dict(self) -> geoengine_openapi_client.SpatialGridDescriptor:
         return geoengine_openapi_client.SpatialGridDescriptor(
-            spatialGrid=self.spatial_grid.to_api_dict(),
+            spatial_grid=self.spatial_grid.to_api_dict(),
             descriptor=self.descriptor,
         )
 
@@ -890,7 +890,7 @@ class RasterDataType(str, Enum):
             RasterDataType.F32: np.float32,
             RasterDataType.F64: np.float64,
         }
-        return mapping[self]
+        return mapping[self]  # type: ignore
 
 
 class TimeDimension:
@@ -1053,11 +1053,11 @@ class RasterResultDescriptor(ResultDescriptor):
         return geoengine_openapi_client.TypedResultDescriptor(
             geoengine_openapi_client.TypedRasterResultDescriptor(
                 type="raster",
-                dataType=self.data_type.to_api_enum(),
+                data_type=self.data_type.to_api_enum(),
                 bands=[band.to_api_dict() for band in self.__bands],
-                spatialReference=self.spatial_reference,
+                spatial_reference=self.spatial_reference,
                 time=self.__time.to_api_dict(),
-                spatialGrid=self.__spatial_grid.to_api_dict(),
+                spatial_grid=self.__spatial_grid.to_api_dict(),
             )
         )
 
@@ -1183,7 +1183,7 @@ class PlotResultDescriptor(ResultDescriptor):
         return geoengine_openapi_client.TypedResultDescriptor(
             geoengine_openapi_client.TypedPlotResultDescriptor(
                 type="plot",
-                spatialReference=self.spatial_reference,
+                spatial_reference=self.spatial_reference,
                 time=self.time_bounds.to_api_dict() if self.time_bounds is not None else None,
                 bbox=self.spatial_bounds.to_api_dict() if self.spatial_bounds is not None else None,
             )
@@ -1394,7 +1394,7 @@ class SingleBandRasterColorizer(RasterColorizer):
             geoengine_openapi_client.SingleBandRasterColorizer(
                 type="singleBand",
                 band=self.band,
-                bandColorizer=self.band_colorizer.to_api_dict(),
+                band_colorizer=self.band_colorizer.to_api_dict(),
             )
         )
 
