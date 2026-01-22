@@ -1753,18 +1753,6 @@ class GeoTransform:
         self.y_pixel_size = y_pixel_size
 
     @classmethod
-    def from_response_gdal_geo_transform(
-        cls, response: geoengine_openapi_client.GdalDatasetGeoTransform
-    ) -> GeoTransform:
-        """Parse a geotransform from an HTTP JSON response"""
-        return GeoTransform(
-            x_min=response.origin_coordinate.x,
-            y_max=response.origin_coordinate.y,
-            x_pixel_size=response.x_pixel_size,
-            y_pixel_size=response.y_pixel_size,
-        )
-
-    @classmethod
     def from_response(cls, response: geoengine_openapi_client.GeoTransform) -> GeoTransform:
         """Parse a geotransform from an HTTP JSON response"""
 
@@ -1777,16 +1765,6 @@ class GeoTransform:
 
     def to_api_dict(self) -> geoengine_openapi_client.GeoTransform:
         return geoengine_openapi_client.GeoTransform(
-            origin_coordinate=geoengine_openapi_client.Coordinate2D(
-                x=self.x_min,
-                y=self.y_max,
-            ),
-            x_pixel_size=self.x_pixel_size,
-            y_pixel_size=self.y_pixel_size,
-        )
-
-    def to_api_dict_gdal_geo_transform(self) -> geoengine_openapi_client.GdalDatasetGeoTransform:
-        return geoengine_openapi_client.GdalDatasetGeoTransform(
             origin_coordinate=geoengine_openapi_client.Coordinate2D(
                 x=self.x_min,
                 y=self.y_max,
