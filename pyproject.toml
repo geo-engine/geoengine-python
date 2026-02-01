@@ -33,7 +33,7 @@ dependencies = [
     "xarray >=0.19,<2026.1",
     "urllib3 >= 2.1, < 2.7",
     "pydantic >= 2.10.6, < 2.13",
-    'skl2onnx >=1.19.1,<1.20',
+    'skl2onnx >=1.19.1,<1.21',
 ]
 
 [project.urls]
