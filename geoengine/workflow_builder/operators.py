@@ -336,7 +336,7 @@ class Downsampling(RasterOperator):
             output_method=output_method,
             output_x=output_x,
             output_y=output_y,
-            sample_method=cast(Literal["nearestNeighbor"], operator_dict["params"]["downsampling"]),
+            sample_method=cast(Literal["nearestNeighbor"], operator_dict["params"]["samplingMethod"]),
         )
 
 
