@@ -166,7 +166,6 @@ class WorkflowVectorStreamTests(unittest.TestCase):
         query_rect = ge.QueryRectangle(
             spatial_bounds=ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
             time_interval=ge.TimeInterval(datetime(2014, 4, 1, 0, 0, 0), datetime(2014, 6, 1, 0, 0, 0)),
-            resolution=ge.SpatialResolution(0.5, 0.5),
         )
 
         with unittest.mock.patch("websockets.asyncio.client.connect", return_value=MockWebsocket()):

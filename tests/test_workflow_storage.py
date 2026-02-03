@@ -1,8 +1,7 @@
 """Tests for WMS calls"""
 
 import unittest
-
-import geoengine_openapi_client
+from datetime import datetime
 
 import geoengine as ge
 from geoengine.datasets import DatasetName, StoredDataset
@@ -25,13 +24,9 @@ class WorkflowStorageTests(unittest.TestCase):
 
             workflow_definition = {"type": "Raster", "operator": {"type": "GdalSource", "params": {"data": "ndvi"}}}
 
-            query = geoengine_openapi_client.RasterQueryRectangle(
-                spatial_bounds=geoengine_openapi_client.SpatialPartition2D(
-                    upper_left_coordinate=geoengine_openapi_client.Coordinate2D(x=-180.0, y=90.0),
-                    lower_right_coordinate=geoengine_openapi_client.Coordinate2D(x=180.0, y=-90.0),
-                ),
-                time_interval=geoengine_openapi_client.TimeInterval(start=1396353600000, end=1396353600000),
-                spatial_resolution=geoengine_openapi_client.SpatialResolution(x=1.8, y=1.8),
+            query = ge.QueryRectangle(
+                ge.SpatialPartition2D(xmin=-180.0, ymax=90.0, xmax=180.0, ymin=-90.0),
+                ge.TimeInterval(start=datetime(2014, 4, 1, 12, 0), end=None),
             )
 
             workflow = ge.register_workflow(workflow_definition)

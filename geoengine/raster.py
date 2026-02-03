@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from typing import Literal, cast
+from typing import cast
 
 import geoengine_openapi_client
 import numpy as np
@@ -12,33 +12,6 @@ import xarray as xr
 
 import geoengine.types as gety
 from geoengine.util import clamp_datetime_ms_ns
-
-
-# pylint: disable=too-many-return-statements
-def ge_type_to_np(res_dt: Literal["U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64", "F32", "F64"]):
-    """Convert a Geo Engine data type to a numpy data type"""
-
-    if res_dt == "U8":
-        return np.uint8
-    if res_dt == "U16":
-        return np.uint16
-    if res_dt == "U32":
-        return np.uint32
-    if res_dt == "U64":
-        return np.uint64
-    if res_dt == "I8":
-        return np.int8
-    if res_dt == "I16":
-        return np.int16
-    if res_dt == "I32":
-        return np.int32
-    if res_dt == "I64":
-        return np.int64
-    if res_dt == "F32":
-        return np.float32
-    if res_dt == "F64":
-        return np.float64
-    raise TypeError("Unknown type literal")
 
 
 class RasterTile2D:
@@ -158,7 +131,7 @@ class RasterTile2D:
 
         return np.arange(
             start,
-            stop=self.geo_transform.x_max(self.size_x),
+            stop=self.geo_transform.pixel_x_to_coord_x(self.size_x),
             step=self.geo_transform.x_pixel_size,
         )
 
@@ -175,7 +148,7 @@ class RasterTile2D:
 
         return np.arange(
             start,
-            stop=self.geo_transform.y_min(self.size_y),
+            stop=self.geo_transform.pixel_y_to_coord_y(self.size_y),
             step=self.geo_transform.y_pixel_size,
         )
 
@@ -215,8 +188,8 @@ class RasterTile2D:
         """Return the spatial partition of the raster tile"""
         return gety.SpatialPartition2D(
             self.geo_transform.x_min,
-            self.geo_transform.y_min(self.size_y),
-            self.geo_transform.x_max(self.size_x),
+            self.geo_transform.pixel_y_to_coord_y(self.size_y),
+            self.geo_transform.pixel_x_to_coord_x(self.size_x),
             self.geo_transform.y_max,
         )
 
@@ -233,7 +206,7 @@ class RasterTile2D:
     def from_ge_record_batch(record_batch: pa.RecordBatch) -> RasterTile2D:
         """Create a RasterTile2D from an Arrow record batch recieved from the Geo Engine"""
         metadata = record_batch.schema.metadata
-        inner = geoengine_openapi_client.GdalDatasetGeoTransform.from_json(metadata[b"geoTransform"])
+        inner = geoengine_openapi_client.GeoTransform.from_json(metadata[b"geoTransform"])
         assert inner is not None, "Failed to parse geoTransform"
         geo_transform = gety.GeoTransform.from_response(inner)
         x_size = int(metadata[b"xSize"])

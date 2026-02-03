@@ -44,8 +44,8 @@ class PlotTests(unittest.TestCase):
                 ge.QueryRectangle(
                     ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                     ge.TimeInterval(np.datetime64("2014-04-01T12:00:00")),
-                    ge.SpatialResolution(0.1, 0.1),
-                )
+                ),
+                spatial_resolution=ge.SpatialResolution(0.1, 0.1),
             )
 
             self.assertEqual(type(vega_chart), VegaLite)
@@ -133,7 +133,6 @@ class PlotTests(unittest.TestCase):
                     ge.QueryRectangle(
                         ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                         ge.TimeInterval(time),
-                        ge.SpatialResolution(0.1, 0.1),
                     )
                 )
 
@@ -198,8 +197,8 @@ class PlotTests(unittest.TestCase):
                     ge.QueryRectangle(
                         ge.BoundingBox2D(-180.0, -90.0, 180.0, 90.0),
                         ge.TimeInterval(time),
-                        ge.SpatialResolution(0.1, 0.1),
-                    )
+                    ),
+                    spatial_resolution=ge.SpatialResolution(0.1, 0.1),
                 )
 
             self.assertEqual(

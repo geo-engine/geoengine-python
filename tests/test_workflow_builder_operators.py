@@ -36,13 +36,19 @@ class OperatorsTests(unittest.TestCase):
         workflow = wb.operators.Interpolation(
             source_operator=source_operator,
             interpolation="nearestNeighbor",
+            output_method="fraction",
+            output_x=0.5,
+            output_y=0.5,
         )
 
         self.assertEqual(
             workflow.to_dict(),
             {
                 "type": "Interpolation",
-                "params": {"interpolation": "nearestNeighbor", "inputResolution": {"type": "source"}},
+                "params": {
+                    "interpolation": "nearestNeighbor",
+                    "outputResolution": {"type": "fraction", "x": 0.5, "y": 0.5},
+                },
                 "sources": {
                     "raster": {"type": "GdalSource", "params": {"data": "ndvi"}},
                 },
@@ -148,14 +154,14 @@ class OperatorsTests(unittest.TestCase):
     def test_raster_type_conversion(self):
         source_operator = wb.operators.GdalSource("ndvi")
 
-        workflow = wb.operators.RasterTypeConversion(source=source_operator, output_data_type="u8")
+        workflow = wb.operators.RasterTypeConversion(source=source_operator, output_data_type="U8")
 
         self.assertEqual(
             workflow.to_dict(),
             {
                 "type": "RasterTypeConversion",
                 "params": {
-                    "outputDataType": "u8",
+                    "outputDataType": "U8",
                 },
                 "sources": {"raster": {"type": "GdalSource", "params": {"data": "ndvi"}}},
             },
@@ -231,7 +237,7 @@ class OperatorsTests(unittest.TestCase):
             ignore_no_data=True,
             window_size=1,
             granularity="days",
-            output_type="u8",
+            output_type="U8",
         )
 
         self.assertEqual(
@@ -242,7 +248,7 @@ class OperatorsTests(unittest.TestCase):
                     "aggregation": {"type": "mean", "ignoreNoData": True, "percentile": None},
                     "window": {"granularity": "days", "step": 1},
                     "windowReference": None,
-                    "outputType": "u8",
+                    "outputType": "U8",
                 },
                 "sources": {"raster": {"type": "GdalSource", "params": {"data": "ndvi"}}},
             },
@@ -268,7 +274,7 @@ class OperatorsTests(unittest.TestCase):
 
     def test_workflow_to_operator(self):
         operator = wb.operators.GdalSource("ndvi")
-        operator = wb.operators.RasterTypeConversion(source=operator, output_data_type="u8")
+        operator = wb.operators.RasterTypeConversion(source=operator, output_data_type="U8")
         operator = wb.operators.RasterScaling(
             source=operator, slope=1.0, offset=None, scaling_mode="mulSlopeAddOffset", output_measurement=None
         )
@@ -277,6 +283,118 @@ class OperatorsTests(unittest.TestCase):
         other_workflow_dict = wb.operators.Operator.from_workflow_dict(operator.to_workflow_dict()).to_workflow_dict()
 
         self.assertEqual(workflow_dict, other_workflow_dict)
+
+    def test_workflow_from_operator(self):
+        operator = wb.operators.GdalSource("ndvi")
+        operator = wb.operators.RasterTypeConversion(source=operator, output_data_type="U8")
+        operator = wb.operators.RasterScaling(
+            source=operator, slope=1.0, offset=None, scaling_mode="mulSlopeAddOffset", output_measurement=None
+        )
+
+        workflow_dict = operator.to_workflow_dict()
+        other_operator = wb.operators.Operator.from_workflow_dict(workflow_dict)
+
+        self.assertEqual(operator.to_workflow_dict(), other_operator.to_workflow_dict())
+
+    def test_raster_downsampling(self):
+        source_operator = wb.operators.GdalSource("ndvi")
+
+        workflow = wb.operators.Downsampling(
+            source_operator=source_operator,
+            sample_method="nearestNeighbor",
+            output_method="fraction",
+            output_x=2,
+            output_y=2,
+        )
+
+        self.assertEqual(
+            workflow.to_dict(),
+            {
+                "type": "Downsampling",
+                "params": {
+                    "samplingMethod": "nearestNeighbor",
+                    "outputResolution": {"type": "fraction", "x": 2, "y": 2},
+                },
+                "sources": {
+                    "raster": {"type": "GdalSource", "params": {"data": "ndvi"}},
+                },
+            },
+        )
+
+        self.assertEqual(wb.operators.Downsampling.from_operator_dict(workflow.to_dict()).to_dict(), workflow.to_dict())
+
+    def test_raster_onnx(self):
+        source_operator = wb.operators.GdalSource("ndvi")
+
+        workflow = wb.operators.Onnx(
+            source=source_operator,
+            model="cat_by_shadow.onnx",
+        )
+
+        self.assertEqual(
+            workflow.to_dict(),
+            {
+                "type": "Onnx",
+                "params": {
+                    "model": "cat_by_shadow.onnx",
+                },
+                "sources": {"raster": {"type": "GdalSource", "params": {"data": "ndvi"}}},
+            },
+        )
+        self.assertEqual(wb.operators.Onnx.from_operator_dict(workflow.to_dict()).to_dict(), workflow.to_dict())
+
+    def test_raster_stacker(self):
+        source_operator1 = wb.operators.GdalSource("ndvi")
+        source_operator2 = wb.operators.GdalSource("elevation")
+
+        workflow = wb.operators.RasterStacker(
+            sources=[source_operator1, source_operator2],
+        )
+
+        self.assertEqual(
+            workflow.to_dict(),
+            {
+                "type": "RasterStacker",
+                "params": {"renameBands": {"type": "default"}},
+                "sources": {
+                    "rasters": [
+                        {"type": "GdalSource", "params": {"data": "ndvi"}},
+                        {"type": "GdalSource", "params": {"data": "elevation"}},
+                    ]
+                },
+            },
+        )
+        self.assertEqual(
+            wb.operators.RasterStacker.from_operator_dict(workflow.to_dict()).to_dict(), workflow.to_dict()
+        )
+
+    def test_raster_stacker_with_rename(self):
+        source_operator1 = wb.operators.GdalSource("ndvi")
+        source_operator2 = wb.operators.GdalSource("elevation")
+
+        workflow = wb.operators.RasterStacker(
+            sources=[source_operator1, source_operator2],
+            rename=wb.operators.RenameBandsRename(["vegetation_index", "elevation_meters"]),
+        )
+
+        self.assertEqual(
+            workflow.to_dict(),
+            {
+                "type": "RasterStacker",
+                "params": {
+                    "renameBands": {"type": "rename", "values": ["vegetation_index", "elevation_meters"]},
+                },
+                "sources": {
+                    "rasters": [
+                        {"type": "GdalSource", "params": {"data": "ndvi"}},
+                        {"type": "GdalSource", "params": {"data": "elevation"}},
+                    ]
+                },
+            },
+        )
+        self.assertEqual(
+            wb.operators.RasterStacker.from_operator_dict(workflow.to_dict()).to_dict(), workflow.to_dict()
+        )
 
 
 if __name__ == "__main__":
