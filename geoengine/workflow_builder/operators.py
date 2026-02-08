@@ -249,8 +249,8 @@ class Interpolation(RasterOperator):
                 raise KeyError("Interpolation outputResolution must contain a type: resolution OR fraction")
             if params["type"] == "fraction":
                 return ("fraction", output_x, output_y)
-            if params["type"] == "fraction":
-                return ("fraction", output_x, output_y)
+            if params["type"] == "resolution":
+                return ("resolution", output_x, output_y)
             raise ValueError(f"Invalid interpolation outputResolution type {params['type']}")
 
         (output_method, output_x, output_y) = parse_input_params(
@@ -323,8 +323,8 @@ class Downsampling(RasterOperator):
                 raise KeyError("Downsampling outputResolution must contain a type: resolution OR fraction")
             if params["type"] == "fraction":
                 return ("fraction", output_x, output_y)
-            if params["type"] == "fraction":
-                return ("fraction", output_x, output_y)
+            if params["type"] == "resolution":
+                return ("resolution", output_x, output_y)
             raise ValueError(f"Invalid Downsampling outputResolution type {params['type']}")
 
         (output_method, output_x, output_y) = parse_input_params(
