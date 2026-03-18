@@ -852,7 +852,10 @@ def _add_layer_to_collection(
         response = layers_api.add_layer(
             collection_id,
             geoengine_openapi_client.AddLayer(
-                name=name, description=description, workflow=workflow, symbology=symbology_dict
+                name=name,
+                description=description,
+                workflow=geoengine_openapi_client.Workflow.from_dict(workflow),
+                symbology=symbology_dict,
             ),
             _request_timeout=timeout,
         )
