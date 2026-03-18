@@ -603,12 +603,14 @@ class Layer:
         if response.symbology is not None:
             symbology = Symbology.from_response(response.symbology)
 
+        workflow_dict = cast(dict[str, Any], response.workflow.to_dict())  # silence mypy here
+
         return Layer(
             name=response.name,
             description=response.description,
             layer_id=LayerId(response.id.layer_id),
             provider_id=LayerProviderId(response.id.provider_id),
-            workflow=response.workflow.to_dict(),
+            workflow=workflow_dict,
             symbology=symbology,
             properties=cast(list[Any], response.properties),
             metadata=cast(dict[Any, Any], response.metadata),

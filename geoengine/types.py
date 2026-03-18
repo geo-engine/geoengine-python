@@ -9,7 +9,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Literal, cast
+from typing import Any, Literal, TypedDict, cast
 from uuid import UUID
 
 import geoengine_openapi_client
@@ -248,6 +248,13 @@ class TimeInterval:
         return self.start == other.start and self.end == other.end
 
 
+class SpatialResolutionDict(TypedDict):
+    """A spatial resolution as a dictionary"""
+
+    x: float
+    y: float
+
+
 class SpatialResolution:
     """'A spatial resolution."""
 
@@ -262,16 +269,16 @@ class SpatialResolution:
         self.x_resolution = x_resolution
         self.y_resolution = y_resolution
 
-    def to_api_dict(self) -> geoengine_openapi_client.SpatialResolution:
-        return geoengine_openapi_client.SpatialResolution(
-            x=self.x_resolution,
-            y=self.y_resolution,
-        )
+    def to_api_dict(self) -> SpatialResolutionDict:
+        return {
+            "x": self.x_resolution,
+            "y": self.y_resolution,
+        }
 
     @staticmethod
-    def from_response(response: geoengine_openapi_client.SpatialResolution) -> SpatialResolution:
+    def from_response(response: SpatialResolutionDict) -> SpatialResolution:
         """create a `SpatialResolution` from an API response"""
-        return SpatialResolution(x_resolution=response.x, y_resolution=response.y)
+        return SpatialResolution(x_resolution=response["x"], y_resolution=response["y"])
 
     def as_tuple(self) -> tuple[float, float]:
         return (self.x_resolution, self.y_resolution)
