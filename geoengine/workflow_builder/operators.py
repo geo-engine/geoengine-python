@@ -851,7 +851,10 @@ class VectorExpression(VectorOperator):
 
     def to_dict(self) -> dict[str, Any]:
         output_column_dict = None
-        if isinstance(self.output_column, GeoVectorDataType):
+
+        if isinstance(self.output_column, dict):
+            output_column_dict = self.output_column
+        elif isinstance(self.output_column, GeoVectorDataType):
             output_column_dict = {
                 "type": "geometry",
                 "value": self.output_column.value,
@@ -880,7 +883,7 @@ class VectorExpression(VectorOperator):
 
     @classmethod
     def from_operator_dict(cls, operator_dict: dict[str, Any]) -> VectorExpression:
-        if operator_dict["type"] != "Expression":
+        if operator_dict["type"] != "VectorExpression":
             raise ValueError("Invalid operator type")
 
         geometry_column_name = None
@@ -889,7 +892,9 @@ class VectorExpression(VectorOperator):
 
         output_measurement = None
         if "outputMeasurement" in operator_dict["params"]:
-            output_measurement = Measurement.from_response(operator_dict["params"]["outputMeasurement"])
+            output_measurement = Measurement.from_response(
+                geoengine_openapi_client.Measurement.from_dict(operator_dict["params"]["outputMeasurement"])
+            )
 
         return VectorExpression(
             source=VectorOperator.from_operator_dict(operator_dict["sources"]["vector"]),
