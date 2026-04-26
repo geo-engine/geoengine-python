@@ -50,7 +50,7 @@ dev = [
     "twine >=3.4,<6.3",            # PyPI
     "types-requests >=2.26,<3",    # mypy type hints
     "types-setuptools >=71.1,<83", # mypy type hints
-    "wheel >=0.37,<0.47",
+    "wheel >=0.37,<0.48",
 ]
 test = [
     "psycopg >=3.2,<4",
